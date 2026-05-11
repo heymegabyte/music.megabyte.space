@@ -1,0 +1,48 @@
+- main [ref=e2]:
+  - generic:
+    - generic:
+      - paragraph: Casting from music.megabyte.space
+      - heading "Afghanistan Mercy" [level=1]
+      - paragraph: BZ · BZ Music
+      - generic:
+        - generic:
+          - generic: 0:10
+          - generic: 1:56
+      - paragraph: ▲ ▼ Queue · ◀ ▶ Seek · OK Play / Pause · Back Now Playing
+  - generic:
+    - generic:
+      - paragraph: Lyrics syncing…
+  - complementary:
+    - generic:
+      - heading [level=2]: Queue
+      - generic: "2"
+    - list:
+      - listitem:
+        - generic:
+          - generic: Afghanistan Mercy
+          - generic: BZ · BZ Music
+        - generic: NOW
+      - listitem:
+        - generic:
+          - generic: Alien AI Lord
+          - generic: BZ · BZ Music
+        - generic: "02"
+  - generic [ref=e7]: Awaiting sender…
+  - generic: Queue loaded · 2 tracks
+  - generic:
+    - generic:
+      - paragraph: BZ Music · Cast
+      - heading [level=1]: Pick a track to start the show.
+      - paragraph:
+        - text: Open
+        - strong: music.megabyte.space
+        - text: on phone or laptop, tap the cast icon.
+      - generic:
+        - generic:
+          - img
+        - paragraph: Scan to join · phone becomes the remote
+      - generic:
+        - generic: ▲ ▼ Queue
+        - generic: ◀ ▶ Seek
+        - generic: OK Play / Pause
+        - generic: Back Now Playing

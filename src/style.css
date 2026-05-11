@@ -595,6 +595,141 @@ body[data-subscribed="1"] .album__subscribe { display: none; }
   text-shadow: 0 2px 10px rgba(6, 6, 16, 0.9);
 }
 
+/* ---------- AI's Choice playlist widget (empty homepage hero) ---------- */
+.ai-playlist {
+  pointer-events: auto;
+  margin-bottom: 18px;
+  display: grid;
+  gap: 10px;
+  max-width: 720px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .45s ease, transform .45s ease;
+}
+.ai-playlist.is-ready { opacity: 1; transform: none; }
+html.is-playing .ai-playlist {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+.ai-playlist__head {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ai-playlist__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 2px 10px rgba(0, 229, 255, 0.5);
+}
+.ai-playlist__tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.ai-playlist__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 8px;
+}
+.ai-pick {
+  --ai-pick-score: 0.5;
+  display: grid;
+  grid-template-columns: 22px 44px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(10, 10, 24, 0.74), rgba(6, 6, 16, 0.6));
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+  font: inherit;
+}
+.ai-pick::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  width: calc(var(--ai-pick-score) * 100%);
+  background: linear-gradient(90deg, var(--accent), var(--violet));
+  opacity: 0.65;
+  transition: width .35s ease, opacity .18s ease;
+}
+.ai-pick:hover,
+.ai-pick:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -18px rgba(0, 229, 255, 0.6);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(124, 58, 237, 0.12));
+}
+.ai-pick:hover::after,
+.ai-pick:focus-visible::after { opacity: 1; }
+.ai-pick.is-current {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.18), rgba(124, 58, 237, 0.16));
+}
+.ai-pick__rank {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.ai-pick__cover {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--bg-elev);
+  display: block;
+}
+.ai-pick__meta {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.ai-pick__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.1;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-pick__album {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-pick__score {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
 
 /* ---------- HUD: live Web Audio readouts (compact pill bar) ---------- */
 .hud {
@@ -691,35 +826,64 @@ body[data-subscribed="1"] .album__subscribe { display: none; }
 .hud__mode-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  border: 1px solid var(--line-strong);
-  background: rgba(0, 229, 255, 0.08);
-  color: var(--accent);
+  gap: 7px;
+  border: 1px solid var(--accent);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.18), rgba(124, 58, 237, 0.18));
+  color: var(--ink);
   border-radius: 999px;
-  padding: 5px 9px 5px 11px;
+  padding: 6px 12px 6px 6px;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   line-height: 1;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08), 0 8px 22px -10px rgba(0, 229, 255, 0.55);
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+  animation: modeBtnPulse 2.6s ease-out 0.6s 3;
 }
+.hud__mode-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #00131a;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+.hud__mode-name { color: var(--ink); }
 .hud__mode-btn:hover, .hud__mode-btn:focus-visible {
-  background: rgba(0, 229, 255, 0.16);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.28), rgba(124, 58, 237, 0.28));
   border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.14), 0 12px 28px -10px rgba(0, 229, 255, 0.7);
   outline: none;
 }
 .hud__mode-btn[aria-expanded='true'] {
-  background: rgba(0, 229, 255, 0.22);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.32), rgba(124, 58, 237, 0.32));
   border-color: var(--accent);
+  animation: none;
 }
 .hud__mode-chev {
-  font-size: 0.55rem;
+  font-size: 0.6rem;
   opacity: 0.85;
   transition: transform 0.22s ease;
 }
 .hud__mode-btn[aria-expanded='true'] .hud__mode-chev { transform: rotate(180deg); }
+
+@keyframes modeBtnPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.08), 0 8px 22px -10px rgba(0, 229, 255, 0.55); }
+  50% { box-shadow: 0 0 0 8px rgba(0, 229, 255, 0.18), 0 16px 32px -10px rgba(0, 229, 255, 0.85); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud__mode-btn { animation: none; }
+}
 
 /* ---------- Viz mode picker (native popover) ---------- */
 .viz-picker {
@@ -2085,6 +2249,17 @@ html.is-appeal-open { overflow: hidden; }
   .viz__hero-album { font-size: 0.66rem; letter-spacing: 0.32em; }
   .viz__hero-title { font-size: clamp(1.6rem, min(11vw, 11vh), 4rem); }
   .viz__hero-vibe { font-size: 0.92rem; max-width: 100%; }
+  .ai-playlist { margin-bottom: 12px; gap: 6px; }
+  .ai-playlist__head { gap: 8px; }
+  .ai-playlist__eyebrow { font-size: 0.62rem; letter-spacing: 0.26em; }
+  .ai-playlist__tag { display: none; }
+  .ai-playlist__list { grid-template-columns: 1fr; gap: 5px; }
+  .ai-pick { grid-template-columns: 20px 38px 1fr auto; padding: 6px 10px; gap: 8px; border-radius: 12px; }
+  .ai-pick:nth-child(n+4) { display: none; }
+  .ai-pick__cover { width: 38px; height: 38px; border-radius: 6px; }
+  .ai-pick__title { font-size: 0.84rem; }
+  .ai-pick__album { font-size: 0.52rem; letter-spacing: 0.14em; }
+  .ai-pick__score { font-size: 0.64rem; }
   .hud {
     position: absolute;
     top: 8px;
@@ -2099,8 +2274,9 @@ html.is-appeal-open { overflow: hidden; }
   .hud__cell:has(#hudPeak),
   .hud__cell:has(#hudFps),
   .hud__cell--meter { display: none; }
-  .hud__mode-btn { padding: 4px 8px 4px 9px; font-size: 0.54rem; letter-spacing: 0.14em; }
-  .hud__mode-chev { font-size: 0.5rem; }
+  .hud__mode-btn { padding: 4px 10px 4px 4px; gap: 5px; font-size: 0.58rem; letter-spacing: 0.12em; }
+  .hud__mode-count { min-width: 18px; height: 18px; padding: 0 5px; font-size: 0.62rem; }
+  .hud__mode-chev { font-size: 0.52rem; }
   .beat { bottom: 12px; right: 16px; }
   .transport {
     grid-template-areas:
@@ -2632,7 +2808,8 @@ button:not(:disabled):active { opacity: 0.85; }
   cursor: pointer;
   transition: background 140ms, color 140ms;
 }
-.more-menu__item span { flex: 1; }
+.more-menu__item > span { flex: 1; min-width: 0; }
+.more-menu__item > span.more-menu__dot { flex: 0 0 8px; width: 8px; height: 8px; }
 .more-menu__item kbd {
   font-family: var(--font-mono);
   font-size: 10px;

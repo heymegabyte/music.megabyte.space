@@ -83,8 +83,20 @@ const LS_KEYS = {
   visits: 'bz:visits',
   installDismissed: 'bz:installDismissed',
   installSnoozeUntil: 'bz:installSnoozeUntil',
-  crossfade: 'bz:crossfade'
+  crossfade: 'bz:crossfade',
+  listenStats: 'bz:listenStats'
 };
+
+interface LocalListenStat {
+  starts: number;
+  completes: number;
+  skips: number;
+  replays: number;
+  secondsListened: number;
+  lastPlayAt: number;
+}
+const listenStats = new Map<string, LocalListenStat>();
+let lastPlayedAt: { id: string; startedAt: number; lastTime: number; counted: boolean } | null = null;
 
 const INSTALL_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -98,7 +110,80 @@ function loadPersisted() {
     if (s === '1') shuffleOn = true;
     const cf = localStorage.getItem(LS_KEYS.crossfade);
     if (cf === '1') crossfadeEnabled = true;
+    const ls = localStorage.getItem(LS_KEYS.listenStats);
+    if (ls) {
+      const parsed = JSON.parse(ls) as Record<string, LocalListenStat>;
+      for (const [id, v] of Object.entries(parsed)) {
+        if (v && typeof v.starts === 'number') listenStats.set(id, v);
+      }
+    }
   } catch { /* noop */ }
+}
+
+function getListenStat(id: string): LocalListenStat {
+  let s = listenStats.get(id);
+  if (!s) {
+    s = { starts: 0, completes: 0, skips: 0, replays: 0, secondsListened: 0, lastPlayAt: 0 };
+    listenStats.set(id, s);
+  }
+  return s;
+}
+
+function persistListenStats() {
+  const out: Record<string, LocalListenStat> = {};
+  for (const [id, v] of listenStats) out[id] = v;
+  persist(LS_KEYS.listenStats, out);
+}
+
+function closePriorListenSession() {
+  if (!lastPlayedAt) return;
+  const prior = lastPlayedAt;
+  const stat = getListenStat(prior.id);
+  const duration = TRACK_BY_ID.get(prior.id)
+    ? (engine.audio?.duration && Number.isFinite(engine.audio.duration) ? engine.audio.duration : 0)
+    : 0;
+  const fraction = duration > 0 ? prior.lastTime / duration : 0;
+  if (!prior.counted) {
+    if (fraction >= 0.9) stat.completes += 1;
+    else if (fraction < 0.25 && prior.lastTime < 30) stat.skips += 1;
+  }
+  lastPlayedAt = null;
+  persistListenStats();
+}
+
+function recordPlayStart(trackId: string) {
+  if (lastPlayedAt && lastPlayedAt.id !== trackId) closePriorListenSession();
+  const stat = getListenStat(trackId);
+  if (lastPlayedAt?.id === trackId) {
+    stat.replays += 1;
+  } else {
+    stat.starts += 1;
+  }
+  stat.lastPlayAt = Date.now();
+  lastPlayedAt = { id: trackId, startedAt: Date.now(), lastTime: 0, counted: false };
+  persistListenStats();
+}
+
+function recordListenProgress(currentTime: number) {
+  if (!lastPlayedAt) return;
+  lastPlayedAt.lastTime = currentTime;
+  const dur = engine.audio?.duration;
+  if (!lastPlayedAt.counted && dur && Number.isFinite(dur) && currentTime / dur >= 0.9) {
+    lastPlayedAt.counted = true;
+    const stat = getListenStat(lastPlayedAt.id);
+    stat.completes += 1;
+    persistListenStats();
+  }
+}
+
+function recordTrackEnded() {
+  if (!lastPlayedAt) return;
+  const stat = getListenStat(lastPlayedAt.id);
+  if (!lastPlayedAt.counted) {
+    stat.completes += 1;
+    lastPlayedAt.counted = true;
+  }
+  persistListenStats();
 }
 
 async function loadGlobalStats() {
@@ -172,6 +257,94 @@ function refreshTrackStats(trackId: string) {
     if (num) num.textContent = String(plays);
   });
   if (trackId === currentTrackId) refreshShareLabel();
+}
+
+interface AiPickScore {
+  trackId: string;
+  score: number;
+  parts: { global: number; completion: number; local: number; shares: number; recency: number };
+}
+
+function aiPicks(limit = 5): AiPickScore[] {
+  const maxGlobal = Math.max(1, ...Array.from(playCounts.values()));
+  const maxShares = Math.max(1, ...Array.from(shareCounts.values()));
+  const maxLocal = Math.max(1, ...Array.from(listenStats.values()).map(s => s.starts + s.replays));
+  const now = Date.now();
+  const RECENCY_HALF_LIFE = 7 * 24 * 60 * 60 * 1000;
+
+  const scored: AiPickScore[] = TRACKS.map(t => {
+    const gp = playCounts.get(t.id) ?? 0;
+    const sh = shareCounts.get(t.id) ?? 0;
+    const ls = listenStats.get(t.id);
+    const localPlays = ls ? ls.starts + ls.replays : 0;
+    const completion = ls && ls.starts > 0 ? ls.completes / ls.starts : 0;
+    const recencyMs = ls?.lastPlayAt ? now - ls.lastPlayAt : Number.POSITIVE_INFINITY;
+    const recency = Number.isFinite(recencyMs) ? Math.exp(-recencyMs / RECENCY_HALF_LIFE) : 0;
+    const globalNorm = gp / maxGlobal;
+    const sharesNorm = sh / maxShares;
+    const localNorm = localPlays / maxLocal;
+    const score =
+      globalNorm * 0.40 +
+      completion * 0.20 +
+      localNorm * 0.15 +
+      sharesNorm * 0.15 +
+      recency * 0.10;
+    return { trackId: t.id, score, parts: { global: globalNorm, completion, local: localNorm, shares: sharesNorm, recency } };
+  });
+
+  if (scored.every(s => s.score === 0)) {
+    return TRACKS.slice(0, limit).map((t, i) => ({
+      trackId: t.id,
+      score: 1 - i * 0.05,
+      parts: { global: 0, completion: 0, local: 0, shares: 0, recency: 0 }
+    }));
+  }
+
+  return scored.sort((a, b) => b.score - a.score).slice(0, limit);
+}
+
+function refreshAiPlaylist() {
+  const wrap = document.getElementById('aiPlaylistWrap');
+  const host = document.getElementById('aiPlaylist');
+  if (!host) return;
+  const picks = aiPicks(5);
+  if (!picks.length) {
+    host.innerHTML = '';
+    wrap?.classList.remove('is-ready');
+    return;
+  }
+  const html = picks.map((pick, idx) => {
+    const t = TRACK_BY_ID.get(pick.trackId);
+    if (!t) return '';
+    const album = ALBUM_BY_ID.get(t.album);
+    const isCurrent = pick.trackId === currentTrackId;
+    const pct = Math.round(pick.score * 100);
+    return `<button type="button" class="ai-pick${isCurrent ? ' is-current' : ''}" data-ai-pick="${pick.trackId}" style="--ai-pick-score:${pick.score.toFixed(3)}" aria-label="Play ${t.title} from ${album?.name ?? 'bZ'} — AI pick #${idx + 1}, score ${pct}">
+      <span class="ai-pick__rank" aria-hidden="true">${idx + 1}</span>
+      <img class="ai-pick__cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="38" height="38" loading="lazy" />
+      <span class="ai-pick__meta">
+        <span class="ai-pick__title">${t.title}</span>
+        <span class="ai-pick__album">${album?.name ?? 'bZ'}</span>
+      </span>
+      <span class="ai-pick__score" aria-hidden="true">${pct}</span>
+    </button>`;
+  }).join('');
+  host.innerHTML = html;
+  wrap?.classList.add('is-ready');
+}
+
+function bindAiPlaylist() {
+  const host = document.getElementById('aiPlaylist');
+  if (!host || host.dataset.bound === '1') return;
+  host.dataset.bound = '1';
+  host.addEventListener('click', e => {
+    const btn = (e.target as HTMLElement | null)?.closest<HTMLButtonElement>('[data-ai-pick]');
+    if (!btn) return;
+    const id = btn.dataset.aiPick;
+    if (!id) return;
+    const t = TRACK_BY_ID.get(id);
+    if (t) play(t);
+  });
 }
 
 function refreshShareLabel() {
@@ -338,7 +511,7 @@ function setMeta(selector: string, attr: 'content' | 'href', value: string) {
 }
 
 function trackOgUrl(trackId: string) {
-  return `${SITE_ORIGIN}/og/${trackId}.jpg`;
+  return `${SITE_ORIGIN}/og/track-${trackId}.jpg`;
 }
 
 function albumOgUrl(albumId: string) {
@@ -596,6 +769,13 @@ function setupShell(root: HTMLElement) {
 
       <section class="viz" aria-label="Live audio visualizer">
         <div class="viz__hero" aria-hidden="true">
+          <aside class="ai-playlist" aria-label="AI's Choice — top picks for you" id="aiPlaylistWrap">
+            <header class="ai-playlist__head">
+              <span class="ai-playlist__eyebrow">AI's Choice</span>
+              <span class="ai-playlist__tag">scored on plays · completion · shares · recency</span>
+            </header>
+            <div class="ai-playlist__list" id="aiPlaylist" role="list"></div>
+          </aside>
           <span class="viz__hero-album" id="heroAlbum">BZ · CYAN FLAG</span>
           <h1 class="viz__hero-title" id="heroTitle">PRESS PLAY</h1>
           <p class="viz__hero-vibe" id="heroVibe">Web Audio API live. Hard but holy.</p>
@@ -622,7 +802,8 @@ function setupShell(root: HTMLElement) {
               <i class="hud__band" id="bandTreb"></i>
             </span>
           </span>
-          <button class="hud__mode-btn" id="modeBtn" type="button" popovertarget="vizPicker" aria-haspopup="dialog" aria-expanded="false" aria-label="Pick visualizer mode" title="Pick a visualizer (V to cycle)">
+          <button class="hud__mode-btn" id="modeBtn" type="button" popovertarget="vizPicker" aria-haspopup="dialog" aria-expanded="false" aria-label="Pick visualizer mode — 50 available" title="50 visualizer modes (V to cycle, or click to browse)">
+            <span class="hud__mode-count" id="modeBtnCount" aria-hidden="true">50</span>
             <span class="hud__mode-name" id="modeBtnLabel">composite</span>
             <span class="hud__mode-chev" aria-hidden="true">▾</span>
           </button>
@@ -1539,11 +1720,13 @@ function escapeHtml(s: string): string {
 
 async function play(track: Track) {
   pushTrackUrl(track);
+  recordPlayStart(track.id);
   const doUpdate = () => {
     currentTrackId = track.id;
     renderAlbums($('#albums')!);
     renderNowPlaying(track);
     refreshShareLabel();
+    refreshAiPlaylist();
   };
   const doc = document as Document & { startViewTransition?: (fn: () => void) => unknown };
   if (doc.startViewTransition) {
@@ -1649,10 +1832,12 @@ function bindMediaSession() {
   let lastPosWrite = 0;
   engine.audio.addEventListener('timeupdate', () => {
     const now = performance.now();
+    recordListenProgress(engine.audio.currentTime || 0);
     if (now - lastPosWrite < 1000) return;
     lastPosWrite = now;
     setMediaSessionPosition(engine.audio);
   });
+  engine.audio.addEventListener('ended', () => recordTrackEnded());
 }
 
 function bindIntegrations() {
@@ -3080,37 +3265,70 @@ function startHud() {
   const wctx = wave?.getContext('2d') ?? null;
   let lastFps = 60;
   let lastTextWrite = 0;
+  let lastMeterWrite = 0;
+  let lastBeatVar = -1;
+  let lastWaveFrame = 0;
+  let waveW = 0, waveH = 0, waveDpr = 1;
   let lastBpm = -1, lastPeak = -1, lastKey = '', lastCur = '', lastTot = '', lastFpsTxt = -1;
+  let lastVuL = -1, lastVuR = -1, lastBass = -1, lastMid = -1, lastTreb = -1, lastBeatDot = -1;
   let lastBeatGlowKey = '';
   const TEXT_INTERVAL_MS = 250;
+  const METER_INTERVAL_MS = 33;
+  const WAVE_INTERVAL_MS = 33;
+
+  const refreshWaveDims = () => {
+    if (!wave) return;
+    waveDpr = Math.min(2, window.devicePixelRatio || 1);
+    waveW = wave.clientWidth;
+    waveH = wave.clientHeight;
+    wave.width = Math.max(1, waveW * waveDpr);
+    wave.height = Math.max(1, waveH * waveDpr);
+  };
+  if (wave) {
+    refreshWaveDims();
+    const ro = new ResizeObserver(() => refreshWaveDims());
+    ro.observe(wave);
+  }
+  let waveAccent = (getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00e5ff');
 
   const drawWave = () => {
-    if (!wave || !wctx || !engine.timeData?.length) return;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const w = wave.clientWidth, h = wave.clientHeight;
-    if (wave.width !== w * dpr || wave.height !== h * dpr) {
-      wave.width = Math.max(1, w * dpr);
-      wave.height = Math.max(1, h * dpr);
-    }
-    wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    wctx.clearRect(0, 0, w, h);
-    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00e5ff';
+    if (!wave || !wctx || !engine.timeData?.length || waveW < 2) return;
+    wctx.setTransform(waveDpr, 0, 0, waveDpr, 0, 0);
+    wctx.clearRect(0, 0, waveW, waveH);
     const td = engine.timeData;
     const len = td.length;
-    const step = Math.max(1, Math.floor(len / w));
-    wctx.strokeStyle = accent;
+    const step = Math.max(1, Math.floor(len / waveW));
+    wctx.strokeStyle = waveAccent;
     wctx.lineWidth = 1.4;
     wctx.globalAlpha = 0.55;
     wctx.beginPath();
-    for (let x = 0; x < w; x++) {
+    const halfH = waveH / 2;
+    for (let x = 0; x < waveW; x++) {
       const i = Math.min(len - 1, x * step);
       const v = (td[i] - 128) / 128;
-      const y = h / 2 + v * (h / 2 - 1);
+      const y = halfH + v * (halfH - 1);
       if (x === 0) wctx.moveTo(x, y);
       else wctx.lineTo(x, y);
     }
     wctx.stroke();
     wctx.globalAlpha = 1;
+  };
+
+  const writePct = (el: HTMLElement | null, val: number, last: number, scale: number, store: (v: number) => void) => {
+    if (!el) return;
+    const pct = Math.min(100, val * scale);
+    const q = Math.round(pct * 2);
+    if (q === last) return;
+    store(q);
+    el.style.width = `${pct.toFixed(1)}%`;
+  };
+  const writeBand = (el: HTMLElement | null, val: number, last: number, scale: number, store: (v: number) => void) => {
+    if (!el) return;
+    const pct = Math.min(100, val * scale);
+    const q = Math.round(pct * 2);
+    if (q === last) return;
+    store(q);
+    el.style.height = `${pct.toFixed(1)}%`;
   };
 
   const tick = (now: DOMHighResTimeStamp) => {
@@ -3155,12 +3373,24 @@ function startHud() {
         lastFpsTxt = fpsVal;
       }
     }
-    if (vuLEl) vuLEl.style.width = `${Math.min(100, m.ch.l * 140)}%`;
-    if (vuREl) vuREl.style.width = `${Math.min(100, m.ch.r * 140)}%`;
-    if (bandBass) bandBass.style.height = `${Math.min(100, m.bass * 130)}%`;
-    if (bandMid) bandMid.style.height = `${Math.min(100, m.mid * 130)}%`;
-    if (bandTreb) bandTreb.style.height = `${Math.min(100, m.treble * 130)}%`;
-    if (beatDot) beatDot.style.opacity = (0.15 + m.beat * 0.85).toString();
+
+    const meterDue = now - lastMeterWrite >= METER_INTERVAL_MS;
+    if (meterDue) {
+      lastMeterWrite = now;
+      writePct(vuLEl, m.ch.l, lastVuL, 140, v => { lastVuL = v; });
+      writePct(vuREl, m.ch.r, lastVuR, 140, v => { lastVuR = v; });
+      writeBand(bandBass, m.bass, lastBass, 130, v => { lastBass = v; });
+      writeBand(bandMid, m.mid, lastMid, 130, v => { lastMid = v; });
+      writeBand(bandTreb, m.treble, lastTreb, 130, v => { lastTreb = v; });
+      if (beatDot) {
+        const op = Math.round((0.15 + m.beat * 0.85) * 100);
+        if (op !== lastBeatDot) {
+          lastBeatDot = op;
+          beatDot.style.opacity = (op / 100).toString();
+        }
+      }
+    }
+
     const npCover = $('#transportNpCover') as HTMLImageElement | null;
     if (npCover) {
       if (m.beat > 0.05) {
@@ -3178,15 +3408,27 @@ function startHud() {
         lastBeatGlowKey = '';
       }
     }
-    document.documentElement.style.setProperty('--topbar-beat', m.beat.toFixed(3));
-    drawWave();
+
+    const beatQ = Math.round(m.beat * 50);
+    if (beatQ !== lastBeatVar) {
+      lastBeatVar = beatQ;
+      document.documentElement.style.setProperty('--topbar-beat', (beatQ / 50).toFixed(2));
+    }
+
+    if (now - lastWaveFrame >= WAVE_INTERVAL_MS) {
+      lastWaveFrame = now;
+      drawWave();
+    }
     hudRaf = requestAnimationFrame(tick);
   };
   hudRaf = requestAnimationFrame(tick);
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
       lastBpm = -1; lastPeak = -1; lastKey = ''; lastCur = ''; lastTot = ''; lastFpsTxt = -1;
-      lastTextWrite = 0;
+      lastVuL = -1; lastVuR = -1; lastBass = -1; lastMid = -1; lastTreb = -1; lastBeatDot = -1;
+      lastBeatVar = -1; lastBeatGlowKey = '';
+      lastTextWrite = 0; lastMeterWrite = 0; lastWaveFrame = 0;
+      waveAccent = (getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00e5ff');
     }
   });
 }
@@ -4332,7 +4574,9 @@ window.addEventListener('DOMContentLoaded', () => {
   bootstrapInitialRoute();
   registerServiceWorker();
   void refreshNotifyToggle();
-  loadGlobalStats();
+  bindAiPlaylist();
+  refreshAiPlaylist();
+  loadGlobalStats().then(() => refreshAiPlaylist());
   engine.audio.addEventListener('timeupdate', () => {
     if (!currentTrackId) return;
     if (engine.audio.currentTime >= 30) reportPlay(currentTrackId);

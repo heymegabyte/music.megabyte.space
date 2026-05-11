@@ -6,7 +6,9 @@
   "description": "Panda Desiiignare — bZ — Web Audio API music experience",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/gen-og-cards.mjs",
     "build": "tsc -b && vite build",
+    "og:cards": "node scripts/gen-og-cards.mjs",
     "preview": "vite preview --port 4173 --host",
     "drop:broadcast": "node scripts/drop-broadcast.mjs",
     "lyrics:capitalize": "node scripts/capitalize-lyrics.mjs",

@@ -12,3 +12,5 @@ dist
 .tmp-data.mjs
 .tmp-dalle-data.mjs
 .claude/settings.local.json
+public/og/track-*.jpg
+public/og/track-*.png

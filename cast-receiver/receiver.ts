@@ -46,6 +46,13 @@ let outboundSeq = 0;
 let activeError: string | null = null;
 let lastLyricsActiveIdx = -2;
 
+// Standalone preview: when loaded directly (not via Chromecast) ctx.start()
+// never assigns an internal sender channel, so sendCustomMessage throws on
+// every call. Detect that mode via getSenders()===0 and route playback
+// through a native <audio> element so the page is still demoable + testable.
+let standaloneMode = false;
+let standaloneAudio: HTMLAudioElement | null = null;
+
 // Playback failure backoff: per-track strike count, then skip after 3 strikes
 // so the playlist never wedges on one bad object.
 let failCount = 0;
@@ -60,42 +67,96 @@ const $ = <T extends Element = HTMLElement>(s: string) => document.querySelector
 const $$ = <T extends Element = HTMLElement>(s: string) => Array.from(document.querySelectorAll(s)) as T[];
 
 // ─── CAF setup ──────────────────────────────────────────────────────────────
-const cafReady = () => typeof window.cast?.framework?.CastReceiverContext === 'function'
-  ? null
-  : new Error('CAF receiver SDK missing');
+// Real Chromecasts ship `CrKey/<version>` in the UA. Any other UA = the page
+// is loaded for preview/QA — switch to a standalone audio element so the
+// receiver can be exercised in a normal browser tab.
+standaloneMode = !/CrKey\//i.test(navigator.userAgent);
 
-const ctx = window.cast.framework.CastReceiverContext.getInstance();
-const playerManager = ctx.getPlayerManager();
-const Events = window.cast.framework.events?.EventType ?? {};
+// Fail-loud BEFORE accessing window.cast.framework so a gstatic load failure
+// (CSP, network, geo-block) surfaces as a visible "Receiver fatal: ..." panel
+// on the TV instead of a silent module crash that leaves the screen blank.
+// In standalone preview mode the SDK is optional — skip the throw so the
+// page can still demo without gstatic.
+if (typeof window.cast?.framework?.CastReceiverContext !== 'function') {
+  if (!standaloneMode) {
+    showFatal('CAF receiver SDK missing — cast_receiver_framework.js failed to load');
+    throw new Error('CAF receiver SDK missing');
+  }
+}
+
+const ctx: any = window.cast?.framework?.CastReceiverContext?.getInstance?.() ?? null;
+const playerManager: any = standaloneMode ? buildStandalonePlayer() : ctx.getPlayerManager();
+const Events = window.cast?.framework?.events?.EventType ?? {};
+
+function buildStandalonePlayer() {
+  standaloneAudio = new Audio();
+  standaloneAudio.crossOrigin = 'anonymous';
+  standaloneAudio.preload = 'auto';
+  const listeners: Record<string, Array<() => void>> = {};
+  const fire = (k: string) => (listeners[k] ?? []).forEach((fn) => { try { fn(); } catch { /* swallow */ } });
+  standaloneAudio.addEventListener('playing', () => fire('PLAYING'));
+  standaloneAudio.addEventListener('pause', () => fire('PAUSE'));
+  standaloneAudio.addEventListener('seeked', () => fire('SEEKED'));
+  standaloneAudio.addEventListener('timeupdate', () => fire('TIME_UPDATE'));
+  standaloneAudio.addEventListener('loadstart', () => fire('LOAD_START'));
+  standaloneAudio.addEventListener('loadeddata', () => fire('LOADED_DATA'));
+  standaloneAudio.addEventListener('ended', () => fire('MEDIA_FINISHED'));
+  standaloneAudio.addEventListener('error', () => fire('ERROR'));
+  return {
+    addEventListener: (k: string, fn: () => void) => { (listeners[k] ??= []).push(fn); },
+    setMessageInterceptor: (_t: any, _fn: any) => { /* no-op in standalone */ },
+    load: (req: any) => {
+      const url = req?.media?.contentId;
+      if (typeof url === 'string' && standaloneAudio) {
+        standaloneAudio.src = url;
+        const cur = Math.max(0, req?.currentTime ?? 0);
+        if (cur) standaloneAudio.currentTime = cur;
+        if (req?.autoplay !== false) standaloneAudio.play().catch(() => fire('ERROR'));
+      }
+    },
+    play: () => standaloneAudio?.play().catch(() => { /* user-gesture required first */ }),
+    pause: () => standaloneAudio?.pause(),
+    stop: () => { if (standaloneAudio) { standaloneAudio.pause(); standaloneAudio.currentTime = 0; } },
+    seek: (s: number) => { if (standaloneAudio) standaloneAudio.currentTime = Math.max(0, s); },
+    setVolume: (v: number) => { if (standaloneAudio) standaloneAudio.volume = Math.max(0, Math.min(1, v)); },
+    getCurrentTimeSec: () => standaloneAudio?.currentTime ?? 0,
+    getDurationSec: () => (Number.isFinite(standaloneAudio?.duration ?? NaN) ? standaloneAudio!.duration : 0),
+    getPlayerState: () => standaloneAudio && !standaloneAudio.paused ? 'PLAYING' : 'PAUSED',
+    getCurrentVolume: () => ({ level: standaloneAudio?.volume ?? 1, muted: !!standaloneAudio?.muted }),
+    getMediaInformation: () => null
+  };
+}
 
 // Open custom message channel (fail loud — without this, no sync)
-ctx.addCustomMessageListener(CAST_NAMESPACE, handleSenderMessage);
+if (!standaloneMode) {
+  ctx.addCustomMessageListener(CAST_NAMESPACE, handleSenderMessage);
 
-// LOAD interceptor — when senders push individual tracks via standard CAF load,
-// merge them into the queue so single-track casts still appear in our list.
-playerManager.setMessageInterceptor(
-  window.cast.framework.messages.MessageType.LOAD,
-  (req: any) => {
-    try {
-      const m = req.media;
-      if (m?.contentId) {
-        const item: ReceiverQueueItem = {
-          id: m.customData?.trackId ?? hashId(m.contentId),
-          title: m.metadata?.title ?? 'Unknown',
-          artist: m.metadata?.artist ?? '',
-          album: m.metadata?.albumName ?? '',
-          cover: m.metadata?.images?.[0]?.url ?? '',
-          audio: m.contentId,
-          duration: m.duration ?? undefined
-        };
-        upsertCurrent(item);
+  // LOAD interceptor — when senders push individual tracks via standard CAF load,
+  // merge them into the queue so single-track casts still appear in our list.
+  playerManager.setMessageInterceptor(
+    window.cast!.framework.messages.MessageType.LOAD,
+    (req: any) => {
+      try {
+        const m = req.media;
+        if (m?.contentId) {
+          const item: ReceiverQueueItem = {
+            id: m.customData?.trackId ?? hashId(m.contentId),
+            title: m.metadata?.title ?? 'Unknown',
+            artist: m.metadata?.artist ?? '',
+            album: m.metadata?.albumName ?? '',
+            cover: m.metadata?.images?.[0]?.url ?? '',
+            audio: m.contentId,
+            duration: m.duration ?? undefined
+          };
+          upsertCurrent(item);
+        }
+      } catch (err) {
+        logErr('load-intercept', err);
       }
-    } catch (err) {
-      logErr('load-intercept', err);
+      return req;
     }
-    return req;
-  }
-);
+  );
+}
 
 // PLAY/PAUSE/SEEK/MEDIA_STATUS — broadcast on any change
 const subscribe = (type: string | undefined, fn: () => void) => {
@@ -118,25 +179,27 @@ subscribe(Events.LOADED_DATA, () => {
 subscribe(Events.MEDIA_FINISHED, () => onTrackEnded());
 subscribe(Events.ERROR, (e: any) => onPlaybackError(e));
 
-ctx.addEventListener(window.cast.framework.system.EventType?.SENDER_CONNECTED ?? 'senderconnected', (ev: any) => {
-  toast(`Sender connected · ${ev?.senderId ?? 'unknown'}`, 'success', 1800);
-  setStatus('live', 'Live');
-  broadcast(true);
-});
-ctx.addEventListener(window.cast.framework.system.EventType?.SENDER_DISCONNECTED ?? 'senderdisconnected', () => {
-  setStatus('stale', 'Sender disconnected');
-});
+if (!standaloneMode) {
+  ctx.addEventListener(window.cast!.framework.system.EventType?.SENDER_CONNECTED ?? 'senderconnected', (ev: any) => {
+    toast(`Sender connected · ${ev?.senderId ?? 'unknown'}`, 'success', 1800);
+    setStatus('live', 'Live');
+    broadcast(true);
+  });
+  ctx.addEventListener(window.cast!.framework.system.EventType?.SENDER_DISCONNECTED ?? 'senderdisconnected', () => {
+    setStatus('stale', 'Sender disconnected');
+  });
+}
 
-const start = cafReady();
-if (start) {
-  showFatal(start.message);
-} else {
+// SDK is guaranteed ready (early throw above). Configure playback + start.
+// Standalone mode skips ctx.start() entirely — the HTMLAudioElement shim is
+// self-sufficient and ctx.start() would just produce harmless no-ops anyway.
+if (!standaloneMode) {
   // CAF v3 wraps Shaka Player. Defaults give a single best-effort load and a
   // generic LOAD_FAILED on any hiccup. Override with explicit retry, longer
   // network timeouts, and a manifestRequestHandler that scrubs/normalises the
   // outbound media URL so flaky CDN edges + transient cold-cache R2 reads
   // don't surface to the user as detailedErrorCode 905.
-  const playbackConfig = new window.cast.framework.PlaybackConfig();
+  const playbackConfig = new window.cast!.framework.PlaybackConfig();
   playbackConfig.autoResumeNumberOfSegments = 4;
   playbackConfig.autoResumeDuration = 2;
   playbackConfig.initialBandwidth = 384000;
@@ -159,7 +222,7 @@ if (start) {
   };
   ctx.start({
     statusText: 'Ready',
-    customNamespaces: { [CAST_NAMESPACE]: window.cast.framework.system.MessageType.JSON },
+    customNamespaces: { [CAST_NAMESPACE]: window.cast!.framework.system.MessageType.JSON },
     playbackConfig,
     // disable idle screensaver so the visualizer is never replaced by a logo
     disableIdleTimeout: true,
@@ -167,8 +230,8 @@ if (start) {
     // Larger queue cache for gapless skips
     queueRequestHandler: undefined
   });
-  init();
 }
+init();
 
 // ─── Init UI ────────────────────────────────────────────────────────────────
 function init() {
@@ -179,6 +242,29 @@ function init() {
   startStaleWatcher();
   setStatus('stale', 'Awaiting sender…');
   log('info', 'boot', 'receiver online v' + PROTOCOL_VERSION);
+  if (standaloneMode) exposeStandaloneApi();
+}
+
+// Expose a minimal API for standalone preview/QA — Playwright and devtools
+// can pump messages without a real Cast session.
+function exposeStandaloneApi() {
+  (window as any).__castReceiver = {
+    standalone: true,
+    runtime,
+    audio: standaloneAudio,
+    loadQueue: (items: ReceiverQueueItem[], startIndex = 0) => onQueueLoad({ items, startIndex, autoplay: true }),
+    play: () => playerManager.play(),
+    pause: () => playerManager.pause(),
+    seek: (s: number) => playerManager.seek(s),
+    current: () => currentItem(),
+    state: () => ({
+      playing: playerManager.getPlayerState?.() === 'PLAYING',
+      position: playerManager.getCurrentTimeSec?.() ?? 0,
+      duration: playerManager.getDurationSec?.() ?? 0,
+      trackId: currentItem()?.id ?? null
+    })
+  };
+  setStatus('stale', 'Standalone preview · pump via __castReceiver');
 }
 
 // ─── Sender → receiver dispatch ─────────────────────────────────────────────
@@ -471,7 +557,10 @@ function renderUI() {
     setView('idle');
     return;
   }
-  if (runtime.view === 'idle') setView('now-playing');
+  // setView('idle') sets stage.dataset.view='idle' but runtime.view='now-playing'
+  // (the type doesn't allow 'idle'), so check the DOM to detect the splash state.
+  const stageView = $('#stage')?.dataset.view;
+  if (stageView === 'idle') setView('now-playing');
   setText('#title', cur.title);
   setText('#artist', cur.artist);
   setText('#album', cur.album);
@@ -707,6 +796,7 @@ function startTickLoop() {
 // If no sender hello in 12s after startup, surface idle state. If senders go
 // stale (no inbound for 30s), update status indicator.
 function startStaleWatcher() {
+  if (standaloneMode) return; // no Cast senders to watch in preview mode
   setInterval(() => {
     const senderCount = ctx.getSenders?.()?.length ?? 0;
     if (senderCount === 0) setStatus('stale', 'Awaiting sender…');
@@ -741,11 +831,19 @@ function broadcast(force = false) {
 }
 
 function send(type: string, payload: unknown) {
+  // Standalone preview or no senders yet: skip the network round-trip
+  // entirely. ctx.sendCustomMessage would throw "Cannot read properties of
+  // null (reading 'send')" and recursing through logErr→log→send would loop.
+  if (standaloneMode) return;
+  const senders = (() => { try { return ctx.getSenders?.() ?? []; } catch { return []; } })();
+  if (!senders.length) return;
   try {
     const msg: CastMsg<unknown> = { v: PROTOCOL_VERSION, type: type as any, seq: ++outboundSeq, ts: Date.now(), payload };
     ctx.sendCustomMessage(CAST_NAMESPACE, undefined, msg);
   } catch (err) {
-    logErr('send:' + type, err);
+    // Use console directly — calling logErr here re-enters send() and loops.
+    const m = err instanceof Error ? err.message : String(err);
+    console.error('[send:' + type + '] ' + m);
   }
 }
 

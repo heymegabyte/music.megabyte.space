@@ -79,11 +79,12 @@ export class CastBridge {
   private outboundQueue: PendingMessage[] = [];
   private senderTickTimer = 0;
   private staleWatchTimer = 0;
-  // Custom receiver App ID 228565CB published at cast.google.com/publish, device
-  // CEZI7RBCIPI2HUBIW4NS bound. tryFallbackReceiver() only fires on actual receiver
-  // load/session failure, not on transient discovery state.
+  // Default Media Receiver (CC1AD845) is the primary App ID — Google's stock
+  // 10-foot UI renders album art + title + artist + progress via session.loadMedia().
+  // Custom namespace is skipped on default receiver since it doesn't speak it.
   private appId = CAST_APP_ID;
   private fallbackTried = false;
+  private get usesCustomReceiver(): boolean { return this.appId !== RECEIVER_FALLBACK; }
 
   init() {
     if (typeof window === 'undefined') return;
@@ -154,8 +155,10 @@ export class CastBridge {
         this.deviceName = session.getCastDevice()?.friendlyName ?? null;
         this.emit({ type: 'session', active: true, deviceName: this.deviceName ?? undefined });
         this.openCustomChannel(session);
-        this.startSenderTick();
-        this.startStaleWatch();
+        if (this.usesCustomReceiver) {
+          this.startSenderTick();
+          this.startStaleWatch();
+        }
       } else if (isEnded) {
         this.active = false;
         this.session = null;
@@ -208,6 +211,15 @@ export class CastBridge {
 
   // ─── Custom message channel ────────────────────────────────────────────
   private openCustomChannel(session: any) {
+    // Default Media Receiver doesn't subscribe to our namespace; sender drives
+    // playback via session.loadMedia() instead. Skip channel + heartbeats so
+    // outbound queue messages aren't silently dropped.
+    if (!this.usesCustomReceiver) {
+      this.customChannelOpen = false;
+      this.outboundQueue.length = 0;
+      this.setStatus('live');
+      return;
+    }
     try {
       session.addMessageListener(CAST_NAMESPACE, (_ns: string, raw: string) => {
         this.inboundLastAt = Date.now();

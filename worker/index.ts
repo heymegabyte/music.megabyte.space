@@ -271,7 +271,7 @@ class MetaRewriter {
         el.setAttribute('content', this.seo.ogImage);
         return;
       case 'og:image:type':
-        el.setAttribute('content', 'image/png');
+        el.setAttribute('content', /\.png(\?|$)/i.test(this.seo.ogImage) ? 'image/png' : 'image/jpeg');
         return;
       case 'og:image:alt':
         el.setAttribute('content', this.seo.ogImageAlt);
@@ -343,7 +343,7 @@ export default {
         const track = TRACK_BY_ID.get(trackId)!;
         const embedUrl = `https://music.megabyte.space/embed/${trackId}`;
         const audioUrl = `https://music.megabyte.space${track.file}`;
-        const thumbnail = `https://music.megabyte.space/og/${trackId}.png`;
+        const thumbnail = `https://music.megabyte.space/og/track-${trackId}.jpg`;
         const html = `<iframe src="${embedUrl}" width="${maxwidth}" height="${maxheight}" frameborder="0" scrolling="no" allow="autoplay; encrypted-media" allowfullscreen title="${escapeText(track.title)} — bZ"></iframe>`;
         const payload = {
           version: '1.0',

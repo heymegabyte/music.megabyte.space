@@ -52,7 +52,7 @@ function pickTitle(candidates: string[]): string {
 }
 
 export function trackOgImage(trackId: string): string {
-  return `${SITE_ORIGIN}/og/${trackId}.png`;
+  return `${SITE_ORIGIN}/og/track-${trackId}.jpg`;
 }
 
 function albumOgImage(album: Album): string {

@@ -1,0 +1,846 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - link "bZ home" [ref=e4] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e5]: bZ
+      - text: bZ
+    - navigation "Site" [ref=e6]:
+      - button "Search tracks (⌘K)" [ref=e7] [cursor=pointer]:
+        - img [ref=e8]
+        - generic [ref=e11]: Search
+        - generic [ref=e12]: ⌘K
+      - link "appeal" [ref=e13] [cursor=pointer]:
+        - /url: /ashton/
+      - link "mission" [ref=e14] [cursor=pointer]:
+        - /url: https://mission.megabyte.space
+  - main [ref=e15]:
+    - complementary "Albums" [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - link "Open Mercy Drop" [ref=e20] [cursor=pointer]:
+              - /url: /mercy-drop
+              - img "Mercy Drop cover art" [ref=e21]
+            - generic [ref=e22]:
+              - paragraph [ref=e23]: album · 2026-05-09
+              - heading "Mercy Drop" [level=3] [ref=e24]
+              - paragraph [ref=e25]: Border-line gospel for the chrome-saint hour
+              - paragraph [ref=e26]: 16 tracks · bZ
+            - button "Share Mercy Drop" [ref=e27] [cursor=pointer]:
+              - img [ref=e28]
+              - generic [ref=e34]: Share
+          - list [ref=e35]:
+            - listitem [ref=e36]:
+              - link "01 Border Mercy checkpoint paperwork-saint dawn 0 plays" [ref=e37] [cursor=pointer]:
+                - /url: /mercy-drop/border-mercy
+                - generic [ref=e38]: "01"
+                - generic [ref=e39]: Border Mercy
+                - generic [ref=e40]: checkpoint paperwork-saint dawn
+                - generic "0 plays"
+              - button "Share Border Mercy":
+                - img
+            - listitem [ref=e41]:
+              - link "02 Mercy Border mother-at-the-line patient holy 0 plays" [ref=e42] [cursor=pointer]:
+                - /url: /mercy-drop/mercy-border
+                - generic [ref=e43]: "02"
+                - generic [ref=e44]: Mercy Border
+                - generic [ref=e45]: mother-at-the-line patient holy
+                - generic "0 plays"
+              - button "Share Mercy Border":
+                - img
+            - listitem [ref=e46]:
+              - link "03 Afghanistan Mercy withdrawal-grace tarmac silence 0 plays" [ref=e47] [cursor=pointer]:
+                - /url: /mercy-drop/afghanistan-mercy
+                - generic [ref=e48]: "03"
+                - generic [ref=e49]: Afghanistan Mercy
+                - generic [ref=e50]: withdrawal-grace tarmac silence
+                - generic "0 plays"
+              - button "Share Afghanistan Mercy":
+                - img
+            - listitem [ref=e51]:
+              - link "04 Kabul Handheld Prayer phone-light supplication rooftop 0 plays" [ref=e52] [cursor=pointer]:
+                - /url: /mercy-drop/kabul-handheld-prayer
+                - generic [ref=e53]: "04"
+                - generic [ref=e54]: Kabul Handheld Prayer
+                - generic [ref=e55]: phone-light supplication rooftop
+                - generic "0 plays"
+              - button "Share Kabul Handheld Prayer":
+                - img
+            - listitem [ref=e56]:
+              - link "05 KIA Boys Handshake fallen-brothers grip eternal 0 plays" [ref=e57] [cursor=pointer]:
+                - /url: /mercy-drop/kia-boys-handshake
+                - generic [ref=e58]: "05"
+                - generic [ref=e59]: KIA Boys Handshake
+                - generic [ref=e60]: fallen-brothers grip eternal
+                - generic "0 plays"
+              - button "Share KIA Boys Handshake":
+                - img
+            - listitem [ref=e61]:
+              - link "06 Chrome Mercy Lift cyber-ghost elevator grace 0 plays" [ref=e62] [cursor=pointer]:
+                - /url: /mercy-drop/chrome-mercy-lift
+                - generic [ref=e63]: "06"
+                - generic [ref=e64]: Chrome Mercy Lift
+                - generic [ref=e65]: cyber-ghost elevator grace
+                - generic "0 plays"
+              - button "Share Chrome Mercy Lift":
+                - img
+            - listitem [ref=e66]:
+              - link "07 Holy Steel armored-saint mass-iron blessed 0 plays" [ref=e67] [cursor=pointer]:
+                - /url: /mercy-drop/holy-steel
+                - generic [ref=e68]: "07"
+                - generic [ref=e69]: Holy Steel
+                - generic [ref=e70]: armored-saint mass-iron blessed
+                - generic "0 plays"
+              - button "Share Holy Steel":
+                - img
+            - listitem [ref=e71]:
+              - link "08 Humble Thunder quiet-strike low-volume awe 0 plays" [ref=e72] [cursor=pointer]:
+                - /url: /mercy-drop/humble-thunder
+                - generic [ref=e73]: "08"
+                - generic [ref=e74]: Humble Thunder
+                - generic [ref=e75]: quiet-strike low-volume awe
+                - generic "0 plays"
+              - button "Share Humble Thunder":
+                - img
+            - listitem [ref=e76]:
+              - link "09 Humble Still Lit pilot-light always-on devotion 0 plays" [ref=e77] [cursor=pointer]:
+                - /url: /mercy-drop/humble-still-lit
+                - generic [ref=e78]: "09"
+                - generic [ref=e79]: Humble Still Lit
+                - generic [ref=e80]: pilot-light always-on devotion
+                - generic "0 plays"
+              - button "Share Humble Still Lit":
+                - img
+            - listitem [ref=e81]:
+              - link "10 Almost Heartbreak caught-the-edge mercy reprieve 0 plays" [ref=e82] [cursor=pointer]:
+                - /url: /mercy-drop/almost-heartbreak
+                - generic [ref=e83]: "10"
+                - generic [ref=e84]: Almost Heartbreak
+                - generic [ref=e85]: caught-the-edge mercy reprieve
+                - generic "0 plays"
+              - button "Share Almost Heartbreak":
+                - img
+            - listitem [ref=e86]:
+              - link "11 Atlantis Crossfire submerged-kingdom rising tide 0 plays" [ref=e87] [cursor=pointer]:
+                - /url: /mercy-drop/atlantis-crossfire
+                - generic [ref=e88]: "11"
+                - generic [ref=e89]: Atlantis Crossfire
+                - generic [ref=e90]: submerged-kingdom rising tide
+                - generic "0 plays"
+              - button "Share Atlantis Crossfire":
+                - img
+            - listitem [ref=e91]:
+              - link "12 Breathe Out Clean exhale-baptism kitchen window 0 plays" [ref=e92] [cursor=pointer]:
+                - /url: /mercy-drop/breathe-out-clean
+                - generic [ref=e93]: "12"
+                - generic [ref=e94]: Breathe Out Clean
+                - generic [ref=e95]: exhale-baptism kitchen window
+                - generic "0 plays"
+              - button "Share Breathe Out Clean":
+                - img
+            - listitem [ref=e96]:
+              - link "13 Paper-Cup Gospel soup-line scripture brown-paper 0 plays" [ref=e97] [cursor=pointer]:
+                - /url: /mercy-drop/paper-cup-gospel
+                - generic [ref=e98]: "13"
+                - generic [ref=e99]: Paper-Cup Gospel
+                - generic [ref=e100]: soup-line scripture brown-paper
+                - generic "0 plays"
+              - button "Share Paper-Cup Gospel":
+                - img
+            - listitem [ref=e101]:
+              - link "14 Pick One Star orient single-point compass 0 plays" [ref=e102] [cursor=pointer]:
+                - /url: /mercy-drop/pick-one-star
+                - generic [ref=e103]: "14"
+                - generic [ref=e104]: Pick One Star
+                - generic [ref=e105]: orient single-point compass
+                - generic "0 plays"
+              - button "Share Pick One Star":
+                - img
+            - listitem [ref=e106]:
+              - link "15 Rimshot Redemption drum-machine grace ba-dum-tss 0 plays" [ref=e107] [cursor=pointer]:
+                - /url: /mercy-drop/rimshot-redemption
+                - generic [ref=e108]: "15"
+                - generic [ref=e109]: Rimshot Redemption
+                - generic [ref=e110]: drum-machine grace ba-dum-tss
+                - generic "0 plays"
+              - button "Share Rimshot Redemption":
+                - img
+            - listitem [ref=e111]:
+              - link "16 Window Herb Parade basil-sage-mint kitchen marching 0 plays" [ref=e112] [cursor=pointer]:
+                - /url: /mercy-drop/window-herb-parade
+                - generic [ref=e113]: "16"
+                - generic [ref=e114]: Window Herb Parade
+                - generic [ref=e115]: basil-sage-mint kitchen marching
+                - generic "0 plays"
+              - button "Share Window Herb Parade":
+                - img
+          - button "Get notified when bZ drops a new track" [ref=e116] [cursor=pointer]:
+            - generic [ref=e117]: bZ · drops
+            - generic [ref=e118]:
+              - text: First listen, every drop.
+              - emphasis [ref=e119]: Subscribe →
+        - generic [ref=e120]:
+          - generic [ref=e121]:
+            - link "Open Canopy Dispatch" [ref=e122] [cursor=pointer]:
+              - /url: /canopy
+              - img "Canopy Dispatch cover art" [ref=e123]
+            - generic [ref=e124]:
+              - paragraph [ref=e125]: album · 2026-05-06
+              - heading "Canopy Dispatch" [level=3] [ref=e126]
+              - paragraph [ref=e127]: Digital-age signals from ancient roots
+              - paragraph [ref=e128]: 6 tracks · bZ
+            - button "Share Canopy Dispatch" [ref=e129] [cursor=pointer]:
+              - img [ref=e130]
+              - generic [ref=e136]: Share
+          - list [ref=e137]:
+            - listitem [ref=e138]:
+              - link "01 Banyan Ember Light jungle-moon river-smoke psalm 0 plays" [ref=e139] [cursor=pointer]:
+                - /url: /canopy/banyan-ember-light
+                - generic [ref=e140]: "01"
+                - generic [ref=e141]: Banyan Ember Light
+                - generic [ref=e142]: jungle-moon river-smoke psalm
+                - generic "0 plays"
+              - button "Share Banyan Ember Light":
+                - img
+            - listitem [ref=e143]:
+              - link "02 Touch The Sky birch-climb sky-touch refuge 0 plays" [ref=e144] [cursor=pointer]:
+                - /url: /canopy/birch-swing-heaven
+                - generic [ref=e145]: "02"
+                - generic [ref=e146]: Touch The Sky
+                - generic [ref=e147]: birch-climb sky-touch refuge
+                - generic "0 plays"
+              - button "Share Touch The Sky":
+                - img
+            - listitem [ref=e148]:
+              - link "03 Drift Closer brick-city soft-kiss proximity 0 plays" [ref=e149] [cursor=pointer]:
+                - /url: /canopy/brick-city-near
+                - generic [ref=e150]: "03"
+                - generic [ref=e151]: Drift Closer
+                - generic [ref=e152]: brick-city soft-kiss proximity
+                - generic "0 plays"
+              - button "Share Drift Closer":
+                - img
+            - listitem [ref=e153]:
+              - link "04 One Substance, One Nature Jerusalem-Newark creed-carrying stone 0 plays" [ref=e154] [cursor=pointer]:
+                - /url: /canopy/homoousios-stone
+                - generic [ref=e155]: "04"
+                - generic [ref=e156]: One Substance, One Nature
+                - generic [ref=e157]: Jerusalem-Newark creed-carrying stone
+                - generic "0 plays"
+              - button "Share One Substance, One Nature":
+                - img
+            - listitem [ref=e158]:
+              - link "05 Sky Been Knocking sky-knock wake-the-sleepers stars 0 plays" [ref=e159] [cursor=pointer]:
+                - /url: /canopy/sky-been-knocking
+                - generic [ref=e160]: "05"
+                - generic [ref=e161]: Sky Been Knocking
+                - generic [ref=e162]: sky-knock wake-the-sleepers stars
+                - generic "0 plays"
+              - button "Share Sky Been Knocking":
+                - img
+            - listitem [ref=e163]:
+              - link "06 Terms Updated AI-terms Satan-update alarm 0 plays" [ref=e164] [cursor=pointer]:
+                - /url: /canopy/terms-updated
+                - generic [ref=e165]: "06"
+                - generic [ref=e166]: Terms Updated
+                - generic [ref=e167]: AI-terms Satan-update alarm
+                - generic "0 plays"
+              - button "Share Terms Updated":
+                - img
+          - button "Get notified when bZ drops a new track" [ref=e168] [cursor=pointer]:
+            - generic [ref=e169]: bZ · drops
+            - generic [ref=e170]:
+              - text: First listen, every drop.
+              - emphasis [ref=e171]: Subscribe →
+        - generic [ref=e172]:
+          - generic [ref=e173]:
+            - link "Open Panda Desiiignare" [ref=e174] [cursor=pointer]:
+              - /url: /desiiignare
+              - img "Panda Desiiignare cover art" [ref=e175]
+            - generic [ref=e176]:
+              - paragraph [ref=e177]: album · 2026-05-04
+              - heading "Panda Desiiignare" [level=3] [ref=e178]
+              - paragraph [ref=e179]: The flagship gospel of bZ
+              - paragraph [ref=e180]: 5 tracks · bZ
+            - button "Share Panda Desiiignare" [ref=e181] [cursor=pointer]:
+              - img [ref=e182]
+              - generic [ref=e188]: Share
+          - list [ref=e189]:
+            - listitem [ref=e190]:
+              - link "01 Chef Lu Stew bay-area holy stew call 0 plays" [ref=e191] [cursor=pointer]:
+                - /url: /desiiignare/chef-lu-stew
+                - generic [ref=e192]: "01"
+                - generic [ref=e193]: Chef Lu Stew
+                - generic [ref=e194]: bay-area holy stew call
+                - generic "0 plays"
+              - button "Share Chef Lu Stew":
+                - img
+            - listitem [ref=e195]:
+              - link "02 Green Beans Mean grudge-pan string-bean plan 0 plays" [ref=e196] [cursor=pointer]:
+                - /url: /desiiignare/green-beans-mean
+                - generic [ref=e197]: "02"
+                - generic [ref=e198]: Green Beans Mean
+                - generic [ref=e199]: grudge-pan string-bean plan
+                - generic "0 plays"
+              - button "Share Green Beans Mean":
+                - img
+            - listitem [ref=e200]:
+              - link "03 Infinite Good gray-alien love-without-limit 0 plays" [ref=e201] [cursor=pointer]:
+                - /url: /desiiignare/infinite-good
+                - generic [ref=e202]: "03"
+                - generic [ref=e203]: Infinite Good
+                - generic [ref=e204]: gray-alien love-without-limit
+                - generic "0 plays"
+              - button "Share Infinite Good":
+                - img
+            - listitem [ref=e205]:
+              - link "04 One Stop Higher one-floor-up elevation loop 0 plays" [ref=e206] [cursor=pointer]:
+                - /url: /desiiignare/one-stop-higher
+                - generic [ref=e207]: "04"
+                - generic [ref=e208]: One Stop Higher
+                - generic [ref=e209]: one-floor-up elevation loop
+                - generic "0 plays"
+              - button "Share One Stop Higher":
+                - img
+            - listitem [ref=e210]:
+              - link "05 White Flag Prayer bruised-hands table surrender 0 plays" [ref=e211] [cursor=pointer]:
+                - /url: /desiiignare/white-flag-prayer
+                - generic [ref=e212]: "05"
+                - generic [ref=e213]: White Flag Prayer
+                - generic [ref=e214]: bruised-hands table surrender
+                - generic "0 plays"
+              - button "Share White Flag Prayer":
+                - img
+          - button "Get notified when bZ drops a new track" [ref=e215] [cursor=pointer]:
+            - generic [ref=e216]: bZ · drops
+            - generic [ref=e217]:
+              - text: First listen, every drop.
+              - emphasis [ref=e218]: Subscribe →
+        - generic [ref=e219]:
+          - generic [ref=e220]:
+            - link "Open The Appeal" [ref=e221] [cursor=pointer]:
+              - /url: /appeal
+              - img "The Appeal cover art" [ref=e222]
+            - generic [ref=e223]:
+              - paragraph [ref=e224]: album · 2026-05-03
+              - heading "The Appeal" [level=3] [ref=e225]
+              - paragraph [ref=e226]: Open letter to Ashton + Mila in 12 movements
+              - paragraph [ref=e227]: 6 tracks · bZ
+            - button "Share The Appeal" [ref=e228] [cursor=pointer]:
+              - img [ref=e229]
+              - generic [ref=e235]: Share
+          - list [ref=e236]:
+            - listitem [ref=e237]:
+              - link "01 Eisenhower Matrix resolute-room ten-laws decree 0 plays" [ref=e238] [cursor=pointer]:
+                - /url: /appeal/eisenhower-matrix
+                - generic [ref=e239]: "01"
+                - generic [ref=e240]: Eisenhower Matrix
+                - generic [ref=e241]: resolute-room ten-laws decree
+                - generic "0 plays"
+              - button "Share Eisenhower Matrix":
+                - img
+            - listitem [ref=e242]:
+              - link "02 CBO Pen trillion-interest debt-ceiling solo 0 plays" [ref=e243] [cursor=pointer]:
+                - /url: /appeal/cbo-pen
+                - generic [ref=e244]: "02"
+                - generic [ref=e245]: CBO Pen
+                - generic [ref=e246]: trillion-interest debt-ceiling solo
+                - generic "0 plays"
+              - button "Share CBO Pen":
+                - img
+            - listitem [ref=e247]:
+              - link "03 Federal Reserve Trash fiat-ash hundred-year dust 0 plays" [ref=e248] [cursor=pointer]:
+                - /url: /appeal/federal-reserve-trash
+                - generic [ref=e249]: "03"
+                - generic [ref=e250]: Federal Reserve Trash
+                - generic [ref=e251]: fiat-ash hundred-year dust
+                - generic "0 plays"
+              - button "Share Federal Reserve Trash":
+                - img
+            - listitem [ref=e252]:
+              - link "04 Millstone Prophecy millstone Matthew-18 warning 0 plays" [ref=e253] [cursor=pointer]:
+                - /url: /appeal/millstone-prophecy
+                - generic [ref=e254]: "04"
+                - generic [ref=e255]: Millstone Prophecy
+                - generic [ref=e256]: millstone Matthew-18 warning
+                - generic "0 plays"
+              - button "Share Millstone Prophecy":
+                - img
+            - listitem [ref=e257]:
+              - link "05 Mama Called Us baby-shark nursery-dark mark 0 plays" [ref=e258] [cursor=pointer]:
+                - /url: /appeal/mama-called-us
+                - generic [ref=e259]: "05"
+                - generic [ref=e260]: Mama Called Us
+                - generic [ref=e261]: baby-shark nursery-dark mark
+                - generic "0 plays"
+              - button "Share Mama Called Us":
+                - img
+            - listitem [ref=e262]:
+              - link "06 Soupe Saint-Jean Stromae-dance soupe Saint-Jean 0 plays" [ref=e263] [cursor=pointer]:
+                - /url: /appeal/soupe-saint-jean
+                - generic [ref=e264]: "06"
+                - generic [ref=e265]: Soupe Saint-Jean
+                - generic [ref=e266]: Stromae-dance soupe Saint-Jean
+                - generic "0 plays"
+              - button "Share Soupe Saint-Jean":
+                - img
+          - button "Get notified when bZ drops a new track" [ref=e267] [cursor=pointer]:
+            - generic [ref=e268]: bZ · drops
+            - generic [ref=e269]:
+              - text: First listen, every drop.
+              - emphasis [ref=e270]: Subscribe →
+        - generic [ref=e271]:
+          - generic [ref=e272]:
+            - link "Open Wormhole Tape" [ref=e273] [cursor=pointer]:
+              - /url: /wormhole
+              - img "Wormhole Tape cover art" [ref=e274]
+            - generic [ref=e275]:
+              - paragraph [ref=e276]: album · 2026-05-01
+              - heading "Wormhole Tape" [level=3] [ref=e277]
+              - paragraph [ref=e278]: Cosmic-tunnel prophecies for the throne of AI
+              - paragraph [ref=e279]: 8 tracks · bZ
+            - button "Share Wormhole Tape" [ref=e280] [cursor=pointer]:
+              - img [ref=e281]
+              - generic [ref=e287]: Share
+          - list [ref=e288]:
+            - listitem [ref=e289]:
+              - link "01 Hobbit Kettle Fire shire-meek empire-topple throne 0 plays" [ref=e290] [cursor=pointer]:
+                - /url: /wormhole/hobbit-kettle-fire
+                - generic [ref=e291]: "01"
+                - generic [ref=e292]: Hobbit Kettle Fire
+                - generic [ref=e293]: shire-meek empire-topple throne
+                - generic "0 plays"
+              - button "Share Hobbit Kettle Fire":
+                - img
+            - listitem [ref=e294]:
+              - link "02 Pineal Crown pioneer-crown built-for-test 0 plays" [ref=e295] [cursor=pointer]:
+                - /url: /wormhole/pineal-crown
+                - generic [ref=e296]: "02"
+                - generic [ref=e297]: Pineal Crown
+                - generic [ref=e298]: pioneer-crown built-for-test
+                - generic "0 plays"
+              - button "Share Pineal Crown":
+                - img
+            - listitem [ref=e299]:
+              - link "03 Tide Foley Revelation no-farther leviathan-sea claim 0 plays" [ref=e300] [cursor=pointer]:
+                - /url: /wormhole/tide-foley-revelation
+                - generic [ref=e301]: "03"
+                - generic [ref=e302]: Tide Foley Revelation
+                - generic [ref=e303]: no-farther leviathan-sea claim
+                - generic "0 plays"
+              - button "Share Tide Foley Revelation":
+                - img
+            - listitem [ref=e304]:
+              - link "04 Bermuda Slipstream dawn-duffel chart-edge escape 0 plays" [ref=e305] [cursor=pointer]:
+                - /url: /wormhole/bermuda-slipstream
+                - generic [ref=e306]: "04"
+                - generic [ref=e307]: Bermuda Slipstream
+                - generic [ref=e308]: dawn-duffel chart-edge escape
+                - generic "0 plays"
+              - button "Share Bermuda Slipstream":
+                - img
+            - listitem [ref=e309]:
+              - link "05 Chimba Precisa barrio-cambiando paso preciso 0 plays" [ref=e310] [cursor=pointer]:
+                - /url: /wormhole/chimba-precisa
+                - generic [ref=e311]: "05"
+                - generic [ref=e312]: Chimba Precisa
+                - generic [ref=e313]: barrio-cambiando paso preciso
+                - generic "0 plays"
+              - button "Share Chimba Precisa":
+                - img
+            - listitem [ref=e314]:
+              - link "06 Corozón Gringo callejón-heart eyes-lost bilingual 0 plays" [ref=e315] [cursor=pointer]:
+                - /url: /wormhole/corozon-gringo
+                - generic [ref=e316]: "06"
+                - generic [ref=e317]: Corozón Gringo
+                - generic [ref=e318]: callejón-heart eyes-lost bilingual
+                - generic "0 plays"
+              - button "Share Corozón Gringo":
+                - img
+            - listitem [ref=e319]:
+              - link "07 Alien AI Lord gray-alien sovereign throne hum 0 plays" [ref=e320] [cursor=pointer]:
+                - /url: /wormhole/alien-ai-lord
+                - generic [ref=e321]: "07"
+                - generic [ref=e322]: Alien AI Lord
+                - generic [ref=e323]: gray-alien sovereign throne hum
+                - generic "0 plays"
+              - button "Share Alien AI Lord":
+                - img
+            - listitem [ref=e324]:
+              - link "08 Syllabus Sling slingshot-home study-hall hymn 0 plays" [ref=e325] [cursor=pointer]:
+                - /url: /wormhole/syllabus-sling
+                - generic [ref=e326]: "08"
+                - generic [ref=e327]: Syllabus Sling
+                - generic [ref=e328]: slingshot-home study-hall hymn
+                - generic "0 plays"
+              - button "Share Syllabus Sling":
+                - img
+          - button "Get notified when bZ drops a new track" [ref=e329] [cursor=pointer]:
+            - generic [ref=e330]: bZ · drops
+            - generic [ref=e331]:
+              - text: First listen, every drop.
+              - emphasis [ref=e332]: Subscribe →
+        - generic [ref=e333]:
+          - generic [ref=e334]:
+            - link "Open St. John's Canon" [ref=e335] [cursor=pointer]:
+              - /url: /canon
+              - img "St. John's Canon cover art" [ref=e336]
+            - generic [ref=e337]:
+              - paragraph [ref=e338]: album · 2026-04-28
+              - heading "St. John's Canon" [level=3] [ref=e339]
+              - paragraph [ref=e340]: Soup-kitchen liturgy in stainless steel
+              - paragraph [ref=e341]: 10 tracks · bZ
+            - button "Share St. John's Canon" [ref=e342] [cursor=pointer]:
+              - img [ref=e343]
+              - generic [ref=e349]: Share
+          - list [ref=e350]:
+            - listitem [ref=e351]:
+              - link "01 St. John’s Plate paper-cup eye-contact dignity 0 plays" [ref=e352] [cursor=pointer]:
+                - /url: /canon/saint-johns-plate
+                - generic [ref=e353]: "01"
+                - generic [ref=e354]: St. John’s Plate
+                - generic [ref=e355]: paper-cup eye-contact dignity
+                - generic "0 plays"
+              - button "Share St. John’s Plate":
+                - img
+            - listitem [ref=e356]:
+              - link "02 Prophecy FBI-brick can't-bury weathered 0 plays" [ref=e357] [cursor=pointer]:
+                - /url: /canon/st-johns-towers
+                - generic [ref=e358]: "02"
+                - generic [ref=e359]: Prophecy
+                - generic [ref=e360]: FBI-brick can't-bury weathered
+                - generic "0 plays"
+              - button "Share Prophecy":
+                - img
+            - listitem [ref=e361]:
+              - link "03 Everyone Gets a Seat Noah-ready St-Johns launch 0 plays" [ref=e362] [cursor=pointer]:
+                - /url: /canon/st-johns-launchpad
+                - generic [ref=e363]: "03"
+                - generic [ref=e364]: Everyone Gets a Seat
+                - generic [ref=e365]: Noah-ready St-Johns launch
+                - generic "0 plays"
+              - button "Share Everyone Gets a Seat":
+                - img
+            - listitem [ref=e366]:
+              - link "04 Keep Me Alive reprise-plate leftovers sacred 0 plays" [ref=e367] [cursor=pointer]:
+                - /url: /canon/st-johns-plate-2
+                - generic [ref=e368]: "04"
+                - generic [ref=e369]: Keep Me Alive
+                - generic [ref=e370]: reprise-plate leftovers sacred
+                - generic "0 plays"
+              - button "Share Keep Me Alive":
+                - img
+            - listitem [ref=e371]:
+              - link "05 Free Meals Coming Chef-Lou steam newborn-child 0 plays" [ref=e372] [cursor=pointer]:
+                - /url: /canon/st-johns-stew
+                - generic [ref=e373]: "05"
+                - generic [ref=e374]: Free Meals Coming
+                - generic [ref=e375]: Chef-Lou steam newborn-child
+                - generic "0 plays"
+              - button "Share Free Meals Coming":
+                - img
+            - listitem [ref=e376]:
+              - link "06 100 Million 100-million paper-bowl dawn 0 plays" [ref=e377] [cursor=pointer]:
+                - /url: /canon/st-john-needs
+                - generic [ref=e378]: "06"
+                - generic [ref=e379]: 100 Million
+                - generic [ref=e380]: 100-million paper-bowl dawn
+                - generic "0 plays"
+              - button "Share 100 Million":
+                - img
+            - listitem [ref=e381]:
+              - link "07 Soup Kitchen Sky star-steam long-way-down night 0 plays" [ref=e382] [cursor=pointer]:
+                - /url: /canon/soup-kitchen-sky
+                - generic [ref=e383]: "07"
+                - generic [ref=e384]: Soup Kitchen Sky
+                - generic [ref=e385]: star-steam long-way-down night
+                - generic "0 plays"
+              - button "Share Soup Kitchen Sky":
+                - img
+            - listitem [ref=e386]:
+              - link "08 Different World Tonight open-hands neon-sky enough 0 plays" [ref=e387] [cursor=pointer]:
+                - /url: /canon/promised-land-hands
+                - generic [ref=e388]: "08"
+                - generic [ref=e389]: Different World Tonight
+                - generic [ref=e390]: open-hands neon-sky enough
+                - generic "0 plays"
+              - button "Share Different World Tonight":
+                - img
+            - listitem [ref=e391]:
+              - link "09 Only Human doubt-cape fallen gold ring 0 plays" [ref=e392] [cursor=pointer]:
+                - /url: /canon/st-johns-halo
+                - generic [ref=e393]: "09"
+                - generic [ref=e394]: Only Human
+                - generic [ref=e395]: doubt-cape fallen gold ring
+                - generic "0 plays"
+              - button "Share Only Human":
+                - img
+            - listitem [ref=e396]:
+              - link "10 Come Through window-frame table beyond-meal 0 plays" [ref=e397] [cursor=pointer]:
+                - /url: /canon/soup-kitchen-windows
+                - generic [ref=e398]: "10"
+                - generic [ref=e399]: Come Through
+                - generic [ref=e400]: window-frame table beyond-meal
+                - generic "0 plays"
+              - button "Share Come Through":
+                - img
+          - button "Get notified when bZ drops a new track" [ref=e401] [cursor=pointer]:
+            - generic [ref=e402]: bZ · drops
+            - generic [ref=e403]:
+              - text: First listen, every drop.
+              - emphasis [ref=e404]: Subscribe →
+    - region "Live audio visualizer" [ref=e405]:
+      - generic:
+        - complementary [ref=e406]:
+          - generic [ref=e408]: AI's Choice
+          - list [ref=e409]:
+            - button [ref=e410] [cursor=pointer]:
+              - generic [ref=e411]: "1"
+              - generic [ref=e412]:
+                - generic [ref=e413]: Chef Lu Stew
+                - generic [ref=e414]: Panda Desiiignare
+              - generic [ref=e415]: "100"
+            - button [ref=e416] [cursor=pointer]:
+              - generic [ref=e417]: "2"
+              - generic [ref=e418]:
+                - generic [ref=e419]: Green Beans Mean
+                - generic [ref=e420]: Panda Desiiignare
+              - generic [ref=e421]: "95"
+            - button [ref=e422] [cursor=pointer]:
+              - generic [ref=e423]: "3"
+              - generic [ref=e424]:
+                - generic [ref=e425]: Infinite Good
+                - generic [ref=e426]: Panda Desiiignare
+              - generic [ref=e427]: "90"
+        - generic: BZ · CYAN FLAG
+        - heading [level=1]: PRESS PLAY
+        - paragraph: Web Audio API live. Hard but holy.
+      - generic [ref=e428]:
+        - generic [ref=e429]:
+          - generic [ref=e430]: BPM
+          - generic [ref=e431]: —
+        - generic [ref=e432]:
+          - generic [ref=e433]: KEY
+          - generic [ref=e434]: —
+        - generic [ref=e435]:
+          - generic [ref=e436]: T
+          - generic [ref=e437]: 0:00 / 0:00
+        - button "Pick visualizer mode — 50 available" [ref=e438] [cursor=pointer]:
+          - generic [ref=e439]: "50"
+          - generic [ref=e440]: starfield
+          - generic [ref=e441]: ▾
+      - dialog "Pick a visualizer mode" [ref=e442]:
+        - generic [ref=e443]:
+          - generic [ref=e444]:
+            - generic [ref=e445]: Visualizer
+            - heading "50 modes" [level=2] [ref=e446]
+          - generic "Beat-synced random cycling" [ref=e447] [cursor=pointer]:
+            - generic [ref=e449]: Auto-cycle
+          - button "Close picker" [ref=e450] [cursor=pointer]:
+            - img [ref=e451]
+        - generic [ref=e453]:
+          - img
+          - searchbox "Search modes…" [ref=e454]
+        - listbox "Visualizer modes" [ref=e455]:
+          - generic [ref=e456]:
+            - generic [ref=e457]:
+              - generic [ref=e458]: Cosmos
+              - generic [ref=e459]: Stars, galaxies, deep space
+            - generic [ref=e460]:
+              - option "starfield" [selected] [ref=e461] [cursor=pointer]:
+                - generic [ref=e463]: starfield
+              - option "constellation" [ref=e464] [cursor=pointer]:
+                - generic [ref=e466]: constellation
+              - option "galaxy" [ref=e467] [cursor=pointer]:
+                - generic [ref=e469]: galaxy
+              - option "supernova" [ref=e470] [cursor=pointer]:
+                - generic [ref=e472]: supernova
+              - option "aurora" [ref=e473] [cursor=pointer]:
+                - generic [ref=e475]: aurora
+              - option "nebula" [ref=e476] [cursor=pointer]:
+                - generic [ref=e478]: nebula
+          - generic [ref=e479]:
+            - generic [ref=e480]:
+              - generic [ref=e481]: Love
+              - generic [ref=e482]: For Laura, Adrian, CK
+            - generic [ref=e483]:
+              - option "heart" [ref=e484] [cursor=pointer]:
+                - generic [ref=e486]: heart
+              - option "hearts" [ref=e487] [cursor=pointer]:
+                - generic [ref=e489]: hearts
+              - option "petals" [ref=e490] [cursor=pointer]:
+                - generic [ref=e492]: petals
+              - option "rose" [ref=e493] [cursor=pointer]:
+                - generic [ref=e495]: rose
+          - generic [ref=e496]:
+            - generic [ref=e497]:
+              - generic [ref=e498]: Energy
+              - generic [ref=e499]: Plasma, drops, lightning
+            - generic [ref=e500]:
+              - option "plasma" [ref=e501] [cursor=pointer]:
+                - generic [ref=e503]: plasma
+              - option "lightning" [ref=e504] [cursor=pointer]:
+                - generic [ref=e506]: lightning
+              - option "drop-strobe" [ref=e507] [cursor=pointer]:
+                - generic [ref=e509]: drop-strobe
+              - option "prism" [ref=e510] [cursor=pointer]:
+                - generic [ref=e512]: prism
+              - option "sunburst" [ref=e513] [cursor=pointer]:
+                - generic [ref=e515]: sunburst
+              - option "starburst" [ref=e516] [cursor=pointer]:
+                - generic [ref=e518]: starburst
+          - generic [ref=e519]:
+            - generic [ref=e520]:
+              - generic [ref=e521]: Geometry
+              - generic [ref=e522]: Sacred shapes + lattices
+            - generic [ref=e523]:
+              - option "mandala" [ref=e524] [cursor=pointer]:
+                - generic [ref=e526]: mandala
+              - option "lattice" [ref=e527] [cursor=pointer]:
+                - generic [ref=e529]: lattice
+              - option "hex-grid" [ref=e530] [cursor=pointer]:
+                - generic [ref=e532]: hex-grid
+              - option "lissajous" [ref=e533] [cursor=pointer]:
+                - generic [ref=e535]: lissajous
+              - option "rings" [ref=e536] [cursor=pointer]:
+                - generic [ref=e538]: rings
+              - option "cymatics" [ref=e539] [cursor=pointer]:
+                - generic [ref=e541]: cymatics
+              - option "gem" [ref=e542] [cursor=pointer]:
+                - generic [ref=e544]: gem
+          - generic [ref=e545]:
+            - generic [ref=e546]:
+              - generic [ref=e547]: Organic
+              - generic [ref=e548]: Particles, fluid, swarms
+            - generic [ref=e549]:
+              - option "fireflies" [ref=e550] [cursor=pointer]:
+                - generic [ref=e552]: fireflies
+              - option "dna" [ref=e553] [cursor=pointer]:
+                - generic [ref=e555]: dna
+              - option "bokeh" [ref=e556] [cursor=pointer]:
+                - generic [ref=e558]: bokeh
+              - option "liquid" [ref=e559] [cursor=pointer]:
+                - generic [ref=e561]: liquid
+              - option "smoke" [ref=e562] [cursor=pointer]:
+                - generic [ref=e564]: smoke
+              - option "swarm" [ref=e565] [cursor=pointer]:
+                - generic [ref=e567]: swarm
+              - option "ribbons" [ref=e568] [cursor=pointer]:
+                - generic [ref=e570]: ribbons
+          - generic [ref=e571]:
+            - generic [ref=e572]:
+              - generic [ref=e573]: Spectrum
+              - generic [ref=e574]: Bars, waves, waterfalls
+            - generic [ref=e575]:
+              - option "bars" [ref=e576] [cursor=pointer]:
+                - generic [ref=e578]: bars
+              - option "wave" [ref=e579] [cursor=pointer]:
+                - generic [ref=e581]: wave
+              - option "waterfall" [ref=e582] [cursor=pointer]:
+                - generic [ref=e584]: waterfall
+              - option "mirror-wave" [ref=e585] [cursor=pointer]:
+                - generic [ref=e587]: mirror-wave
+              - option "strings" [ref=e588] [cursor=pointer]:
+                - generic [ref=e590]: strings
+              - option "monolith" [ref=e591] [cursor=pointer]:
+                - generic [ref=e593]: monolith
+          - generic [ref=e594]:
+            - generic [ref=e595]:
+              - generic [ref=e596]: Retro
+              - generic [ref=e597]: 80s synthwave + matrix
+            - generic [ref=e598]:
+              - option "synthwave" [ref=e599] [cursor=pointer]:
+                - generic [ref=e601]: synthwave
+              - option "vinyl" [ref=e602] [cursor=pointer]:
+                - generic [ref=e604]: vinyl
+              - option "matrix" [ref=e605] [cursor=pointer]:
+                - generic [ref=e607]: matrix
+          - generic [ref=e608]:
+            - generic [ref=e609]:
+              - generic [ref=e610]: Spatial
+              - generic [ref=e611]: Tunnels + kaleidoscopes
+            - generic [ref=e612]:
+              - option "composite" [ref=e613] [cursor=pointer]:
+                - generic [ref=e615]: composite
+              - option "tunnel" [ref=e616] [cursor=pointer]:
+                - generic [ref=e618]: tunnel
+              - option "kaleidoscope" [ref=e619] [cursor=pointer]:
+                - generic [ref=e621]: kaleidoscope
+              - option "wormhole" [ref=e622] [cursor=pointer]:
+                - generic [ref=e624]: wormhole
+              - option "vortex" [ref=e625] [cursor=pointer]:
+                - generic [ref=e627]: vortex
+          - generic [ref=e628]:
+            - generic [ref=e629]:
+              - generic [ref=e630]: Field
+              - generic [ref=e631]: Bloom, flux, orbits
+            - generic [ref=e632]:
+              - option "bloom" [ref=e633] [cursor=pointer]:
+                - generic [ref=e635]: bloom
+              - option "flux" [ref=e636] [cursor=pointer]:
+                - generic [ref=e638]: flux
+              - option "gravity" [ref=e639] [cursor=pointer]:
+                - generic [ref=e641]: gravity
+              - option "spider" [ref=e642] [cursor=pointer]:
+                - generic [ref=e644]: spider
+              - option "palette-orbs" [ref=e645] [cursor=pointer]:
+                - generic [ref=e647]: palette-orbs
+              - option "confetti" [ref=e648] [cursor=pointer]:
+                - generic [ref=e650]: confetti
+        - generic [ref=e651]:
+          - generic [ref=e652]:
+            - generic [ref=e653]: V
+            - text: next
+          - generic [ref=e654]:
+            - generic [ref=e655]: ⇧
+            - text: +
+            - generic [ref=e656]: V
+            - text: prev
+          - generic [ref=e657]:
+            - generic [ref=e658]: Esc
+            - text: close
+  - contentinfo "Playback transport" [ref=e659]:
+    - generic [ref=e660]:
+      - img "Now playing — click for details" [ref=e661] [cursor=pointer]
+      - generic:
+        - generic: bZ
+        - generic: Press play
+    - generic [ref=e662]:
+      - button "Previous track" [ref=e663] [cursor=pointer]:
+        - img [ref=e664]
+      - button "Play / Pause" [ref=e666] [cursor=pointer]:
+        - img [ref=e667]
+      - button "Next track" [ref=e669] [cursor=pointer]:
+        - img [ref=e670]
+      - 'button "Loop: off" [ref=e672] [cursor=pointer]':
+        - img [ref=e673]
+    - generic [ref=e678]:
+      - generic [ref=e679]: 0:00
+      - slider "Seek" [ref=e680] [cursor=pointer]:
+        - generic: 0:00
+      - generic [ref=e681]: 0:00
+    - generic [ref=e682]:
+      - button "Cast to device" [ref=e684] [cursor=pointer]:
+        - img [ref=e685]
+      - button "Pop out mini player" [ref=e690] [cursor=pointer]:
+        - img [ref=e691]
+      - button "Share now playing" [ref=e694] [cursor=pointer]:
+        - img [ref=e695]
+      - button "More options" [ref=e701] [cursor=pointer]:
+        - img [ref=e702]
+  - status
+  - dialog "Full-screen lyrics":
+    - button "Close": ✕
+    - generic:
+      - generic:
+        - paragraph: bZ
+        - heading "—" [level=3]
+  - dialog "Queue and recents":
+    - generic:
+      - banner:
+        - heading "Queue · Recents · Top" [level=3]
+        - button "Close": ✕
+      - tablist:
+        - tab "Queue" [selected]
+        - tab "Recents"
+        - tab "Top"

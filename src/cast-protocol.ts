@@ -3,17 +3,16 @@
 // transport semantics. Both sides import from here so a typo can't cause silent
 // drops.
 //
-// To register a custom receiver and unlock the navigable TV UI:
-//   1. https://cast.google.com/publish — create a new "Custom Receiver"
-//   2. Receiver URL: https://music.megabyte.space/cast-receiver/
-//   3. Add this Chromecast as a registered test device
-//   4. Replace CAST_APP_ID below with the assigned ID, redeploy
-// Until registered, RECEIVER_FALLBACK (default media receiver) is used so audio
-// still plays — the navigable queue UI is the upgrade path.
+// Custom receiver (228565CB) is the primary path: navigable queue, synced
+// lyrics, live visualizer, branded 10-foot UI at /cast-receiver/. Device
+// CEZI7RBCIPI2HUBIW4NS is "Ready for Testing" in Cast Console as of
+// 2026-05-11. RECEIVER_FALLBACK (Default Media Receiver) auto-engages via
+// tryFallbackReceiver() if the custom App ID fails to load mid-session.
 
 export const CAST_NAMESPACE = 'urn:x-cast:com.megabyte.music';
-export const CAST_APP_ID = '228565CB'; // music.megabyte.space custom receiver (cast.google.com/publish)
-export const RECEIVER_FALLBACK = 'CC1AD845';
+export const CAST_APP_ID = '228565CB'; // custom receiver — branded TV UI
+export const CAST_CUSTOM_APP_ID = '228565CB';
+export const RECEIVER_FALLBACK = 'CC1AD845'; // Default Media Receiver fallback
 export const PROTOCOL_VERSION = 1;
 export const TICK_HZ = 1; // receiver→senders heartbeat
 export const SENDER_TICK_HZ = 0.5; // sender→receiver liveness
