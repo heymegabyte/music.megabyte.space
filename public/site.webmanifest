@@ -24,8 +24,11 @@
     { "src": "/art/screenshot-narrow.png", "sizes": "412x915",  "type": "image/png", "form_factor": "narrow", "label": "Mobile click-zone playback" }
   ],
   "shortcuts": [
-    { "name": "Play first track",         "short_name": "Play",   "url": "/?play=first", "icons": [{ "src": "/art/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Ashton + Mila appeal",     "short_name": "Ashton", "url": "/ashton.html", "icons": [{ "src": "/art/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Play first track",         "short_name": "Play",   "url": "/?play=first",       "icons": [{ "src": "/art/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Random bZ cut",            "short_name": "Random", "url": "/?play=random",      "icons": [{ "src": "/art/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Cast to TV",               "short_name": "Cast",   "url": "/?cast=open",        "icons": [{ "src": "/art/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Visualizer fullscreen",    "short_name": "Viz",    "url": "/?viz=fullscreen",   "icons": [{ "src": "/art/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Ashton + Mila appeal",     "short_name": "Ashton", "url": "/ashton.html",       "icons": [{ "src": "/art/icon-192.png", "sizes": "192x192" }] }
   ],
   "share_target": {
     "action": "/share-target",

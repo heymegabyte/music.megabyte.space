@@ -416,19 +416,128 @@ img { -webkit-user-drag: none; user-select: none; }
 .stage[data-view='idle'] #queue,
 .stage[data-view='idle'] #lyrics { opacity: 0; pointer-events: none; }
 
-.stage[data-view='idle']::after {
-  content: 'BZ Music — Cast ready. Pick a track on your phone or laptop to start.';
+.idle {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 600ms ease;
+  z-index: 4;
+}
+.stage[data-view='idle'] .idle { opacity: 1; }
+
+.idle__halo {
+  position: absolute;
+  inset: -10%;
+  background:
+    radial-gradient(40% 50% at 50% 40%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 70%),
+    radial-gradient(50% 60% at 50% 70%, color-mix(in srgb, var(--vibrant) 22%, transparent), transparent 70%);
+  filter: blur(48px);
+  animation: idlePulse 6s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes idlePulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50%      { transform: scale(1.07); opacity: 1; }
+}
+
+.idle__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.4vmin;
+  padding: 6vmin;
   text-align: center;
-  font-size: clamp(1.5rem, 2.5vw, 2.4rem);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-  padding: 10vmin;
   text-wrap: balance;
+  max-width: 88vmin;
+}
+
+.idle__eyebrow {
+  font-size: 0.95rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.idle__title {
+  font-size: clamp(2.4rem, 4.4vw, 4.6rem);
+  font-weight: 900;
+  letter-spacing: -0.022em;
+  line-height: 1.04;
+  background: linear-gradient(120deg, var(--ink) 0%, var(--accent) 60%, var(--vibrant) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 6px 32px rgba(0, 0, 0, 0.5);
+}
+
+.idle__sub {
+  font-size: clamp(1rem, 1.4vw, 1.4rem);
+  color: var(--ink-soft);
+  max-width: 60vmin;
+  line-height: 1.5;
+}
+.idle__sub strong {
+  color: var(--ink);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.idle__qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2vmin;
+  margin-top: 1.6vmin;
+}
+
+.idle__qr {
+  width: clamp(180px, 22vmin, 280px);
+  height: clamp(180px, 22vmin, 280px);
+  padding: 1.8vmin;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 0 32px color-mix(in srgb, var(--accent) 38%, transparent);
+  transform: translateZ(0);
+}
+.idle__qr img { width: 100%; height: 100%; display: block; }
+
+.idle__qr-hint {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.idle__hint-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1vmin;
+  justify-content: center;
+  margin-top: 2vmin;
+}
+
+.idle__chip {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.5em 1em;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--ink-soft);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 @media (max-width: 1280px) {

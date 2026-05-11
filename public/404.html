@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#060610" />
+    <meta name="robots" content="noindex,follow" />
+    <title>404 — that track skipped town · Panda Desiiignare</title>
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <style>
+      :root { color-scheme: dark; --accent: #00E5FF; --vibrant: #FF2DA0; --violet: #7C3AED; }
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; height: 100%; }
+      body {
+        font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+        background: radial-gradient(60% 80% at 30% 20%, rgba(124,58,237,0.55), transparent 60%),
+                    radial-gradient(60% 80% at 75% 75%, rgba(0,229,255,0.3), transparent 65%),
+                    linear-gradient(135deg, #06030f, #1a0a3a 55%, #2a0e60);
+        color: #f1f1f6;
+        display: grid; place-items: center; padding: 28px;
+        text-align: center; overflow: hidden;
+      }
+      body::before {
+        content: ''; position: fixed; inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+        background-size: 3px 3px; opacity: 0.55; pointer-events: none;
+      }
+      .wrap { max-width: 620px; position: relative; }
+      .glitch {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: clamp(5.5rem, 18vw, 11rem); font-weight: 900;
+        line-height: 0.85; letter-spacing: -0.06em; margin: 0 0 12px;
+        background: linear-gradient(120deg, #fff 0%, var(--accent) 55%, var(--vibrant) 100%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        text-shadow: 0 0 60px rgba(0,229,255,0.4);
+        animation: glitch 4s ease-in-out infinite;
+      }
+      @keyframes glitch {
+        0%, 90%, 100% { transform: translate(0,0); }
+        92% { transform: translate(-3px,1px); }
+        94% { transform: translate(2px,-1px); }
+        96% { transform: translate(-1px,2px); }
+        98% { transform: translate(1px,0); }
+      }
+      .badge {
+        display: inline-block; padding: 6px 14px; border: 1px solid rgba(0,229,255,0.5);
+        border-radius: 999px; font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.74rem; letter-spacing: 0.22em; text-transform: uppercase;
+        color: var(--accent); margin-bottom: 22px;
+      }
+      h1 { font-family: 'Sora', system-ui, sans-serif; font-weight: 800; font-size: clamp(1.7rem, 4.4vw, 2.8rem); margin: 0 0 14px; line-height: 1.08; text-wrap: balance; }
+      h1 em { color: var(--vibrant); font-style: italic; }
+      p { line-height: 1.55; color: rgba(241,241,246,0.78); margin: 0 0 26px; font-size: 1.05rem; text-wrap: pretty; }
+      .row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+      .btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 13px 22px; border-radius: 999px;
+        font-weight: 700; text-decoration: none; letter-spacing: 0.04em;
+        transition: transform 200ms ease, box-shadow 200ms ease;
+      }
+      .btn-primary {
+        background: linear-gradient(120deg, var(--accent), var(--violet));
+        color: #060610;
+        box-shadow: 0 8px 32px rgba(0,229,255,0.35);
+      }
+      .btn-secondary {
+        background: rgba(0,0,0,0.4);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.16);
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      }
+      .btn:hover, .btn:focus-visible { transform: translateY(-2px); }
+      .btn-primary:hover, .btn-primary:focus-visible { box-shadow: 0 12px 40px rgba(0,229,255,0.55); }
+      .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+      .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--vibrant); display: inline-block; animation: pulse 1.4s ease-in-out infinite; }
+      @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.6);opacity:.35} }
+      .footer-note {
+        margin-top: 38px; font-size: 0.85rem; color: rgba(241,241,246,0.5);
+        letter-spacing: 0.04em;
+      }
+      .footer-note a { color: var(--accent); text-decoration: none; }
+      .footer-note a:hover, .footer-note a:focus-visible { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="glitch" aria-hidden="true">404</div>
+      <span class="badge"><span class="pulse"></span>track skipped town</span>
+      <h1>This URL went <em>off-album</em>.</h1>
+      <p>No song lives here. Spin the wheel — every region of the album plays something different. Or DM <a href="mailto:hey@megabyte.space" style="color:var(--accent);text-decoration:none;">hey@megabyte.space</a> if you think this page should exist.</p>
+      <div class="row">
+        <a class="btn btn-primary" href="/?play=random">Play a random bZ cut →</a>
+        <a class="btn btn-secondary" href="/">Back to the album</a>
+      </div>
+      <p class="footer-note">Panda Desiiignare · bZ · Hard but holy. Built in the cyan flag dimension.</p>
+    </div>
+    <script>
+      // tiny easter egg: click the 404 to scramble it briefly
+      document.querySelector('.glitch')?.addEventListener('click', (e) => {
+        const el = e.currentTarget;
+        const o = el.textContent;
+        const c = '01██4░0▒4';
+        let i = 0;
+        const t = setInterval(() => {
+          el.textContent = Array.from(o).map(() => c[Math.floor(Math.random()*c.length)]).join('');
+          if (++i > 6) { clearInterval(t); el.textContent = o; }
+        }, 60);
+      });
+    </script>
+  </body>
+</html>
