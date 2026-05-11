@@ -200,6 +200,89 @@ function fmtHz(hz: number) {
   return `${Math.round(hz)} Hz`;
 }
 
+const VIZ_GROUPS: Array<{ label: string; tagline: string; modes: VizMode[] }> = [
+  { label: 'Cosmos',   tagline: 'Stars, galaxies, deep space',  modes: ['starfield', 'constellation', 'galaxy', 'supernova', 'aurora', 'nebula'] },
+  { label: 'Love',     tagline: 'For Laura, Adrian, CK',         modes: ['heart', 'hearts', 'petals', 'rose'] },
+  { label: 'Energy',   tagline: 'Plasma, drops, lightning',      modes: ['plasma', 'lightning', 'drop-strobe', 'prism', 'sunburst', 'starburst'] },
+  { label: 'Geometry', tagline: 'Sacred shapes + lattices',      modes: ['mandala', 'lattice', 'hex-grid', 'lissajous', 'rings', 'cymatics', 'gem'] },
+  { label: 'Organic',  tagline: 'Particles, fluid, swarms',      modes: ['fireflies', 'dna', 'bokeh', 'liquid', 'smoke', 'swarm', 'ribbons'] },
+  { label: 'Spectrum', tagline: 'Bars, waves, waterfalls',       modes: ['bars', 'wave', 'waterfall', 'mirror-wave', 'strings', 'monolith'] },
+  { label: 'Retro',    tagline: '80s synthwave + matrix',        modes: ['synthwave', 'vinyl', 'matrix'] },
+  { label: 'Spatial',  tagline: 'Tunnels + kaleidoscopes',       modes: ['composite', 'tunnel', 'kaleidoscope', 'wormhole', 'vortex'] },
+  { label: 'Field',    tagline: 'Bloom, flux, orbits',           modes: ['bloom', 'flux', 'gravity', 'spider', 'palette-orbs', 'confetti'] },
+];
+
+function buildVizPicker(grid: HTMLElement | null, catalog: VizMode[], current: VizMode) {
+  if (!grid) return;
+  const seen = new Set<string>();
+  let html = '';
+  for (const g of VIZ_GROUPS) {
+    const groupModes = g.modes.filter(m => catalog.includes(m));
+    if (groupModes.length === 0) continue;
+    html += `<section class="viz-picker__group" data-viz-group="${g.label.toLowerCase()}">
+      <header class="viz-picker__group-h">
+        <span class="viz-picker__group-name">${g.label}</span>
+        <span class="viz-picker__group-tag">${g.tagline}</span>
+      </header>
+      <div class="viz-picker__chips">`;
+    for (const m of groupModes) {
+      seen.add(m);
+      const active = m === current ? ' is-active' : '';
+      html += `<button type="button" role="option" class="viz-chip${active}" data-viz-slug="${m}" data-viz-name="${m}" aria-selected="${m === current}">
+        <span class="viz-chip__dot" aria-hidden="true"></span>
+        <span class="viz-chip__name">${m}</span>
+      </button>`;
+    }
+    html += `</div></section>`;
+  }
+  // Catch any modes not assigned to a group — render under "More"
+  const orphans = catalog.filter(m => !seen.has(m));
+  if (orphans.length) {
+    html += `<section class="viz-picker__group" data-viz-group="more">
+      <header class="viz-picker__group-h">
+        <span class="viz-picker__group-name">More</span>
+        <span class="viz-picker__group-tag">Additional modes</span>
+      </header>
+      <div class="viz-picker__chips">`;
+    for (const m of orphans) {
+      const active = m === current ? ' is-active' : '';
+      html += `<button type="button" role="option" class="viz-chip${active}" data-viz-slug="${m}" data-viz-name="${m}" aria-selected="${m === current}">
+        <span class="viz-chip__dot" aria-hidden="true"></span>
+        <span class="viz-chip__name">${m}</span>
+      </button>`;
+    }
+    html += `</div></section>`;
+  }
+  grid.innerHTML = html;
+}
+
+function markActiveVizChip(grid: HTMLElement | null, mode: VizMode) {
+  if (!grid) return;
+  grid.querySelectorAll<HTMLButtonElement>('[data-viz-slug]').forEach(btn => {
+    const on = btn.dataset.vizSlug === mode;
+    btn.classList.toggle('is-active', on);
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    if (on) btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
+}
+
+function filterVizGrid(grid: HTMLElement | null, q: string) {
+  if (!grid) return;
+  const needle = q.trim().toLowerCase();
+  let groupHits = 0;
+  grid.querySelectorAll<HTMLElement>('.viz-picker__group').forEach(group => {
+    let visible = 0;
+    group.querySelectorAll<HTMLButtonElement>('[data-viz-slug]').forEach(chip => {
+      const match = !needle || chip.dataset.vizName!.includes(needle);
+      chip.hidden = !match;
+      if (match) visible++;
+    });
+    group.hidden = visible === 0;
+    if (visible > 0) groupHits++;
+  });
+  grid.dataset.empty = groupHits === 0 ? '1' : '';
+}
+
 const NOTE_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
 function hzToNote(hz: number): string {
   if (!Number.isFinite(hz) || hz <= 20) return '—';
@@ -539,7 +622,37 @@ function setupShell(root: HTMLElement) {
               <i class="hud__band" id="bandTreb"></i>
             </span>
           </span>
-          <button class="hud__mode-btn" id="modeBtn" type="button" aria-label="Visualizer mode">composite</button>
+          <button class="hud__mode-btn" id="modeBtn" type="button" popovertarget="vizPicker" aria-haspopup="dialog" aria-expanded="false" aria-label="Pick visualizer mode" title="Pick a visualizer (V to cycle)">
+            <span class="hud__mode-name" id="modeBtnLabel">composite</span>
+            <span class="hud__mode-chev" aria-hidden="true">▾</span>
+          </button>
+        </div>
+
+        <div id="vizPicker" popover="auto" class="viz-picker" role="dialog" aria-label="Pick a visualizer mode">
+          <header class="viz-picker__header">
+            <div class="viz-picker__title-block">
+              <span class="viz-picker__eyebrow">Visualizer</span>
+              <h2 class="viz-picker__title" id="vizPickerTitle">50 modes</h2>
+            </div>
+            <label class="viz-picker__cycle" title="Beat-synced random cycling">
+              <input type="checkbox" id="vizAutoCycle" checked />
+              <span class="viz-picker__cycle-dot" aria-hidden="true"></span>
+              <span class="viz-picker__cycle-label">Auto-cycle</span>
+            </label>
+            <button class="viz-picker__close" type="button" popovertarget="vizPicker" popovertargetaction="hide" aria-label="Close picker">
+              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>
+            </button>
+          </header>
+          <div class="viz-picker__searchbar">
+            <svg class="viz-picker__search-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="search" id="vizSearch" class="viz-picker__search" placeholder="Search modes…" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="viz-picker__grid" id="vizGrid" role="listbox" aria-label="Visualizer modes"></div>
+          <footer class="viz-picker__footer">
+            <span><kbd>V</kbd> next</span>
+            <span><kbd>⇧</kbd>+<kbd>V</kbd> prev</span>
+            <span><kbd>Esc</kbd> close</span>
+          </footer>
         </div>
 
         <div class="beat" id="beatDot" aria-hidden="true"></div>
@@ -3085,15 +3198,47 @@ function bindUi() {
   visualizer.start();
   visualizer.setAutoCycle(true);
 
-  const modeBtn = $('#modeBtn');
+  const modeBtnLabel = $('#modeBtnLabel');
+  const vizGrid = $('#vizGrid') as HTMLDivElement | null;
+  const vizSearch = $('#vizSearch') as HTMLInputElement | null;
+  const vizAutoCycle = $('#vizAutoCycle') as HTMLInputElement | null;
+  const vizPickerTitle = $('#vizPickerTitle');
+  buildVizPicker(vizGrid, visualizer.modeCatalog(), visualizer.currentMode());
+  if (vizPickerTitle) vizPickerTitle.textContent = `${visualizer.modeCatalog().length} modes`;
   visualizer.onModeChange((m: VizMode) => {
-    if (modeBtn) modeBtn.textContent = m;
+    if (modeBtnLabel) modeBtnLabel.textContent = m;
+    markActiveVizChip(vizGrid, m);
+    if (vizAutoCycle) vizAutoCycle.checked = false;
     const u = new URL(window.location.href);
     u.searchParams.set('viz', m);
     window.history.replaceState({}, '', u.toString());
   });
-  if (modeBtn) modeBtn.textContent = visualizer.currentMode();
-  modeBtn?.addEventListener('click', () => visualizer.cycleMode());
+  if (modeBtnLabel) modeBtnLabel.textContent = visualizer.currentMode();
+  markActiveVizChip(vizGrid, visualizer.currentMode());
+  vizGrid?.addEventListener('click', (e) => {
+    const chip = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-viz-slug]');
+    if (!chip) return;
+    const slug = chip.dataset.vizSlug as VizMode;
+    visualizer.setMode(slug);
+    const dlg = $('#vizPicker') as HTMLElement & { hidePopover?: () => void } | null;
+    try { dlg?.hidePopover?.(); } catch { /* not supported / not open */ }
+  });
+  vizSearch?.addEventListener('input', () => filterVizGrid(vizGrid, vizSearch.value));
+  vizAutoCycle?.addEventListener('change', () => {
+    const on = vizAutoCycle.checked;
+    visualizer.setAutoCycle(on);
+  });
+  const dlg = $('#vizPicker');
+  dlg?.addEventListener('toggle', (e) => {
+    const open = (e as ToggleEvent).newState === 'open';
+    const btn = $('#modeBtn');
+    btn?.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open && vizSearch) {
+      vizSearch.value = '';
+      filterVizGrid(vizGrid, '');
+      requestAnimationFrame(() => vizSearch.focus());
+    }
+  });
 
   const vizParam = new URLSearchParams(window.location.search).get('viz');
   if (vizParam) {
