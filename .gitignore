@@ -1,0 +1,14 @@
+node_modules
+dist
+.vite
+.DS_Store
+*.log
+.env
+.env.local
+.dev.vars
+.npm-cache
+.og-markers
+.og-dalle.log
+.tmp-data.mjs
+.tmp-dalle-data.mjs
+.claude/settings.local.json

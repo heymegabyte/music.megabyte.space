@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <title>BZ Music · Cast</title>
+    <meta name="description" content="Custom Chromecast receiver for music.megabyte.space — navigable queue, synced lyrics, live visualizer." />
+    <link rel="canonical" href="https://music.megabyte.space/cast-receiver/" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#06030f" />
+    <meta name="application-name" content="BZ Music Cast" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+    <script type="module" src="/cast-receiver/receiver.ts"></script>
+    <link rel="stylesheet" href="/cast-receiver/receiver.css" />
+  </head>
+  <body>
+    <main id="stage" class="stage" data-view="now-playing">
+      <div class="stage__bg" id="bg" aria-hidden="true"></div>
+      <canvas id="viz" class="viz" aria-hidden="true"></canvas>
+
+      <section class="np" id="nowPlaying" data-view-target="now-playing">
+        <div class="np__art-wrap">
+          <div class="np__art-glow" id="artGlow" aria-hidden="true"></div>
+          <img id="artImg" class="np__art" src="" alt="" />
+        </div>
+        <div class="np__meta">
+          <p class="np__eyebrow" id="eyebrow">Casting from music.megabyte.space</p>
+          <h1 class="np__title" id="title">—</h1>
+          <p class="np__sub"><span id="artist">—</span> · <span id="album">—</span></p>
+          <div class="np__progress">
+            <div class="np__bar"><div class="np__fill" id="progFill"></div></div>
+            <div class="np__times"><span id="now">0:00</span><span id="total">0:00</span></div>
+          </div>
+          <p class="np__hint" id="hint">▲ ▼ Queue · ◀ ▶ Seek · OK Play / Pause · Back Now Playing</p>
+        </div>
+      </section>
+
+      <section class="lyrics" id="lyrics" data-view-target="lyrics" aria-hidden="true">
+        <div class="lyrics__inner" id="lyricsInner">
+          <p class="lyrics__line is-empty">Lyrics syncing…</p>
+        </div>
+      </section>
+
+      <aside class="queue" id="queue" data-view-target="queue" aria-hidden="true">
+        <header class="queue__header">
+          <h2>Queue</h2>
+          <span id="queueCount">0</span>
+        </header>
+        <ol class="queue__list" id="queueList" tabindex="0"></ol>
+      </aside>
+
+      <div class="status" id="status" aria-live="polite">
+        <span class="status__dot" id="statusDot"></span>
+        <span class="status__text" id="statusText">Connecting…</span>
+      </div>
+
+      <div class="toast" id="toast" aria-hidden="true"></div>
+    </main>
+  </body>
+</html>

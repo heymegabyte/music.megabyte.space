@@ -1,0 +1,40 @@
+name = "music-megabyte-space"
+account_id = "84fa0d1b16ff8086dd958c468ce7fd59"
+compatibility_date = "2025-04-01"
+main = "worker/index.ts"
+
+routes = [
+  { pattern = "music.megabyte.space", custom_domain = true }
+]
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = [
+  "/audio/*",
+  "/canopy/*",
+  "/halo/*",
+  "/appeal/*",
+  "/canon/*",
+  "/desiiignare/*",
+  "/wormhole/*",
+  "/mercy-drop/*",
+  "/embed/*",
+  "/ashton/*",
+  "/ashton-letter/*",
+  "/api/*",
+  "/health"
+]
+
+[vars]
+LISTMONK_URL = "https://listmonk.megabyte.space"
+LISTMONK_API_USER = "automation"
+LISTMONK_LIST_NAME = "music.megabyte.space"
+
+[[kv_namespaces]]
+binding = "COUNTERS"
+id = "2a9973599d5c453c984cdb69758f9bde"
+
+[observability]
+enabled = true

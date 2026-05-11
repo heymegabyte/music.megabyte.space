@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-05-04T22:16:34.118Z",
+  "chosen_attempt": 2,
+  "chosen_prompt": "see scripts/generate-logo-spray.mjs PROMPTS[1]",
+  "attempts": [
+    {
+      "attempt": 1,
+      "file": "/Users/apple/emdash-projects/worktrees/blue-donuts-flash-v6d/public/brand/logo-spray-attempt-1.png",
+      "bytes": 1043600
+    },
+    {
+      "attempt": 2,
+      "file": "/Users/apple/emdash-projects/worktrees/blue-donuts-flash-v6d/public/brand/logo-spray-attempt-2.png",
+      "bytes": 763521
+    },
+    {
+      "attempt": 3,
+      "file": "/Users/apple/emdash-projects/worktrees/blue-donuts-flash-v6d/public/brand/logo-spray-attempt-3.png",
+      "bytes": 1003693
+    }
+  ],
+  "chosen_reason": "Attempt 2 has the cleanest single-color cyan fill, strong symmetric drips, balanced magenta overspray on both sides — best readability at favicon sizes (16/32px). Attempt 1 has white interior halo that muddies at small sizes; attempt 3 has asymmetric overspray."
+}
