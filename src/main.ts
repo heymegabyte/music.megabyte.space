@@ -2376,7 +2376,14 @@ function pulseCastHue(): void {
   const bass = bandEnergy(data, 0, 0.08);
   const mid = bandEnergy(data, 0.08, 0.4);
   const treble = bandEnergy(data, 0.4, 1);
-  hue.pulse(accent, { bass, mid, treble, beat: engine.beatPulse, bpm: engine.bpm }).catch(() => { /* swallow */ });
+  hue.pulse(accent, {
+    bass, mid, treble,
+    beat: engine.beatPulse,
+    bpm: engine.bpm,
+    dropImminent: engine.dropImminent,
+    dropEnergy: engine.dropEnergy,
+    buildPhase: engine.buildPhase
+  }).catch(() => { /* swallow */ });
 }
 
 let castLyricsRaf = 0;
