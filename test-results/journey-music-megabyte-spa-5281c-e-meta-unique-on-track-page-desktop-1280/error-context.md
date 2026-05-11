@@ -42,16 +42,16 @@ Received string:  "<!doctype html>
     <meta property=\"og:url\" content=\"https://music.megabyte.space/canopy/birch-swing-heaven\" />
     <meta property=\"og:site_name\" content=\"Panda Desiiignare\" />
     <meta property=\"og:locale\" content=\"en_US\" />
-    <meta property=\"og:image\" content=\"https://music.megabyte.space/og/birch-swing-heaven.png\" />
-    <meta property=\"og:image:secure_url\" content=\"https://music.megabyte.space/og/birch-swing-heaven.png\" />
+    <meta property=\"og:image\" content=\"https://music.megabyte.space/og/track-birch-swing-heaven.jpg\" />
+    <meta property=\"og:image:secure_url\" content=\"https://music.megabyte.space/og/track-birch-swing-heaven.jpg\" />
     <meta property=\"og:image:width\" content=\"1200\" />
     <meta property=\"og:image:height\" content=\"630\" />
-    <meta property=\"og:image:type\" content=\"image/png\" />
+    <meta property=\"og:image:type\" content=\"image/jpeg\" />
     <meta property=\"og:image:alt\" content=\"Touch The Sky — bZ · Canopy Dispatch share card\" />·
     <meta name=\"twitter:card\" content=\"player\" />
     <meta name=\"twitter:title\" content=\"Touch The Sky — bZ\" />
     <meta name=\"twitter:description\" content=\"Touch The Sky by bZ on Canopy Dispatch: &quot;When the world gets heavy I want to climb high.&quot; Digital-age signals from ancient roots.\" />
-    <meta name=\"twitter:image\" content=\"https://music.megabyte.space/og/birch-swing-heaven.png\" />
+    <meta name=\"twitter:image\" content=\"https://music.megabyte.space/og/track-birch-swing-heaven.jpg\" />
     <meta name=\"twitter:image:alt\" content=\"Touch The Sky — bZ · Canopy Dispatch share card\" />·
     <meta property=\"og:audio\" content=\"https://music.megabyte.space/audio/Birch_Swing_Heaven.mp3\" />
     <meta property=\"og:audio:secure_url\" content=\"https://music.megabyte.space/audio/Birch_Swing_Heaven.mp3\" />
@@ -62,16 +62,18 @@ Received string:  "<!doctype html>
     <meta name=\"twitter:player:stream\" content=\"https://music.megabyte.space/audio/Birch_Swing_Heaven.mp3\" />
     <meta name=\"twitter:player:stream:content_type\" content=\"audio/mpeg\" />
     <link rel=\"alternate\" type=\"application/json+oembed\" href=\"https://music.megabyte.space/api/oembed?url=https%3A%2F%2Fmusic.megabyte.space%2Fcanopy%2Fbirch-swing-heaven&format=json\" title=\"bZ — oEmbed JSON\" />·
-    <script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"MusicRecording\",\"name\":\"Touch The Sky\",\"url\":\"https://music.megabyte.space/canopy/birch-swing-heaven\",\"image\":\"https://music.megabyte.space/og/birch-swing-heaven.png\",\"duration\":\"PT3M30S\",\"audio\":\"https://music.megabyte.space/audio/Birch_Swing_Heaven.mp3\",\"embedUrl\":\"https://music.megabyte.space/embed/birch-swing-heaven\",\"byArtist\":{\"@type\":\"MusicGroup\",\"name\":\"bZ\",\"url\":\"https://music.megabyte.space\"},\"inAlbum\":{\"@type\":\"MusicAlbum\",\"name\":\"Canopy Dispatch\",\"url\":\"https://music.megabyte.space/canopy\",\"image\":\"https://music.megabyte.space/art/cover-canopy-dispatch.png\"},\"genre\":\"Hustle gospel\",\"description\":\"\\\"Use absence to increase respect and honor\\\" — Greene, Law 16\"}</script><script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Music\",\"item\":\"https://music.megabyte.space\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Canopy Dispatch\",\"item\":\"https://music.megabyte.space/canopy\"},{\"@type\":\"ListItem\",\"position\":3,\"name\":\"Touch The Sky\",\"item\":\"https://music.megabyte.space/canopy/birch-swing-heaven\"}]}</script>
-    <script type=\"module\" crossorigin src=\"/assets/main-DBp3NzDJ.js\"></script>
+    <link rel=\"dns-prefetch\" href=\"https://www.gstatic.com\" />
+    <link rel=\"preconnect\" href=\"https://www.gstatic.com\" crossorigin />·
+    <script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"MusicRecording\",\"name\":\"Touch The Sky\",\"url\":\"https://music.megabyte.space/canopy/birch-swing-heaven\",\"image\":\"https://music.megabyte.space/og/track-birch-swing-heaven.jpg\",\"duration\":\"PT3M30S\",\"audio\":\"https://music.megabyte.space/audio/Birch_Swing_Heaven.mp3\",\"embedUrl\":\"https://music.megabyte.space/embed/birch-swing-heaven\",\"byArtist\":{\"@type\":\"MusicGroup\",\"name\":\"bZ\",\"url\":\"https://music.megabyte.space\"},\"inAlbum\":{\"@type\":\"MusicAlbum\",\"name\":\"Canopy Dispatch\",\"url\":\"https://music.megabyte.space/canopy\",\"image\":\"https://music.megabyte.space/art/cover-canopy-dispatch.png\"},\"genre\":\"Hustle gospel\",\"description\":\"\\\"Use absence to increase respect and honor\\\" — Greene, Law 16\"}</script><script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Music\",\"item\":\"https://music.megabyte.space\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Canopy Dispatch\",\"item\":\"https://music.megabyte.space/canopy\"},{\"@type\":\"ListItem\",\"position\":3,\"name\":\"Touch The Sky\",\"item\":\"https://music.megabyte.space/canopy/birch-swing-heaven\"}]}</script>
+    <script type=\"module\" crossorigin src=\"/assets/main-cC_QDYRq.js\"></script>
     <link rel=\"modulepreload\" crossorigin href=\"/assets/modulepreload-polyfill-B5Qt9EMX.js\">
-    <link rel=\"modulepreload\" crossorigin href=\"/assets/data-CHOLzVub.js\">
-    <link rel=\"modulepreload\" crossorigin href=\"/assets/cast-protocol-fW4nDI9h.js\">
-    <link rel=\"stylesheet\" crossorigin href=\"/assets/data-2ChSn2Ek.css\">
+    <link rel=\"modulepreload\" crossorigin href=\"/assets/data-DvE2dBwx.js\">
+    <link rel=\"modulepreload\" crossorigin href=\"/assets/cast-protocol-DHnQJCgo.js\">
+    <link rel=\"stylesheet\" crossorigin href=\"/assets/data-C0wo-j7h.css\">
   </head>
-  <body><a href=\"https://music.megabyte.space/cdn-cgi/content?id=puypWn0bW1tKywTllxT9Lf.8RnOFLBYNTjGNhbqXQYE-1778442955.136265-1.0.1.1-QwlfcXCBQHuqxK1K1r4UY1NI2bmHiLu2H1..TzmDJw0\" aria-hidden=\"true\" rel=\"nofollow noopener\" style=\"display: none !important; visibility: hidden !important\"></a>
+  <body>
     <div id=\"app\"></div>
-  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'9f9b81159aa9381d',t:'MTc3ODQ0Mjk1NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+  </body>
 </html>
 "
 ```

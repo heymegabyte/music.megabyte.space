@@ -77,14 +77,11 @@ export type VizMode =
   | 'galaxy'
   | 'supernova'
   | 'aurora'
-  | 'heart'
-  | 'hearts'
   | 'petals'
   | 'plasma'
   | 'mandala'
   | 'lightning'
   | 'fireflies'
-  | 'dna'
   | 'bokeh'
   // existing
   | 'composite'
@@ -128,8 +125,8 @@ export type VizMode =
 
 const MODE_ORDER: VizMode[] = [
   'starfield', 'constellation', 'galaxy', 'supernova', 'aurora',
-  'heart', 'hearts', 'petals',
-  'plasma', 'mandala', 'lightning', 'fireflies', 'dna', 'bokeh',
+  'petals',
+  'plasma', 'mandala', 'lightning', 'fireflies', 'bokeh',
   'palette-orbs', 'drop-strobe', 'prism',
   'synthwave', 'wormhole', 'vortex', 'sunburst', 'mirror-wave',
   'hex-grid', 'liquid', 'vinyl', 'matrix', 'smoke', 'strings',
@@ -178,7 +175,6 @@ export class Visualizer {
     constellation?: { stars: Star2D[] };
     galaxy?: { particles: GalaxyParticle[] };
     supernova?: { rings: SupernovaRing[] };
-    hearts?: { items: HeartItem[] };
     petals?: { items: HeartItem[] };
     plasma?: { off: HTMLCanvasElement; offCtx: CanvasRenderingContext2D; img: ImageData };
     lightning?: { bolts: Bolt[]; nodes: LNode[]; lastBeatAt: number };
@@ -261,7 +257,6 @@ export class Visualizer {
     this.vizState.lightning = { bolts: [], nodes: lnodes, lastBeatAt: 0 };
 
     this.vizState.supernova = { rings: [] };
-    this.vizState.hearts = { items: [] };
     this.vizState.petals = { items: [] };
   }
 
@@ -399,14 +394,11 @@ export class Visualizer {
       case 'galaxy':        this.drawGalaxy(ctx, w, h); break;
       case 'supernova':     this.drawSupernova(ctx, w, h); break;
       case 'aurora':        this.drawAurora(ctx, w, h); break;
-      case 'heart':         this.drawHeartPulse(ctx, w, h); break;
-      case 'hearts':        this.drawFallingHearts(ctx, w, h); break;
       case 'petals':        this.drawPetals(ctx, w, h); break;
       case 'plasma':        this.drawPlasma(ctx, w, h); break;
       case 'mandala':       this.drawMandala(ctx, w, h); break;
       case 'lightning':     this.drawLightning(ctx, w, h); break;
       case 'fireflies':     this.drawFireflies(ctx, w, h); break;
-      case 'dna':           this.drawDNA(ctx, w, h); break;
       case 'bokeh':         this.drawBokeh(ctx, w, h); break;
       case 'palette-orbs':  this.drawPaletteOrbs(ctx, w, h); break;
       case 'drop-strobe':   this.drawDropStrobe(ctx, w, h); break;
@@ -784,125 +776,7 @@ export class Visualizer {
     ctx.restore();
   }
 
-  // 6. heart pulse — central beating heart with glow rings + orbiters
-  private heartPath(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, rot: number) {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(rot);
-    ctx.beginPath();
-    const n = 80;
-    const s = size / 17;
-    for (let i = 0; i <= n; i++) {
-      const tt = (i / n) * Math.PI * 2;
-      const x = 16 * Math.pow(Math.sin(tt), 3);
-      const y = -(13 * Math.cos(tt) - 5 * Math.cos(2 * tt) - 2 * Math.cos(3 * tt) - Math.cos(4 * tt));
-      if (i === 0) ctx.moveTo(x * s, y * s);
-      else ctx.lineTo(x * s, y * s);
-    }
-    ctx.closePath();
-    ctx.restore();
-  }
-
-  private drawHeartPulse(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
-    const cx = w / 2, cy = h / 2;
-    const beat = this.engine.beatPulse;
-    const bass = this.bandEnergy(0, 0.06);
-    const mid = this.bandEnergy(0.08, 0.32);
-    const baseSize = Math.min(w, h) * (0.2 + bass * 0.1 + beat * 0.06);
-
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-
-    // glow halo rings
-    for (let i = 6; i >= 1; i--) {
-      const size = baseSize * (1 + i * 0.16);
-      const col = lovePalette(t * 0.08 + i * 0.09);
-      const alpha = (0.16 - i * 0.022) * (0.85 + beat * 0.45);
-      ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${Math.max(0, alpha)})`;
-      this.heartPath(ctx, cx, cy, size, Math.sin(t * 0.3 + i) * 0.04);
-      ctx.fill();
-    }
-
-    // main heart
-    const mainCol = lovePalette(t * 0.1);
-    ctx.shadowBlur = 36 * this.dpr * (0.6 + beat);
-    ctx.shadowColor = `rgba(${mainCol[0]},${mainCol[1]},${mainCol[2]},0.95)`;
-    ctx.fillStyle = `rgba(${mainCol[0]},${mainCol[1]},${mainCol[2]},${0.85 + beat * 0.15})`;
-    this.heartPath(ctx, cx, cy, baseSize, 0);
-    ctx.fill();
-
-    // bright core stroke
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = `rgba(255,230,240,${0.7 + beat * 0.3})`;
-    ctx.lineWidth = this.dpr * 2;
-    this.heartPath(ctx, cx, cy, baseSize * 0.94, 0);
-    ctx.stroke();
-
-    // orbiting small hearts
-    const orbit = 5;
-    for (let i = 0; i < orbit; i++) {
-      const a = (i / orbit) * Math.PI * 2 + t * (0.45 + mid * 0.3);
-      const r = baseSize * (1.9 + Math.sin(t * 0.7 + i) * 0.2);
-      const x = cx + Math.cos(a) * r;
-      const y = cy + Math.sin(a) * r * 0.78;
-      const sCol = lovePalette(t * 0.15 + i * 0.2);
-      ctx.shadowBlur = 20 * this.dpr;
-      ctx.shadowColor = `rgba(${sCol[0]},${sCol[1]},${sCol[2]},0.8)`;
-      ctx.fillStyle = `rgba(${sCol[0]},${sCol[1]},${sCol[2]},${0.78 + beat * 0.22})`;
-      this.heartPath(ctx, x, y, baseSize * 0.16, t * 0.4 + i);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  // 7. falling hearts — rain of hearts that sway as they fall
-  private drawFallingHearts(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    if (!this.vizState.hearts) this.vizState.hearts = { items: [] };
-    const st = this.vizState.hearts;
-    const t = (performance.now() - this.t0) / 1000;
-    const beat = this.engine.beatPulse;
-    const bass = this.bandEnergy(0, 0.06);
-    const dt = 1 / Math.max(30, this.fpsEMA);
-
-    const spawnRate = 1 + beat * 14 + bass * 5;
-    if (Math.random() < spawnRate * dt && st.items.length < 140) {
-      st.items.push({
-        x: Math.random() * w,
-        vy: 40 + Math.random() * 110 + beat * 80,
-        size: this.dpr * (8 + Math.random() * 28),
-        rot: Math.random() * Math.PI * 2,
-        vrot: (Math.random() - 0.5) * 1.6,
-        sway: Math.random() * Math.PI * 2,
-        color: lovePalette(t * 0.1 + Math.random()),
-        life: -30
-      });
-    }
-
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    for (let i = st.items.length - 1; i >= 0; i--) {
-      const it = st.items[i];
-      it.life += it.vy * dt;
-      it.rot += it.vrot * dt;
-      const x = it.x + Math.sin(t * 0.9 + it.sway) * 32 * this.dpr;
-      const y = it.life;
-      if (y > h + 60) { st.items.splice(i, 1); continue; }
-      const col = it.color;
-      const fadeIn = Math.min(1, (y + 30) / 80);
-      const fadeOut = Math.min(1, (h - y) / 100);
-      const a = fadeIn * fadeOut;
-      ctx.shadowBlur = it.size * 0.7;
-      ctx.shadowColor = `rgba(${col[0]},${col[1]},${col[2]},0.85)`;
-      ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${(0.75 + beat * 0.2) * a})`;
-      this.heartPath(ctx, x, y, it.size * (1 + beat * 0.1), it.rot);
-      ctx.fill();
-    }
-    ctx.shadowBlur = 0;
-    ctx.restore();
-  }
-
-  // 8. rose petals — drifting petals with wind and rotation
+  // rose petals — drifting petals with wind and rotation
   private petalPath(ctx: CanvasRenderingContext2D, cx: number, cy: number, size: number, rot: number) {
     ctx.save();
     ctx.translate(cx, cy);
@@ -1210,78 +1084,7 @@ export class Visualizer {
     ctx.restore();
   }
 
-  // 13. dna helix — rotating double-helix with audio-reactive rungs
-  private drawDNA(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
-    const cx = w / 2;
-    const f = this.engine.freqData;
-    const bass = this.bandEnergy(0, 0.06);
-    const beat = this.engine.beatPulse;
-    const radius = Math.min(w, h) * (0.2 + bass * 0.05);
-    const N = 70;
-    ctx.save();
-    ctx.lineCap = 'round';
-    ctx.globalCompositeOperation = 'screen';
-
-    // rungs behind
-    for (let i = 0; i < N; i++) {
-      const y = ((i + 0.5) / N) * h;
-      const ph = i * 0.45 + t * 1.6;
-      const x1 = cx + Math.cos(ph) * radius;
-      const x2 = cx + Math.cos(ph + Math.PI) * radius;
-      const bin = Math.floor((i / N) * f.length * 0.4);
-      const v = (f[bin] || 0) / 255;
-      const col = paletteAt(t * 0.07 + i / N);
-      ctx.strokeStyle = `rgba(${col[0]},${col[1]},${col[2]},${0.2 + v * 0.6 + beat * 0.15})`;
-      ctx.lineWidth = this.dpr * (1.2 + v * 2.2);
-      ctx.beginPath();
-      ctx.moveTo(x1, y);
-      ctx.lineTo(x2, y);
-      ctx.stroke();
-    }
-
-    // strands
-    const strandCols: Array<[number, number, number]> = [[255, 105, 165], [120, 200, 255]];
-    for (let strand = 0; strand < 2; strand++) {
-      const offset = strand * Math.PI;
-      const col = strandCols[strand];
-      ctx.beginPath();
-      for (let i = 0; i <= N; i++) {
-        const y = (i / N) * h;
-        const ph = i * 0.45 + t * 1.6 + offset;
-        const x = cx + Math.cos(ph) * radius;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.shadowBlur = 22 * this.dpr;
-      ctx.shadowColor = `rgba(${col[0]},${col[1]},${col[2]},0.85)`;
-      ctx.strokeStyle = `rgba(${col[0]},${col[1]},${col[2]},${0.85 + beat * 0.15})`;
-      ctx.lineWidth = this.dpr * 3.2;
-      ctx.stroke();
-    }
-    ctx.shadowBlur = 0;
-
-    // beads (front-facing emphasis)
-    for (let i = 0; i < N; i++) {
-      const y = ((i + 0.5) / N) * h;
-      const ph = i * 0.45 + t * 1.6;
-      for (let strand = 0; strand < 2; strand++) {
-        const offset = strand * Math.PI;
-        const sinPh = Math.sin(ph + offset);
-        const x = cx + Math.cos(ph + offset) * radius;
-        const front = (sinPh + 1) / 2;
-        const col = strandCols[strand];
-        const r = this.dpr * (1.4 + front * 3.2);
-        ctx.fillStyle = `rgba(${Math.min(255, col[0] + 40)},${Math.min(255, col[1] + 40)},${Math.min(255, col[2] + 40)},${0.4 + front * 0.5})`;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    ctx.restore();
-  }
-
-  // 14. bokeh field — out-of-focus light circles drifting across the lens
+  // bokeh field — out-of-focus light circles drifting across the lens
   private drawBokeh(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.vizState.bokeh) {
       const items: BokehItem[] = [];

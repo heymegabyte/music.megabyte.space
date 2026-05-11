@@ -3977,6 +3977,16 @@ body.cast-tv-open .transport { filter: blur(2px) brightness(0.55); transition: f
   margin: 30% 0;
   text-align: center;
 }
+.cast-tv__w {
+  display: inline-block;
+  transition: color 120ms ease, text-shadow 180ms ease, transform 180ms ease;
+}
+.cast-tv__line.is-active .cast-tv__w.is-past { color: color-mix(in srgb, var(--cast-ink) 70%, transparent); }
+.cast-tv__line.is-active .cast-tv__w.is-active {
+  color: #fff;
+  text-shadow: 0 0 14px color-mix(in srgb, var(--cast-vibrant) 90%, transparent);
+  transform: translateY(-1px);
+}
 
 .cast-tv__rail {
   display: flex;

@@ -63,7 +63,8 @@ export interface ReceiverQueueItem {
   vibe?: string;
 }
 
-export interface ReceiverLine { t: number; text: string; }
+export interface ReceiverWord { w: string; s: number; e: number; }
+export interface ReceiverLine { t: number; text: string; e?: number; words?: ReceiverWord[]; }
 
 export type ReceiverView = 'now-playing' | 'queue' | 'settings';
 

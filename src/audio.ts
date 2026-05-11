@@ -57,6 +57,9 @@ export class AudioEngine {
   private energyHistory: number[] = [];
   private listeners = new Set<Listener>();
   private unlocked = false;
+  /** Outstanding `audio.play()` promise. We `await` it before mutating `src`
+   *  so back-to-back track switches don't trigger AbortError races. */
+  private playPromise: Promise<void> | null = null;
 
   constructor() {
     this.audio = new Audio();
@@ -201,22 +204,44 @@ export class AudioEngine {
   async play(track: Track) {
     this.unlock();
     if (this.ctx?.state === 'suspended') await this.ctx.resume();
+    // Settle the previous play() promise before mutating src. Without this
+    // guard a rapid track-switch (click track 2 while track 1 is still loading)
+    // throws "The play() request was interrupted by a new load request".
+    if (this.playPromise) {
+      try { await this.playPromise; } catch { /* prior abort is expected on rapid switch */ }
+    }
     if (this.current?.id !== track.id) {
+      // Pause first so the in-flight load doesn't race the new src.
+      if (!this.audio.paused) this.audio.pause();
       this.current = track;
       this.audio.src = track.file;
+      this.audio.load();
     }
     try {
-      await this.audio.play();
+      this.playPromise = this.audio.play();
+      await this.playPromise;
     } catch (err) {
-      console.warn('audio play blocked', err);
+      // AbortError is the expected outcome when another play() superseded this
+      // one — swallow silently. Surface anything else (NotAllowedError, etc.)
+      // for diagnostics.
+      const name = (err as { name?: string } | null)?.name;
+      if (name !== 'AbortError') console.warn('audio play blocked', err);
+    } finally {
+      this.playPromise = null;
     }
     this.emit();
   }
 
   toggle() {
     if (!this.current) return;
-    if (this.audio.paused) this.audio.play();
-    else this.audio.pause();
+    if (this.audio.paused) {
+      this.playPromise = this.audio.play().catch(err => {
+        const name = (err as { name?: string } | null)?.name;
+        if (name !== 'AbortError') console.warn('audio play blocked', err);
+      }) as Promise<void>;
+    } else {
+      this.audio.pause();
+    }
   }
 
   seekRatio(r: number) {

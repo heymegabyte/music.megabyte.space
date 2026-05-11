@@ -2,10 +2,8 @@
 // Direct browser → bridge calls (bridge ships CORS headers; user accepts self-signed
 // cert once via /api/hue/redirect or by visiting the bridge IP). Worker proxy at
 // /api/hue/discover handles the cloud broker. Rate-limited to ~9Hz per Hue dev guidance.
-//
-// BLE direct path: when the user pairs a single Hue bulb over Web Bluetooth (Chrome
-// desktop / Android), pulses are written straight to GATT — sub-100ms latency, no
-// bridge required. Falls back to HTTPS bridge automatically when BLE is unavailable.
+// CLIP v2 multi-zone gradient streaming drives Hue Play Light Bars and gradient
+// strips at ~22Hz with per-zone color + brightness.
 
 import { rgbToXY, rgbBrightness } from './palette';
 
@@ -49,47 +47,8 @@ export interface HueBands {
 }
 
 const STORAGE_KEY = 'bz:hue:v1';
-const BLE_DEVICE_KEY = 'bz:hue:ble:v1';
 const MIN_FRAME_MS = 110;     // ~9Hz — bridge HTTPS v1 endpoint hard-throttles ~10Hz
 const MIN_V2_MS = 45;         // ~22Hz — CLIP v2 sustains higher cadence than v1
-const MIN_BLE_MS = 200;       // ~5Hz — gentle on the BLE link, dodges flooding the bulb
-
-// Reverse-engineered Philips Hue BLE GATT (matches Hue White & Color Ambiance bulbs).
-const HUE_BLE_SERVICE = '932c32bd-0000-47a2-835a-a8d455b859dd';
-const HUE_BLE_ON_CHAR = '932c32bd-0002-47a2-835a-a8d455b859dd';
-const HUE_BLE_BRI_CHAR = '932c32bd-0003-47a2-835a-a8d455b859dd';
-const HUE_BLE_XY_CHAR = '932c32bd-0005-47a2-835a-a8d455b859dd';
-
-// Minimal Web Bluetooth shape — @types/web-bluetooth isn't installed and we only
-// touch a thin slice of the API. Anything broader can be added when needed.
-interface BluetoothRemoteGATTCharacteristic {
-  writeValueWithoutResponse(value: BufferSource): Promise<void>;
-}
-interface BluetoothRemoteGATTService {
-  getCharacteristic(uuid: string): Promise<BluetoothRemoteGATTCharacteristic>;
-}
-interface BluetoothRemoteGATTServer {
-  connect(): Promise<BluetoothRemoteGATTServer>;
-  disconnect(): void;
-  getPrimaryService(uuid: string): Promise<BluetoothRemoteGATTService>;
-}
-interface BluetoothDevice {
-  id?: string;
-  name?: string;
-  gatt?: BluetoothRemoteGATTServer;
-  addEventListener(type: 'gattserverdisconnected', listener: () => void): void;
-}
-interface BluetoothRequestOptions {
-  filters?: Array<{ services?: string[]; namePrefix?: string }>;
-  optionalServices?: string[];
-}
-interface BluetoothApi {
-  requestDevice(opts: BluetoothRequestOptions): Promise<BluetoothDevice>;
-  getDevices?: () => Promise<BluetoothDevice[]>;
-}
-declare global {
-  interface Navigator { bluetooth?: BluetoothApi; }
-}
 
 export class HueSync {
   config: HueConfig;
@@ -97,12 +56,8 @@ export class HueSync {
   gradientLights: GradientLight[] = [];
   status: 'idle' | 'discovering' | 'linking' | 'ready' | 'error' = 'idle';
   lastError = '';
-  bleConnected = false;
-  bleDeviceName = '';
-  bleSupported = typeof navigator !== 'undefined' && 'bluetooth' in navigator;
   private lastFrameAt = 0;
   private lastV2At = 0;
-  private lastBleAt = 0;
   private listeners = new Set<() => void>();
   private inflight = 0;
   private v2Inflight = 0;
@@ -114,12 +69,6 @@ export class HueSync {
   private phase = 0;
   /** Smoothed bands per zone, indexed by zone position. Re-allocated when zones change. */
   private zoneBri: number[] = [];
-  private bleDevice: BluetoothDevice | null = null;
-  private bleServer: BluetoothRemoteGATTServer | null = null;
-  private bleOnChar: BluetoothRemoteGATTCharacteristic | null = null;
-  private bleBriChar: BluetoothRemoteGATTCharacteristic | null = null;
-  private bleXyChar: BluetoothRemoteGATTCharacteristic | null = null;
-  private bleBusy = false;
 
   constructor() {
     this.config = readConfig();
@@ -127,7 +76,6 @@ export class HueSync {
       this.status = 'ready';
       void this.loadGradientLights();
     }
-    void this.tryReconnectBle();
   }
 
   on(fn: () => void): () => void {
@@ -314,93 +262,9 @@ export class HueSync {
 
   isReady(): boolean {
     if (!this.config.enabled) return false;
-    if (this.bleConnected) return true;
     if (!this.config.bridgeIp || !this.config.appKey) return false;
     // v1 group OR v2 gradient lights — either path is enough to drive the room
     return Boolean(this.config.groupId) || (this.config.useGradient && this.gradientLights.length > 0);
-  }
-
-  /**
-   * Pair a single Hue bulb over Web Bluetooth (Chrome desktop / Android only).
-   * GATT writes give sub-100ms latency vs ~800ms over the bridge HTTPS endpoint.
-   * Must be called inside a user gesture handler (browser security requirement).
-   */
-  async connectBLE(): Promise<{ ok: boolean; reason?: string }> {
-    if (!this.bleSupported || !navigator.bluetooth) return { ok: false, reason: 'Web Bluetooth not supported in this browser. Try Chrome on desktop or Android.' };
-    try {
-      const device = await navigator.bluetooth.requestDevice({
-        filters: [
-          { services: [HUE_BLE_SERVICE] },
-          { namePrefix: 'Hue' }
-        ],
-        optionalServices: [HUE_BLE_SERVICE]
-      });
-      await this.bindBleDevice(device);
-      try { localStorage.setItem(BLE_DEVICE_KEY, device.id ?? device.name ?? ''); } catch { /* noop */ }
-      this.config = { ...this.config, enabled: true };
-      writeConfig(this.config);
-      return { ok: true };
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      this.bleConnected = false;
-      this.lastError = msg.includes('cancelled') || msg.includes('User cancelled') ? 'Pairing cancelled' : msg;
-      this.emit();
-      return { ok: false, reason: this.lastError };
-    }
-  }
-
-  /** Reconnect to a previously-paired bulb without showing the chooser. Chrome-only API. */
-  private async tryReconnectBle(): Promise<void> {
-    if (!this.bleSupported || !navigator.bluetooth?.getDevices) return;
-    let savedId = '';
-    try { savedId = localStorage.getItem(BLE_DEVICE_KEY) ?? ''; } catch { /* noop */ }
-    if (!savedId) return;
-    try {
-      const devices = await navigator.bluetooth.getDevices();
-      const match = devices.find((d: BluetoothDevice) => d.id === savedId || d.name === savedId);
-      if (!match) return;
-      // Wait for advertising — Chrome dispatches `advertisementreceived` only when the
-      // bulb is in range and discoverable. Fall back to direct connect attempt.
-      await this.bindBleDevice(match);
-    } catch { /* silent — user can re-pair via UI */ }
-  }
-
-  private async bindBleDevice(device: BluetoothDevice): Promise<void> {
-    if (!device.gatt) throw new Error('Device has no GATT server');
-    device.addEventListener('gattserverdisconnected', () => this.handleBleDisconnect());
-    const server = await device.gatt.connect();
-    const service = await server.getPrimaryService(HUE_BLE_SERVICE);
-    const [onChar, briChar, xyChar] = await Promise.all([
-      service.getCharacteristic(HUE_BLE_ON_CHAR).catch(() => null),
-      service.getCharacteristic(HUE_BLE_BRI_CHAR).catch(() => null),
-      service.getCharacteristic(HUE_BLE_XY_CHAR).catch(() => null)
-    ]);
-    if (!xyChar) throw new Error('Bulb does not advertise the color characteristic — is this a White & Color Ambiance bulb?');
-    this.bleDevice = device;
-    this.bleServer = server;
-    this.bleOnChar = onChar;
-    this.bleBriChar = briChar;
-    this.bleXyChar = xyChar;
-    this.bleConnected = true;
-    this.bleDeviceName = device.name ?? 'Hue bulb';
-    this.lastError = '';
-    this.emit();
-  }
-
-  private handleBleDisconnect(): void {
-    this.bleConnected = false;
-    this.bleServer = null;
-    this.bleOnChar = null;
-    this.bleBriChar = null;
-    this.bleXyChar = null;
-    this.emit();
-  }
-
-  disconnectBLE(): void {
-    try { this.bleServer?.disconnect(); } catch { /* noop */ }
-    try { localStorage.removeItem(BLE_DEVICE_KEY); } catch { /* noop */ }
-    this.bleDevice = null;
-    this.handleBleDisconnect();
   }
 
   /**
@@ -435,32 +299,6 @@ export class HueSync {
     const modulated = Math.max(briFloor, Math.min(1, baseBri * (0.55 + 0.45 * bassEnergy * (0.4 + 0.6 * intensity))));
     const bri = Math.max(1, Math.round(modulated * 254));
     const xy = rgbToXY(r, g, b);
-
-    if (this.bleConnected && this.bleXyChar) {
-      const now = performance.now();
-      // Drop frames bypass the 200ms BLE throttle so the strobe is never dropped on the floor.
-      if (!bands.dropImminent && now - this.lastBleAt < MIN_BLE_MS) return;
-      if (this.bleBusy) return;
-      this.lastBleAt = now;
-      this.bleBusy = true;
-      try {
-        // Hue BLE color: 4 bytes little-endian — x:uint16 y:uint16 normalized 0..0xFFFF
-        const xRaw = Math.max(0, Math.min(0xFFFF, Math.round(xy[0] * 0xFFFF)));
-        const yRaw = Math.max(0, Math.min(0xFFFF, Math.round(xy[1] * 0xFFFF)));
-        const xyBuf = new Uint8Array([xRaw & 0xFF, (xRaw >> 8) & 0xFF, yRaw & 0xFF, (yRaw >> 8) & 0xFF]);
-        await this.bleXyChar.writeValueWithoutResponse(xyBuf);
-        if (this.bleBriChar) {
-          await this.bleBriChar.writeValueWithoutResponse(new Uint8Array([bri]));
-        }
-      } catch (err) {
-        // GATT failure usually means the bulb went out of range — drop to disconnected.
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes('GATT') || msg.includes('disconnected')) this.handleBleDisconnect();
-      } finally {
-        this.bleBusy = false;
-      }
-      return;
-    }
 
     if (!this.config.bridgeIp || !this.config.appKey) return;
 
@@ -586,12 +424,6 @@ export class HueSync {
   }
 
   async setOn(on: boolean): Promise<void> {
-    if (this.bleConnected && this.bleOnChar) {
-      try {
-        await this.bleOnChar.writeValueWithoutResponse(new Uint8Array([on ? 1 : 0]));
-      } catch { /* noop */ }
-      return;
-    }
     if (!this.config.bridgeIp || !this.config.appKey || !this.config.groupId) return;
     try {
       await fetch(`https://${this.config.bridgeIp}/api/${this.config.appKey}/groups/${this.config.groupId}/action`, {

@@ -1,1 +1,257 @@
-{"words":[{"w":"Almost","s":1.2,"e":7.56,"line":0},{"w":"heartbreak","s":7.56,"e":18.15,"line":0},{"w":"—","s":18.15,"e":20.27,"line":0},{"w":"the","s":20.27,"e":23.45,"line":0},{"w":"edge,","s":23.45,"e":28.75,"line":0},{"w":"then","s":28.75,"e":32.99,"line":0},{"w":"the","s":32.99,"e":36.17,"line":0},{"w":"angel","s":36.17,"e":41.46,"line":0},{"w":"said","s":41.46,"e":45.7,"line":0},{"w":"wait","s":45.7,"e":49.94,"line":0},{"w":"Caught","s":49.94,"e":56.67,"line":1},{"w":"me","s":56.67,"e":58.92,"line":1},{"w":"on","s":58.92,"e":61.16,"line":1},{"w":"the","s":61.16,"e":64.53,"line":1},{"w":"cliff,","s":64.53,"e":71.26,"line":1},{"w":"panda","s":71.26,"e":76.87,"line":1},{"w":"paws","s":76.87,"e":81.36,"line":1},{"w":"on","s":81.36,"e":83.6,"line":1},{"w":"the","s":83.6,"e":86.97,"line":1},{"w":"gate","s":86.97,"e":91.46,"line":1},{"w":"No","s":91.46,"e":93.61,"line":2},{"w":"bitterness","s":93.61,"e":104.35,"line":2},{"w":"in","s":104.35,"e":106.5,"line":2},{"w":"the","s":106.5,"e":109.72,"line":2},{"w":"bridge","s":109.72,"e":116.17,"line":2},{"w":"—","s":116.17,"e":118.32,"line":2},{"w":"just","s":118.32,"e":122.62,"line":2},{"w":"the","s":122.62,"e":125.84,"line":2},{"w":"holy","s":125.84,"e":130.14,"line":2},{"w":"debate","s":130.14,"e":136.59,"line":2},{"w":"Cyan","s":136.59,"e":140.77,"line":3},{"w":"thread","s":140.77,"e":147.04,"line":3},{"w":"tied","s":147.04,"e":151.22,"line":3},{"w":"—","s":151.22,"e":153.31,"line":3},{"w":"the","s":153.31,"e":156.44,"line":3},{"w":"family","s":156.44,"e":162.71,"line":3},{"w":"stays","s":162.71,"e":167.94,"line":3},{"w":"straight","s":167.94,"e":176.3,"line":3}],"lines":[{"s":1.2,"e":49.94,"text":"Almost heartbreak — the edge, then the angel said wait"},{"s":49.94,"e":91.46,"text":"Caught me on the cliff, panda paws on the gate"},{"s":91.46,"e":136.59,"text":"No bitterness in the bridge — just the holy debate"},{"s":136.59,"e":176.3,"text":"Cyan thread tied — the family stays straight"}],"duration":176.8,"source":"estimated-words","generatedAt":"2026-05-10T02:05:10.661Z"}
+{
+  "words": [
+    {
+      "w": "Almost",
+      "s": 1.2,
+      "e": 7.56,
+      "line": 0
+    },
+    {
+      "w": "heartbreak",
+      "s": 7.56,
+      "e": 18.15,
+      "line": 0
+    },
+    {
+      "w": "—",
+      "s": 18.15,
+      "e": 20.27,
+      "line": 0
+    },
+    {
+      "w": "the",
+      "s": 20.27,
+      "e": 23.45,
+      "line": 0
+    },
+    {
+      "w": "edge,",
+      "s": 23.45,
+      "e": 28.75,
+      "line": 0
+    },
+    {
+      "w": "then",
+      "s": 28.75,
+      "e": 32.99,
+      "line": 0
+    },
+    {
+      "w": "the",
+      "s": 32.99,
+      "e": 36.17,
+      "line": 0
+    },
+    {
+      "w": "angel",
+      "s": 36.17,
+      "e": 41.46,
+      "line": 0
+    },
+    {
+      "w": "said",
+      "s": 41.46,
+      "e": 45.7,
+      "line": 0
+    },
+    {
+      "w": "wait",
+      "s": 45.7,
+      "e": 49.94,
+      "line": 0
+    },
+    {
+      "w": "Caught",
+      "s": 49.94,
+      "e": 56.67,
+      "line": 1
+    },
+    {
+      "w": "me",
+      "s": 56.67,
+      "e": 58.92,
+      "line": 1
+    },
+    {
+      "w": "on",
+      "s": 58.92,
+      "e": 61.16,
+      "line": 1
+    },
+    {
+      "w": "the",
+      "s": 61.16,
+      "e": 64.53,
+      "line": 1
+    },
+    {
+      "w": "cliff,",
+      "s": 64.53,
+      "e": 71.26,
+      "line": 1
+    },
+    {
+      "w": "panda",
+      "s": 71.26,
+      "e": 76.87,
+      "line": 1
+    },
+    {
+      "w": "paws",
+      "s": 76.87,
+      "e": 81.36,
+      "line": 1
+    },
+    {
+      "w": "on",
+      "s": 81.36,
+      "e": 83.6,
+      "line": 1
+    },
+    {
+      "w": "the",
+      "s": 83.6,
+      "e": 86.97,
+      "line": 1
+    },
+    {
+      "w": "gate",
+      "s": 86.97,
+      "e": 91.46,
+      "line": 1
+    },
+    {
+      "w": "No",
+      "s": 91.46,
+      "e": 93.61,
+      "line": 2
+    },
+    {
+      "w": "bitterness",
+      "s": 93.61,
+      "e": 104.35,
+      "line": 2
+    },
+    {
+      "w": "in",
+      "s": 104.35,
+      "e": 106.5,
+      "line": 2
+    },
+    {
+      "w": "the",
+      "s": 106.5,
+      "e": 109.72,
+      "line": 2
+    },
+    {
+      "w": "bridge",
+      "s": 109.72,
+      "e": 116.17,
+      "line": 2
+    },
+    {
+      "w": "—",
+      "s": 116.17,
+      "e": 118.32,
+      "line": 2
+    },
+    {
+      "w": "just",
+      "s": 118.32,
+      "e": 122.62,
+      "line": 2
+    },
+    {
+      "w": "the",
+      "s": 122.62,
+      "e": 125.84,
+      "line": 2
+    },
+    {
+      "w": "holy",
+      "s": 125.84,
+      "e": 130.14,
+      "line": 2
+    },
+    {
+      "w": "debate",
+      "s": 130.14,
+      "e": 136.59,
+      "line": 2
+    },
+    {
+      "w": "Cyan",
+      "s": 136.59,
+      "e": 140.77,
+      "line": 3
+    },
+    {
+      "w": "thread",
+      "s": 140.77,
+      "e": 147.04,
+      "line": 3
+    },
+    {
+      "w": "tied",
+      "s": 147.04,
+      "e": 151.22,
+      "line": 3
+    },
+    {
+      "w": "—",
+      "s": 151.22,
+      "e": 153.31,
+      "line": 3
+    },
+    {
+      "w": "the",
+      "s": 153.31,
+      "e": 156.44,
+      "line": 3
+    },
+    {
+      "w": "family",
+      "s": 156.44,
+      "e": 162.71,
+      "line": 3
+    },
+    {
+      "w": "stays",
+      "s": 162.71,
+      "e": 167.94,
+      "line": 3
+    },
+    {
+      "w": "straight",
+      "s": 167.94,
+      "e": 176.3,
+      "line": 3
+    }
+  ],
+  "lines": [
+    {
+      "s": 1.2,
+      "e": 49.94,
+      "text": "Almost heartbreak — the edge, then the angel said wait"
+    },
+    {
+      "s": 49.94,
+      "e": 91.46,
+      "text": "Caught me on the cliff, panda paws on the gate"
+    },
+    {
+      "s": 91.46,
+      "e": 136.59,
+      "text": "No bitterness in the bridge — just the holy debate"
+    },
+    {
+      "s": 136.59,
+      "e": 176.3,
+      "text": "Cyan thread tied — the family stays straight"
+    }
+  ],
+  "duration": 176.8,
+  "source": "estimated-words",
+  "generatedAt": "2026-05-10T02:05:10.661Z"
+}

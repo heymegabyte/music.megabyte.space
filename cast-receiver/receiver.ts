@@ -89,6 +89,7 @@ let pendingState = false;
 let outboundSeq = 0;
 let activeError: string | null = null;
 let lastLyricsActiveIdx = -2;
+let lastLyricsActiveWordIdx = -2;
 
 // Standalone preview: when loaded directly (not via Chromecast) ctx.start()
 // never assigns an internal sender channel, so sendCustomMessage throws on
@@ -590,6 +591,7 @@ function loadAndPlay(item: ReceiverQueueItem, startPosition = 0) {
     runtime.lyricsTrackId = item.id;
     runtime.lyrics = [];
     lastLyricsActiveIdx = -2;
+    lastLyricsActiveWordIdx = -2;
     renderLyrics();
     renderUI();
     setStatus('live', 'Live');
@@ -670,8 +672,16 @@ function renderLyrics() {
     inner.innerHTML = '<p class="lyrics__line is-empty">Lyrics syncing…</p>';
     return;
   }
-  inner.innerHTML = runtime.lyrics.map((l, i) =>
-    `<p class="lyrics__line" data-idx="${i}">${escHtml(l.text)}</p>`).join('');
+  inner.innerHTML = runtime.lyrics.map((l, i) => {
+    const words = l.words ?? [];
+    if (words.length) {
+      const spans = words
+        .map((w, wi) => `<span class="lyrics__w" data-idx="${wi}">${escHtml(w.w)}</span>`)
+        .join(' ');
+      return `<p class="lyrics__line" data-idx="${i}">${spans}</p>`;
+    }
+    return `<p class="lyrics__line" data-idx="${i}">${escHtml(l.text)}</p>`;
+  }).join('');
 }
 
 function updateProgress() {
@@ -694,21 +704,50 @@ function tickLyrics(now: number) {
     if (runtime.lyrics[mid].t <= now) { active = mid; lo = mid + 1; }
     else hi = mid - 1;
   }
-  if (active === lastLyricsActiveIdx) return;
-  lastLyricsActiveIdx = active;
-  $$('.lyrics__line').forEach((el, i) => {
-    el.classList.toggle('is-active', i === active);
-    el.classList.toggle('is-past', i < active);
-    el.classList.toggle('is-soon', i === active + 1);
-  });
-  const target = $$('.lyrics__line')[active];
-  const inner = $('#lyricsInner') as HTMLElement | null;
-  const wrap = $('#lyrics') as HTMLElement | null;
-  if (target && inner && wrap) {
-    const wrapH = wrap.clientHeight;
-    const offset = (target.offsetTop + target.offsetHeight / 2) - (wrapH / 2);
-    inner.style.transform = `translateY(${-offset}px)`;
+  const lineChanged = active !== lastLyricsActiveIdx;
+  if (lineChanged) {
+    if (lastLyricsActiveIdx >= 0) {
+      const prevLine = $$('.lyrics__line')[lastLyricsActiveIdx];
+      if (prevLine) prevLine.querySelectorAll('.lyrics__w').forEach(s => {
+        s.classList.remove('is-active', 'is-past');
+      });
+    }
+    lastLyricsActiveIdx = active;
+    lastLyricsActiveWordIdx = -2;
+    $$('.lyrics__line').forEach((el, i) => {
+      el.classList.toggle('is-active', i === active);
+      el.classList.toggle('is-past', i < active);
+      el.classList.toggle('is-soon', i === active + 1);
+    });
+    const target = $$('.lyrics__line')[active];
+    const inner = $('#lyricsInner') as HTMLElement | null;
+    const wrap = $('#lyrics') as HTMLElement | null;
+    if (target && inner && wrap) {
+      const wrapH = wrap.clientHeight;
+      const offset = (target.offsetTop + target.offsetHeight / 2) - (wrapH / 2);
+      inner.style.transform = `translateY(${-offset}px)`;
+    }
   }
+  if (active < 0) return;
+  const line = runtime.lyrics[active];
+  const words = line?.words;
+  if (!words || !words.length) return;
+  let wIdx = -1;
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    if (now >= w.s && now < w.e) { wIdx = i; break; }
+    if (now < w.s) { wIdx = i - 1; break; }
+  }
+  if (wIdx === -1 && now >= words[words.length - 1].e) wIdx = words.length - 1;
+  if (wIdx === lastLyricsActiveWordIdx) return;
+  lastLyricsActiveWordIdx = wIdx;
+  const lineEl = $$('.lyrics__line')[active];
+  if (!lineEl) return;
+  const wordEls = lineEl.querySelectorAll<HTMLSpanElement>('.lyrics__w');
+  wordEls.forEach((s, i) => {
+    s.classList.toggle('is-active', i === wIdx);
+    s.classList.toggle('is-past', i < wIdx);
+  });
 }
 
 function applyPalette(p: PalettePayload) {
@@ -733,6 +772,7 @@ function applyLyrics(p: LyricsPayload) {
   }
   runtime.lyrics = (p.lines ?? []).slice().sort((a, b) => a.t - b.t);
   lastLyricsActiveIdx = -2;
+  lastLyricsActiveWordIdx = -2;
   renderLyrics();
 }
 

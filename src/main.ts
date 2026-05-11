@@ -8,7 +8,8 @@ import type { Track } from './types';
 import { cast } from './cast';
 import type { ReceiverQueueItem, ReceiverLine, ReceiverState, PalettePayload } from './cast-protocol';
 import { extractPalette, type Palette } from './palette';
-interface CastLine { t: number; text: string; }
+interface CastWord { w: string; s: number; e: number; }
+interface CastLine { t: number; e: number; text: string; words: CastWord[]; }
 import { hue, type HueGroup } from './hue';
 import {
   airplayAvailable,
@@ -375,10 +376,10 @@ function fmtHz(hz: number) {
 
 const VIZ_GROUPS: Array<{ label: string; tagline: string; modes: VizMode[] }> = [
   { label: 'Cosmos',   tagline: 'Stars, galaxies, deep space',  modes: ['starfield', 'constellation', 'galaxy', 'supernova', 'aurora', 'nebula'] },
-  { label: 'Love',     tagline: 'For Laura, Adrian, CK',         modes: ['heart', 'hearts', 'petals', 'rose'] },
+  { label: 'Love',     tagline: 'For Laura, Adrian, CK',         modes: ['petals', 'rose'] },
   { label: 'Energy',   tagline: 'Plasma, drops, lightning',      modes: ['plasma', 'lightning', 'drop-strobe', 'prism', 'sunburst', 'starburst'] },
   { label: 'Geometry', tagline: 'Sacred shapes + lattices',      modes: ['mandala', 'lattice', 'hex-grid', 'lissajous', 'rings', 'cymatics', 'gem'] },
-  { label: 'Organic',  tagline: 'Particles, fluid, swarms',      modes: ['fireflies', 'dna', 'bokeh', 'liquid', 'smoke', 'swarm', 'ribbons'] },
+  { label: 'Organic',  tagline: 'Particles, fluid, swarms',      modes: ['fireflies', 'bokeh', 'liquid', 'smoke', 'swarm', 'ribbons'] },
   { label: 'Spectrum', tagline: 'Bars, waves, waterfalls',       modes: ['bars', 'wave', 'waterfall', 'mirror-wave', 'strings', 'monolith'] },
   { label: 'Retro',    tagline: '80s synthwave + matrix',        modes: ['synthwave', 'vinyl', 'matrix'] },
   { label: 'Spatial',  tagline: 'Tunnels + kaleidoscopes',       modes: ['composite', 'tunnel', 'kaleidoscope', 'wormhole', 'vortex'] },
@@ -768,7 +769,7 @@ function setupShell(root: HTMLElement) {
       </aside>
 
       <section class="viz" aria-label="Live audio visualizer">
-        <div class="viz__hero" aria-hidden="true">
+        <div class="viz__hero">
           <aside class="ai-playlist" aria-label="AI's Choice — top picks for you" id="aiPlaylistWrap">
             <header class="ai-playlist__head">
               <span class="ai-playlist__eyebrow">AI's Choice</span>
@@ -1181,7 +1182,7 @@ function setupShell(root: HTMLElement) {
           <div class="cast-sheet__top-actions">
             <button id="castHueIndicator" class="cast-sheet__chip" type="button" aria-pressed="false" aria-label="Hue lights status">
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V18h6v-1.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>
-              <span id="castHueIndicatorLabel">Hue off</span>
+              <span id="castHueIndicatorLabel">Hue</span>
             </button>
             <button id="castVizMode" class="cast-sheet__chip" type="button" aria-label="Cycle visualizer mode">
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
@@ -1288,11 +1289,6 @@ function setupShell(root: HTMLElement) {
           <section class="cast-settings__group">
             <h5>Philips Hue</h5>
             <p class="cast-settings__hint" id="castHueHint">Sync your bulbs to the music — accent color, bass-driven brightness, beat flashes. Tap discover, then press the round button on your bridge.</p>
-            <div class="cast-settings__row" id="castHueBleRow" hidden>
-              <button id="castHueBlePair" class="cast-settings__btn cast-settings__btn--primary" type="button" title="Pair a single bulb directly over Bluetooth — sub-100ms latency, no bridge required">⚡ Pair bulb (Bluetooth)</button>
-              <span class="cast-settings__pct" id="castHueBleStatus" aria-live="polite">Not paired</span>
-              <button id="castHueBleUnpair" class="cast-settings__btn cast-settings__btn--ghost" type="button" hidden>Unpair</button>
-            </div>
             <div class="cast-settings__row">
               <button id="castHueDiscover" class="cast-settings__btn" type="button">Discover bridges</button>
               <input id="castHueIp" class="cast-settings__input" type="text" placeholder="192.168.1.42" inputmode="decimal" aria-label="Bridge IP" />
@@ -2096,7 +2092,9 @@ let castVizMode: CastVizMode = (localStorage.getItem('bz:cast-viz') as CastVizMo
 let castPalette: Palette | null = null;
 let castLyricsLines: CastLine[] = [];
 let castLyricsLineEls: HTMLParagraphElement[] = [];
+let castLyricsWordSpans: HTMLSpanElement[][] = [];
 let castLyricsLastIdx = -2;
+let castLyricsLastWordIdx = -2;
 let castParticles: Array<{ x: number; y: number; vx: number; vy: number; life: number; max: number; hue: number }> = [];
 const CAST_VIZ_LABELS: Record<CastVizMode, string> = { bars: 'Bars', circle: 'Radial', particles: 'Particles' };
 
@@ -2321,15 +2319,29 @@ async function refreshCastPalette(coverSrc: string): Promise<void> {
 async function refreshCastLyrics(track: Track): Promise<void> {
   castLyricsLines = [];
   castLyricsLastIdx = -2;
+  castLyricsLastWordIdx = -2;
   castLyricsLineEls = [];
+  castLyricsWordSpans = [];
   const empty = $('#castLyricsEmpty');
   if (empty) empty.textContent = 'Lyrics syncing…';
   try {
     const bundle = await loadLyrics(track);
-    castLyricsLines = bundle.lines.map(l => ({ t: l.s, text: l.text }));
+    castLyricsLines = bundle.lines.map((l, i) => {
+      const words: CastWord[] = bundle.words
+        ? bundle.words
+            .filter(w => (w.line ?? -1) === i)
+            .map(w => ({ w: w.w, s: w.s, e: w.e }))
+        : [];
+      return { t: l.s, e: l.e, text: l.text, words };
+    });
     renderCastLyricsList();
     if (cast.customChannelOpen) {
-      const lines: ReceiverLine[] = castLyricsLines.map(l => ({ t: l.t, text: l.text }));
+      const lines: ReceiverLine[] = castLyricsLines.map(l => ({
+        t: l.t,
+        e: l.e,
+        text: l.text,
+        words: l.words.length ? l.words.map(w => ({ w: w.w, s: w.s, e: w.e })) : undefined
+      }));
       cast.setLyrics(track.id, lines).catch(() => { /* noop */ });
     }
   } catch {
@@ -2357,14 +2369,24 @@ function renderCastLyricsList(): void {
   if (!castLyricsLines.length) {
     container.innerHTML = '<p class="cast-tv__lyrics-empty" id="castLyricsEmpty">Lyrics unavailable.</p>';
     castLyricsLineEls = [];
+    castLyricsWordSpans = [];
     return;
   }
   container.innerHTML = '';
+  castLyricsWordSpans = [];
   castLyricsLineEls = castLyricsLines.map((l, i) => {
     const p = document.createElement('p');
     p.className = 'cast-tv__line';
     p.dataset.idx = String(i);
-    p.textContent = l.text;
+    if (l.words.length) {
+      p.innerHTML = l.words
+        .map((w, wi) => `<span class="cast-tv__w" data-idx="${wi}">${escapeHtml(w.w)}</span>`)
+        .join(' ');
+      castLyricsWordSpans[i] = Array.from(p.querySelectorAll<HTMLSpanElement>('.cast-tv__w'));
+    } else {
+      p.textContent = l.text;
+      castLyricsWordSpans[i] = [];
+    }
     p.addEventListener('click', () => {
       engine.audio.currentTime = l.t;
       cast.seek(l.t);
@@ -2702,23 +2724,48 @@ function tickCastLyrics(): void {
   if (!castLyricsLines.length || !castLyricsLineEls.length) return;
   const now = engine.audio.currentTime;
   const idx = castActiveLineIndex(castLyricsLines, now);
-  if (idx === castLyricsLastIdx) return;
-  castLyricsLastIdx = idx;
-  castLyricsLineEls.forEach((el, i) => {
-    el.classList.toggle('is-active', i === idx);
-    el.classList.toggle('is-past', i < idx);
-    el.classList.toggle('is-soon', i === idx + 1);
-  });
-  const target = castLyricsLineEls[idx];
-  if (target) {
-    const container = $('#castLyrics');
-    if (container) {
-      const cr = container.getBoundingClientRect();
-      const tr = target.getBoundingClientRect();
-      const offset = (tr.top - cr.top) - cr.height / 2 + tr.height / 2;
-      container.scrollBy({ top: offset, behavior: 'smooth' });
+  if (idx !== castLyricsLastIdx) {
+    if (castLyricsLastIdx >= 0) {
+      const prevSpans = castLyricsWordSpans[castLyricsLastIdx];
+      if (prevSpans) prevSpans.forEach(s => { s.classList.remove('is-active', 'is-past'); });
+    }
+    castLyricsLastIdx = idx;
+    castLyricsLastWordIdx = -2;
+    castLyricsLineEls.forEach((el, i) => {
+      el.classList.toggle('is-active', i === idx);
+      el.classList.toggle('is-past', i < idx);
+      el.classList.toggle('is-soon', i === idx + 1);
+    });
+    const target = castLyricsLineEls[idx];
+    if (target) {
+      const container = $('#castLyrics');
+      if (container) {
+        const cr = container.getBoundingClientRect();
+        const tr = target.getBoundingClientRect();
+        const offset = (tr.top - cr.top) - cr.height / 2 + tr.height / 2;
+        container.scrollBy({ top: offset, behavior: 'smooth' });
+      }
     }
   }
+  if (idx < 0) return;
+  const line = castLyricsLines[idx];
+  const spans = castLyricsWordSpans[idx];
+  if (!line || !spans || !spans.length || !line.words.length) return;
+  let wIdx = -1;
+  for (let i = 0; i < line.words.length; i++) {
+    const w = line.words[i];
+    if (now >= w.s && now < w.e) { wIdx = i; break; }
+    if (now < w.s) { wIdx = i - 1; break; }
+  }
+  if (wIdx === -1 && line.words.length && now >= line.words[line.words.length - 1].e) {
+    wIdx = line.words.length - 1;
+  }
+  if (wIdx === castLyricsLastWordIdx) return;
+  castLyricsLastWordIdx = wIdx;
+  spans.forEach((s, i) => {
+    s.classList.toggle('is-active', i === wIdx);
+    s.classList.toggle('is-past', i < wIdx);
+  });
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
@@ -2780,20 +2827,9 @@ function refreshCastHueUI(): void {
   const intensityPct = $('#castHueIntensityPct');
   const errEl = $('#castHueError') as HTMLElement | null;
   const linked = Boolean(hue.config.bridgeIp && hue.config.appKey);
-  const bleRow = $('#castHueBleRow') as HTMLElement | null;
-  const bleStatus = $('#castHueBleStatus');
-  const bleUnpair = $('#castHueBleUnpair') as HTMLButtonElement | null;
-  const blePair = $('#castHueBlePair') as HTMLButtonElement | null;
-  if (bleRow) bleRow.hidden = !hue.bleSupported;
-  if (bleStatus) {
-    bleStatus.textContent = hue.bleConnected ? `Paired · ${hue.bleDeviceName}` : 'Not paired';
-    bleStatus.classList.toggle('is-on', hue.bleConnected);
-  }
-  if (bleUnpair) bleUnpair.hidden = !hue.bleConnected;
-  if (blePair) blePair.textContent = hue.bleConnected ? '⚡ Re-pair bulb' : '⚡ Pair bulb (Bluetooth)';
-  if (groupRow) groupRow.hidden = !linked || hue.bleConnected;
-  if (intensityRow) intensityRow.hidden = !linked && !hue.bleConnected;
-  if (enableRow) enableRow.hidden = !linked && !hue.bleConnected;
+  if (groupRow) groupRow.hidden = !linked;
+  if (intensityRow) intensityRow.hidden = !linked;
+  if (enableRow) enableRow.hidden = !linked;
   const gradientRow = $('#castHueGradientRow') as HTMLElement | null;
   const gradientCb = $('#castHueGradient') as HTMLInputElement | null;
   const gradientStatus = $('#castHueGradientStatus');
@@ -2825,7 +2861,7 @@ function refreshCastHueUI(): void {
     indicator.classList.toggle('is-on', ready);
   }
   if (indicatorLbl) {
-    indicatorLbl.textContent = !linked ? 'Hue off'
+    indicatorLbl.textContent = !linked ? 'Hue'
       : !hue.config.groupId ? 'Pick group'
       : ready ? 'Hue on'
       : 'Hue paused';
@@ -2843,8 +2879,6 @@ function refreshCastHueUI(): void {
   if (hint) {
     hint.textContent = hue.status === 'discovering' ? 'Searching the network…'
       : hue.status === 'linking' ? 'Press the round button on your bridge — linking now…'
-      : hue.bleConnected ? `Paired direct over Bluetooth — sub-100ms light response, no bridge in the loop.`
-      : !linked && hue.bleSupported ? 'Pair a single Hue bulb over Bluetooth for instant response, or link a bridge to drive a whole room.'
       : !linked ? 'Sync your bulbs to the music — accent color, bass-driven brightness, beat flashes. Tap discover, then press the round button on your bridge.'
       : ready ? 'Synced. Adjust intensity below.'
       : 'Pick a Hue group to drive.';
@@ -2853,27 +2887,6 @@ function refreshCastHueUI(): void {
 
 function bindCastHueControls(): void {
   hue.on(() => refreshCastHueUI());
-
-  $('#castHueBlePair')?.addEventListener('click', async () => {
-    const btn = $('#castHueBlePair') as HTMLButtonElement | null;
-    const errEl = $('#castHueError') as HTMLElement | null;
-    if (btn) { btn.disabled = true; btn.textContent = 'Pairing…'; }
-    const result = await hue.connectBLE();
-    if (!result.ok && errEl && result.reason && result.reason !== 'Pairing cancelled') {
-      errEl.textContent = result.reason;
-      errEl.hidden = false;
-    } else if (errEl) {
-      errEl.hidden = true;
-      errEl.textContent = '';
-    }
-    if (btn) btn.disabled = false;
-    refreshCastHueUI();
-  });
-
-  $('#castHueBleUnpair')?.addEventListener('click', () => {
-    hue.disconnectBLE();
-    refreshCastHueUI();
-  });
 
   $('#castHueDiscover')?.addEventListener('click', async () => {
     const ipInput = $('#castHueIp') as HTMLInputElement | null;

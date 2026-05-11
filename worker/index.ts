@@ -214,6 +214,14 @@ class MetaRewriter {
       }
       return;
     }
+    if (rel === 'alternate' && linkType === 'text/xml+oembed') {
+      if (this.seo.oembedUrl) {
+        el.setAttribute('href', this.seo.oembedUrl.replace('format=json', 'format=xml'));
+      } else {
+        el.remove();
+      }
+      return;
+    }
     switch (metaName) {
       case 'description':
         el.setAttribute('content', this.seo.description);
@@ -623,9 +631,23 @@ export default {
       const cacheKey = new Request(`${url.origin}${url.pathname}#full`, { method: 'GET' });
       let fullResp = await cache.match(cacheKey);
       if (!fullResp) {
-        const originResp = await env.ASSETS.fetch(new Request(`${url.origin}${url.pathname}`, { method: 'GET' }));
-        if (originResp.status !== 200 || !originResp.body) {
-          return originResp;
+        // Retry transient origin failures up to 3 times with exponential backoff (75ms→225ms→675ms).
+        // Cloudflare Assets occasionally returns 503 under cold-start or queue pressure;
+        // surfacing that to the audio engine triggers a hard playback abort.
+        let originResp: Response | null = null;
+        let lastStatus = 0;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (attempt > 0) await new Promise(r => setTimeout(r, 75 * Math.pow(3, attempt - 1)));
+          originResp = await env.ASSETS.fetch(new Request(`${url.origin}${url.pathname}`, { method: 'GET' }));
+          lastStatus = originResp.status;
+          if (originResp.status === 200 && originResp.body) break;
+          if (originResp.status === 404) return originResp; // genuine miss — don't retry
+        }
+        if (!originResp || originResp.status !== 200 || !originResp.body) {
+          return new Response(JSON.stringify({ error: 'audio_unavailable', status: lastStatus }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json', 'Retry-After': '5', ...corsHeaders }
+          });
         }
         const buf = await originResp.arrayBuffer();
         const ct = originResp.headers.get('Content-Type') || 'audio/mpeg';
@@ -668,6 +690,43 @@ export default {
       }
       audioHeaders.set('Content-Length', String(total));
       return new Response(buf, { status: 200, headers: audioHeaders });
+    }
+
+    // Lyrics JSON: edge-cache + retry origin failures. The karaoke renderer
+    // hard-fails when this request 503s mid-playback (no fallback in the audio
+    // engine), so absorb transient ASSETS faults here.
+    if (url.pathname.startsWith('/lyrics/') && url.pathname.endsWith('.json')) {
+      const cache = (caches as unknown as { default: Cache }).default;
+      const cacheKey = new Request(`${url.origin}${url.pathname}#lyrics`, { method: 'GET' });
+      let cached = await cache.match(cacheKey);
+      if (!cached) {
+        let originResp: Response | null = null;
+        let lastStatus = 0;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          if (attempt > 0) await new Promise(r => setTimeout(r, 75 * Math.pow(3, attempt - 1)));
+          originResp = await env.ASSETS.fetch(new Request(`${url.origin}${url.pathname}`, { method: 'GET' }));
+          lastStatus = originResp.status;
+          if (originResp.status === 200) break;
+          if (originResp.status === 404) return originResp;
+        }
+        if (!originResp || originResp.status !== 200) {
+          return new Response(JSON.stringify({ error: 'lyrics_unavailable', status: lastStatus }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json', 'Retry-After': '5' }
+          });
+        }
+        const body = await originResp.arrayBuffer();
+        cached = new Response(body, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Cache-Control': 'public, max-age=86400, must-revalidate',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+        ctx.waitUntil(cache.put(cacheKey, cached.clone()));
+      }
+      return cached;
     }
 
     const isEmbedRoute = /^\/embed(\/|$)/.test(url.pathname);
@@ -717,6 +776,7 @@ export default {
         .on('meta[property^="og:"]', new MetaRewriter(seoMatch))
         .on('link[rel="canonical"]', new MetaRewriter(seoMatch))
         .on('link[rel="alternate"][type="application/json+oembed"]', new MetaRewriter(seoMatch))
+        .on('link[rel="alternate"][type="text/xml+oembed"]', new MetaRewriter(seoMatch))
         .on('script[type="application/ld+json"]', new JsonLdRewriter(seoMatch))
         .transform(new Response(response.body, { status: response.status, headers }));
       return rewritten;
