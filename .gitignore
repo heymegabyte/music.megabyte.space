@@ -14,3 +14,7 @@ dist
 .claude/settings.local.json
 public/og/track-*.jpg
 public/og/track-*.png
+.wrangler/
+test-results/
+playwright-report/
+.verify-shots/

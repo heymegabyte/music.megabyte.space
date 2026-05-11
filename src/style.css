@@ -2008,11 +2008,15 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars { display: none; }
 .embed__btn--play { width: 36px; height: 36px; background: linear-gradient(180deg, rgba(0, 229, 255, 0.22), rgba(0, 229, 255, 0.08)); color: var(--accent); }
 .embed__bar {
   height: 6px;
+  min-width: 120px;
   background: rgba(244, 244, 255, 0.08);
   border-radius: 999px;
   overflow: hidden;
   cursor: pointer;
   position: relative;
+}
+.embed__transport:has(#embedPrev[hidden]) {
+  grid-template-columns: auto 1fr auto;
 }
 .embed__fill {
   height: 100%;

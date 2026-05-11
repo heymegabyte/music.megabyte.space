@@ -1,7 +1,36 @@
-// CAF v3 receiver runtime. Owns full TV UI, queue management, D-pad navigation,
-// synced lyrics, custom-message channel, periodic broadcast, and error recovery.
-// Loaded via /cast-receiver/index.html when senders cast to the registered
-// custom App ID. Falls back gracefully when senders disagree on protocol.
+// CAF v3 receiver runtime — music.megabyte.space custom receiver (App ID 228565CB).
+//
+// Lifecycle:
+//   1. /cast-receiver/index.html loads cast_receiver_framework.js (gstatic).
+//   2. UA sniff (`CrKey/` marker) decides REAL vs STANDALONE preview.
+//      • REAL Chromecast → wire `CastReceiverContext.getPlayerManager()`,
+//        open the custom namespace `urn:x-cast:com.megabyte.music`, then
+//        `ctx.start()` with our tuned `PlaybackConfig`.
+//      • STANDALONE (any other browser, Playwright, devtools) → swap
+//        playerManager for a tiny HTMLAudioElement shim and expose
+//        `window.__castReceiver` so the runtime is fully testable without
+//        a physical Cast device.
+//   3. `init()` boots the D-pad UI, visualizer, tick loop, and stale watcher.
+//
+// Error policy:
+//   • Any thrown exception in handleSenderMessage / dispatch is caught and
+//     surfaced via `errorOut()` (toast + state:error + status indicator).
+//   • Playback errors trigger exponential backoff (3 retries @ 1/3/9s),
+//     then skip the bad track so the queue never wedges.
+//   • Asset 404 (cover image) silently swaps to a brand fallback.
+//   • SDK load failure shows a full-screen "Receiver fatal" panel (REAL mode
+//     only — preview mode tolerates missing SDK).
+//
+// Standalone preview contract (used by tests/cast.spec.ts):
+//   window.__castReceiver = {
+//     standalone: true,
+//     runtime,                          // mutable state — read-only in tests
+//     audio: HTMLAudioElement | null,
+//     loadQueue(items, startIndex?),
+//     play(), pause(), seek(seconds),
+//     current(): ReceiverQueueItem | null,
+//     state(): { playing, position, duration, trackId }
+//   }
 
 import {
   CAST_NAMESPACE, PROTOCOL_VERSION, TICK_HZ,
@@ -13,8 +42,23 @@ import {
   isCastMsg, packMsg
 } from '../src/cast-protocol';
 
+interface StandaloneApi {
+  standalone: true;
+  runtime: RuntimeState;
+  audio: HTMLAudioElement | null;
+  loadQueue: (items: ReceiverQueueItem[], startIndex?: number) => void;
+  play: () => void;
+  pause: () => void;
+  seek: (s: number) => void;
+  current: () => ReceiverQueueItem | null;
+  state: () => { playing: boolean; position: number; duration: number; trackId: string | null };
+}
+
 declare global {
-  interface Window { cast?: any; }
+  interface Window {
+    cast?: any;
+    __castReceiver?: StandaloneApi;
+  }
 }
 
 interface RuntimeState {
@@ -92,6 +136,13 @@ function buildStandalonePlayer() {
   standaloneAudio = new Audio();
   standaloneAudio.crossOrigin = 'anonymous';
   standaloneAudio.preload = 'auto';
+  // Append to DOM so document.querySelector('audio') in test/devtools finds it
+  // AND so the browser actually fetches the src (detached audio elements can
+  // load metadata but their lifecycle is fragile across some Chromium versions).
+  standaloneAudio.setAttribute('data-standalone-receiver', 'true');
+  standaloneAudio.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none;';
+  const attach = () => document.body?.appendChild(standaloneAudio!);
+  if (document.body) attach(); else document.addEventListener('DOMContentLoaded', attach, { once: true });
   const listeners: Record<string, Array<() => void>> = {};
   const fire = (k: string) => (listeners[k] ?? []).forEach((fn) => { try { fn(); } catch { /* swallow */ } });
   standaloneAudio.addEventListener('playing', () => fire('PLAYING'));
@@ -248,11 +299,11 @@ function init() {
 // Expose a minimal API for standalone preview/QA — Playwright and devtools
 // can pump messages without a real Cast session.
 function exposeStandaloneApi() {
-  (window as any).__castReceiver = {
+  window.__castReceiver = {
     standalone: true,
     runtime,
     audio: standaloneAudio,
-    loadQueue: (items: ReceiverQueueItem[], startIndex = 0) => onQueueLoad({ items, startIndex, autoplay: true }),
+    loadQueue: (items, startIndex = 0) => onQueueLoad({ items, startIndex, autoplay: true }),
     play: () => playerManager.play(),
     pause: () => playerManager.pause(),
     seek: (s: number) => playerManager.seek(s),
@@ -505,22 +556,36 @@ function onPlaybackError(e: any) {
 function loadAndPlay(item: ReceiverQueueItem, startPosition = 0) {
   if (!item?.audio) { errorOut('no_audio', new Error('queue item missing audio url')); return; }
   try {
-    const mediaInfo = new window.cast.framework.messages.MediaInformation();
-    mediaInfo.contentId = item.audio;
-    mediaInfo.contentType = 'audio/mpeg';
-    mediaInfo.streamType = window.cast.framework.messages.StreamType.BUFFERED;
-    const meta = new window.cast.framework.messages.MusicTrackMediaMetadata();
-    meta.title = item.title;
-    meta.artist = item.artist;
-    meta.albumName = item.album;
-    if (item.cover) meta.images = [{ url: item.cover }];
-    mediaInfo.metadata = meta;
-    mediaInfo.customData = { trackId: item.id };
+    // In standalone preview mode (no Cast SDK), window.cast.framework.messages
+    // is undefined — pass a plain object that buildStandalonePlayer().load()
+    // can read (contentId + currentTime + autoplay). Real Cast runtime builds
+    // the SDK-typed MediaInformation/LoadRequestData so playerManager.load
+    // populates currentMedia for the sender-side state machine.
+    let req: any;
+    if (standaloneMode) {
+      req = {
+        media: { contentId: item.audio, contentType: 'audio/mpeg', customData: { trackId: item.id } },
+        autoplay: true,
+        currentTime: Math.max(0, startPosition),
+      };
+    } else {
+      const mediaInfo = new window.cast!.framework.messages.MediaInformation();
+      mediaInfo.contentId = item.audio;
+      mediaInfo.contentType = 'audio/mpeg';
+      mediaInfo.streamType = window.cast!.framework.messages.StreamType.BUFFERED;
+      const meta = new window.cast!.framework.messages.MusicTrackMediaMetadata();
+      meta.title = item.title;
+      meta.artist = item.artist;
+      meta.albumName = item.album;
+      if (item.cover) meta.images = [{ url: item.cover }];
+      mediaInfo.metadata = meta;
+      mediaInfo.customData = { trackId: item.id };
 
-    const req = new window.cast.framework.messages.LoadRequestData();
-    req.media = mediaInfo;
-    req.autoplay = true;
-    req.currentTime = Math.max(0, startPosition);
+      req = new window.cast!.framework.messages.LoadRequestData();
+      req.media = mediaInfo;
+      req.autoplay = true;
+      req.currentTime = Math.max(0, startPosition);
+    }
     playerManager.load(req);
     runtime.lyricsTrackId = item.id;
     runtime.lyrics = [];

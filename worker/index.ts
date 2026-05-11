@@ -618,15 +618,28 @@ export default {
     const isEmbedRoute = /^\/embed(\/|$)/.test(url.pathname);
     const isAshtonSpaRoute = /^\/ashton\/?$/.test(url.pathname);
     const seoMatch = !isEmbedRoute && !isAshtonSpaRoute ? lookupSeo(url.pathname) : null;
+    // For embed routes we INTERNALLY fetch /embed (no .html) so Workers Assets
+    // resolves to embed.html via its auto-trailing-slash handling WITHOUT
+    // emitting a 307 canonicalization redirect that would strip the
+    // album/track segments from location.pathname on the client.
     const fetchRequest = isEmbedRoute && !url.pathname.endsWith('.html')
-      ? new Request(new URL('/embed.html', url.origin), request)
+      ? new Request(new URL('/embed', url.origin), request)
       : isAshtonSpaRoute
       ? new Request(new URL('/', url.origin), request)
       : seoMatch
       ? new Request(new URL('/', url.origin), request)
       : request;
 
-    const response = await env.ASSETS.fetch(fetchRequest);
+    let response = await env.ASSETS.fetch(fetchRequest);
+    // Defensive: if ASSETS still emits a 3xx for embed routes (e.g. trailing
+    // slash variants), follow the redirect server-side so the browser keeps
+    // the original /embed/<album>/<track> URL.
+    if (isEmbedRoute && response.status >= 300 && response.status < 400) {
+      const loc = response.headers.get('Location');
+      if (loc) {
+        response = await env.ASSETS.fetch(new Request(new URL(loc, url.origin), request));
+      }
+    }
 
     const headers = new Headers(response.headers);
     for (const [k, v] of Object.entries(SECURITY_HEADERS)) headers.set(k, v);
