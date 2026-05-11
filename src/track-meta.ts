@@ -231,6 +231,7 @@ export function albumSeo(album: Album): RouteSeo {
   const title = buildAlbumTitle(album);
   const description = albumDescription(album);
   const ogImage = albumOgImage(album);
+  const embedUrl = `${SITE_ORIGIN}/embed/${album.id}`;
   return {
     path,
     title,
@@ -244,7 +245,12 @@ export function albumSeo(album: Album): RouteSeo {
     twitterTitle: `${album.name} — bZ`,
     twitterDescription: description,
     twitterImage: ogImage,
-    jsonLd: albumJsonLd(album, url)
+    jsonLd: albumJsonLd(album, url),
+    embedUrl,
+    embedWidth: 480,
+    // Album embed renders a full tracklist below the transport — taller card.
+    embedHeight: 240,
+    oembedUrl: `${SITE_ORIGIN}/api/oembed?url=${encodeURIComponent(url)}&format=json`
   };
 }
 

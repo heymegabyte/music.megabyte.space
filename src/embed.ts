@@ -112,6 +112,12 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
   const playlist: Track[] = target.kind === 'track' ? [target.track] : target.tracks;
   let idx = 0;
   const engine = new AudioEngine();
+  const hasMediaSession = typeof navigator !== 'undefined' && 'mediaSession' in navigator;
+  // Absolute artwork URL so iOS/Android shell can fetch it cross-process —
+  // Control Center and lock-screens load the image in a sandboxed context
+  // that resolves relative URLs against the iframe's origin (which is the
+  // site origin here, so this is safe) but absolute is the clearest contract.
+  const artworkUrl = new URL(album.cover, SITE_ORIGIN).toString();
 
   const albumName = escapeHtml(album.name);
   const albumCover = escapeHtml(album.cover);
@@ -155,6 +161,100 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
     const t = playlist[idx];
     titleEl.textContent = t.title;
     subEl.textContent = isAlbum ? `${idx + 1}/${playlist.length} · ${album.name}` : `${album.name} · bZ`;
+    updateMediaSessionMetadata();
+  }
+
+  /** Push current-track metadata into the browser's MediaSession so iOS
+   *  Control Center, Android lock-screen, macOS Now Playing, and BT-headset
+   *  HUDs render real cover + title + artist + album. Swallows feature
+   *  detection — older browsers (Safari <15, FF without media.mediasession)
+   *  silently skip. Artwork is provided in two sizes hint-able to the OS:
+   *  the OG card (1200×630) for landscape contexts + the album cover (square
+   *  via cover.png itself, which the OS will rescale). */
+  function updateMediaSessionMetadata() {
+    if (!hasMediaSession) return;
+    const t = playlist[idx];
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: t.title,
+        artist: 'bZ',
+        album: album.name,
+        artwork: [
+          { src: artworkUrl, sizes: '1200x1200', type: 'image/png' },
+          { src: artworkUrl, sizes: '512x512', type: 'image/png' },
+          { src: artworkUrl, sizes: '256x256', type: 'image/png' }
+        ]
+      });
+    } catch (err) {
+      // MediaMetadata can throw on malformed artwork URLs in some engines —
+      // log + continue rather than break playback chrome.
+      console.warn('[embed] mediaSession.metadata failed', err);
+    }
+  }
+
+  /** Reflect engine state into mediaSession.playbackState +
+   *  setPositionState so the OS scrub UI tracks playhead movement instead
+   *  of freezing. Called from the engine.on() tick. setPositionState throws
+   *  if position > duration (rounding races at track-end) — guard. */
+  function updateMediaSessionPosition() {
+    if (!hasMediaSession) return;
+    const duration = engine.audio.duration;
+    const position = engine.audio.currentTime;
+    navigator.mediaSession.playbackState = engine.audio.paused ? 'paused' : 'playing';
+    if (!Number.isFinite(duration) || duration <= 0) return;
+    try {
+      navigator.mediaSession.setPositionState({
+        duration,
+        playbackRate: engine.audio.playbackRate || 1,
+        position: Math.max(0, Math.min(position, duration))
+      });
+    } catch {
+      // setPositionState is strict about duration/position invariants;
+      // silent fallback is fine.
+    }
+  }
+
+  // Wire action handlers ONCE per renderPlayer invocation. Registering
+  // prev/next when the playlist is a single track would put orphan buttons
+  // in the OS chrome — gate on playlist length. seekto/seekbackward/
+  // seekforward are always safe.
+  if (hasMediaSession) {
+    try {
+      navigator.mediaSession.setActionHandler('play', () => {
+        void engine.play(playlist[idx]);
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        engine.audio.pause();
+      });
+      navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        const step = details.seekOffset || 10;
+        engine.audio.currentTime = Math.max(0, engine.audio.currentTime - step);
+      });
+      navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        const step = details.seekOffset || 10;
+        const dur = engine.audio.duration || 0;
+        engine.audio.currentTime = Math.min(dur, engine.audio.currentTime + step);
+      });
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (typeof details.seekTime !== 'number') return;
+        engine.audio.currentTime = details.seekTime;
+      });
+      if (playlist.length > 1) {
+        navigator.mediaSession.setActionHandler('previoustrack', () => void load(idx - 1, true));
+        navigator.mediaSession.setActionHandler('nexttrack', () => void load(idx + 1, true));
+      } else {
+        // Explicitly null these out so a stale handler from a previous
+        // boot doesn't leak into the OS chrome on single-track embeds.
+        navigator.mediaSession.setActionHandler('previoustrack', null);
+        navigator.mediaSession.setActionHandler('nexttrack', null);
+      }
+      navigator.mediaSession.setActionHandler('stop', () => {
+        engine.audio.pause();
+        engine.audio.currentTime = 0;
+      });
+    } catch (err) {
+      console.warn('[embed] mediaSession setActionHandler failed', err);
+    }
   }
 
   /** Switch the current track and (optionally) start playback. AudioEngine
@@ -224,6 +324,7 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
     playIcon.textContent = s.playing ? '❚❚' : '▶';
     timeEl.textContent = `${fmtTime(s.currentTime)} / ${fmtTime(s.duration)}`;
     fillEl.style.width = s.duration ? `${(s.currentTime / s.duration) * 100}%` : '0%';
+    updateMediaSessionPosition();
     if (engine.audio.ended && playlist.length > 1) void load(idx + 1, true);
   });
 

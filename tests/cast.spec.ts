@@ -246,4 +246,97 @@ test.describe('embed player — advanced standalone widget', () => {
     await expect(page.locator('.embed-fallback__link')).toHaveAttribute('href', /music\.megabyte\.space/);
     expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
   });
+
+  test('embed wires MediaSession metadata for Now Playing surfaces', async ({ page, browserName }) => {
+    // MediaSession + MediaMetadata is supported in Chromium + WebKit. Firefox
+    // ships the API but blocks artwork resolution under headless without an
+    // active media element — skip there since the assertion is artwork-shape.
+    test.skip(browserName === 'firefox', 'MediaSession headless behavior differs in Gecko');
+    const errs = recordConsoleErrors(page);
+    await page.goto(EMBED_PATH, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('#embedTitle')).toHaveText('Chef Lu Stew');
+
+    const meta = await page.evaluate(() => {
+      const ms = (navigator as Navigator & { mediaSession?: MediaSession }).mediaSession;
+      if (!ms || !ms.metadata) return null;
+      const m = ms.metadata;
+      return {
+        title: m.title,
+        artist: m.artist,
+        album: m.album,
+        artworkCount: m.artwork.length,
+        firstArtworkSrc: m.artwork[0]?.src ?? null
+      };
+    });
+    expect(meta, 'MediaSession metadata must be populated').not.toBeNull();
+    expect(meta!.title).toBe('Chef Lu Stew');
+    expect(meta!.artist).toBe('bZ');
+    expect(meta!.album).toMatch(/Panda Desiiignare/i);
+    expect(meta!.artworkCount).toBeGreaterThanOrEqual(1);
+    expect(meta!.firstArtworkSrc).toMatch(/\.(png|jpg|jpeg|webp)$/i);
+
+    expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
+  });
+});
+
+test.describe('oEmbed discovery + endpoint', () => {
+  // Reddit, Discord, Notion, etc. fetch `/api/oembed?url=...&format=json` after
+  // discovering the `<link rel="alternate" type="application/json+oembed">` on
+  // a page. Both album and track URLs MUST surface a discovery link AND the
+  // endpoint MUST return a usable iframe payload for both forms.
+  test.beforeEach(async ({ page }) => {
+    await page.route(/cloudflareinsights\.com|cdn-cgi\/challenge-platform|cdn-cgi\/speculation/, r => r.abort());
+  });
+
+  test('album page exposes an oembed alternate link with a /<album> target', async ({ page }) => {
+    await page.goto('/desiiignare', { waitUntil: 'domcontentloaded' });
+    const oembedHref = await page
+      .locator('link[rel="alternate"][type="application/json+oembed"]')
+      .getAttribute('href');
+    expect(oembedHref, 'album route must have oembed discovery link').toBeTruthy();
+    expect(oembedHref!).toContain('/api/oembed');
+    // The discovery URL must point back at the album page itself, NOT the
+    // homepage — otherwise consumers fetch the wrong payload.
+    expect(decodeURIComponent(oembedHref!)).toContain('/desiiignare');
+  });
+
+  test('track page exposes an oembed alternate link with a /<album>/<track> target', async ({ page }) => {
+    await page.goto('/desiiignare/chef-lu-stew', { waitUntil: 'domcontentloaded' });
+    const oembedHref = await page
+      .locator('link[rel="alternate"][type="application/json+oembed"]')
+      .getAttribute('href');
+    expect(oembedHref, 'track route must have oembed discovery link').toBeTruthy();
+    expect(decodeURIComponent(oembedHref!)).toContain('/desiiignare/chef-lu-stew');
+  });
+
+  test('/api/oembed resolves album URLs to a tracklist iframe payload', async ({ request }) => {
+    const target = encodeURIComponent('https://music.megabyte.space/desiiignare');
+    const res = await request.get(`/api/oembed?url=${target}&format=json`);
+    expect(res.status()).toBe(200);
+    const body = await res.json() as {
+      type: string;
+      html: string;
+      title: string;
+      thumbnail_url: string;
+    };
+    expect(body.type).toBe('rich');
+    expect(body.html).toMatch(/<iframe[^>]+src="https:\/\/music\.megabyte\.space\/embed\/desiiignare"/);
+    expect(body.title).toMatch(/bZ/);
+    expect(body.thumbnail_url).toMatch(/^https:\/\/music\.megabyte\.space\//);
+  });
+
+  test('/api/oembed resolves /embed/<album>/<track> form (Discord/Reddit deep links)', async ({ request }) => {
+    const target = encodeURIComponent('https://music.megabyte.space/embed/desiiignare/chef-lu-stew');
+    const res = await request.get(`/api/oembed?url=${target}&format=json`);
+    expect(res.status()).toBe(200);
+    const body = await res.json() as { html: string; audio_url?: string };
+    expect(body.html).toMatch(/<iframe[^>]+src="https:\/\/music\.megabyte\.space\/embed\/desiiignare\/chef-lu-stew"/);
+    expect(body.audio_url).toMatch(/Chef_Lu_Stew\.mp3$/);
+  });
+
+  test('/api/oembed rejects unknown slugs', async ({ request }) => {
+    const target = encodeURIComponent('https://music.megabyte.space/no-such-album');
+    const res = await request.get(`/api/oembed?url=${target}&format=json`);
+    expect(res.status()).toBe(404);
+  });
 });

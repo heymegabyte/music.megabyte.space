@@ -1,5 +1,5 @@
 import { SEO_INDEX, type RouteSeo } from '../src/track-meta';
-import { TRACK_BY_ID } from '../src/data';
+import { TRACK_BY_ID, ALBUM_BY_ID } from '../src/data';
 import { sendPushBatch, type PushSubscriptionRecord } from './web-push';
 
 interface Env {
@@ -331,26 +331,81 @@ export default {
       if (url.pathname === '/api/oembed' && request.method === 'GET') {
         const target = url.searchParams.get('url') || '';
         const format = (url.searchParams.get('format') || 'json').toLowerCase();
-        const maxwidth = Math.min(Number(url.searchParams.get('maxwidth')) || 480, 1200);
-        const maxheight = Math.min(Number(url.searchParams.get('maxheight')) || 160, 600);
+        // Resolve oEmbed targets across four URL shapes:
+        //   /<album>                       — album-level (full tracklist embed)
+        //   /<album>/<track>               — single track on its canonical page
+        //   /embed/<album>                 — direct album embed link
+        //   /embed/<album>/<track>         — direct track-in-album embed link
+        // Single-segment paths under `/embed/` could be EITHER an album slug
+        // (preferred — older share links) OR a bare track slug (legacy). We
+        // prefer album first so newly-minted album share cards Just Work, and
+        // fall through to track-lookup so historical track-only embeds still
+        // resolve.
         let parsed: URL;
         try { parsed = new URL(target); } catch { return jsonResponse({ error: 'invalid_url' }, 400); }
         if (parsed.host !== 'music.megabyte.space') return jsonResponse({ error: 'foreign_url' }, 404);
-        const trackPath = parsed.pathname.match(/^\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
-        const embedPath = parsed.pathname.match(/^\/embed\/([a-z0-9-]{1,80})\/?$/);
-        const trackId = embedPath ? embedPath[1] : trackPath ? trackPath[2] : null;
-        if (!trackId || !TRACK_BY_ID.has(trackId)) return jsonResponse({ error: 'unknown_track' }, 404);
-        const track = TRACK_BY_ID.get(trackId)!;
-        const embedUrl = `https://music.megabyte.space/embed/${trackId}`;
-        const audioUrl = `https://music.megabyte.space${track.file}`;
-        const thumbnail = `https://music.megabyte.space/og/track-${trackId}.jpg`;
-        const html = `<iframe src="${embedUrl}" width="${maxwidth}" height="${maxheight}" frameborder="0" scrolling="no" allow="autoplay; encrypted-media" allowfullscreen title="${escapeText(track.title)} — bZ"></iframe>`;
-        const payload = {
+        const embedAlbumTrack = parsed.pathname.match(/^\/embed\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
+        const embedSingle = parsed.pathname.match(/^\/embed\/([a-z0-9-]{1,80})\/?$/);
+        const canonAlbumTrack = parsed.pathname.match(/^\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
+        const canonAlbum = parsed.pathname.match(/^\/([a-z0-9-]{1,80})\/?$/);
+
+        type Resolved =
+          | { kind: 'track'; trackId: string; albumId: string }
+          | { kind: 'album'; albumId: string };
+        let resolved: Resolved | null = null;
+        if (embedAlbumTrack) {
+          const [, albumId, trackId] = embedAlbumTrack;
+          const track = TRACK_BY_ID.get(trackId);
+          if (track && track.album === albumId) resolved = { kind: 'track', trackId, albumId };
+        } else if (canonAlbumTrack && !embedSingle) {
+          const [, albumId, trackId] = canonAlbumTrack;
+          const track = TRACK_BY_ID.get(trackId);
+          if (track && track.album === albumId) resolved = { kind: 'track', trackId, albumId };
+        } else if (embedSingle) {
+          const slug = embedSingle[1];
+          if (ALBUM_BY_ID.has(slug)) resolved = { kind: 'album', albumId: slug };
+          else if (TRACK_BY_ID.has(slug)) {
+            const track = TRACK_BY_ID.get(slug)!;
+            resolved = { kind: 'track', trackId: slug, albumId: track.album };
+          }
+        } else if (canonAlbum) {
+          const slug = canonAlbum[1];
+          if (ALBUM_BY_ID.has(slug)) resolved = { kind: 'album', albumId: slug };
+        }
+        if (!resolved) return jsonResponse({ error: 'unknown_target' }, 404);
+
+        // Album embeds render a fuller card (cover + tracklist + transport),
+        // so default to a taller iframe unless the consumer asked for tighter.
+        const defaultHeight = resolved.kind === 'album' ? 240 : 160;
+        const maxwidth = Math.min(Number(url.searchParams.get('maxwidth')) || 480, 1200);
+        const maxheight = Math.min(Number(url.searchParams.get('maxheight')) || defaultHeight, 600);
+
+        let embedUrl: string;
+        let audioUrl: string;
+        let thumbnail: string;
+        let oeTitle: string;
+        if (resolved.kind === 'track') {
+          const track = TRACK_BY_ID.get(resolved.trackId)!;
+          embedUrl = `https://music.megabyte.space/embed/${resolved.albumId}/${resolved.trackId}`;
+          audioUrl = `https://music.megabyte.space${track.file}`;
+          thumbnail = `https://music.megabyte.space/og/track-${resolved.trackId}.jpg`;
+          oeTitle = `${track.title} — bZ`;
+        } else {
+          const album = ALBUM_BY_ID.get(resolved.albumId)!;
+          embedUrl = `https://music.megabyte.space/embed/${resolved.albumId}`;
+          const firstTrackId = album.trackIds[0];
+          const firstTrack = firstTrackId ? TRACK_BY_ID.get(firstTrackId) : null;
+          audioUrl = firstTrack ? `https://music.megabyte.space${firstTrack.file}` : '';
+          thumbnail = `https://music.megabyte.space${album.cover}`;
+          oeTitle = `${album.name} — bZ`;
+        }
+        const html = `<iframe src="${embedUrl}" width="${maxwidth}" height="${maxheight}" frameborder="0" scrolling="no" allow="autoplay; encrypted-media" allowfullscreen title="${escapeText(oeTitle)}"></iframe>`;
+        const payload: Record<string, unknown> = {
           version: '1.0',
           type: 'rich',
           provider_name: 'bZ — music.megabyte.space',
           provider_url: 'https://music.megabyte.space',
-          title: `${track.title} — bZ`,
+          title: oeTitle,
           author_name: 'bZ',
           author_url: 'https://music.megabyte.space',
           html,
@@ -358,10 +413,10 @@ export default {
           height: maxheight,
           thumbnail_url: thumbnail,
           thumbnail_width: 1200,
-          thumbnail_height: 630,
-          cache_age: 86400,
-          audio_url: audioUrl
+          thumbnail_height: resolved.kind === 'album' ? 1200 : 630,
+          cache_age: 86400
         };
+        if (audioUrl) payload.audio_url = audioUrl;
         if (format === 'xml') {
           const xml = `<?xml version="1.0" encoding="utf-8"?>\n<oembed>\n${Object.entries(payload).map(([k, v]) => `  <${k}>${escapeText(String(v))}</${k}>`).join('\n')}\n</oembed>`;
           return new Response(xml, {
