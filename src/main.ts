@@ -2080,7 +2080,6 @@ async function play(track: Track) {
     engine.play(track);
   }
   updateMediaSession(track);
-  scrollCurrentIntoView();
   showWisdomToast(track);
   trackRecent(track.id);
   applyAlbumPalette(track);
@@ -2103,11 +2102,6 @@ async function play(track: Track) {
   activeLyrics = null;
   activeLyrics = await loadLyrics(track);
   setTimeout(preloadNextTrack, 1500);
-}
-
-function scrollCurrentIntoView() {
-  const el = $('.trackrow.is-current');
-  el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function updateMediaSession(track: Track) {
