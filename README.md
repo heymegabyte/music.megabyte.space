@@ -114,6 +114,21 @@ CI runs typecheck + Prettier + Vitest + Vite build on every PR via `.github/work
 
 ---
 
+## AI Chat
+
+The site has a first-party AI DJ that lives in the bottom-right FAB and slides out as a full-height side panel (right on desktop, near-fullscreen on mobile).
+
+- **Open:** click the FAB, or press `Cmd/Ctrl + I`. `Escape` closes.
+- **Backend:** `POST /api/ai/chat` streams Anthropic Claude Haiku 4.5. Missing `ANTHROPIC_API_KEY` returns `503 ai_not_configured` and the client falls back to local-only slash commands.
+- **Slash commands:** 50+ across Chat / Intel / Playback / Queue / Viz / Audio / Share. Type `/` to autocomplete; `/help` or `/shortcommands` render a grouped, clickable palette.
+- **Rich widgets:** assistant messages can carry typed payloads — track-card, album-card, command-palette, citation, alert, code-snippet, gallery, photo, pricing, FAQ accordion, mini-table, stat-card, timeline, etc. Renderer: `src/ai-widgets.ts`.
+- **Sessions:** multi-conversation history persisted to `localStorage` under `bz:aichat:state`. Rename, pin, branch, export to Markdown.
+- **Privacy:** conversations are local-only; the Worker forwards messages to Anthropic without logging bodies.
+
+Full reference: [`docs/ai-chat.md`](./docs/ai-chat.md), [`docs/ai-chat-widgets.md`](./docs/ai-chat-widgets.md), [`docs/ai-chat-commands.md`](./docs/ai-chat-commands.md).
+
+---
+
 ## Conventions
 
 - **Audio survives navigation.** Never tear down `<audio data-engine="bz">` on a route change. SPA-only routing is enforced by the worker.

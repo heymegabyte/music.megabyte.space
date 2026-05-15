@@ -10,6 +10,12 @@ Day-to-day work on `music.megabyte.space` — what to run, where to look, and th
 
 The `prebuild` step generates per-track OG cards from `src/data.ts`. It needs `sharp` (already a dependency) and the source artwork in `public/art/`. Failures are fatal for `npm run build`; ignore the prebuild only when you've intentionally not changed cover art.
 
+## Secrets for local dev
+
+Copy `.dev.vars.example` to `.dev.vars` and fill in any secrets the surface you're touching needs. The file is gitignored. Production values live in Cloudflare (`npx wrangler secret put <NAME>`); the example file is the single source of truth for what exists.
+
+Without a `.dev.vars`, the worker still boots — the affected endpoints return `503 *_not_configured` instead of crashing. See `docs/security.md` for the full secret list and trust boundaries.
+
 ## Commands
 
 | Command                 | What it does                                                                                                |

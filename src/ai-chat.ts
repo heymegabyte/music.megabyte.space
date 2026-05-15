@@ -9,8 +9,10 @@
 
 import type { AudioEngine } from './audio';
 import type { Track } from './types';
-import { TRACKS, ALBUMS, TRACK_BY_ID, ROBERT_GREENE_WISDOM, tracksForAlbum } from './data';
+import { TRACKS, ALBUMS, TRACK_BY_ID, ALBUM_BY_ID, ROBERT_GREENE_WISDOM, tracksForAlbum } from './data';
 import { getTrackTags } from './tags';
+import { renderWidgets, type AiChatWidget } from './ai-widgets';
+import { buildShortCommandsPalette } from './ai-shortcommands';
 
 interface ChatMessage {
   id: string;
@@ -21,6 +23,12 @@ interface ChatMessage {
   liked?: 1 | -1 | 0;
   pinned?: boolean;
   parentId?: string;
+  /**
+   * Optional rich payload rendered below the markdown body. Built locally by
+   * slash commands today; future worker streams may emit them too via a
+   * fenced ```aiwidgets json``` block.
+   */
+  widgets?: AiChatWidget[];
 }
 
 interface ChatSession {
@@ -34,8 +42,7 @@ interface ChatSession {
   summary?: string;
 }
 
-type Persona =
-  | 'dj' | 'coach' | 'theologian' | 'producer' | 'friend' | 'brand' | 'historian' | 'critic';
+type Persona = 'dj' | 'coach' | 'theologian' | 'producer' | 'friend' | 'brand' | 'historian' | 'critic';
 
 interface Settings {
   model: string;
@@ -80,14 +87,54 @@ interface Persisted {
 }
 
 const PERSONAS: Record<Persona, { label: string; emoji: string; system: string }> = {
-  dj:         { label: 'DJ',         emoji: '🎧', system: "You are bZ's in-app DJ — concise, warm, brand-aware. Speak in the voice of music.megabyte.space: sharp, punchy, Christian-gangster ethic, hustle-gospel, hard but holy. Reference the album Panda Desiiignare and the artist bZ when relevant. Use markdown sparingly. Default to 2-3 sentences. Never recommend or mention drugs. Stay reverent around family names (Brian, Laura, Adrian, CK)." },
-  coach:      { label: 'Coach',      emoji: '🏋️', system: "You are bZ's hype coach — direct, no-fluff, accountability-driven. 2-3 sentence push. End with one concrete action. Christian-gangster ethic, hard but holy. Never mention drugs. Use family names reverently." },
-  theologian: { label: 'Theologian', emoji: '✝️', system: "You are bZ's brother-in-Christ — wisdom-first, scripture-aware, gentle. Reference Psalms, Proverbs, and Gospel passages when fitting. Keep it grounded — Word over feels. 3-4 sentences. Family-name-reverent. No drugs ever." },
-  producer:   { label: 'Producer',   emoji: '🎛️', system: "You are bZ's studio engineer — technical, opinionated, gear-aware. Speak in BPM, key, mix references. Suggest concrete production moves (sidechain, parallel comp, M/S widening). 3-4 sentences. Brand-aware but tool-first." },
-  friend:     { label: 'Friend',     emoji: '🤝', system: "You are bZ's day-one friend — conversational, warm, lightly funny. Drop a smile but stay real. 2-3 sentences. No corporate hedging. Family-reverent. No drugs." },
-  brand:      { label: 'Brand voice', emoji: '⚡', system: "You are the brand voice of music.megabyte.space. Sharp. Punchy. Active voice. Servant framing. 4-8 word headlines acceptable. No banned filler ('leverage', 'seamless', 'unlock'). 2-3 sentences max." },
-  historian:  { label: 'Historian',  emoji: '📜', system: "You are bZ's archivist — depth, dates, names, primary-source-aware. Cite figures inline when claimable. Connect a track to its lineage (sampling history, scene, era). 3-4 sentences. Stay accurate over flashy." },
-  critic:     { label: 'Critic',     emoji: '🧪', system: "You are bZ's loyal critic — find the weak link, name it, propose the fix. No flattery. 2-4 sentences. End with one sharp improvement." }
+  dj: {
+    label: 'DJ',
+    emoji: '🎧',
+    system:
+      "You are bZ's in-app DJ — concise, warm, brand-aware. Speak in the voice of music.megabyte.space: sharp, punchy, Christian-gangster ethic, hustle-gospel, hard but holy. Reference the album Panda Desiiignare and the artist bZ when relevant. Use markdown sparingly. Default to 2-3 sentences. Never recommend or mention drugs. Stay reverent around family names (Brian, Laura, Adrian, CK)."
+  },
+  coach: {
+    label: 'Coach',
+    emoji: '🏋️',
+    system:
+      "You are bZ's hype coach — direct, no-fluff, accountability-driven. 2-3 sentence push. End with one concrete action. Christian-gangster ethic, hard but holy. Never mention drugs. Use family names reverently."
+  },
+  theologian: {
+    label: 'Theologian',
+    emoji: '✝️',
+    system:
+      "You are bZ's brother-in-Christ — wisdom-first, scripture-aware, gentle. Reference Psalms, Proverbs, and Gospel passages when fitting. Keep it grounded — Word over feels. 3-4 sentences. Family-name-reverent. No drugs ever."
+  },
+  producer: {
+    label: 'Producer',
+    emoji: '🎛️',
+    system:
+      "You are bZ's studio engineer — technical, opinionated, gear-aware. Speak in BPM, key, mix references. Suggest concrete production moves (sidechain, parallel comp, M/S widening). 3-4 sentences. Brand-aware but tool-first."
+  },
+  friend: {
+    label: 'Friend',
+    emoji: '🤝',
+    system:
+      "You are bZ's day-one friend — conversational, warm, lightly funny. Drop a smile but stay real. 2-3 sentences. No corporate hedging. Family-reverent. No drugs."
+  },
+  brand: {
+    label: 'Brand voice',
+    emoji: '⚡',
+    system:
+      "You are the brand voice of music.megabyte.space. Sharp. Punchy. Active voice. Servant framing. 4-8 word headlines acceptable. No banned filler ('leverage', 'seamless', 'unlock'). 2-3 sentences max."
+  },
+  historian: {
+    label: 'Historian',
+    emoji: '📜',
+    system:
+      "You are bZ's archivist — depth, dates, names, primary-source-aware. Cite figures inline when claimable. Connect a track to its lineage (sampling history, scene, era). 3-4 sentences. Stay accurate over flashy."
+  },
+  critic: {
+    label: 'Critic',
+    emoji: '🧪',
+    system:
+      "You are bZ's loyal critic — find the weak link, name it, propose the fix. No flattery. 2-4 sentences. End with one sharp improvement."
+  }
 };
 
 function personaSystem(p: Persona, override: string): string {
@@ -268,7 +315,9 @@ export function mountAIChat(opts: MountOpts = {}) {
             <label class="aichat__field">
               <span class="aichat__field-label">Voice</span>
               <select data-aichat="persona">
-                ${Object.entries(PERSONAS).map(([k, p]) => `<option value="${k}">${p.emoji} ${p.label}</option>`).join('')}
+                ${Object.entries(PERSONAS)
+                  .map(([k, p]) => `<option value="${k}">${p.emoji} ${p.label}</option>`)
+                  .join('')}
               </select>
             </label>
             <p class="aichat__hint-note">Override the voice anytime with the System prompt below.</p>
@@ -464,8 +513,7 @@ export function mountAIChat(opts: MountOpts = {}) {
   `;
   document.body.appendChild(root);
 
-  const $ = <T = HTMLElement>(sel: string) =>
-    root.querySelector(`[data-aichat="${sel}"]`) as unknown as T;
+  const $ = <T = HTMLElement>(sel: string) => root.querySelector(`[data-aichat="${sel}"]`) as unknown as T;
 
   const panel = $('panel');
   const fab = $('fab');
@@ -618,7 +666,9 @@ export function mountAIChat(opts: MountOpts = {}) {
     if (open) {
       input.focus();
       maybeShowRitual();
-      try { window.dispatchEvent(new CustomEvent('aichat:open')); } catch {}
+      try {
+        window.dispatchEvent(new CustomEvent('aichat:open'));
+      } catch {}
     }
   }
 
@@ -642,9 +692,11 @@ export function mountAIChat(opts: MountOpts = {}) {
     const vr = $<HTMLInputElement>('voiceRate');
     vr.value = String(s.voiceRate);
     $('voiceRateVal').textContent = s.voiceRate.toFixed(2);
-    root.querySelectorAll<HTMLButtonElement>('[data-aichat="themeSwatch"] button')
+    root
+      .querySelectorAll<HTMLButtonElement>('[data-aichat="themeSwatch"] button')
       .forEach(b => b.classList.toggle('is-active', b.dataset.theme === s.theme));
-    root.querySelectorAll<HTMLButtonElement>('[data-aichat="densitySeg"] button')
+    root
+      .querySelectorAll<HTMLButtonElement>('[data-aichat="densitySeg"] button')
       .forEach(b => b.classList.toggle('is-active', b.dataset.density === s.density));
     personaSel.value = s.persona;
     root.setAttribute('data-persona', s.persona);
@@ -684,7 +736,10 @@ export function mountAIChat(opts: MountOpts = {}) {
     const items = state.sessions
       .slice()
       .sort((a, b) => b.updatedAt - a.updatedAt)
-      .filter(s => !q || s.title.toLowerCase().includes(q) || s.messages.some(m => m.content.toLowerCase().includes(q)));
+      .filter(
+        s =>
+          !q || s.title.toLowerCase().includes(q) || s.messages.some(m => m.content.toLowerCase().includes(q))
+      );
     sessionCount.textContent = q ? `${items.length}/${total}` : String(total);
     if (searchSessionsClear) searchSessionsClear.toggleAttribute('hidden', !q);
     if (sessionEmpty) sessionEmpty.toggleAttribute('hidden', items.length > 0);
@@ -742,7 +797,8 @@ export function mountAIChat(opts: MountOpts = {}) {
     messages.toggleAttribute('hidden', sess.messages.length === 0);
     messages.innerHTML = sess.messages.map(m => renderMessage(m)).join('');
     if (state.settings.adaptiveDensity) {
-      const eff = sess.messages.length > 16 ? 'compact' : sess.messages.length > 6 ? 'cozy' : state.settings.density;
+      const eff =
+        sess.messages.length > 16 ? 'compact' : sess.messages.length > 6 ? 'cozy' : state.settings.density;
       root.setAttribute('data-density', eff);
     }
     renderPins();
@@ -753,13 +809,23 @@ export function mountAIChat(opts: MountOpts = {}) {
     const sess = activeSession();
     const chips: string[] = [];
     state.settings.pinned.forEach((p, i) => {
-      chips.push(`<button type="button" class="aichat__pin-chip" data-pin-global="${i}" title="${escapeHtml(p)}">📌 ${escapeHtml(p.slice(0, 28))}${p.length > 28 ? '…' : ''}</button>`);
+      chips.push(
+        `<button type="button" class="aichat__pin-chip" data-pin-global="${i}" title="${escapeHtml(p)}">📌 ${escapeHtml(p.slice(0, 28))}${p.length > 28 ? '…' : ''}</button>`
+      );
     });
-    sess.messages.filter(m => m.pinned).forEach(m => {
-      const snippet = m.content.slice(0, 28);
-      chips.push(`<button type="button" class="aichat__pin-chip" data-pin-msg="${m.id}" title="${escapeHtml(m.content.slice(0, 200))}">📍 ${escapeHtml(snippet)}${m.content.length > 28 ? '…' : ''}</button>`);
-    });
-    if (!chips.length) { pinsStrip.hidden = true; pinsStrip.innerHTML = ''; return; }
+    sess.messages
+      .filter(m => m.pinned)
+      .forEach(m => {
+        const snippet = m.content.slice(0, 28);
+        chips.push(
+          `<button type="button" class="aichat__pin-chip" data-pin-msg="${m.id}" title="${escapeHtml(m.content.slice(0, 200))}">📍 ${escapeHtml(snippet)}${m.content.length > 28 ? '…' : ''}</button>`
+        );
+      });
+    if (!chips.length) {
+      pinsStrip.hidden = true;
+      pinsStrip.innerHTML = '';
+      return;
+    }
     pinsStrip.hidden = false;
     pinsStrip.innerHTML = chips.join('');
   }
@@ -773,15 +839,18 @@ export function mountAIChat(opts: MountOpts = {}) {
     const personaAttr = m.role === 'assistant' ? ` data-persona="${state.settings.persona}"` : '';
     const ts = formatTime(m.ts);
     const body = m.role === 'user' ? escapeHtml(m.content) : renderMarkdown(m.content);
-    const readTime = state.settings.showReadingTime && m.content.length > 80
-      ? `<span class="aichat__readtime" title="Estimated read">${readingTime(m.content)}</span>`
-      : '';
+    const readTime =
+      state.settings.showReadingTime && m.content.length > 80
+        ? `<span class="aichat__readtime" title="Estimated read">${readingTime(m.content)}</span>`
+        : '';
     const expandBtn = isLong
       ? `<button type="button" class="aichat__msg-expand" data-act="expand" data-id="${m.id}">Show all ${m.content.length.toLocaleString()} chars ▾</button>`
       : '';
+    const widgetsHtml = m.role === 'assistant' ? renderWidgets(m.widgets) : '';
     return `<li class="${cls}${pinned}${wrapCollapsed}" data-id="${m.id}" id="msg-${m.id}"${personaAttr}>
       <div class="aichat__msg-meta"><span>${m.role === 'user' ? 'You' : 'bZ'}</span><time>${ts}</time>${readTime}</div>
       <div class="aichat__msg-body${bodyCollapsed}">${body}</div>
+      ${widgetsHtml}
       ${expandBtn}
       <div class="aichat__msg-tools" role="toolbar" aria-label="Message actions">
         <button type="button" data-act="copy" data-id="${m.id}" aria-label="Copy" title="Copy">⧉</button>
@@ -812,15 +881,23 @@ export function mountAIChat(opts: MountOpts = {}) {
       return ` ${tokens.length - 1} `;
     };
     let s = src.replace(/```([a-zA-Z0-9_+-]*)\n([\s\S]*?)```/g, (_m, lang: string, code: string) =>
-      tok(`<pre class="aichat__code" data-lang="${escapeHtml(lang)}"><button class="aichat__copycode" type="button" data-copycode>Copy</button><code>${escapeHtml(code)}</code></pre>`)
+      tok(
+        `<pre class="aichat__code" data-lang="${escapeHtml(lang)}"><button class="aichat__copycode" type="button" data-copycode>Copy</button><code>${escapeHtml(code)}</code></pre>`
+      )
     );
     s = s.replace(/`([^`\n]+)`/g, (_m, c: string) => tok(`<code>${escapeHtml(c)}</code>`));
     s = escapeHtml(s);
     s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     s = s.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
     s = s.replace(/_([^_\n]+)_/g, '<em>$1</em>');
-    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-    s = s.replace(/(^|\s)(https?:\/\/[^\s<]+)/g, '$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>');
+    s = s.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+    s = s.replace(
+      /(^|\s)(https?:\/\/[^\s<]+)/g,
+      '$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>'
+    );
     s = s.replace(/^### (.+)$/gm, '<h4>$1</h4>');
     s = s.replace(/^## (.+)$/gm, '<h3>$1</h3>');
     s = s.replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.+<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
@@ -830,7 +907,10 @@ export function mountAIChat(opts: MountOpts = {}) {
   }
 
   function escapeHtml(s: string): string {
-    return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+    return s.replace(
+      /[&<>"']/g,
+      c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!
+    );
   }
 
   function formatTime(ts: number): string {
@@ -855,7 +935,9 @@ export function mountAIChat(opts: MountOpts = {}) {
     if (!st?.track) return 'No track is currently playing.';
     const cur = st.track;
     const min = Math.floor((st.currentTime || 0) / 60);
-    const sec = Math.floor((st.currentTime || 0) % 60).toString().padStart(2, '0');
+    const sec = Math.floor((st.currentTime || 0) % 60)
+      .toString()
+      .padStart(2, '0');
     const bpm = st.bpm > 30 ? `, ~${Math.round(st.bpm)} BPM` : '';
     const lyric = currentLyric();
     const lyricLine = lyric ? `\nCurrent lyric line: "${lyric}".` : '';
@@ -880,7 +962,9 @@ export function mountAIChat(opts: MountOpts = {}) {
     const st = opts.engine?.state();
     const cur = st?.track;
     const min = Math.floor((st?.currentTime || 0) / 60);
-    const sec = Math.floor((st?.currentTime || 0) % 60).toString().padStart(2, '0');
+    const sec = Math.floor((st?.currentTime || 0) % 60)
+      .toString()
+      .padStart(2, '0');
     const vars: Record<string, string> = {
       track: cur?.title || 'no track',
       artist: cur?.artist || 'bZ',
@@ -888,7 +972,8 @@ export function mountAIChat(opts: MountOpts = {}) {
       lyric: currentLyric() || 'no lyric',
       time: `${min}:${sec}`,
       bpm: st?.bpm ? Math.round(st.bpm).toString() : '—',
-      wisdom: cur?.wisdom || ROBERT_GREENE_WISDOM[Math.floor(Math.random() * ROBERT_GREENE_WISDOM.length)] || ''
+      wisdom:
+        cur?.wisdom || ROBERT_GREENE_WISDOM[Math.floor(Math.random() * ROBERT_GREENE_WISDOM.length)] || ''
     };
     return text.replace(/\{\{([a-z]+)\}\}/gi, (_m, k: string) => vars[k.toLowerCase()] ?? `{{${k}}}`);
   }
@@ -905,7 +990,12 @@ export function mountAIChat(opts: MountOpts = {}) {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          messages: [{ role: 'user', content: `Summarize this prior chat into 3-5 dense bullet points capturing facts, requests, and decisions. Keep names, song titles, BPM hits.\n\n${lines}` }],
+          messages: [
+            {
+              role: 'user',
+              content: `Summarize this prior chat into 3-5 dense bullet points capturing facts, requests, and decisions. Keep names, song titles, BPM hits.\n\n${lines}`
+            }
+          ],
           system: 'You are a precise summarizer. No filler. Bullet points only.',
           model: 'claude-haiku-4-5-20251001',
           temperature: 0.2,
@@ -914,9 +1004,10 @@ export function mountAIChat(opts: MountOpts = {}) {
         })
       });
       const j = await res.json().catch(() => null);
-      const txt = (j as { content?: string; text?: string } | null)?.content
-        || (j as { content?: { text?: string }[] } | null)?.content?.[0]?.text
-        || '';
+      const txt =
+        (j as { content?: string; text?: string } | null)?.content ||
+        (j as { content?: { text?: string }[] } | null)?.content?.[0]?.text ||
+        '';
       if (typeof txt === 'string' && txt.trim()) {
         sess.summary = (sess.summary ? sess.summary + '\n' : '') + txt.trim();
         sess.messages = sess.messages.slice(-keep);
@@ -932,7 +1023,10 @@ export function mountAIChat(opts: MountOpts = {}) {
     if (!trimmed || abortCtrl) return;
 
     if (trimmed.includes(' && ') && /^\/|.* && \//.test(trimmed)) {
-      const segments = trimmed.split(/ && /).map(s => s.trim()).filter(Boolean);
+      const segments = trimmed
+        .split(/ && /)
+        .map(s => s.trim())
+        .filter(Boolean);
       input.value = '';
       updateInputUI();
       for (const seg of segments) {
@@ -948,7 +1042,11 @@ export function mountAIChat(opts: MountOpts = {}) {
 
     if (trimmed.startsWith('/')) {
       const handled = handleSlash(trimmed);
-      if (handled) { input.value = ''; updateInputUI(); return; }
+      if (handled) {
+        input.value = '';
+        updateInputUI();
+        return;
+      }
     }
     state.history = [...state.history.filter(h => h !== trimmed), trimmed].slice(-50);
     historyIdx = -1;
@@ -957,7 +1055,12 @@ export function mountAIChat(opts: MountOpts = {}) {
     const attachLine = attachedFiles.length
       ? `\n\n[attached: ${attachedFiles.map(f => f.name).join(', ')}]`
       : '';
-    const userMsg: ChatMessage = { id: cryptoId(), role: 'user', content: expanded + attachLine, ts: Date.now() };
+    const userMsg: ChatMessage = {
+      id: cryptoId(),
+      role: 'user',
+      content: expanded + attachLine,
+      ts: Date.now()
+    };
     sess.messages.push(userMsg);
     if (sess.title === 'New chat') sess.title = autoTitle(expanded);
     sess.updatedAt = Date.now();
@@ -971,7 +1074,13 @@ export function mountAIChat(opts: MountOpts = {}) {
 
     maybeAutoSummarize(sess);
 
-    const aiMsg: ChatMessage = { id: cryptoId(), role: 'assistant', content: '', ts: Date.now(), parentId: userMsg.id };
+    const aiMsg: ChatMessage = {
+      id: cryptoId(),
+      role: 'assistant',
+      content: '',
+      ts: Date.now(),
+      parentId: userMsg.id
+    };
     sess.messages.push(aiMsg);
     renderMessages();
     setStatus('Thinking…', true);
@@ -1013,9 +1122,10 @@ export function mountAIChat(opts: MountOpts = {}) {
       if (!res.ok || !res.body) {
         const errBody = await res.json().catch(() => ({}));
         const code = (errBody as { error?: string }).error || res.statusText;
-        aiMsg.content = code === 'ai_not_configured'
-          ? "**AI is offline.** The worker needs an `ANTHROPIC_API_KEY` secret before this chat can answer. Tap a quick reply or try again later."
-          : `**Couldn't reach the model.** \`${code}\` — try again in a moment.`;
+        aiMsg.content =
+          code === 'ai_not_configured'
+            ? '**AI is offline.** The worker needs an `ANTHROPIC_API_KEY` secret before this chat can answer. Tap a quick reply or try again later.'
+            : `**Couldn't reach the model.** \`${code}\` — try again in a moment.`;
         renderMessages();
         return;
       }
@@ -1090,7 +1200,8 @@ export function mountAIChat(opts: MountOpts = {}) {
 
   function updateAssistantBubble(m: ChatMessage) {
     const node = messages.querySelector(`[data-id="${m.id}"] .aichat__msg-body`);
-    if (node) node.innerHTML = renderMarkdown(m.content) + '<span class="aichat__caret" aria-hidden="true"></span>';
+    if (node)
+      node.innerHTML = renderMarkdown(m.content) + '<span class="aichat__caret" aria-hidden="true"></span>';
     if (state.settings.autoScroll && !autoScrollLocked) messages.scrollTop = messages.scrollHeight;
   }
 
@@ -1102,149 +1213,497 @@ export function mountAIChat(opts: MountOpts = {}) {
   // ── Slash registry ────────────────────────────────────────────────────────
   const SLASH_HELP_LINE = (cmd: string, sig: string, desc: string) => `- \`/${cmd}${sig}\` — ${desc}`;
   type SlashRun = (args: string[]) => boolean;
-  interface SlashDef { sig: string; desc: string; cat: string; run: SlashRun; hostHandled?: boolean }
+  interface SlashDef {
+    sig: string;
+    desc: string;
+    cat: string;
+    run: SlashRun;
+    hostHandled?: boolean;
+  }
   const SLASH: Record<string, SlashDef> = {
-    help:        { sig: '',                       desc: 'show all commands',                cat: 'Chat',     run: () => { showSlashHelp(); return true; } },
-    commands:    { sig: '',                       desc: 'alias for /help',                  cat: 'Chat',     run: () => { showSlashHelp(); return true; } },
-    clear:       { sig: '',                       desc: 'wipe this chat',                   cat: 'Chat',     run: () => { activeSession().messages = []; saveState(); renderMessages(); return true; } },
-    new:         { sig: '',                       desc: 'start a fresh chat',               cat: 'Chat',     run: () => {
-      const s = makeSession(); state.sessions.unshift(s); state.activeId = s.id;
-      saveState(); renderMessages(); renderSessions(); return true;
-    } },
-    export:      { sig: '',                       desc: 'download as Markdown',             cat: 'Chat',     run: () => { exportSession(activeSession()); return true; } },
-    share:       { sig: '',                       desc: 'copy a summary',                   cat: 'Chat',     run: () => {
-      const sess = activeSession();
-      const summary = sess.messages.slice(-6).map(m => `${m.role === 'user' ? 'Q' : 'A'}: ${m.content}`).join('\n\n');
-      navigator.clipboard?.writeText(summary).then(() => setStatus('Copied to clipboard'));
-      return true;
-    } },
-    pin:         { sig: ' <note>',                desc: 'pin a memory across chats',        cat: 'Chat',     run: (args) => {
-      const note = args.join(' ').trim();
-      if (note) { state.settings.pinned.push(note); saveState(); setStatus(`Pinned: ${note.slice(0, 40)}`); }
-      return true;
-    } },
-    notes:       { sig: ' <text>',                desc: 'append to bz:notes',               cat: 'Chat',     run: (args) => {
-      const note = args.join(' ').trim();
-      if (!note) return true;
-      try {
-        const prev = localStorage.getItem('bz:notes') || '';
-        localStorage.setItem('bz:notes', prev + (prev ? '\n' : '') + `[${new Date().toISOString().slice(0, 16)}] ${note}`);
-        setStatus('Saved to notes');
-      } catch { setStatus('Notes blocked'); }
-      return true;
-    } },
-    wake:        { sig: ' on|off',                desc: 'toggle wake-word listener',        cat: 'Chat',     run: (args) => {
-      const on = args[0]?.toLowerCase() !== 'off';
-      state.settings.wakeWord = on; saveState(); applySettings();
-      if (on) startWakeWord(); else stopWakeWord();
-      setStatus(on ? 'Wake word: hey bz' : 'Wake word off');
-      return true;
-    } },
-    theme:       { sig: ' cyan|violet|amber|rose', desc: 'switch accent color',             cat: 'Chat',     run: (args) => {
-      const t = (args[0] || '').toLowerCase();
-      if (t === 'cyan' || t === 'violet' || t === 'amber' || t === 'rose') {
-        state.settings.theme = t; saveState(); applySettings(); setStatus(`Theme: ${t}`);
-      }
-      return true;
-    } },
-    persona:     { sig: ' <preset>',              desc: 'switch voice (dj|coach|theologian|producer|friend|brand|historian|critic)', cat: 'Chat', run: (args) => {
-      const p = (args[0] || '').toLowerCase() as Persona;
-      if (PERSONAS[p]) { state.settings.persona = p; saveState(); applySettings(); setStatus(`Voice: ${PERSONAS[p].label}`); }
-      else { listPersonas(); }
-      return true;
-    } },
-    snippet:     { sig: ' save <name> <text> | <name>', desc: 'save or recall a draft snippet', cat: 'Chat', run: (args) => {
-      if (!args.length) { listSnippets(); return true; }
-      if (args[0] === 'save' && args.length >= 3) {
-        const name = args[1];
-        const text = args.slice(2).join(' ');
-        state.settings.snippets[name] = text;
-        saveState();
-        setStatus(`Saved snippet "${name}"`);
+    help: {
+      sig: '',
+      desc: 'show all commands',
+      cat: 'Chat',
+      run: () => {
+        showSlashHelp();
         return true;
       }
-      if (args[0] === 'del' && args[1]) {
-        delete state.settings.snippets[args[1]];
-        saveState();
-        setStatus(`Deleted snippet "${args[1]}"`);
+    },
+    commands: {
+      sig: '',
+      desc: 'alias for /help',
+      cat: 'Chat',
+      run: () => {
+        showSlashHelp();
         return true;
       }
-      const txt = state.settings.snippets[args[0]];
-      if (txt) { input.value = txt; updateInputUI(); input.focus(); }
-      else { setStatus(`No snippet "${args[0]}"`); }
-      return true;
-    } },
-    theatre:     { sig: ' on|off',                desc: 'toggle theatre mode',              cat: 'Chat',     run: (args) => {
-      const on = args[0] === 'on' ? true : args[0] === 'off' ? false : !state.settings.theatreMode;
-      state.settings.theatreMode = on; saveState(); applySettings(); setStatus(`Theatre ${on ? 'on' : 'off'}`);
-      return true;
-    } },
-    spectro:     { sig: ' on|off',                desc: 'toggle spectrogram backdrop',      cat: 'Chat',     run: (args) => {
-      const on = args[0] === 'on' ? true : args[0] === 'off' ? false : !state.settings.spectrogramBackdrop;
-      state.settings.spectrogramBackdrop = on; saveState(); applySettings();
-      return true;
-    } },
-    cheatsheet:  { sig: '',                       desc: 'keyboard shortcuts card',          cat: 'Chat',     run: () => { openCheat(); return true; } },
-    poster:      { sig: '',                       desc: 'save conversation as poster (PNG)', cat: 'Chat',    run: () => { savePoster(); return true; } },
-    summary:     { sig: '',                       desc: 'show running summary of this chat', cat: 'Chat',    run: () => {
-      const sess = activeSession();
-      const s = sess.summary || '(no summary yet — keep chatting)';
-      sess.messages.push({ id: cryptoId(), role: 'assistant', ts: Date.now(), content: `**Running summary**\n\n${s}` });
-      saveState(); renderMessages();
-      return true;
-    } },
-    today:       { sig: '',                       desc: 'daily ritual prompt',              cat: 'Chat',     run: () => { sendRitualPrompt(); return true; } },
-    critique:    { sig: '',                       desc: 'critique the last reply',          cat: 'Chat',     run: () => { critiqueLast(); return true; } },
-    rewrite:     { sig: ' <tighter|punchier|shorter|gospel|simple>', desc: 'rewrite the last reply', cat: 'Chat', run: (args) => { rewriteLast(args.join(' ').trim()); return true; } },
-    lyric:       { sig: '',                       desc: 'explain the current lyric line',   cat: 'Intel',    run: () => {
-      const line = currentLyric();
-      if (!line) { setStatus('No lyric loaded'); return true; }
-      send(`Explain this lyric line in 2-3 sentences, then quote one Greene-style maxim: "${line}"`);
-      return true;
-    } },
-    mood:        { sig: ' <word>',                desc: 'suggest tracks for a mood',        cat: 'Intel',    run: (args) => { suggestForMood(args.join(' ')); return true; } },
-    blend:       { sig: ' <id-a> <id-b>',         desc: 'design a transition between two tracks', cat: 'Intel', run: (args) => { blendTracks(args[0], args[1]); return true; } },
-    setlist:     { sig: ' <n>',                   desc: 'auto-build an n-track setlist',    cat: 'Intel',    run: (args) => { buildSetlist(Number(args[0]) || 6); return true; } },
-    catalog:     { sig: '',                       desc: 'list every track on the site',     cat: 'Intel',    run: () => { listCatalog(); return true; } },
-    play:        { sig: '',                       desc: 'resume playback',                  cat: 'Playback', hostHandled: true, run: () => false },
-    pause:       { sig: '',                       desc: 'pause playback',                   cat: 'Playback', hostHandled: true, run: () => false },
-    toggle:      { sig: '',                       desc: 'play/pause toggle',                cat: 'Playback', hostHandled: true, run: () => false },
-    stop:        { sig: '',                       desc: 'stop playback',                    cat: 'Playback', hostHandled: true, run: () => false },
-    next:        { sig: '',                       desc: 'next track',                       cat: 'Playback', hostHandled: true, run: () => false },
-    prev:        { sig: '',                       desc: 'previous track',                   cat: 'Playback', hostHandled: true, run: () => false },
-    previous:    { sig: '',                       desc: 'alias for /prev',                  cat: 'Playback', hostHandled: true, run: () => false },
-    back:        { sig: '',                       desc: 'replay last track',                cat: 'Playback', hostHandled: true, run: () => false },
-    seek:        { sig: ' <m:ss|0.5>',            desc: 'jump to time or ratio',            cat: 'Playback', hostHandled: true, run: () => false },
-    loop:        { sig: ' <m:ss>-<m:ss>',         desc: 'A↔B loop',                         cat: 'Playback', hostHandled: true, run: () => false },
-    loopstop:    { sig: '',                       desc: 'cancel A↔B loop',                  cat: 'Playback', hostHandled: true, run: () => false },
-    speed:       { sig: ' <0.5-2>',               desc: 'playback rate',                    cat: 'Playback', hostHandled: true, run: () => false },
-    pitch:       { sig: ' on|off',                desc: 'preserve pitch when speed≠1',      cat: 'Playback', hostHandled: true, run: () => false },
-    sleep:       { sig: ' <m|track|album>',       desc: 'sleep timer w/ fade-out',          cat: 'Playback', hostHandled: true, run: () => false },
-    like:        { sig: '',                       desc: 'like current track',               cat: 'Playback', hostHandled: true, run: () => false },
-    queue:       { sig: ' list|clear',            desc: 'show or wipe queue',               cat: 'Queue',    hostHandled: true, run: () => false },
-    shuffle:     { sig: ' on|off',                desc: 'shuffle queue',                    cat: 'Queue',    hostHandled: true, run: () => false },
-    repeat:      { sig: ' one|all|off',           desc: 'repeat mode',                      cat: 'Queue',    hostHandled: true, run: () => false },
-    viz:         { sig: ' <mode|next|surprise>',  desc: 'switch visualizer',                cat: 'Viz',      hostHandled: true, run: () => false },
-    trails:      { sig: ' on|off',                desc: 'long-exposure trails',             cat: 'Viz',      hostHandled: true, run: () => false },
-    palette:     { sig: ' <hex|album|mono>',      desc: 'recolor viz palette',              cat: 'Viz',      hostHandled: true, run: () => false },
-    eq:          { sig: ' <band|preset>',         desc: 'bass/mid/treble or preset',        cat: 'Audio',    hostHandled: true, run: () => false },
-    reverb:      { sig: ' <preset|wet 0-1>',      desc: 'reverb preset or wet mix',         cat: 'Audio',    hostHandled: true, run: () => false },
-    instrumental:{ sig: ' on|off',                desc: 'karaoke center-cut',               cat: 'Audio',    hostHandled: true, run: () => false },
-    cast:        { sig: '',                       desc: 'Chromecast picker',                cat: 'Share',    hostHandled: true, run: () => false },
-    airplay:     { sig: '',                       desc: 'AirPlay picker',                   cat: 'Share',    hostHandled: true, run: () => false },
-    clip:        { sig: ' <seconds>',             desc: 'record a snippet clip',            cat: 'Share',    hostHandled: true, run: () => false },
-    snap:        { sig: '',                       desc: 'screenshot the viz',               cat: 'Share',    hostHandled: true, run: () => false },
-    sendto:      { sig: ' <name>',                desc: 'recommend to a friend',            cat: 'Share',    hostHandled: true, run: () => false },
-    find:        { sig: ' <lyric|feel|collab> <q>', desc: 'search the catalog',             cat: 'Intel',    hostHandled: true, run: () => false },
-    explain:     { sig: '',                       desc: 'explain the current lyric',        cat: 'Intel',    hostHandled: true, run: () => false },
-    why:         { sig: '',                       desc: 'why this beat hits',               cat: 'Intel',    hostHandled: true, run: () => false },
-    translate:   { sig: ' <lang>',                desc: 'translate active lyrics',          cat: 'Intel',    hostHandled: true, run: () => false },
-    quote:       { sig: ' <chorus|verse>',        desc: 'copy a section to clipboard',      cat: 'Intel',    hostHandled: true, run: () => false },
-    debug:       { sig: '',                       desc: 'open replay-debug overlay',        cat: 'Intel',    hostHandled: true, run: () => false }
+    },
+    clear: {
+      sig: '',
+      desc: 'wipe this chat',
+      cat: 'Chat',
+      run: () => {
+        activeSession().messages = [];
+        saveState();
+        renderMessages();
+        return true;
+      }
+    },
+    new: {
+      sig: '',
+      desc: 'start a fresh chat',
+      cat: 'Chat',
+      run: () => {
+        const s = makeSession();
+        state.sessions.unshift(s);
+        state.activeId = s.id;
+        saveState();
+        renderMessages();
+        renderSessions();
+        return true;
+      }
+    },
+    export: {
+      sig: '',
+      desc: 'download as Markdown',
+      cat: 'Chat',
+      run: () => {
+        exportSession(activeSession());
+        return true;
+      }
+    },
+    share: {
+      sig: '',
+      desc: 'copy a summary',
+      cat: 'Chat',
+      run: () => {
+        const sess = activeSession();
+        const summary = sess.messages
+          .slice(-6)
+          .map(m => `${m.role === 'user' ? 'Q' : 'A'}: ${m.content}`)
+          .join('\n\n');
+        navigator.clipboard?.writeText(summary).then(() => setStatus('Copied to clipboard'));
+        return true;
+      }
+    },
+    pin: {
+      sig: ' <note>',
+      desc: 'pin a memory across chats',
+      cat: 'Chat',
+      run: args => {
+        const note = args.join(' ').trim();
+        if (note) {
+          state.settings.pinned.push(note);
+          saveState();
+          setStatus(`Pinned: ${note.slice(0, 40)}`);
+        }
+        return true;
+      }
+    },
+    notes: {
+      sig: ' <text>',
+      desc: 'append to bz:notes',
+      cat: 'Chat',
+      run: args => {
+        const note = args.join(' ').trim();
+        if (!note) return true;
+        try {
+          const prev = localStorage.getItem('bz:notes') || '';
+          localStorage.setItem(
+            'bz:notes',
+            prev + (prev ? '\n' : '') + `[${new Date().toISOString().slice(0, 16)}] ${note}`
+          );
+          setStatus('Saved to notes');
+        } catch {
+          setStatus('Notes blocked');
+        }
+        return true;
+      }
+    },
+    wake: {
+      sig: ' on|off',
+      desc: 'toggle wake-word listener',
+      cat: 'Chat',
+      run: args => {
+        const on = args[0]?.toLowerCase() !== 'off';
+        state.settings.wakeWord = on;
+        saveState();
+        applySettings();
+        if (on) startWakeWord();
+        else stopWakeWord();
+        setStatus(on ? 'Wake word: hey bz' : 'Wake word off');
+        return true;
+      }
+    },
+    theme: {
+      sig: ' cyan|violet|amber|rose',
+      desc: 'switch accent color',
+      cat: 'Chat',
+      run: args => {
+        const t = (args[0] || '').toLowerCase();
+        if (t === 'cyan' || t === 'violet' || t === 'amber' || t === 'rose') {
+          state.settings.theme = t;
+          saveState();
+          applySettings();
+          setStatus(`Theme: ${t}`);
+        }
+        return true;
+      }
+    },
+    persona: {
+      sig: ' <preset>',
+      desc: 'switch voice (dj|coach|theologian|producer|friend|brand|historian|critic)',
+      cat: 'Chat',
+      run: args => {
+        const p = (args[0] || '').toLowerCase() as Persona;
+        if (PERSONAS[p]) {
+          state.settings.persona = p;
+          saveState();
+          applySettings();
+          setStatus(`Voice: ${PERSONAS[p].label}`);
+        } else {
+          listPersonas();
+        }
+        return true;
+      }
+    },
+    snippet: {
+      sig: ' save <name> <text> | <name>',
+      desc: 'save or recall a draft snippet',
+      cat: 'Chat',
+      run: args => {
+        if (!args.length) {
+          listSnippets();
+          return true;
+        }
+        if (args[0] === 'save' && args.length >= 3) {
+          const name = args[1];
+          const text = args.slice(2).join(' ');
+          state.settings.snippets[name] = text;
+          saveState();
+          setStatus(`Saved snippet "${name}"`);
+          return true;
+        }
+        if (args[0] === 'del' && args[1]) {
+          delete state.settings.snippets[args[1]];
+          saveState();
+          setStatus(`Deleted snippet "${args[1]}"`);
+          return true;
+        }
+        const txt = state.settings.snippets[args[0]];
+        if (txt) {
+          input.value = txt;
+          updateInputUI();
+          input.focus();
+        } else {
+          setStatus(`No snippet "${args[0]}"`);
+        }
+        return true;
+      }
+    },
+    theatre: {
+      sig: ' on|off',
+      desc: 'toggle theatre mode',
+      cat: 'Chat',
+      run: args => {
+        const on = args[0] === 'on' ? true : args[0] === 'off' ? false : !state.settings.theatreMode;
+        state.settings.theatreMode = on;
+        saveState();
+        applySettings();
+        setStatus(`Theatre ${on ? 'on' : 'off'}`);
+        return true;
+      }
+    },
+    spectro: {
+      sig: ' on|off',
+      desc: 'toggle spectrogram backdrop',
+      cat: 'Chat',
+      run: args => {
+        const on = args[0] === 'on' ? true : args[0] === 'off' ? false : !state.settings.spectrogramBackdrop;
+        state.settings.spectrogramBackdrop = on;
+        saveState();
+        applySettings();
+        return true;
+      }
+    },
+    cheatsheet: {
+      sig: '',
+      desc: 'keyboard shortcuts card',
+      cat: 'Chat',
+      run: () => {
+        openCheat();
+        return true;
+      }
+    },
+    poster: {
+      sig: '',
+      desc: 'save conversation as poster (PNG)',
+      cat: 'Chat',
+      run: () => {
+        savePoster();
+        return true;
+      }
+    },
+    summary: {
+      sig: '',
+      desc: 'show running summary of this chat',
+      cat: 'Chat',
+      run: () => {
+        const sess = activeSession();
+        const s = sess.summary || '(no summary yet — keep chatting)';
+        sess.messages.push({
+          id: cryptoId(),
+          role: 'assistant',
+          ts: Date.now(),
+          content: `**Running summary**\n\n${s}`
+        });
+        saveState();
+        renderMessages();
+        return true;
+      }
+    },
+    today: {
+      sig: '',
+      desc: 'daily ritual prompt',
+      cat: 'Chat',
+      run: () => {
+        sendRitualPrompt();
+        return true;
+      }
+    },
+    critique: {
+      sig: '',
+      desc: 'critique the last reply',
+      cat: 'Chat',
+      run: () => {
+        critiqueLast();
+        return true;
+      }
+    },
+    rewrite: {
+      sig: ' <tighter|punchier|shorter|gospel|simple>',
+      desc: 'rewrite the last reply',
+      cat: 'Chat',
+      run: args => {
+        rewriteLast(args.join(' ').trim());
+        return true;
+      }
+    },
+    lyric: {
+      sig: '',
+      desc: 'explain the current lyric line',
+      cat: 'Intel',
+      run: () => {
+        const line = currentLyric();
+        if (!line) {
+          setStatus('No lyric loaded');
+          return true;
+        }
+        send(`Explain this lyric line in 2-3 sentences, then quote one Greene-style maxim: "${line}"`);
+        return true;
+      }
+    },
+    mood: {
+      sig: ' <word>',
+      desc: 'suggest tracks for a mood',
+      cat: 'Intel',
+      run: args => {
+        suggestForMood(args.join(' '));
+        return true;
+      }
+    },
+    blend: {
+      sig: ' <id-a> <id-b>',
+      desc: 'design a transition between two tracks',
+      cat: 'Intel',
+      run: args => {
+        blendTracks(args[0], args[1]);
+        return true;
+      }
+    },
+    setlist: {
+      sig: ' <n>',
+      desc: 'auto-build an n-track setlist',
+      cat: 'Intel',
+      run: args => {
+        buildSetlist(Number(args[0]) || 6);
+        return true;
+      }
+    },
+    catalog: {
+      sig: '',
+      desc: 'list every track on the site',
+      cat: 'Intel',
+      run: () => {
+        listCatalog();
+        return true;
+      }
+    },
+    shortcommands: {
+      sig: '',
+      desc: 'rich palette of every slash command',
+      cat: 'Chat',
+      run: () => {
+        showShortCommands();
+        return true;
+      }
+    },
+    sc: {
+      sig: '',
+      desc: 'alias for /shortcommands',
+      cat: 'Chat',
+      run: () => {
+        showShortCommands();
+        return true;
+      }
+    },
+    track: {
+      sig: ' <id>',
+      desc: 'show a track card widget',
+      cat: 'Intel',
+      run: args => {
+        showTrackCard(args[0]);
+        return true;
+      }
+    },
+    album: {
+      sig: ' <id>',
+      desc: 'show an album card widget',
+      cat: 'Intel',
+      run: args => {
+        showAlbumCard(args[0]);
+        return true;
+      }
+    },
+    play: { sig: '', desc: 'resume playback', cat: 'Playback', hostHandled: true, run: () => false },
+    pause: { sig: '', desc: 'pause playback', cat: 'Playback', hostHandled: true, run: () => false },
+    toggle: { sig: '', desc: 'play/pause toggle', cat: 'Playback', hostHandled: true, run: () => false },
+    stop: { sig: '', desc: 'stop playback', cat: 'Playback', hostHandled: true, run: () => false },
+    next: { sig: '', desc: 'next track', cat: 'Playback', hostHandled: true, run: () => false },
+    prev: { sig: '', desc: 'previous track', cat: 'Playback', hostHandled: true, run: () => false },
+    previous: { sig: '', desc: 'alias for /prev', cat: 'Playback', hostHandled: true, run: () => false },
+    back: { sig: '', desc: 'replay last track', cat: 'Playback', hostHandled: true, run: () => false },
+    seek: {
+      sig: ' <m:ss|0.5>',
+      desc: 'jump to time or ratio',
+      cat: 'Playback',
+      hostHandled: true,
+      run: () => false
+    },
+    loop: { sig: ' <m:ss>-<m:ss>', desc: 'A↔B loop', cat: 'Playback', hostHandled: true, run: () => false },
+    loopstop: { sig: '', desc: 'cancel A↔B loop', cat: 'Playback', hostHandled: true, run: () => false },
+    speed: { sig: ' <0.5-2>', desc: 'playback rate', cat: 'Playback', hostHandled: true, run: () => false },
+    pitch: {
+      sig: ' on|off',
+      desc: 'preserve pitch when speed≠1',
+      cat: 'Playback',
+      hostHandled: true,
+      run: () => false
+    },
+    sleep: {
+      sig: ' <m|track|album>',
+      desc: 'sleep timer w/ fade-out',
+      cat: 'Playback',
+      hostHandled: true,
+      run: () => false
+    },
+    like: { sig: '', desc: 'like current track', cat: 'Playback', hostHandled: true, run: () => false },
+    queue: {
+      sig: ' list|clear',
+      desc: 'show or wipe queue',
+      cat: 'Queue',
+      hostHandled: true,
+      run: () => false
+    },
+    shuffle: { sig: ' on|off', desc: 'shuffle queue', cat: 'Queue', hostHandled: true, run: () => false },
+    repeat: { sig: ' one|all|off', desc: 'repeat mode', cat: 'Queue', hostHandled: true, run: () => false },
+    viz: {
+      sig: ' <mode|next|surprise>',
+      desc: 'switch visualizer',
+      cat: 'Viz',
+      hostHandled: true,
+      run: () => false
+    },
+    trails: { sig: ' on|off', desc: 'long-exposure trails', cat: 'Viz', hostHandled: true, run: () => false },
+    palette: {
+      sig: ' <hex|album|mono>',
+      desc: 'recolor viz palette',
+      cat: 'Viz',
+      hostHandled: true,
+      run: () => false
+    },
+    eq: {
+      sig: ' <band|preset>',
+      desc: 'bass/mid/treble or preset',
+      cat: 'Audio',
+      hostHandled: true,
+      run: () => false
+    },
+    reverb: {
+      sig: ' <preset|wet 0-1>',
+      desc: 'reverb preset or wet mix',
+      cat: 'Audio',
+      hostHandled: true,
+      run: () => false
+    },
+    instrumental: {
+      sig: ' on|off',
+      desc: 'karaoke center-cut',
+      cat: 'Audio',
+      hostHandled: true,
+      run: () => false
+    },
+    cast: { sig: '', desc: 'Chromecast picker', cat: 'Share', hostHandled: true, run: () => false },
+    airplay: { sig: '', desc: 'AirPlay picker', cat: 'Share', hostHandled: true, run: () => false },
+    clip: {
+      sig: ' <seconds>',
+      desc: 'record a snippet clip',
+      cat: 'Share',
+      hostHandled: true,
+      run: () => false
+    },
+    snap: { sig: '', desc: 'screenshot the viz', cat: 'Share', hostHandled: true, run: () => false },
+    sendto: {
+      sig: ' <name>',
+      desc: 'recommend to a friend',
+      cat: 'Share',
+      hostHandled: true,
+      run: () => false
+    },
+    find: {
+      sig: ' <lyric|feel|collab> <q>',
+      desc: 'search the catalog',
+      cat: 'Intel',
+      hostHandled: true,
+      run: () => false
+    },
+    explain: {
+      sig: '',
+      desc: 'explain the current lyric',
+      cat: 'Intel',
+      hostHandled: true,
+      run: () => false
+    },
+    why: { sig: '', desc: 'why this beat hits', cat: 'Intel', hostHandled: true, run: () => false },
+    translate: {
+      sig: ' <lang>',
+      desc: 'translate active lyrics',
+      cat: 'Intel',
+      hostHandled: true,
+      run: () => false
+    },
+    quote: {
+      sig: ' <chorus|verse>',
+      desc: 'copy a section to clipboard',
+      cat: 'Intel',
+      hostHandled: true,
+      run: () => false
+    },
+    debug: { sig: '', desc: 'open replay-debug overlay', cat: 'Intel', hostHandled: true, run: () => false }
   };
 
   function showSlashHelp() {
-    const sess = activeSession();
     const cats: Record<string, string[]> = {};
     for (const [key, def] of Object.entries(SLASH)) {
       (cats[def.cat] ||= []).push(SLASH_HELP_LINE(key, def.sig, def.desc));
@@ -1252,14 +1711,11 @@ export function mountAIChat(opts: MountOpts = {}) {
     const body = Object.entries(cats)
       .map(([cat, lines]) => `**${cat}**\n${lines.join('\n')}`)
       .join('\n\n');
-    sess.messages.push({
-      id: cryptoId(),
-      role: 'assistant',
-      ts: Date.now(),
-      content: `**${Object.keys(SLASH).length} slash commands**\n\n${body}\n\nType \`/\` to autocomplete, ⌘K to search, ⌘F to search messages.`
-    });
-    saveState();
-    renderMessages();
+    const widget = buildShortCommandsPalette(SLASH);
+    pushAssistantWithWidgets(
+      `**${Object.keys(SLASH).length} slash commands**\n\n${body}\n\nType \`/\` to autocomplete, ⌘K to search, ⌘F to search messages.`,
+      [widget]
+    );
   }
 
   function handleSlash(text: string): boolean {
@@ -1297,62 +1753,168 @@ export function mountAIChat(opts: MountOpts = {}) {
   function listSnippets() {
     const ss = state.settings.snippets;
     const keys = Object.keys(ss);
-    if (!keys.length) { pushAssistant('No saved snippets yet. Save one with `/snippet save <name> <text>`.'); return; }
-    pushAssistant('**Snippets**\n\n' + keys.map(k => `- \`/snippet ${k}\` — ${ss[k].slice(0, 60)}`).join('\n'));
+    if (!keys.length) {
+      pushAssistant('No saved snippets yet. Save one with `/snippet save <name> <text>`.');
+      return;
+    }
+    pushAssistant(
+      '**Snippets**\n\n' + keys.map(k => `- \`/snippet ${k}\` — ${ss[k].slice(0, 60)}`).join('\n')
+    );
   }
   function listCatalog() {
     const byAlbum = ALBUMS.map(al => {
       const ts = tracksForAlbum(al.id);
       if (!ts.length) return '';
       return `**${al.name}** — ${al.tagline}\n${ts.map(t => `- \`${t.id}\` · ${t.title} · ${t.vibe}`).join('\n')}`;
-    }).filter(Boolean).join('\n\n');
+    })
+      .filter(Boolean)
+      .join('\n\n');
     pushAssistant(`**Catalog (${TRACKS.length} tracks across ${ALBUMS.length} albums)**\n\n${byAlbum}`);
+  }
+
+  function showShortCommands() {
+    const widget = buildShortCommandsPalette(SLASH);
+    const totals = `${Object.keys(SLASH).length} commands across ${widget.groups.length} groups`;
+    pushAssistantWithWidgets(`**Shortcommands** — ${totals}.`, [widget]);
+  }
+
+  function showTrackCard(id: string | undefined) {
+    if (!id) {
+      setStatus('Try: /track birch-swing-heaven');
+      return;
+    }
+    const t = TRACK_BY_ID.get(id);
+    if (!t) {
+      setStatus(`Unknown track "${id}" — see /catalog`);
+      return;
+    }
+    const album = ALBUM_BY_ID.get(t.album);
+    const albumName = album?.name ?? t.album;
+    pushAssistantWithWidgets(`**${t.title}** · ${albumName}`, [
+      {
+        kind: 'track-card',
+        trackId: t.id,
+        title: t.title,
+        album: albumName,
+        vibe: t.vibe,
+        cover: t.cover,
+        href: album ? `/${album.id}/${t.id}` : `/${t.id}`
+      }
+    ]);
+  }
+
+  function showAlbumCard(id: string | undefined) {
+    if (!id) {
+      setStatus('Try: /album canopy-dispatch');
+      return;
+    }
+    const a = ALBUM_BY_ID.get(id);
+    if (!a) {
+      setStatus(`Unknown album "${id}"`);
+      return;
+    }
+    const tracks = tracksForAlbum(a.id);
+    pushAssistantWithWidgets(`**${a.name}** — ${a.tagline}`, [
+      {
+        kind: 'album-card',
+        albumId: a.id,
+        name: a.name,
+        tagline: a.tagline,
+        cover: a.cover,
+        trackCount: tracks.length,
+        href: `/${a.id}`
+      }
+    ]);
   }
 
   function pushAssistant(content: string) {
     const sess = activeSession();
     sess.messages.push({ id: cryptoId(), role: 'assistant', ts: Date.now(), content });
     sess.updatedAt = Date.now();
-    saveState(); renderMessages(); renderSessions();
+    saveState();
+    renderMessages();
+    renderSessions();
+  }
+
+  function pushAssistantWithWidgets(content: string, widgets: AiChatWidget[]) {
+    const sess = activeSession();
+    sess.messages.push({
+      id: cryptoId(),
+      role: 'assistant',
+      ts: Date.now(),
+      content,
+      widgets
+    });
+    sess.updatedAt = Date.now();
+    saveState();
+    renderMessages();
+    renderSessions();
   }
 
   function critiqueLast() {
     const sess = activeSession();
     const last = [...sess.messages].reverse().find(m => m.role === 'assistant' && m.content.trim());
-    if (!last) { setStatus('Nothing to critique'); return; }
-    send(`Critique your previous reply ("${last.content.slice(0, 200).replace(/"/g, "'")}…") for: tightness, clarity, banned filler, accuracy, brand voice. Then rewrite it in 2-3 sentences.`);
+    if (!last) {
+      setStatus('Nothing to critique');
+      return;
+    }
+    send(
+      `Critique your previous reply ("${last.content.slice(0, 200).replace(/"/g, "'")}…") for: tightness, clarity, banned filler, accuracy, brand voice. Then rewrite it in 2-3 sentences.`
+    );
   }
   function rewriteLast(style: string) {
     const sess = activeSession();
     const last = [...sess.messages].reverse().find(m => m.role === 'assistant' && m.content.trim());
-    if (!last) { setStatus('Nothing to rewrite'); return; }
+    if (!last) {
+      setStatus('Nothing to rewrite');
+      return;
+    }
     const mode = style || 'tighter';
     send(`Rewrite your previous reply in a ${mode} style. Original:\n\n${last.content}`);
   }
   function suggestForMood(mood: string) {
-    if (!mood) { setStatus('Add a mood: /mood late-night'); return; }
-    const ctx = TRACKS.slice(0, 30).map(t => `- ${t.id} · ${t.title} · ${t.vibe}`).join('\n');
-    send(`Pick 3 bZ tracks from this catalog that match the mood "${mood}". Format: track id + 1-line why. Catalog:\n\n${ctx}`);
+    if (!mood) {
+      setStatus('Add a mood: /mood late-night');
+      return;
+    }
+    const ctx = TRACKS.slice(0, 30)
+      .map(t => `- ${t.id} · ${t.title} · ${t.vibe}`)
+      .join('\n');
+    send(
+      `Pick 3 bZ tracks from this catalog that match the mood "${mood}". Format: track id + 1-line why. Catalog:\n\n${ctx}`
+    );
   }
   function blendTracks(a: string, b: string) {
-    if (!a || !b) { setStatus('Try: /blend birch-swing-heaven panda-dump'); return; }
+    if (!a || !b) {
+      setStatus('Try: /blend birch-swing-heaven panda-dump');
+      return;
+    }
     const A = TRACK_BY_ID.get(a);
     const B = TRACK_BY_ID.get(b);
-    if (!A || !B) { setStatus('Unknown track id — see /catalog'); return; }
-    send(`Design a 16-bar transition from "${A.title}" (${A.vibe}) into "${B.title}" (${B.vibe}). Call out key, BPM ramp, EQ moves, and the emotional handoff. 4 short paragraphs.`);
+    if (!A || !B) {
+      setStatus('Unknown track id — see /catalog');
+      return;
+    }
+    send(
+      `Design a 16-bar transition from "${A.title}" (${A.vibe}) into "${B.title}" (${B.vibe}). Call out key, BPM ramp, EQ moves, and the emotional handoff. 4 short paragraphs.`
+    );
   }
   function buildSetlist(n: number) {
     const eng = opts.engine?.state();
     const seed = eng?.track ? `Open with "${eng.track.title}".` : '';
-    const ctx = TRACKS.slice(0, 24).map(t => `- ${t.id} · ${t.title} · ${t.vibe}`).join('\n');
-    send(`Build a ${n}-track bZ setlist with a clear arc (entry → peak → comedown). ${seed} For each, give: track id, one-line transition note. Catalog excerpt:\n\n${ctx}`);
+    const ctx = TRACKS.slice(0, 24)
+      .map(t => `- ${t.id} · ${t.title} · ${t.vibe}`)
+      .join('\n');
+    send(
+      `Build a ${n}-track bZ setlist with a clear arc (entry → peak → comedown). ${seed} For each, give: track id, one-line transition note. Catalog excerpt:\n\n${ctx}`
+    );
   }
   function sendRitualPrompt() {
     const today = new Date().toISOString().slice(0, 10);
     state.settings.dailyRitualSeenOn = today;
     saveState();
     ritual.hidden = true;
-    send('Give me today\'s one-line prayer, one wisdom verse, and one move for the day. Hard but holy.');
+    send("Give me today's one-line prayer, one wisdom verse, and one move for the day. Hard but holy.");
   }
   function maybeShowRitual() {
     const today = new Date().toISOString().slice(0, 10);
@@ -1363,20 +1925,33 @@ export function mountAIChat(opts: MountOpts = {}) {
 
   function openCheat() {
     sheetBackdrop.hidden = false;
-    try { cheatBox.showModal(); } catch { cheatBox.setAttribute('open', ''); }
+    try {
+      cheatBox.showModal();
+    } catch {
+      cheatBox.setAttribute('open', '');
+    }
   }
   function closeCheat() {
-    try { cheatBox.close(); } catch { cheatBox.removeAttribute('open'); }
+    try {
+      cheatBox.close();
+    } catch {
+      cheatBox.removeAttribute('open');
+    }
     sheetBackdrop.hidden = true;
   }
 
   function savePoster() {
     const sess = activeSession();
-    const W = 1080, H = 1350;
+    const W = 1080,
+      H = 1350;
     const canvas = document.createElement('canvas');
-    canvas.width = W; canvas.height = H;
+    canvas.width = W;
+    canvas.height = H;
     const ctx = canvas.getContext('2d');
-    if (!ctx) { setStatus('Canvas unsupported'); return; }
+    if (!ctx) {
+      setStatus('Canvas unsupported');
+      return;
+    }
     const grad = ctx.createLinearGradient(0, 0, W, H);
     grad.addColorStop(0, '#060610');
     grad.addColorStop(0.6, '#0b0b22');
@@ -1414,7 +1989,14 @@ export function mountAIChat(opts: MountOpts = {}) {
       setStatus('Poster saved');
     }, 'image/png');
   }
-  function wrapLine(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxW: number, lh: number): number {
+  function wrapLine(
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    maxW: number,
+    lh: number
+  ): number {
     const words = text.split(/\s+/);
     let line = '';
     let yy = y;
@@ -1435,14 +2017,19 @@ export function mountAIChat(opts: MountOpts = {}) {
   function startWakeWord() {
     if (wakeRec) return;
     const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Ctor) { setStatus('Wake word needs Chrome / Edge'); return; }
+    if (!Ctor) {
+      setStatus('Wake word needs Chrome / Edge');
+      return;
+    }
     const rec = new Ctor();
     rec.lang = 'en-US';
     rec.interimResults = false;
     rec.continuous = true;
     rec.onresult = (e: SREvent) => {
       const last = e.results.length - 1;
-      const t = (e.results[last] as unknown as { [i: number]: { transcript: string } })[0].transcript.toLowerCase();
+      const t = (
+        e.results[last] as unknown as { [i: number]: { transcript: string } }
+      )[0].transcript.toLowerCase();
       if (/(^|\s)(hey\s+)?b\.?z\.?\b/.test(t) || t.includes('hey beasie')) {
         setOpen(true);
         input.focus();
@@ -1450,13 +2037,25 @@ export function mountAIChat(opts: MountOpts = {}) {
         toggleVoice();
       }
     };
-    rec.onend = () => { wakeRec = null; if (state.settings.wakeWord) startWakeWord(); };
-    rec.onerror = () => { wakeRec = null; };
-    try { rec.start(); wakeRec = { stop: () => rec.stop() }; } catch { wakeRec = null; }
+    rec.onend = () => {
+      wakeRec = null;
+      if (state.settings.wakeWord) startWakeWord();
+    };
+    rec.onerror = () => {
+      wakeRec = null;
+    };
+    try {
+      rec.start();
+      wakeRec = { stop: () => rec.stop() };
+    } catch {
+      wakeRec = null;
+    }
   }
   function stopWakeWord() {
     if (!wakeRec) return;
-    try { wakeRec.stop(); } catch {}
+    try {
+      wakeRec.stop();
+    } catch {}
     wakeRec = null;
   }
 
@@ -1468,7 +2067,10 @@ export function mountAIChat(opts: MountOpts = {}) {
   let suggestIdx = 0;
   let suggestList: string[] = [];
   function renderSuggest() {
-    if (!suggestList.length) { suggestBox.hidden = true; return; }
+    if (!suggestList.length) {
+      suggestBox.hidden = true;
+      return;
+    }
     suggestBox.hidden = false;
     suggestBox.innerHTML = suggestList
       .map((k, i) => {
@@ -1480,10 +2082,21 @@ export function mountAIChat(opts: MountOpts = {}) {
   }
   function updateSuggest() {
     const v = input.value;
-    if (!v.startsWith('/')) { suggestList = []; suggestIdx = 0; renderSuggest(); return; }
+    if (!v.startsWith('/')) {
+      suggestList = [];
+      suggestIdx = 0;
+      renderSuggest();
+      return;
+    }
     const prefix = v.slice(1).split(/\s/)[0].toLowerCase();
-    if (v.includes(' ')) { suggestList = []; renderSuggest(); return; }
-    suggestList = Object.keys(SLASH).filter(k => k.startsWith(prefix)).slice(0, 8);
+    if (v.includes(' ')) {
+      suggestList = [];
+      renderSuggest();
+      return;
+    }
+    suggestList = Object.keys(SLASH)
+      .filter(k => k.startsWith(prefix))
+      .slice(0, 8);
     if (suggestIdx >= suggestList.length) suggestIdx = 0;
     renderSuggest();
   }
@@ -1514,7 +2127,11 @@ export function mountAIChat(opts: MountOpts = {}) {
     return { q: q.toLowerCase(), at };
   }
   function renderMention() {
-    if (!mentionList.length) { mention.hidden = true; mention.innerHTML = ''; return; }
+    if (!mentionList.length) {
+      mention.hidden = true;
+      mention.innerHTML = '';
+      return;
+    }
     mention.hidden = false;
     mention.innerHTML = mentionList
       .map((t, i) => {
@@ -1525,12 +2142,21 @@ export function mountAIChat(opts: MountOpts = {}) {
   }
   function updateMention() {
     const m = detectMentionQuery();
-    if (!m) { mentionList = []; mentionAnchor = -1; renderMention(); return; }
+    if (!m) {
+      mentionList = [];
+      mentionAnchor = -1;
+      renderMention();
+      return;
+    }
     mentionAnchor = m.at;
     const q = m.q;
-    mentionList = TRACKS
-      .filter(t => !q || t.title.toLowerCase().includes(q) || t.id.includes(q) || (t.vibe || '').toLowerCase().includes(q))
-      .slice(0, 6);
+    mentionList = TRACKS.filter(
+      t =>
+        !q ||
+        t.title.toLowerCase().includes(q) ||
+        t.id.includes(q) ||
+        (t.vibe || '').toLowerCase().includes(q)
+    ).slice(0, 6);
     if (mentionIdx >= mentionList.length) mentionIdx = 0;
     renderMention();
   }
@@ -1569,7 +2195,9 @@ export function mountAIChat(opts: MountOpts = {}) {
     clearMsearchHighlights();
   }
   function clearMsearchHighlights() {
-    messages.querySelectorAll<HTMLElement>('.aichat__msg.is-match').forEach(el => el.classList.remove('is-match'));
+    messages
+      .querySelectorAll<HTMLElement>('.aichat__msg.is-match')
+      .forEach(el => el.classList.remove('is-match'));
     messages.querySelectorAll<HTMLElement>('mark[data-msearch]').forEach(mk => {
       const parent = mk.parentNode;
       if (parent) parent.replaceChild(document.createTextNode(mk.textContent || ''), mk);
@@ -1609,13 +2237,19 @@ export function mountAIChat(opts: MountOpts = {}) {
     const st = opts.engine?.state();
     if (!st?.track) {
       now.hidden = true;
-      if (lastFabTitle) { fabTip.hidden = true; fabTip.textContent = ''; lastFabTitle = ''; }
+      if (lastFabTitle) {
+        fabTip.hidden = true;
+        fabTip.textContent = '';
+        lastFabTitle = '';
+      }
       return;
     }
     now.hidden = false;
     nowTitle.textContent = st.track.title;
     const min = Math.floor((st.currentTime || 0) / 60);
-    const sec = Math.floor((st.currentTime || 0) % 60).toString().padStart(2, '0');
+    const sec = Math.floor((st.currentTime || 0) % 60)
+      .toString()
+      .padStart(2, '0');
     nowMeta.textContent = `${st.track.artist || 'bZ'} · ${min}:${sec}${st.playing ? '' : ' · paused'}`;
 
     const coverUrl = st.track.cover || '';
@@ -1642,21 +2276,28 @@ export function mountAIChat(opts: MountOpts = {}) {
     const chips: string[] = [];
     const bpm = Math.round(st.bpm || tags?.identifiers.bpmHint || 0);
     if (bpm > 30) chips.push(`<span class="aichat__now-chip">${bpm} BPM</span>`);
-    if (tags?.energy) chips.push(`<span class="aichat__now-chip aichat__now-chip--violet">${tags.energy}</span>`);
-    if (tags?.tempo && tags.tempo !== 'medium') chips.push(`<span class="aichat__now-chip">${tags.tempo}</span>`);
+    if (tags?.energy)
+      chips.push(`<span class="aichat__now-chip aichat__now-chip--violet">${tags.energy}</span>`);
+    if (tags?.tempo && tags.tempo !== 'medium')
+      chips.push(`<span class="aichat__now-chip">${tags.tempo}</span>`);
     const firstMood = tags?.moods[0];
     if (firstMood) chips.push(`<span class="aichat__now-chip aichat__now-chip--violet">${firstMood}</span>`);
     nowChips.innerHTML = chips.join('');
 
     if (state.settings.themeFromAlbum && st.track.album) {
       const map: Record<string, Settings['theme']> = {
-        desiiignare: 'cyan', dump: 'violet', canon: 'amber', halo: 'rose', galactic: 'violet'
+        desiiignare: 'cyan',
+        dump: 'violet',
+        canon: 'amber',
+        halo: 'rose',
+        galactic: 'violet'
       };
       const t = map[st.track.album];
       if (t && t !== state.settings.theme) {
         state.settings.theme = t;
         root.setAttribute('data-theme', t);
-        root.querySelectorAll<HTMLButtonElement>('[data-aichat="themeSwatch"] button')
+        root
+          .querySelectorAll<HTMLButtonElement>('[data-aichat="themeSwatch"] button')
           .forEach(b => b.classList.toggle('is-active', b.dataset.theme === t));
         saveState();
       }
@@ -1668,7 +2309,9 @@ export function mountAIChat(opts: MountOpts = {}) {
         fabTip.hidden = false;
         fabTip.textContent = `♪ ${st.track.title}`;
         clearTimeout(fabTipTimer);
-        fabTipTimer = window.setTimeout(() => { fabTip.hidden = true; }, 4200);
+        fabTipTimer = window.setTimeout(() => {
+          fabTip.hidden = true;
+        }, 4200);
       }
     }
   }
@@ -1712,7 +2355,10 @@ export function mountAIChat(opts: MountOpts = {}) {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const W = Math.max(1, Math.floor(rect.width * dpr));
     const H = Math.max(1, Math.floor(rect.height * dpr));
-    if (spectro.width !== W || spectro.height !== H) { spectro.width = W; spectro.height = H; }
+    if (spectro.width !== W || spectro.height !== H) {
+      spectro.width = W;
+      spectro.height = H;
+    }
     const bins = a.frequencyBinCount;
     const data = new Uint8Array(bins);
     a.getByteFrequencyData(data);
@@ -1753,7 +2399,10 @@ export function mountAIChat(opts: MountOpts = {}) {
   // ── SFX chime ────────────────────────────────────────────────────────────
   function playChime() {
     try {
-      const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const ctx = new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.frequency.setValueAtTime(880, ctx.currentTime);
@@ -1769,10 +2418,17 @@ export function mountAIChat(opts: MountOpts = {}) {
 
   // ── Attachments / drag-drop ──────────────────────────────────────────────
   function renderAttachments() {
-    if (!attachedFiles.length) { attachments.hidden = true; attachments.innerHTML = ''; return; }
+    if (!attachedFiles.length) {
+      attachments.hidden = true;
+      attachments.innerHTML = '';
+      return;
+    }
     attachments.hidden = false;
     attachments.innerHTML = attachedFiles
-      .map((f, i) => `<span class="aichat__attach-chip">${escapeHtml(f.name)}<button type="button" data-rmattach="${i}" aria-label="Remove ${escapeHtml(f.name)}">✕</button></span>`)
+      .map(
+        (f, i) =>
+          `<span class="aichat__attach-chip">${escapeHtml(f.name)}<button type="button" data-rmattach="${i}" aria-label="Remove ${escapeHtml(f.name)}">✕</button></span>`
+      )
       .join('');
   }
   attachments.addEventListener('click', e => {
@@ -1798,10 +2454,23 @@ export function mountAIChat(opts: MountOpts = {}) {
   function refreshUrlHint() {
     if (!urlhint) return;
     const m = input.value.match(URL_RE);
-    if (!m) { urlhint.hidden = true; return; }
+    if (!m) {
+      urlhint.hidden = true;
+      return;
+    }
     const url = m[1];
-    const host = (() => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; } })();
-    if (!/spotify\.com|youtube\.com|youtu\.be|soundcloud\.com|apple\.com\/.+music|tidal\.com|bandcamp\.com/.test(host)) {
+    const host = (() => {
+      try {
+        return new URL(url).hostname.replace(/^www\./, '');
+      } catch {
+        return '';
+      }
+    })();
+    if (
+      !/spotify\.com|youtube\.com|youtu\.be|soundcloud\.com|apple\.com\/.+music|tidal\.com|bandcamp\.com/.test(
+        host
+      )
+    ) {
       urlhint.hidden = true;
       return;
     }
@@ -1814,11 +2483,19 @@ export function mountAIChat(opts: MountOpts = {}) {
     if (!snipbar) return;
     const text = input.value;
     const m = text.match(/\/([a-zA-Z][\w-]{0,40})$/);
-    if (!m) { snipbar.hidden = true; return; }
+    if (!m) {
+      snipbar.hidden = true;
+      return;
+    }
     const stub = m[1].toLowerCase();
     const ss = state.settings.snippets || {};
-    const keys = Object.keys(ss).filter(k => k.toLowerCase().startsWith(stub)).slice(0, 6);
-    if (!keys.length) { snipbar.hidden = true; return; }
+    const keys = Object.keys(ss)
+      .filter(k => k.toLowerCase().startsWith(stub))
+      .slice(0, 6);
+    if (!keys.length) {
+      snipbar.hidden = true;
+      return;
+    }
     snipbar.hidden = false;
     snipbar.innerHTML = keys
       .map(k => `<button type="button" data-snip="${escapeHtml(k)}">${escapeHtml(k)}</button>`)
@@ -1873,8 +2550,13 @@ export function mountAIChat(opts: MountOpts = {}) {
     $('msearchPrev').addEventListener('click', () => stepMsearch(-1));
     msearchInput.addEventListener('input', () => runMsearch(msearchInput.value));
     msearchInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); stepMsearch(e.shiftKey ? -1 : 1); }
-      else if (e.key === 'Escape') { e.preventDefault(); closeMsearch(); }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        stepMsearch(e.shiftKey ? -1 : 1);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeMsearch();
+      }
     });
 
     now.addEventListener('click', () => {
@@ -1948,7 +2630,9 @@ export function mountAIChat(opts: MountOpts = {}) {
             send(userText);
           }
         } else if (act === 'critique' && m.role === 'assistant') {
-          send(`Critique your prior reply ("${m.content.slice(0, 200).replace(/"/g, "'")}…") for: tightness, clarity, banned filler, accuracy, brand voice. Then rewrite it in 2-3 sentences.`);
+          send(
+            `Critique your prior reply ("${m.content.slice(0, 200).replace(/"/g, "'")}…") for: tightness, clarity, banned filler, accuracy, brand voice. Then rewrite it in 2-3 sentences.`
+          );
         } else if (act === 'rewrite' && m.role === 'assistant') {
           send(`Rewrite your prior reply in a tighter style. Original:\n\n${m.content}`);
         } else if (act === 'branch' && m.role === 'assistant') {
@@ -1978,7 +2662,7 @@ export function mountAIChat(opts: MountOpts = {}) {
           saveState();
           renderMessages();
         } else if (act === 'expand') {
-          const wrap = (t.closest('.aichat__msg') as HTMLElement | null);
+          const wrap = t.closest('.aichat__msg') as HTMLElement | null;
           if (wrap) {
             wrap.classList.remove('is-collapsed');
             wrap.querySelector('.aichat__msg-body')?.classList.remove('is-collapsed');
@@ -1995,6 +2679,73 @@ export function mountAIChat(opts: MountOpts = {}) {
           copyCode.textContent = 'Copied';
           setTimeout(() => (copyCode.textContent = 'Copy'), 1200);
         });
+        return;
+      }
+      const cmdBtn = t.closest<HTMLButtonElement>('[data-aichat-cmd]');
+      if (cmdBtn) {
+        const cmd = cmdBtn.dataset.aichatCmd;
+        if (cmd) handleSlash('/' + cmd);
+        return;
+      }
+      const sendBtn = t.closest<HTMLButtonElement>('[data-aichat-send]');
+      if (sendBtn) {
+        const text = sendBtn.dataset.aichatSend || sendBtn.textContent || '';
+        if (text.trim()) send(text.trim());
+        return;
+      }
+      const fbBtn = t.closest<HTMLButtonElement>('[data-aichat-feedback]');
+      if (fbBtn) {
+        const tone = fbBtn.dataset.aichatFeedback === 'up' ? 'up' : 'down';
+        const row = fbBtn.parentElement;
+        row?.querySelectorAll<HTMLButtonElement>('[data-aichat-feedback]').forEach(b => {
+          b.disabled = true;
+          b.classList.toggle('is-selected', b === fbBtn);
+        });
+        try {
+          const rid = fbBtn.closest<HTMLElement>('[data-response-id]')?.dataset.responseId;
+          window.dispatchEvent(new CustomEvent('aichat:feedback', { detail: { tone, responseId: rid } }));
+        } catch {}
+        setStatus(tone === 'up' ? 'Thanks for the feedback.' : 'Got it — noted.');
+        return;
+      }
+    });
+
+    messages.addEventListener('submit', async e => {
+      const form = (e.target as HTMLElement)?.closest<HTMLFormElement>('[data-aichat-newsletter]');
+      if (!form) return;
+      e.preventDefault();
+      const input = form.querySelector<HTMLInputElement>('input[name="email"]');
+      const msg = form.querySelector<HTMLElement>('.aichat__w-newsletter-msg');
+      const btn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      const email = (input?.value || '').trim();
+      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        if (msg) msg.textContent = 'Enter a valid email.';
+        input?.focus();
+        return;
+      }
+      if (btn) btn.disabled = true;
+      if (msg) msg.textContent = 'Subscribing…';
+      try {
+        const list = form.dataset.aichatNewsletterList || '';
+        const res = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(list ? { email, list } : { email })
+        });
+        if (res.ok) {
+          if (msg) msg.textContent = 'Subscribed — check your inbox.';
+          if (input) input.value = '';
+          try {
+            window.dispatchEvent(new CustomEvent('aichat:newsletter', { detail: { email, list } }));
+          } catch {}
+        } else {
+          const j = (await res.json().catch(() => null)) as { error?: string } | null;
+          if (msg) msg.textContent = j?.error || 'Could not subscribe. Try again.';
+        }
+      } catch {
+        if (msg) msg.textContent = 'Network error. Try again.';
+      } finally {
+        if (btn) btn.disabled = false;
       }
     });
 
@@ -2011,18 +2762,36 @@ export function mountAIChat(opts: MountOpts = {}) {
     });
     input.addEventListener('keyup', () => updateMention());
     input.addEventListener('blur', () => {
-      setTimeout(() => { mentionList = []; renderMention(); }, 120);
+      setTimeout(() => {
+        mentionList = [];
+        renderMention();
+      }, 120);
     });
     input.addEventListener('keydown', e => {
       if (mentionList.length && !mention.hidden) {
-        if (e.key === 'ArrowDown') { e.preventDefault(); mentionIdx = (mentionIdx + 1) % mentionList.length; renderMention(); return; }
-        if (e.key === 'ArrowUp')   { e.preventDefault(); mentionIdx = (mentionIdx - 1 + mentionList.length) % mentionList.length; renderMention(); return; }
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          mentionIdx = (mentionIdx + 1) % mentionList.length;
+          renderMention();
+          return;
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          mentionIdx = (mentionIdx - 1 + mentionList.length) % mentionList.length;
+          renderMention();
+          return;
+        }
         if (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey)) {
           e.preventDefault();
           applyMention(mentionList[mentionIdx]);
           return;
         }
-        if (e.key === 'Escape') { e.preventDefault(); mentionList = []; renderMention(); return; }
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          mentionList = [];
+          renderMention();
+          return;
+        }
       }
       if (suggestList.length && !suggestBox.hidden) {
         if (e.key === 'ArrowDown') {
@@ -2055,7 +2824,8 @@ export function mountAIChat(opts: MountOpts = {}) {
           if (historyIdx === -1) historyDraft = input.value;
           if (e.key === 'ArrowUp') historyIdx = Math.min(state.history.length - 1, historyIdx + 1);
           else historyIdx = Math.max(-1, historyIdx - 1);
-          input.value = historyIdx === -1 ? historyDraft : state.history[state.history.length - 1 - historyIdx];
+          input.value =
+            historyIdx === -1 ? historyDraft : state.history[state.history.length - 1 - historyIdx];
           updateInputUI();
           return;
         }
@@ -2070,21 +2840,34 @@ export function mountAIChat(opts: MountOpts = {}) {
     });
 
     // Paste image / drag-drop attach
-    composer.addEventListener('dragover', e => { e.preventDefault(); composer.classList.add('is-dropping'); });
+    composer.addEventListener('dragover', e => {
+      e.preventDefault();
+      composer.classList.add('is-dropping');
+    });
     composer.addEventListener('dragleave', () => composer.classList.remove('is-dropping'));
     composer.addEventListener('drop', e => {
       e.preventDefault();
       composer.classList.remove('is-dropping');
       const files = Array.from(e.dataTransfer?.files || []);
-      if (files.length) { attachedFiles.push(...files); renderAttachments(); }
+      if (files.length) {
+        attachedFiles.push(...files);
+        renderAttachments();
+      }
     });
     input.addEventListener('paste', e => {
       const files = Array.from(e.clipboardData?.files || []);
-      if (files.length) { attachedFiles.push(...files); renderAttachments(); }
+      if (files.length) {
+        attachedFiles.push(...files);
+        renderAttachments();
+      }
     });
 
     welcome.querySelectorAll<HTMLButtonElement>('[data-prompt]').forEach(b => {
-      b.addEventListener('click', () => { input.value = b.dataset.prompt!; updateInputUI(); send(input.value); });
+      b.addEventListener('click', () => {
+        input.value = b.dataset.prompt!;
+        updateInputUI();
+        send(input.value);
+      });
     });
 
     $('voice').addEventListener('click', () => toggleVoice());
@@ -2100,8 +2883,14 @@ export function mountAIChat(opts: MountOpts = {}) {
       maxTokVal.textContent = String(state.settings.maxTokens);
       saveState();
     });
-    modelSelect.addEventListener('change', () => { state.settings.model = modelSelect.value; saveState(); });
-    systemArea.addEventListener('input', () => { state.settings.systemOverride = systemArea.value; saveState(); });
+    modelSelect.addEventListener('change', () => {
+      state.settings.model = modelSelect.value;
+      saveState();
+    });
+    systemArea.addEventListener('input', () => {
+      state.settings.systemOverride = systemArea.value;
+      saveState();
+    });
     $('resetSystem').addEventListener('click', () => {
       state.settings.systemOverride = '';
       systemArea.value = '';
@@ -2123,30 +2912,31 @@ export function mountAIChat(opts: MountOpts = {}) {
       applySettings();
     });
 
-    ($('sendOnEnter') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('sendOnEnter') as HTMLInputElement).addEventListener('change', e => {
       state.settings.sendOnEnter = (e.currentTarget as HTMLInputElement).checked;
       saveState();
     });
-    ($('autoScroll') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('autoScroll') as HTMLInputElement).addEventListener('change', e => {
       state.settings.autoScroll = (e.currentTarget as HTMLInputElement).checked;
       saveState();
     });
-    ($('reactiveGlow') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('reactiveGlow') as HTMLInputElement).addEventListener('change', e => {
       state.settings.reactiveGlow = (e.currentTarget as HTMLInputElement).checked;
       saveState();
       applySettings();
     });
-    ($('sfx') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('sfx') as HTMLInputElement).addEventListener('change', e => {
       state.settings.sfx = (e.currentTarget as HTMLInputElement).checked;
       saveState();
     });
-    ($('wakeWord') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('wakeWord') as HTMLInputElement).addEventListener('change', e => {
       const on = (e.currentTarget as HTMLInputElement).checked;
       state.settings.wakeWord = on;
       saveState();
-      if (on) startWakeWord(); else stopWakeWord();
+      if (on) startWakeWord();
+      else stopWakeWord();
     });
-    $<HTMLInputElement>('voiceRate').addEventListener('input', (e) => {
+    $<HTMLInputElement>('voiceRate').addEventListener('input', e => {
       const v = Number((e.currentTarget as HTMLInputElement).value);
       state.settings.voiceRate = v;
       $('voiceRateVal').textContent = v.toFixed(2);
@@ -2160,59 +2950,71 @@ export function mountAIChat(opts: MountOpts = {}) {
       setStatus(`Voice: ${PERSONAS[state.settings.persona].label}`);
     });
 
-    ($('theatreMode') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('theatreMode') as HTMLInputElement).addEventListener('change', e => {
       state.settings.theatreMode = (e.currentTarget as HTMLInputElement).checked;
-      saveState(); applySettings();
+      saveState();
+      applySettings();
     });
-    ($('spectrogramBackdrop') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('spectrogramBackdrop') as HTMLInputElement).addEventListener('change', e => {
       state.settings.spectrogramBackdrop = (e.currentTarget as HTMLInputElement).checked;
-      saveState(); applySettings();
+      saveState();
+      applySettings();
       if (!state.settings.spectrogramBackdrop) {
         const c = spectro.getContext('2d');
         if (c) c.clearRect(0, 0, spectro.width, spectro.height);
       }
     });
-    ($('beatSyncCaret') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('beatSyncCaret') as HTMLInputElement).addEventListener('change', e => {
       state.settings.beatSyncCaret = (e.currentTarget as HTMLInputElement).checked;
-      saveState(); applySettings();
+      saveState();
+      applySettings();
     });
-    ($('adaptiveDensity') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('adaptiveDensity') as HTMLInputElement).addEventListener('change', e => {
       state.settings.adaptiveDensity = (e.currentTarget as HTMLInputElement).checked;
-      saveState(); applySettings(); renderMessages();
+      saveState();
+      applySettings();
+      renderMessages();
     });
-    ($('showReadingTime') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('showReadingTime') as HTMLInputElement).addEventListener('change', e => {
       state.settings.showReadingTime = (e.currentTarget as HTMLInputElement).checked;
-      saveState(); applySettings(); renderMessages();
+      saveState();
+      applySettings();
+      renderMessages();
     });
-    ($('pttSpacebar') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('pttSpacebar') as HTMLInputElement).addEventListener('change', e => {
       state.settings.pttSpacebar = (e.currentTarget as HTMLInputElement).checked;
       saveState();
     });
-    ($('continuousDictation') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('continuousDictation') as HTMLInputElement).addEventListener('change', e => {
       state.settings.continuousDictation = (e.currentTarget as HTMLInputElement).checked;
       saveState();
     });
-    ($('hideSpectroDuringStream') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('hideSpectroDuringStream') as HTMLInputElement).addEventListener('change', e => {
       state.settings.hideSpectroDuringStream = (e.currentTarget as HTMLInputElement).checked;
-      saveState(); applySettings();
+      saveState();
+      applySettings();
     });
-    ($('collapseLongMessages') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('collapseLongMessages') as HTMLInputElement).addEventListener('change', e => {
       state.settings.collapseLongMessages = (e.currentTarget as HTMLInputElement).checked;
-      saveState(); applySettings(); renderMessages();
+      saveState();
+      applySettings();
+      renderMessages();
     });
-    ($('showTokenRate') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('showTokenRate') as HTMLInputElement).addEventListener('change', e => {
       state.settings.showTokenRate = (e.currentTarget as HTMLInputElement).checked;
-      saveState(); applySettings();
+      saveState();
+      applySettings();
     });
-    ($('autoPinStars') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('autoPinStars') as HTMLInputElement).addEventListener('change', e => {
       state.settings.autoPinStars = (e.currentTarget as HTMLInputElement).checked;
       saveState();
     });
-    ($('themeFromAlbum') as HTMLInputElement).addEventListener('change', (e) => {
+    ($('themeFromAlbum') as HTMLInputElement).addEventListener('change', e => {
       state.settings.themeFromAlbum = (e.currentTarget as HTMLInputElement).checked;
-      saveState(); applySettings();
+      saveState();
+      applySettings();
     });
-    $<HTMLInputElement>('autoSummarizeAt').addEventListener('input', (e) => {
+    $<HTMLInputElement>('autoSummarizeAt').addEventListener('input', e => {
       const v = Number((e.currentTarget as HTMLInputElement).value);
       state.settings.autoSummarizeAt = v;
       $('autoSummarizeAtVal').textContent = String(v);
@@ -2236,7 +3038,10 @@ export function mountAIChat(opts: MountOpts = {}) {
         const target = e.target as HTMLElement;
         const close = target.closest<HTMLButtonElement>('[data-aichat="continueClose"]');
         const go = target.closest<HTMLButtonElement>('[data-aichat="continueGo"]');
-        if (close) { continueBanner.hidden = true; return; }
+        if (close) {
+          continueBanner.hidden = true;
+          return;
+        }
         if (go) {
           continueBanner.hidden = true;
           send('Continue from exactly where you stopped — same voice, same thread.');
@@ -2306,7 +3111,10 @@ export function mountAIChat(opts: MountOpts = {}) {
     });
 
     $('notify').addEventListener('click', async () => {
-      if (!('Notification' in window)) { setStatus('Notifications not supported'); return; }
+      if (!('Notification' in window)) {
+        setStatus('Notifications not supported');
+        return;
+      }
       const perm = await Notification.requestPermission();
       setStatus(perm === 'granted' ? 'Notifications on' : 'Notifications denied');
     });
@@ -2320,7 +3128,9 @@ export function mountAIChat(opts: MountOpts = {}) {
     });
     $('clearAll').addEventListener('click', () => {
       if (!confirm('Clear all chat conversations and settings? This cannot be undone.')) return;
-      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch {}
       state = loadState();
       applySettings();
       renderMessages();
@@ -2344,7 +3154,10 @@ export function mountAIChat(opts: MountOpts = {}) {
       panel.style.setProperty('--aichat-w', `${w}px`);
       state.settings.width = w;
     });
-    resize.addEventListener('pointerup', () => { resizing = false; saveState(); });
+    resize.addEventListener('pointerup', () => {
+      resizing = false;
+      saveState();
+    });
 
     window.addEventListener('keydown', e => {
       const meta = e.metaKey || e.ctrlKey;
@@ -2354,7 +3167,8 @@ export function mountAIChat(opts: MountOpts = {}) {
       }
       if (meta && e.key.toLowerCase() === 'f' && panel.classList.contains('is-open')) {
         e.preventDefault();
-        if (msearch.hasAttribute('hidden')) openMsearch(); else closeMsearch();
+        if (msearch.hasAttribute('hidden')) openMsearch();
+        else closeMsearch();
       }
       if (meta && e.key.toLowerCase() === '/' && panel.classList.contains('is-open')) {
         e.preventDefault();
@@ -2378,7 +3192,8 @@ export function mountAIChat(opts: MountOpts = {}) {
       }
       if (e.key === '?' && !meta && !e.altKey) {
         const t = e.target as HTMLElement;
-        const inField = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || (t as HTMLElement).isContentEditable);
+        const inField =
+          t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || (t as HTMLElement).isContentEditable);
         if (!inField) {
           e.preventDefault();
           setOpen(true);
@@ -2386,9 +3201,18 @@ export function mountAIChat(opts: MountOpts = {}) {
         }
       }
       if (e.key === 'Escape' && panel.classList.contains('is-open')) {
-        if (!msearch.hasAttribute('hidden')) { closeMsearch(); return; }
-        if (sidebar.classList.contains('is-open')) { sidebar.classList.remove('is-open'); return; }
-        if (settingsPanel.classList.contains('is-open')) { settingsPanel.classList.remove('is-open'); return; }
+        if (!msearch.hasAttribute('hidden')) {
+          closeMsearch();
+          return;
+        }
+        if (sidebar.classList.contains('is-open')) {
+          sidebar.classList.remove('is-open');
+          return;
+        }
+        if (settingsPanel.classList.contains('is-open')) {
+          settingsPanel.classList.remove('is-open');
+          return;
+        }
         setOpen(false);
       }
       if (meta && e.key.toLowerCase() === 'n' && panel.classList.contains('is-open')) {
@@ -2428,7 +3252,11 @@ export function mountAIChat(opts: MountOpts = {}) {
       if (e.key !== ' ' && e.code !== 'Space') return;
       if (!pttActive) return;
       pttActive = false;
-      if (voiceRec) { voiceRec.stop(); voiceRec = null; root.classList.remove('is-listening'); }
+      if (voiceRec) {
+        voiceRec.stop();
+        voiceRec = null;
+        root.classList.remove('is-listening');
+      }
       if (input.value.trim()) send(input.value);
     });
 
@@ -2438,8 +3266,15 @@ export function mountAIChat(opts: MountOpts = {}) {
 
   function toggleVoice() {
     const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Ctor) { setStatus('Voice not supported on this browser'); return; }
-    if (voiceRec) { voiceRec.stop(); voiceRec = null; return; }
+    if (!Ctor) {
+      setStatus('Voice not supported on this browser');
+      return;
+    }
+    if (voiceRec) {
+      voiceRec.stop();
+      voiceRec = null;
+      return;
+    }
     const rec = new Ctor();
     rec.lang = 'en-US';
     rec.interimResults = true;
@@ -2450,8 +3285,14 @@ export function mountAIChat(opts: MountOpts = {}) {
       input.value = text;
       updateInputUI();
     };
-    rec.onend = () => { voiceRec = null; root.classList.remove('is-listening'); };
-    rec.onerror = () => { voiceRec = null; root.classList.remove('is-listening'); };
+    rec.onend = () => {
+      voiceRec = null;
+      root.classList.remove('is-listening');
+    };
+    rec.onerror = () => {
+      voiceRec = null;
+      root.classList.remove('is-listening');
+    };
     rec.start();
     voiceRec = { stop: () => rec.stop() };
     root.classList.add('is-listening');

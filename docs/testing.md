@@ -22,9 +22,9 @@ Covered modules:
 | `src/lyrics.test.ts`      | LRC parser (precision, multi-timestamp, sort, malformed input), `activeLineIndex` binary search, `scaleStaticBundle` rescale math |
 | `src/tags.test.ts`        | `TRACK_TAGS` shape invariants, `getTrackTags` lookup, `tracksByTag` cross-namespace match, `allTags` partitioning                 |
 | `worker/web-push.test.ts` | `importVapidJwk` non-extractable contract, `sendPushBatch` per-endpoint failure isolation, expired-endpoint detection (404/410)   |
-| `worker/escape.test.ts`   | `escapeXmlText` ampersand-first ordering for XML text content, `escapeHtmlAttr` quote+apostrophe escaping for `title="..."`        |
-| `worker/json-ld.test.ts`  | `serializeJsonLd` script-tag breakout guard: `</`, `<!--`, U+2028, U+2029 escaped to valid JSON `\uXXXX` (round-trip preserved)    |
-| `src/web-share.test.ts`   | `nativeShare` AbortError handling, `shareWithFallback` desktop/mobile branching, `canShareFiles` feature detection                 |
+| `worker/escape.test.ts`   | `escapeXmlText` ampersand-first ordering for XML text content, `escapeHtmlAttr` quote+apostrophe escaping for `title="..."`       |
+| `worker/json-ld.test.ts`  | `serializeJsonLd` script-tag breakout guard: `</`, `<!--`, U+2028, U+2029 escaped to valid JSON `\uXXXX` (round-trip preserved)   |
+| `src/web-share.test.ts`   | `nativeShare` AbortError handling, `shareWithFallback` desktop/mobile branching, `canShareFiles` feature detection                |
 
 Tests must not import modules that touch `document`, `window`, `caches`, `AudioContext`, or `localStorage`. Those live under Playwright. If a pure module accidentally pulls in a DOM API, the test will fail at import time with `ReferenceError: document is not defined` — refactor the seam so the pure logic lives in its own file.
 
@@ -32,15 +32,15 @@ Tests must not import modules that touch `document`, `window`, `caches`, `AudioC
 
 `tests/journey.spec.ts` covers the user-facing flow end-to-end at six breakpoints (375 / 390 / 768 / 1024 / 1280 / 1920):
 
-`tests/journey.spec.ts` covers the user-facing flow end-to-end at six breakpoints (375 / 390 / 768 / 1024 / 1280 / 1920):
-
 1. **Home loads with no console errors.** Sanity gate — catches CSP misses, missing assets, and uncaught exceptions on first paint.
 2. **Share chip row does not overlap the transport.** Regression test for the layout fix in commit `b76a2d0`.
 3. **Install banner "Later" persists.** Dismissal writes to `localStorage`; banner stays hidden after reload.
 4. **Seek bar click jumps audio.** Chromium-only (relies on `HTMLMediaElement` time tracking). Validates the single-audio invariant: same `<audio>` element after the click.
-5. **Per-route metadata is unique.** Navigates to a track page and asserts `<title>` differs from `/`. Proves the worker `MetaRewriter` is running.
-6. **Share dialog opens from row chip.** Click-through coverage for the share UI.
-7. **Notify modal rejects bad email.** API call is mocked; validates client-side regex before submit.
+5. **Per-route metadata exists on the track page.** Asserts `<title>` length 50–60, the route-specific OG image, and the prose block injected by `MetaRewriter`.
+6. **Homepage and track page have distinct `<title>` + meta description.** Locks in the `MetaRewriter` per-route uniqueness contract. Also greps both responses for `&amp;amp;` as a regression guard against the HTMLRewriter double-encoding bug.
+7. **Share dialog opens from row chip.** Click-through coverage for the share UI.
+8. **Notify modal accepts a valid email and posts to `/api/subscribe`.** Stubs the worker response and asserts the dialog closes plus the dismissed flag persists.
+9. **Notify modal rejects bad email.** Client-side regex blocks submit; dialog stays open with inline error.
 
 Every test starts at the homepage and clicks through. No `page.goto('/some-route')` unless the test specifically asserts per-route SEO.
 

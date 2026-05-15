@@ -24,6 +24,8 @@ The app is a single-page experience. The audio element is created once and persi
 | Per-route SEO / OG tags | `src/track-meta.ts` (consumed by `worker/index.ts`) |
 | Transport UI / app shell | `src/main.ts` (large; search first) |
 | AI DJ drawer | `src/ai-chat.ts` |
+| AI chat widget kinds + renderer | `src/ai-widgets.ts` (see [`docs/ai-chat-widgets.md`](./docs/ai-chat-widgets.md)) |
+| `/shortcommands` palette builder | `src/ai-shortcommands.ts` (see [`docs/ai-chat-commands.md`](./docs/ai-chat-commands.md)) |
 | Visualizer | `src/visualizer.ts` |
 | Worker route or API | `worker/index.ts` |
 | Styles | `src/style.css` (one file, cascade-layered) |
@@ -62,6 +64,7 @@ Local dev uses `.dev.vars` (gitignored).
 - **Lyrics:** Christian-gangster ethic. Zero drug references. See `~/.claude/projects/-Users-apple-emdash-projects-music-megabyte-space/memory/feedback_lyrics_christian_gangster.md`.
 - **Cast:** default receiver (`CC1AD845`) until the custom receiver is device-bound. Custom App ID `228565CB` lives in `src/cast-protocol.ts`.
 - **Karaoke overlay:** word highlighting mirrors the fullscreen lyrics pattern in `src/main.ts` (parallel arrays `karaokeOverlayWords` + `karaokeOverlayWordSpans` + `karaokeOverlayWordIdx`, driven by the existing `startKaraoke` tick loop).
+- **AI chat widgets:** assistant messages can carry typed `AiChatWidget[]` payloads — track-card, album-card, command-palette, citation, alert, code-snippet, etc. The renderer in `src/ai-widgets.ts` is a pure HTML-string builder; every URL goes through `safeUrl()` and every string through `escapeHtml()`. Run `/shortcommands` (or `/sc`) in the chat panel to see every slash command as a grouped, clickable palette. Full reference: [`docs/ai-chat.md`](./docs/ai-chat.md), [`docs/ai-chat-widgets.md`](./docs/ai-chat-widgets.md), [`docs/ai-chat-commands.md`](./docs/ai-chat-commands.md).
 
 ## Don't
 
