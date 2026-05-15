@@ -233,6 +233,16 @@ img { -webkit-user-drag: none; user-select: none; }
   font-weight: 400;
   letter-spacing: 0.06em;
 }
+.lyrics__w {
+  display: inline-block;
+  transition: color 140ms ease, text-shadow 220ms ease, transform 220ms ease;
+}
+.lyrics__line.is-active .lyrics__w.is-past { color: color-mix(in srgb, var(--ink) 70%, transparent); }
+.lyrics__line.is-active .lyrics__w.is-active {
+  color: #fff;
+  text-shadow: 0 0 28px color-mix(in srgb, var(--vibrant) 90%, transparent);
+  transform: translateY(-2px);
+}
 
 /* ── Queue column ── */
 .queue {

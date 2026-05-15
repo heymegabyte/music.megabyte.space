@@ -18,3 +18,9 @@ public/og/track-*.png
 test-results/
 playwright-report/
 .verify-shots/
+.playwright-mcp/
+tsconfig.tsbuildinfo
+
+# Stray verification screenshots — keep them out of the repo root.
+/verify-*.png
+/viz-picker-*.png

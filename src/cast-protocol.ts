@@ -116,12 +116,23 @@ export interface ErrorPayload { code: string; message: string; recoverable: bool
 export interface LogPayload { level: 'info' | 'warn' | 'error'; tag: string; message: string; data?: unknown; }
 export interface HelloPayload { senderId: string; appVersion: string; }
 
+/** Monotonic per-process sequence counter for {@link packMsg}. */
 export const newSeq = (() => { let n = 0; return () => ++n; })();
 
+/**
+ * Build a versioned, sequenced, timestamped Cast message. Always use this
+ * (never construct a `CastMsg` literal at a call site) so the protocol
+ * version and seq number stay in lockstep on both ends.
+ */
 export function packMsg<T>(type: CastMsgType, payload?: T): CastMsg<T> {
   return { v: PROTOCOL_VERSION, type, seq: newSeq(), ts: Date.now(), payload };
 }
 
+/**
+ * Runtime validator for messages arriving over the Cast channel. The remote
+ * side is trusted (same project) but a stale receiver can ship malformed
+ * frames during a deploy gap — guard before reading.
+ */
 export function isCastMsg(x: unknown): x is CastMsg<unknown> {
   if (!x || typeof x !== 'object') return false;
   const m = x as Record<string, unknown>;

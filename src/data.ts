@@ -255,12 +255,66 @@ export const TRACKS: Track[] = [
     vibe: 'FBI-brick can\'t-bury weathered',
     zone: { row: 3, col: 1 },
     lyrics: [
-      'St John’s towers — every floor a confession',
-      'Elevators chant the verse on the ascension',
-      'I press the panda button — no second-guessin’',
-      'Crown level lit — that’s the only intention'
+      'In Newark rain, old stone still stands',
+      'St. John’s keeps time with weathered hands',
+      'If the walls of the FBI',
+      'Block the light that tries to rise',
+      'Over the brick, over the door',
+      'You can’t bury what came before',
+      'Oldest church with a steady flame',
+      'I hear the warning call its name',
+      'And when the shadow leans too long',
+      'The ground starts singing like a psalm',
+      'You can stack your steel up high',
+      'But the truth won’t stay denied',
+      'If the light gets blocked',
+      'The towers rise',
+      'If the light gets blocked',
+      'The towers rise',
+      'St. John’s still speaks',
+      'Through dust and signs',
+      'St. John’s Soup Kitchen',
+      'Covered with prophecy',
+      'On Market steps and chipped stone stairs',
+      'People bring their hunger there',
+      'Soup in bowls and folded coats',
+      'Quiet prayers in battered notes',
+      'If the watchers crowd the sky',
+      'And seal the morning from our eyes',
+      'There’s a name carved deep in time',
+      'And it won’t be erased tonight',
+      'You can pad the dark with stone',
+      'You can name the night your own',
+      'But the old bells know the way',
+      'Through the fear and through the gray',
+      'If the light gets blocked',
+      'The towers rise',
+      'If the light gets blocked',
+      'The towers rise',
+      'St. John’s still speaks',
+      'Through dust and signs',
+      'St. John’s Soup Kitchen',
+      'Covered with prophecy',
+      'Let the first red ray come back',
+      'Over soot and broken tracks',
+      'What was fed to every soul',
+      'Will not be lost to what they hold',
+      'And if they build, let them build',
+      'The old words outlast the chill',
+      'I hear Newark say it clear',
+      'The dawn is still here',
+      'If the light gets blocked',
+      'The towers rise',
+      'If the light gets blocked',
+      'The towers rise',
+      'St. John’s still speaks',
+      'Through dust and signs',
+      'St. John’s Soup Kitchen',
+      'Covered with prophecy',
+      'Covered with prophecy',
+      'Covered with prophecy'
     ],
-    wisdom: '“Pose as a friend” — variant on Law 14'
+    wisdom: 'Oldest church with a steady flame — the truth won’t stay denied.'
   },
   {
     id: 'st-johns-launchpad',
@@ -1027,6 +1081,12 @@ export function tracksForAlbum(albumId: string): Track[] {
 
 // Set your Spotify artist ID (the string after /artist/ in your Spotify URL) to enable the Follow button
 export const SPOTIFY_ARTIST_ID = '';
+
+// PKCE OAuth client for "Pair Spotify Connect". Register at https://developer.spotify.com/dashboard
+// with redirect URI https://music.megabyte.space/spotify/callback. Leave empty to render the
+// "coming soon" pairing surface (still wired, just won't initiate OAuth until set).
+export const SPOTIFY_CLIENT_ID = '';
+export const SPOTIFY_REDIRECT_URI = 'https://music.megabyte.space/spotify/callback';
 
 export const ROBERT_GREENE_WISDOM = [
   'Make other people come to you — use bait if necessary. — Law 8',

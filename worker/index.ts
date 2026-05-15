@@ -1,6 +1,8 @@
 import { SEO_INDEX, type RouteSeo } from '../src/track-meta';
 import { TRACK_BY_ID, ALBUM_BY_ID } from '../src/data';
 import { sendPushBatch, type PushSubscriptionRecord } from './web-push';
+import { escapeXmlText, escapeHtmlAttr } from './escape';
+import { serializeJsonLd } from './json-ld';
 
 interface Env {
   ASSETS: Fetcher;
@@ -14,6 +16,8 @@ interface Env {
   LISTMONK_API_TOKEN?: string;// API token (secret)
   LISTMONK_LIST_NAME?: string;// Display name for the list (default: "music.megabyte.space")
   LISTMONK_LIST_ID?: string;  // Optional pinned list id; if unset, worker auto-discovers/creates
+  ANTHROPIC_API_KEY?: string; // For /api/ai/chat — Claude Haiku 4.5 streaming
+  ANTHROPIC_MODEL?: string;   // Override default model (claude-haiku-4-5-20251001)
 }
 
 const VALID_TRACK_ID = /^[a-z0-9-]{1,80}$/;
@@ -184,16 +188,14 @@ const SECURITY_HEADERS: Record<string, string> = {
   'X-Frame-Options': 'DENY'
 };
 
-const escapeText = (s: string) =>
-  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
 class MetaRewriter {
   constructor(private seo: RouteSeo) {}
 
   element(el: Element) {
     const name = el.tagName.toLowerCase();
     if (name === 'title') {
-      el.setInnerContent(escapeText(this.seo.title));
+      // HTMLRewriter.setInnerContent HTML-escapes by default; no pre-escape.
+      el.setInnerContent(this.seo.title);
       return;
     }
     const property = el.getAttribute('property') || '';
@@ -296,6 +298,28 @@ class MetaRewriter {
   }
 }
 
+/** Append a route-scoped SEO body inside `<body>`. Wrapped in a `<details>`
+ * so crawlers + AI scrapers index the 300-1000 word narrative while sighted
+ * users see only a discreet "About this track" expander below the player.
+ * Same content for users + bots — not cloaking. */
+class SeoBodyRewriter {
+  private appended = false;
+  constructor(private seo: RouteSeo) {}
+
+  element(el: Element) {
+    if (this.appended) return;
+    this.appended = true;
+    const safePath = this.seo.path.replace(/[^a-z0-9\-/_]/gi, '');
+    const block = `<aside class="route-seo-body" data-route="${safePath}">
+<details class="route-seo-details">
+<summary>About this page</summary>
+<div class="route-seo-prose">${this.seo.seoBody}</div>
+</details>
+</aside>`;
+    el.append(block, { html: true });
+  }
+}
+
 class JsonLdRewriter {
   private replaced = false;
   constructor(private seo: RouteSeo) {}
@@ -306,7 +330,7 @@ class JsonLdRewriter {
       return;
     }
     const blocks = this.seo.jsonLd
-      .map(obj => `<script type="application/ld+json">${JSON.stringify(obj)}</script>`)
+      .map(obj => `<script type="application/ld+json">${serializeJsonLd(obj)}</script>`)
       .join('');
     el.replace(blocks, { html: true });
     this.replaced = true;
@@ -407,7 +431,7 @@ export default {
           thumbnail = `https://music.megabyte.space${album.cover}`;
           oeTitle = `${album.name} — bZ`;
         }
-        const html = `<iframe src="${embedUrl}" width="${maxwidth}" height="${maxheight}" frameborder="0" scrolling="no" allow="autoplay; encrypted-media" allowfullscreen title="${escapeText(oeTitle)}"></iframe>`;
+        const html = `<iframe src="${escapeHtmlAttr(embedUrl)}" width="${maxwidth}" height="${maxheight}" frameborder="0" scrolling="no" allow="autoplay; encrypted-media" allowfullscreen title="${escapeHtmlAttr(oeTitle)}"></iframe>`;
         const payload: Record<string, unknown> = {
           version: '1.0',
           type: 'rich',
@@ -426,7 +450,7 @@ export default {
         };
         if (audioUrl) payload.audio_url = audioUrl;
         if (format === 'xml') {
-          const xml = `<?xml version="1.0" encoding="utf-8"?>\n<oembed>\n${Object.entries(payload).map(([k, v]) => `  <${k}>${escapeText(String(v))}</${k}>`).join('\n')}\n</oembed>`;
+          const xml = `<?xml version="1.0" encoding="utf-8"?>\n<oembed>\n${Object.entries(payload).map(([k, v]) => `  <${k}>${escapeXmlText(String(v))}</${k}>`).join('\n')}\n</oembed>`;
           return new Response(xml, {
             status: 200,
             headers: {
@@ -606,6 +630,68 @@ export default {
         });
       }
 
+      if (url.pathname === '/api/ai/chat' && request.method === 'POST') {
+        if (!env.ANTHROPIC_API_KEY) return jsonResponse({ error: 'ai_not_configured' }, 503);
+        if (await rateLimited(env.COUNTERS, ip, 'ai-chat', 'global', 6)) return jsonResponse({ error: 'throttled', retry_in_s: 6 }, 429);
+        let body: {
+          messages?: { role: 'user' | 'assistant'; content: string }[];
+          system?: string;
+          model?: string;
+          temperature?: number;
+          max_tokens?: number;
+          stream?: boolean;
+        };
+        try { body = await request.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
+        const msgs = Array.isArray(body?.messages) ? body.messages.filter(m =>
+          (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.length > 0
+        ) : [];
+        if (msgs.length === 0) return jsonResponse({ error: 'no_messages' }, 400);
+        const sliced = msgs.slice(-20).map(m => ({ role: m.role, content: m.content.slice(0, 8000) }));
+        const model = body.model || env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001';
+        const stream = body.stream !== false;
+        const apiBody = {
+          model,
+          max_tokens: Math.max(64, Math.min(4096, body.max_tokens || 1024)),
+          temperature: Math.max(0, Math.min(1, typeof body.temperature === 'number' ? body.temperature : 0.7)),
+          system: typeof body.system === 'string'
+            ? body.system.slice(0, 4000)
+            : "You are bZ's in-app DJ — concise, warm, brand-aware. Speak in the voice of music.megabyte.space: sharp, punchy, Christian-gangster ethic, hustle-gospel, hard but holy. Reference the album Panda Desiiignare and the artist bZ when relevant. Use markdown sparingly. Default to 2-3 sentences unless the user asks for more. Never recommend or mention drugs. Stay reverent around family names.",
+          messages: sliced,
+          stream
+        };
+        try {
+          const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              'x-api-key': env.ANTHROPIC_API_KEY,
+              'anthropic-version': '2023-06-01'
+            },
+            body: JSON.stringify(apiBody)
+          });
+          if (!upstream.ok) {
+            const errText = await upstream.text();
+            return jsonResponse({ error: 'upstream_error', status: upstream.status, detail: errText.slice(0, 500) }, 502);
+          }
+          if (stream && upstream.body) {
+            return new Response(upstream.body, {
+              status: 200,
+              headers: {
+                'Content-Type': 'text/event-stream; charset=utf-8',
+                'Cache-Control': 'no-store',
+                'Access-Control-Allow-Origin': 'https://music.megabyte.space',
+                'X-Accel-Buffering': 'no'
+              }
+            });
+          }
+          const data = await upstream.json() as { content?: { type: string; text?: string }[]; usage?: unknown };
+          const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text || '').join('');
+          return jsonResponse({ text, usage: data.usage });
+        } catch (err) {
+          return jsonResponse({ error: 'fetch_failed', detail: (err as Error).message }, 502);
+        }
+      }
+
       return jsonResponse({ error: 'not_found' }, 404);
     }
 
@@ -732,12 +818,13 @@ export default {
     const isEmbedRoute = /^\/embed(\/|$)/.test(url.pathname);
     const isAshtonSpaRoute = /^\/ashton\/?$/.test(url.pathname);
     const seoMatch = !isEmbedRoute && !isAshtonSpaRoute ? lookupSeo(url.pathname) : null;
-    // For embed routes we INTERNALLY fetch /embed (no .html) so Workers Assets
-    // resolves to embed.html via its auto-trailing-slash handling WITHOUT
-    // emitting a 307 canonicalization redirect that would strip the
-    // album/track segments from location.pathname on the client.
+    // Embed routes: fetch /embed.html EXPLICITLY so Workers Assets can't
+    // canonicalize via 307 (any redirect strips the album/track segments
+    // from location.pathname on the client and the embed boots into the
+    // fallback card). The explicit .html path is a static asset, no
+    // auto-canonicalization fires.
     const fetchRequest = isEmbedRoute && !url.pathname.endsWith('.html')
-      ? new Request(new URL('/embed', url.origin), request)
+      ? new Request(new URL('/embed.html', url.origin), request)
       : isAshtonSpaRoute
       ? new Request(new URL('/', url.origin), request)
       : seoMatch
@@ -745,13 +832,16 @@ export default {
       : request;
 
     let response = await env.ASSETS.fetch(fetchRequest);
-    // Defensive: if ASSETS still emits a 3xx for embed routes (e.g. trailing
-    // slash variants), follow the redirect server-side so the browser keeps
-    // the original /embed/<album>/<track> URL.
-    if (isEmbedRoute && response.status >= 300 && response.status < 400) {
-      const loc = response.headers.get('Location');
-      if (loc) {
+    // Defensive: if ASSETS still emits a 3xx for embed routes, follow up to
+    // 3 redirects server-side so the browser keeps the original
+    // /embed/<album>/<track> URL on the client.
+    if (isEmbedRoute) {
+      let hops = 0;
+      while (response.status >= 300 && response.status < 400 && hops < 3) {
+        const loc = response.headers.get('Location');
+        if (!loc) break;
         response = await env.ASSETS.fetch(new Request(new URL(loc, url.origin), request));
+        hops += 1;
       }
     }
 
@@ -778,6 +868,7 @@ export default {
         .on('link[rel="alternate"][type="application/json+oembed"]', new MetaRewriter(seoMatch))
         .on('link[rel="alternate"][type="text/xml+oembed"]', new MetaRewriter(seoMatch))
         .on('script[type="application/ld+json"]', new JsonLdRewriter(seoMatch))
+        .on('body', new SeoBodyRewriter(seoMatch))
         .transform(new Response(response.body, { status: response.status, headers }));
       return rewritten;
     }

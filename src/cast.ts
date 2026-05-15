@@ -82,9 +82,38 @@ export class CastBridge {
   // Default Media Receiver (CC1AD845) is the primary App ID — Google's stock
   // 10-foot UI renders album art + title + artist + progress via session.loadMedia().
   // Custom namespace is skipped on default receiver since it doesn't speak it.
-  private appId = CAST_APP_ID;
+  // Custom App ID (228565CB) is opt-in via enableCustomReceiver() — devices that
+  // aren't bound to it return select_unknown_id:905 from requestSession(), which
+  // looks like a silent failure to users (Chrome falls back to Remote Playback).
+  private appId = RECEIVER_FALLBACK;
   private fallbackTried = false;
   private get usesCustomReceiver(): boolean { return this.appId !== RECEIVER_FALLBACK; }
+
+  /** Switch to the custom branded receiver. Only call after the device is known
+   * to be bound to App ID 228565CB (e.g. dev devices, or after the user enables
+   * "Branded TV UI" in settings). Re-applies cast options if framework is ready. */
+  enableCustomReceiver(): void {
+    if (this.appId === CAST_APP_ID) return;
+    this.appId = CAST_APP_ID;
+    this.fallbackTried = false;
+    const ctx = window.cast?.framework?.CastContext?.getInstance?.();
+    if (ctx) this.applyOptions(ctx);
+  }
+
+  /** Revert to the Default Media Receiver (CC1AD845). Used when the user
+   * toggles "Branded TV UI" off — frees future sessions to land on any Cast
+   * device, even those not registered to App ID 228565CB. */
+  disableCustomReceiver(): void {
+    if (this.appId === RECEIVER_FALLBACK) return;
+    this.appId = RECEIVER_FALLBACK;
+    this.fallbackTried = false;
+    const ctx = window.cast?.framework?.CastContext?.getInstance?.();
+    if (ctx) this.applyOptions(ctx);
+  }
+
+  getReceiverMode(): 'custom' | 'default' {
+    return this.usesCustomReceiver ? 'custom' : 'default';
+  }
 
   init() {
     if (typeof window === 'undefined') return;
@@ -426,7 +455,24 @@ export class CastBridge {
       await ctx.requestSession();
     } catch (err: unknown) {
       const msg = typeof err === 'string' ? err : (err instanceof Error ? err.message : 'cast cancelled');
-      if (msg !== 'cancel') this.emit({ type: 'error', message: msg });
+      if (msg === 'cancel') return;
+      // select_unknown_id (905) = receiver app not registered to the picked
+      // device. Fall back to default media receiver and retry once so the user
+      // doesn't see a silent failure.
+      const isUnknownAppId = /select_unknown_id|unknown.*receiver|905/i.test(msg);
+      if (isUnknownAppId && this.usesCustomReceiver) {
+        this.tryFallbackReceiver();
+        try {
+          await ctx.requestSession();
+          return;
+        } catch (err2: unknown) {
+          const msg2 = typeof err2 === 'string' ? err2 : (err2 instanceof Error ? err2.message : 'cast cancelled');
+          if (msg2 === 'cancel') return;
+          this.emit({ type: 'error', message: msg2 });
+          return;
+        }
+      }
+      this.emit({ type: 'error', message: msg });
     }
   }
 
@@ -453,17 +499,50 @@ export class CastBridge {
     }
   }
 
-  setVolume(level: number) {
+  private volumeRampFrame = 0;
+
+  setVolume(level: number, opts: { ramp?: boolean; durationMs?: number } = {}) {
     if (!this.active) return;
     const lvl = Math.max(0, Math.min(1, level));
     if (this.customChannelOpen) {
       this.sendCustom('transport:volume', { level: lvl } as VolumePayload).catch(() => {
-        if (this.remotePlayer) { this.remotePlayer.volumeLevel = lvl; this.remoteController?.setVolumeLevel(); }
+        this.applyVolumeFallback(lvl, opts.ramp ?? true, opts.durationMs ?? 260);
       });
-    } else if (this.remotePlayer) {
-      this.remotePlayer.volumeLevel = lvl;
-      this.remoteController?.setVolumeLevel();
+      return;
     }
+    this.applyVolumeFallback(lvl, opts.ramp ?? true, opts.durationMs ?? 260);
+  }
+
+  /** Ramp the remoteController volume over `duration` ms so receivers that
+   * lack the custom channel (Default Media Receiver, third-party speakers)
+   * don't jolt the listener with a step change when the slider is dragged. */
+  private applyVolumeFallback(target: number, ramp: boolean, duration: number) {
+    if (!this.remotePlayer || !this.remoteController) return;
+    if (this.volumeRampFrame) { cancelAnimationFrame(this.volumeRampFrame); this.volumeRampFrame = 0; }
+    const start = typeof this.remotePlayer.volumeLevel === 'number' ? this.remotePlayer.volumeLevel : this.volumeLevel;
+    if (!ramp || Math.abs(target - start) < 0.02 || duration <= 0) {
+      this.remotePlayer.volumeLevel = target;
+      try { this.remoteController.setVolumeLevel(); } catch { /* swallow */ }
+      this.volumeLevel = target;
+      return;
+    }
+    const t0 = performance.now();
+    const step = (now: number) => {
+      const k = Math.min(1, (now - t0) / duration);
+      const eased = k * (2 - k); // easeOutQuad — quick, no overshoot
+      const v = start + (target - start) * eased;
+      try {
+        this.remotePlayer.volumeLevel = v;
+        this.remoteController.setVolumeLevel();
+      } catch { /* receiver may have ended mid-ramp */ }
+      this.volumeLevel = v;
+      if (k < 1 && this.active) {
+        this.volumeRampFrame = requestAnimationFrame(step);
+      } else {
+        this.volumeRampFrame = 0;
+      }
+    };
+    this.volumeRampFrame = requestAnimationFrame(step);
   }
 
   next(): Promise<void> { return this.sendCustom('transport:next'); }

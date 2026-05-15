@@ -56,6 +56,11 @@ function encodeUtf8(s: string): Bytes {
   return out;
 }
 
+/**
+ * Import a VAPID JWK (P-256) for ES256 signing/verifying. The key is marked
+ * non-extractable so it can't leak via export — callers should pass the JWK
+ * from a Worker secret, not from request bodies.
+ */
 export async function importVapidJwk(jwk: JsonWebKey, usage: KeyUsage[]): Promise<CryptoKey> {
   return crypto.subtle.importKey('jwk', jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, usage);
 }
@@ -187,6 +192,11 @@ export async function sendPush(
   return { endpoint: sub.endpoint, status: res.status, ok: res.ok, expired };
 }
 
+/**
+ * Send the same payload to many subscriptions in parallel. Failures are
+ * isolated per-endpoint: a network error on one sub still returns a
+ * `SendResult` so the caller can iterate and prune by `expired`/`!ok`.
+ */
 export async function sendPushBatch(
   subs: PushSubscriptionRecord[],
   payload: Bytes | string,

@@ -123,11 +123,12 @@ test.describe('music.megabyte.space — golden journey', () => {
     const r = await request.get(`/canopy/${FIRST_TRACK}`);
     expect(r.status()).toBe(200);
     const html = await r.text();
-    expect(html).toMatch(/<title>Birch-Swing Heaven[^<]+<\/title>/);
-    expect(html).toContain(`og/${FIRST_TRACK}.png`);
+    expect(html).toMatch(/<title>Touch The Sky[^<]+<\/title>/);
+    expect(html).toContain(`og/track-${FIRST_TRACK}.jpg`);
     const titleLen = html.match(/<title>([^<]+)<\/title>/)?.[1].length ?? 0;
     expect(titleLen).toBeGreaterThanOrEqual(50);
     expect(titleLen).toBeLessThanOrEqual(60);
+    expect(html).toMatch(/class="route-seo-prose"/);
   });
 
   test('share dialog opens from track row chip', async ({ page, isMobile }) => {

@@ -365,6 +365,63 @@ export class AudioEngine {
     return { l: l / n / 255, r: r / n / 255 };
   }
 
+  // Spectral 7-band split + spectral centroid + stereo width — visualizers
+  // tap this to drive richer Web-Audio reactivity than raw beatPulse alone.
+  bands(): {
+    bass: number; lowMid: number; mid: number; highMid: number;
+    treble: number; presence: number; brilliance: number;
+    centroid: number; stereo: number; flux: number;
+  } {
+    const f = this.freqData;
+    const n = f.length;
+    if (n === 0) {
+      return { bass: 0, lowMid: 0, mid: 0, highMid: 0, treble: 0, presence: 0, brilliance: 0, centroid: 0, stereo: 0, flux: 0 };
+    }
+    const bandAvg = (lo: number, hi: number) => {
+      const a = Math.max(0, Math.floor(n * lo));
+      const b = Math.min(n, Math.floor(n * hi));
+      let s = 0;
+      for (let i = a; i < b; i++) s += f[i];
+      return b > a ? (s / (b - a)) / 255 : 0;
+    };
+    let sumMag = 0;
+    let sumWeighted = 0;
+    for (let i = 0; i < n; i++) {
+      const m = f[i];
+      sumMag += m;
+      sumWeighted += m * i;
+    }
+    const centroid = sumMag > 0 ? (sumWeighted / sumMag) / n : 0;
+    const channelDelta = this.freqL.length === this.freqR.length && this.freqL.length > 0
+      ? (() => {
+          let d = 0;
+          for (let i = 0; i < this.freqL.length; i++) d += Math.abs(this.freqL[i] - this.freqR[i]);
+          return d / this.freqL.length / 255;
+        })()
+      : 0;
+    return {
+      bass:       bandAvg(0,    0.04),
+      lowMid:     bandAvg(0.04, 0.10),
+      mid:        bandAvg(0.10, 0.22),
+      highMid:    bandAvg(0.22, 0.38),
+      treble:     bandAvg(0.38, 0.58),
+      presence:   bandAvg(0.58, 0.78),
+      brilliance: bandAvg(0.78, 1.0),
+      centroid,
+      stereo:     channelDelta,
+      flux:       Math.max(0, Math.min(1, this.rmsFluxSlope * 4 + 0.5))
+    };
+  }
+
+  // Beat-locked phase 0..1 — wraps every (60/bpm) seconds. Visualizers use
+  // this to align motion to tempo without recomputing per frame.
+  tempoPhase(now = performance.now()): number {
+    if (!this.bpm || this.bpm <= 0) return ((now / 1000) % 2) / 2;
+    const periodMs = 60000 / this.bpm;
+    const sinceBeat = (now - this.lastBeatAt + periodMs * 10) % periodMs;
+    return sinceBeat / periodMs;
+  }
+
   state() {
     return {
       track: this.current,

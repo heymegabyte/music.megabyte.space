@@ -4,18 +4,29 @@
 import type { Track } from './types';
 
 export interface SyncedLine {
-  t: number;       // start time in seconds
+  /** Start time in seconds from the audio origin. */
+  t: number;
   text: string;
 }
 
 export interface LyricsBundle {
   trackId: string;
   lines: SyncedLine[];
+  /**
+   * `lrc` — timestamps came from /lyrics/<id>.lrc.
+   * `static` — fake timestamps spread evenly over `Track.lyrics`; rescale via {@link scaleStaticBundle}.
+   * `empty` — no lyrics available for this track.
+   */
   source: 'lrc' | 'static' | 'empty';
 }
 
 const cache = new Map<string, LyricsBundle>();
 
+/**
+ * Fetch + parse the synced lyrics file for a track, falling back to the static
+ * `Track.lyrics[]` array when the LRC is missing or unparseable. Result is
+ * memoized per-track so repeated calls within a session are free.
+ */
 export async function loadLyrics(track: Track): Promise<LyricsBundle> {
   const cached = cache.get(track.id);
   if (cached) return cached;
@@ -47,6 +58,15 @@ function staticBundle(track: Track): LyricsBundle {
 
 const LRC_RE = /^\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?\](.*)$/;
 
+/**
+ * Parse an LRC document into sorted {@link SyncedLine} entries.
+ *
+ * Handles multi-timestamp prefixes — `[00:01.00][00:21.00]Same line at two times`
+ * becomes two entries pointing at the same text. Sub-second precision is
+ * accepted in 1–3 digit form (`.5` = 500 ms, `.50` = 500 ms, `.005` = 5 ms).
+ *
+ * Pure, deterministic, no I/O — safe to call from anywhere.
+ */
 export function parseLrc(text: string): SyncedLine[] {
   const out: SyncedLine[] = [];
   for (const raw of text.split(/\r?\n/)) {
@@ -75,7 +95,11 @@ export function parseLrc(text: string): SyncedLine[] {
   return out;
 }
 
-/** Active line index given current playback position (seconds). Returns -1 before first stamp. */
+/**
+ * Active line index given current playback position (seconds). Returns -1
+ * before the first timestamp. Binary search — O(log n) per tick so calling
+ * from a 60 Hz render loop is cheap even on long lyric sheets.
+ */
 export function activeLineIndex(lines: SyncedLine[], time: number): number {
   if (!lines.length) return -1;
   let lo = 0, hi = lines.length - 1, ans = -1;
@@ -87,7 +111,11 @@ export function activeLineIndex(lines: SyncedLine[], time: number): number {
   return ans;
 }
 
-/** For static (no-timestamp) bundles, scale fake stamps to fit current duration. */
+/**
+ * For static (no-timestamp) bundles, rewrite the fake stamps so they span the
+ * actual audio duration. Leaves a 4% lead-in and an 8% tail so the last line
+ * doesn't trigger after playback ends. No-op for non-static bundles.
+ */
 export function scaleStaticBundle(bundle: LyricsBundle, duration: number): SyncedLine[] {
   if (bundle.source !== 'static' || !bundle.lines.length || !Number.isFinite(duration) || duration <= 0) return bundle.lines;
   const n = bundle.lines.length;

@@ -4,7 +4,8 @@ import type { ReverbPreset } from './audio';
 import { Visualizer } from './visualizer';
 import type { VizMode } from './visualizer';
 import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID, SPOTIFY_ARTIST_ID } from './data';
-import type { Track } from './types';
+import { TRACK_TAGS, getTrackTags } from './tags';
+import type { Track, Album } from './types';
 import { cast } from './cast';
 import type { ReceiverQueueItem, ReceiverLine, ReceiverState, PalettePayload } from './cast-protocol';
 import { extractPalette, type Palette } from './palette';
@@ -23,6 +24,8 @@ import {
 import { nativeShareSupported, shareWithFallback } from './web-share';
 import { pushSupported, pushState, subscribePush, unsubscribePush } from './web-push';
 import { createPipController, type PipController } from './pip';
+import { mountSpotifyConnect, handleAuthCallback as handleSpotifyCallback } from './spotify-connect';
+import { mountAIChat } from './ai-chat';
 
 const $ = <T extends HTMLElement>(sel: string, root: Document | HTMLElement = document) =>
   root.querySelector(sel) as T | null;
@@ -68,6 +71,11 @@ let sleepTimerHandle: ReturnType<typeof setTimeout> | null = null;
 let sleepTimerEndAt = 0;
 let sleepTickHandle: ReturnType<typeof setInterval> | null = null;
 let lyricsFsOpen = false;
+let karaokeOverlayOn = (() => { try { return localStorage.getItem('bz:karaoke:overlay') === '1'; } catch { return false; } })();
+let karaokeLastIdx = -2;
+let karaokeOverlayWords: WhisperWord[] = [];
+let karaokeOverlayWordSpans: HTMLSpanElement[] = [];
+let karaokeOverlayWordIdx = -2;
 let queuePanelOpen = false;
 let shortcutsOpen = false;
 let pendingDeeplinkSeek: number | null = null;
@@ -354,10 +362,12 @@ function refreshShareLabel() {
   if (!label) return;
   const n = currentTrackId ? (shareCounts.get(currentTrackId) ?? 0) : 0;
   if (!currentTrackId || n === 0) {
-    label.textContent = 'share';
+    label.textContent = '';
+    label.setAttribute('hidden', '');
     if (btn) btn.setAttribute('aria-label', 'Share now playing');
   } else {
-    label.textContent = `${n} ${n === 1 ? 'share' : 'shares'}`;
+    label.textContent = String(n);
+    label.removeAttribute('hidden');
     if (btn) btn.setAttribute('aria-label', `Share now playing — ${n} ${n === 1 ? 'share' : 'shares'}`);
   }
 }
@@ -377,11 +387,11 @@ function fmtHz(hz: number) {
 const VIZ_GROUPS: Array<{ label: string; tagline: string; modes: VizMode[] }> = [
   { label: 'Cosmos',   tagline: 'Stars, galaxies, deep space',  modes: ['starfield', 'constellation', 'galaxy', 'supernova', 'aurora', 'nebula'] },
   { label: 'Love',     tagline: 'For Laura, Adrian, CK',         modes: ['petals', 'rose'] },
-  { label: 'Energy',   tagline: 'Plasma, drops, lightning',      modes: ['plasma', 'lightning', 'drop-strobe', 'prism', 'sunburst', 'starburst'] },
-  { label: 'Geometry', tagline: 'Sacred shapes + lattices',      modes: ['mandala', 'lattice', 'hex-grid', 'lissajous', 'rings', 'cymatics', 'gem'] },
-  { label: 'Organic',  tagline: 'Particles, fluid, swarms',      modes: ['fireflies', 'bokeh', 'liquid', 'smoke', 'swarm', 'ribbons'] },
+  { label: 'Energy',   tagline: 'Plasma, drops, prisms',         modes: ['plasma', 'drop-strobe', 'prism', 'sunburst'] },
+  { label: 'Geometry', tagline: 'Sacred shapes + lattices',      modes: ['mandala', 'lattice', 'hex-grid', 'lissajous', 'rings', 'cymatics'] },
+  { label: 'Organic',  tagline: 'Particles + fluid',             modes: ['fireflies', 'bokeh', 'liquid', 'smoke', 'ribbons'] },
   { label: 'Spectrum', tagline: 'Bars, waves, waterfalls',       modes: ['bars', 'wave', 'waterfall', 'mirror-wave', 'strings', 'monolith'] },
-  { label: 'Retro',    tagline: '80s synthwave + matrix',        modes: ['synthwave', 'vinyl', 'matrix'] },
+  { label: 'Retro',    tagline: 'Vinyl spin',                    modes: ['vinyl'] },
   { label: 'Spatial',  tagline: 'Tunnels + kaleidoscopes',       modes: ['composite', 'tunnel', 'kaleidoscope', 'wormhole', 'vortex'] },
   { label: 'Field',    tagline: 'Bloom, flux, orbits',           modes: ['bloom', 'flux', 'gravity', 'spider', 'palette-orbs', 'confetti'] },
 ];
@@ -758,6 +768,10 @@ function setupShell(root: HTMLElement) {
           <span>Search</span>
           <kbd>⌘K</kbd>
         </button>
+        <button id="btnLyricsOverlay" class="topbar__lyrics" type="button" aria-label="Toggle live lyrics overlay" aria-pressed="false" title="Live lyrics overlay (Shift+L)">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <span>Lyrics</span>
+        </button>
         <a id="lnkAppeal" href="/ashton/">appeal</a>
         <a href="https://mission.megabyte.space" target="_blank" rel="noopener noreferrer">mission</a>
       </nav>
@@ -770,16 +784,10 @@ function setupShell(root: HTMLElement) {
 
       <section class="viz" aria-label="Live audio visualizer">
         <div class="viz__hero">
-          <aside class="ai-playlist" aria-label="AI's Choice — top picks for you" id="aiPlaylistWrap">
-            <header class="ai-playlist__head">
-              <span class="ai-playlist__eyebrow">AI's Choice</span>
-              <span class="ai-playlist__tag">scored on plays · completion · shares · recency</span>
-            </header>
-            <div class="ai-playlist__list" id="aiPlaylist" role="list"></div>
-          </aside>
           <span class="viz__hero-album" id="heroAlbum">BZ · CYAN FLAG</span>
           <h1 class="viz__hero-title" id="heroTitle">PRESS PLAY</h1>
           <p class="viz__hero-vibe" id="heroVibe">Web Audio API live. Hard but holy.</p>
+          <div class="viz__hero-tags" id="heroTags" aria-label="Track tags" hidden></div>
         </div>
 
         <div class="hud" id="hud" aria-live="polite">
@@ -831,8 +839,7 @@ function setupShell(root: HTMLElement) {
           </div>
           <div class="viz-picker__grid" id="vizGrid" role="listbox" aria-label="Visualizer modes"></div>
           <footer class="viz-picker__footer">
-            <span><kbd>V</kbd> next</span>
-            <span><kbd>⇧</kbd>+<kbd>V</kbd> prev</span>
+            <span><kbd>V</kbd> next · <kbd>⇧</kbd>+<kbd>V</kbd> prev — cycles the full list in order</span>
             <span><kbd>Esc</kbd> close</span>
           </footer>
         </div>
@@ -895,7 +902,7 @@ function setupShell(root: HTMLElement) {
         <span class="transport__cast-wrap" style="position:relative;display:inline-flex;">
           <button id="btnCast" class="link-btn link-btn--icon transport__cast" type="button" aria-label="Cast to device" title="Cast to TV / speaker (Chromecast)">
             <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16v-2a8 8 0 0 1 8 8H8"/><path d="M2 12V9a11 11 0 0 1 11 11h-3"/><path d="M2 8V5a14 14 0 0 1 14 14h-3"/><line x1="2" y1="20" x2="2" y2="20"/><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
-            <span id="btnCastLabel">cast</span>
+            <span id="btnCastLabel" hidden></span>
           </button>
           <google-cast-launcher id="castLauncher" aria-hidden="true" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;cursor:pointer;"></google-cast-launcher>
         </span>
@@ -903,17 +910,12 @@ function setupShell(root: HTMLElement) {
           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h-1a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-1"/><polygon points="12 15 17 21 7 21 12 15"/></svg>
           <span>airplay</span>
         </button>
-        <button id="btnPip" class="link-btn link-btn--icon transport__pip" type="button" aria-label="Pop out mini player" title="Pop out mini player — survives tab switches" hidden>
-          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><rect x="12" y="11" width="8" height="6" rx="1" fill="currentColor" opacity="0.4"/></svg>
-          <span>mini</span>
-        </button>
         <button id="btnShare" class="link-btn link-btn--icon" type="button" aria-label="Share now playing">
           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          <span id="btnShareLabel">share</span>
+          <span id="btnShareLabel" hidden></span>
         </button>
         <button id="btnMore" class="link-btn link-btn--icon" type="button" aria-label="More options" aria-haspopup="menu" aria-expanded="false" aria-controls="moreMenu" title="More">
           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>
-          <span>more</span>
         </button>
       </div>
     </footer>
@@ -1073,6 +1075,10 @@ function setupShell(root: HTMLElement) {
         <span>Queue &amp; recents</span>
         <kbd>Q</kbd>
       </button>
+      <button id="btnPip" class="more-menu__item" data-action="mini" type="button" role="menuitem" aria-label="Pop out mini player" title="Pop out mini player — survives tab switches" hidden>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><rect x="12" y="11" width="8" height="6" rx="1" fill="currentColor" opacity="0.4"/></svg>
+        <span>Mini player · pops out</span>
+      </button>
       <div class="more-menu__divider" role="separator"></div>
       <p class="more-menu__group" role="presentation">Sleep timer · <span id="sleepLabel">off</span></p>
       <div class="more-menu__row" role="group" aria-label="Sleep timer">
@@ -1106,6 +1112,17 @@ function setupShell(root: HTMLElement) {
 
     <!-- Loop badge menu (visual hint only) -->
 
+    <!-- Center-screen lyrics overlay (toggled via topbar L button) -->
+    <aside class="karaoke" id="karaoke" aria-live="polite" aria-label="Live lyrics" hidden tabindex="-1">
+      <div class="karaoke__handle" id="karaokeHandle" aria-hidden="true" title="Drag to move"><span></span></div>
+      <button class="karaoke__close" id="karaokeClose" type="button" aria-label="Hide live lyrics">✕</button>
+      <p class="karaoke__prev karaoke__prev--2" id="karaokePrev2"></p>
+      <p class="karaoke__prev" id="karaokePrev"></p>
+      <p class="karaoke__now" id="karaokeNow">Press play to see the lyrics.</p>
+      <p class="karaoke__next" id="karaokeNext"></p>
+      <p class="karaoke__next karaoke__next--2" id="karaokeNext2"></p>
+    </aside>
+
     <!-- Full-screen karaoke -->
     <div class="lyrics-fs" id="lyricsFs" role="dialog" aria-label="Full-screen lyrics" aria-modal="true">
       <button class="lyrics-fs__close" id="lyricsFsClose" type="button" aria-label="Close">✕</button>
@@ -1119,18 +1136,36 @@ function setupShell(root: HTMLElement) {
       <div class="lyrics-fs__inner" id="lyricsFsInner"></div>
     </div>
 
-    <!-- Queue / recents panel -->
-    <div class="queue-panel" id="queuePanel" role="dialog" aria-label="Queue and recents" aria-modal="true">
-      <div class="queue-panel__backdrop" id="queueBackdrop"></div>
+    <!-- Queue / recents / top / AI / moods / albums panel -->
+    <div class="queue-panel" id="queuePanel" role="dialog" aria-label="Library — queue, recents, top, AI, moods, albums" aria-modal="false">
       <div class="queue-panel__card">
         <header class="queue-panel__head">
-          <h3>Queue · Recents · Top</h3>
-          <button class="queue-panel__close" id="queueClose" type="button" aria-label="Close">✕</button>
+          <div class="queue-panel__title">
+            <span class="queue-panel__title-eye" aria-hidden="true">▶</span>
+            <h3>Library</h3>
+            <span class="queue-panel__title-hint" id="queueIdleHint" aria-live="polite">idle close in 60s</span>
+          </div>
+          <button class="queue-panel__close" id="queueClose" type="button" aria-label="Close library">✕</button>
         </header>
-        <div class="queue-panel__tabs" role="tablist">
-          <button class="queue-panel__tab is-active" data-tab="up-next" type="button" role="tab" aria-selected="true">Queue</button>
-          <button class="queue-panel__tab" data-tab="recent" type="button" role="tab" aria-selected="false">Recents</button>
-          <button class="queue-panel__tab" data-tab="top" type="button" role="tab" aria-selected="false">Top</button>
+        <div class="queue-panel__tabs" role="tablist" id="queueTabs">
+          <button class="queue-panel__tab is-active" data-tab="up-next" type="button" role="tab" aria-selected="true">
+            <span class="queue-panel__tab-ico" aria-hidden="true">→</span><span>Queue</span>
+          </button>
+          <button class="queue-panel__tab" data-tab="ai" type="button" role="tab" aria-selected="false">
+            <span class="queue-panel__tab-ico" aria-hidden="true">✦</span><span>AI</span>
+          </button>
+          <button class="queue-panel__tab" data-tab="recent" type="button" role="tab" aria-selected="false">
+            <span class="queue-panel__tab-ico" aria-hidden="true">↺</span><span>Recents</span>
+          </button>
+          <button class="queue-panel__tab" data-tab="top" type="button" role="tab" aria-selected="false">
+            <span class="queue-panel__tab-ico" aria-hidden="true">★</span><span>Top</span>
+          </button>
+          <button class="queue-panel__tab" data-tab="moods" type="button" role="tab" aria-selected="false">
+            <span class="queue-panel__tab-ico" aria-hidden="true">◐</span><span>Moods</span>
+          </button>
+          <button class="queue-panel__tab" data-tab="albums" type="button" role="tab" aria-selected="false">
+            <span class="queue-panel__tab-ico" aria-hidden="true">◉</span><span>Albums</span>
+          </button>
         </div>
         <div class="queue-panel__body" id="queueBody"></div>
       </div>
@@ -1330,6 +1365,17 @@ function setupShell(root: HTMLElement) {
           </section>
 
           <section class="cast-settings__group">
+            <h5>Receiver</h5>
+            <div class="cast-settings__row">
+              <label class="cast-settings__toggle">
+                <input id="castReceiverMode" type="checkbox" />
+                <span>Branded TV UI <span class="cast-settings__hint-inline">(custom 228565CB)</span></span>
+              </label>
+            </div>
+            <p class="cast-settings__hint">Off: stock Google Media Receiver — works on any Cast device. On: custom 10-foot UI with synced lyrics, palette, queue. Requires a device registered to <code>228565CB</code>; falls back automatically if not.</p>
+          </section>
+
+          <section class="cast-settings__group">
             <h5>About</h5>
             <p class="cast-settings__about">Android-TV-style remote for bZ. Live frequency analysis on the local Web Audio mirror, receiver streams source MP3, palette extracted per-track from album art, lyrics from LRC files when available.</p>
           </section>
@@ -1357,6 +1403,48 @@ function setupShell(root: HTMLElement) {
   `;
 }
 
+function mandalaSVG(): string {
+  const ticks = Array.from({ length: 24 }, (_, i) =>
+    `<g transform="rotate(${i * 15})"><line x1="0" y1="-142" x2="0" y2="-120"/></g>`
+  ).join('');
+  const petals = Array.from({ length: 12 }, (_, i) =>
+    `<g transform="rotate(${i * 30})"><path d="M 0 -120 Q 12 -94 0 -68 Q -12 -94 0 -120 Z"/></g>`
+  ).join('');
+  const smallPetals = Array.from({ length: 8 }, (_, i) =>
+    `<g transform="rotate(${i * 45 + 22.5})"><path d="M 0 -68 Q 7 -55 0 -42 Q -7 -55 0 -68 Z"/></g>`
+  ).join('');
+  const starPath = '0,-3 0.88,-0.93 2.85,-0.93 1.28,0.36 1.87,2.33 0,1.13 -1.87,2.33 -1.28,0.36 -2.85,-0.93 -0.88,-0.93';
+  const stars = Array.from({ length: 12 }, (_, i) =>
+    `<g transform="rotate(${i * 30}) translate(0 -150) rotate(180)"><polygon points="${starPath}"/></g>`
+  ).join('');
+  return `
+    <svg class="album__cover-mandala" viewBox="0 0 320 320" aria-hidden="true" focusable="false">
+      <g fill="none" stroke="rgba(232,232,240,0.42)" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="160" cy="160" r="150" stroke-width="0.5"/>
+        <circle cx="160" cy="160" r="142" stroke-width="0.4" stroke-dasharray="2 4" stroke-opacity="0.6"/>
+        <circle cx="160" cy="160" r="120" stroke-width="0.5"/>
+        <circle cx="160" cy="160" r="94"  stroke-width="0.45"/>
+        <circle cx="160" cy="160" r="68"  stroke-width="0.55"/>
+        <circle cx="160" cy="160" r="42"  stroke-width="0.5"/>
+        <circle cx="160" cy="160" r="22"  stroke-width="0.6"/>
+        <g transform="translate(160 160)" stroke-width="0.45" stroke-opacity="0.55">${ticks}</g>
+        <g transform="translate(160 160)" stroke-width="0.55" stroke-opacity="0.62">${petals}</g>
+        <g transform="translate(160 160)" stroke-width="0.5" stroke-opacity="0.5">${smallPetals}</g>
+        <g transform="translate(160 160)" fill="rgba(232,232,240,0.38)" stroke="none">${stars}</g>
+        <g transform="translate(160 160) rotate(180)" stroke-width="0.7" stroke-opacity="0.78">
+          <polygon points="0,-18 5.29,-5.56 17.12,-5.56 7.72,2.12 11.21,13.98 0,6.75 -11.21,13.98 -7.72,2.12 -17.12,-5.56 -5.29,-5.56"/>
+        </g>
+        <g stroke-width="0.55" stroke-opacity="0.88">
+          <path d="M 158 154 Q 150 158 152 166 Q 156 171 160 167"/>
+          <path d="M 162 166 Q 170 162 168 154 Q 164 149 160 153"/>
+          <circle cx="156.5" cy="159.5" r="0.7" fill="rgba(232,232,240,0.85)" stroke="none"/>
+          <circle cx="163.5" cy="160.5" r="0.7" fill="rgba(232,232,240,0.85)" stroke="none"/>
+        </g>
+      </g>
+    </svg>
+  `;
+}
+
 function renderAlbums(host: HTMLElement) {
   const savedTop = host.scrollTop;
   const isFeatured = Boolean(currentAlbumFilter);
@@ -1364,29 +1452,42 @@ function renderAlbums(host: HTMLElement) {
     ? ALBUMS.filter(a => a.id === currentAlbumFilter)
     : [...ALBUMS].sort((a, b) => (b.releasedAt ?? '').localeCompare(a.releasedAt ?? ''));
   const back = currentAlbumFilter
-    ? `<a class="albums__back" data-albums-back href="/" aria-label="Back to all albums">← all albums</a>`
+    ? `<a class="albums__back" data-albums-back href="/" aria-label="Back to all albums"><svg class="albums__back-arrow" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg><span>all albums</span></a>`
     : '';
+  const aiPlaylistModule = currentAlbumFilter ? '' : `
+    <aside class="ai-playlist ai-playlist--rail" aria-label="AI's Choice — top picks for you" id="aiPlaylistWrap">
+      <header class="ai-playlist__head">
+        <span class="ai-playlist__eyebrow">AI's Choice</span>
+      </header>
+      <div class="ai-playlist__list" id="aiPlaylist" role="list"></div>
+    </aside>`;
   const spotifyEmbed = SPOTIFY_ARTIST_ID
     ? `<div class="album__spotify"><iframe src="https://open.spotify.com/follow/1/?uri=spotify:artist:${SPOTIFY_ARTIST_ID}&size=detail&theme=dark&show-count=0" width="100%" height="56" scrolling="no" frameborder="0" allowtransparency="true" allow="encrypted-media" title="Follow bZ on Spotify"></iframe></div>`
     : '';
-  host.innerHTML = back + visible.map(album => {
+  host.innerHTML = back + aiPlaylistModule + visible.map(album => {
     const tracks = album.trackIds.map(id => TRACK_BY_ID.get(id)).filter(Boolean) as Track[];
     return `
       <section class="album ${isFeatured ? 'album--featured' : ''}" data-album="${album.id}" style="--album-accent: ${album.accent};">
         <header class="album__head">
-          <a class="album__cover" data-album-link="${album.id}" href="${albumPath(album.id)}" aria-label="Open ${album.name}">
-            <img src="${album.cover}" alt="${album.name} cover art" loading="lazy" decoding="async" />
-          </a>
+          <div class="album__cover-stage">
+            <a class="album__cover" data-album-link="${album.id}" href="${albumPath(album.id)}" aria-label="Open ${album.name}">
+              <img src="${album.cover}" alt="${album.name} cover art" loading="lazy" decoding="async" />
+            </a>
+            ${isFeatured ? `
+              <div class="album__cover-veil" aria-hidden="true">${mandalaSVG()}</div>
+              <button class="album__cover-share" type="button" data-share-album="${album.id}" aria-label="Share ${album.name}">
+                <span class="album__cover-share-eyebrow">No pity from the stars</span>
+                <span class="album__cover-share-line">Don't Share.</span>
+                <span class="album__cover-share-sub">They Already Cancelled You.</span>
+              </button>
+            ` : ''}
+          </div>
           <div class="album__head-meta">
             <p class="album__eyebrow">album${album.releasedAt ? ` · ${album.releasedAt}` : ''}</p>
             <h3 class="album__title">${album.name}</h3>
             <p class="album__tagline">${album.tagline}</p>
             <p class="album__count">${tracks.length} tracks · bZ</p>
           </div>
-          <button class="share-chip share-chip--head" type="button" data-share-album="${album.id}" aria-label="Share ${album.name}">
-            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            <span>Share</span>
-          </button>
         </header>
         ${isFeatured ? spotifyEmbed : ''}
         <ol class="album__tracks" role="list">
@@ -1394,7 +1495,7 @@ function renderAlbums(host: HTMLElement) {
             const plays = playCounts.get(t.id) ?? 0;
             return `
             <li class="trackrow-wrap">
-              <a class="trackrow ${t.id === currentTrackId ? 'is-current' : ''}" data-track="${t.id}" href="${trackPath(t)}">
+              <a class="trackrow ${t.id === currentTrackId ? 'is-current' : ''}" data-track="${t.id}" data-tags="${trackTagsAttr(t.id)}" href="${trackPath(t)}">
                 <span class="trackrow__num"><span class="trackrow__bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="trackrow__num-txt">${(idx + 1).toString().padStart(2, '0')}</span></span>
                 <span class="trackrow__title">${t.title}</span>
                 <span class="trackrow__vibe">${t.vibe}</span>
@@ -1420,6 +1521,31 @@ function renderAlbums(host: HTMLElement) {
     `;
   }).join('');
   host.scrollTop = savedTop;
+  if (!currentAlbumFilter) {
+    bindAiPlaylist();
+    refreshAiPlaylist();
+  }
+}
+
+type TagChip = { kind: 'mood' | 'theme' | 'genre' | 'place' | 'tempo' | 'energy'; label: string };
+
+function topTagsFor(tags: ReturnType<typeof getTrackTags>, max = 5): TagChip[] {
+  if (!tags) return [];
+  const chips: TagChip[] = [];
+  tags.moods.slice(0, 2).forEach(m => chips.push({ kind: 'mood', label: m }));
+  tags.genres.slice(0, 1).forEach(g => chips.push({ kind: 'genre', label: g }));
+  tags.themes.slice(0, 1).forEach(t => chips.push({ kind: 'theme', label: t }));
+  tags.places.slice(0, 1).forEach(p => chips.push({ kind: 'place', label: p }));
+  if (chips.length < max) chips.push({ kind: 'energy', label: tags.energy });
+  if (chips.length < max) chips.push({ kind: 'tempo', label: `${tags.identifiers.bpmHint} bpm` });
+  return chips.slice(0, max);
+}
+
+function trackTagsAttr(trackId: string): string {
+  const t = TRACK_TAGS.get(trackId);
+  if (!t) return '';
+  const flat = [...t.moods, ...t.themes, ...t.genres, ...t.places, t.energy, t.tempo, ...t.contains];
+  return flat.join(' ');
 }
 
 function renderNowPlaying(track: Track | null) {
@@ -1431,6 +1557,18 @@ function renderNowPlaying(track: Track | null) {
   if (heroAlbum) heroAlbum.textContent = (album?.name || 'bZ · Cyan Flag').toUpperCase();
   if (heroTitle) heroTitle.textContent = (track ? track.title : 'PRESS PLAY').toUpperCase();
   if (heroVibe) heroVibe.textContent = track?.vibe || 'Web Audio API live. Hard but holy.';
+  const heroTags = $('#heroTags');
+  if (heroTags) {
+    const tags = track ? getTrackTags(track.id) : undefined;
+    const chips = tags ? topTagsFor(tags, 5) : [];
+    if (chips.length) {
+      heroTags.innerHTML = chips.map(c => `<span class="viz__hero-tag viz__hero-tag--${c.kind}" title="${c.kind}">${c.label}</span>`).join('');
+      heroTags.hidden = false;
+    } else {
+      heroTags.innerHTML = '';
+      heroTags.hidden = true;
+    }
+  }
   if (npChrome) npChrome.textContent = track ? `${track.title} — ${album?.name ?? 'bZ'}` : 'press play';
   const npCover = $('#transportNpCover') as HTMLImageElement | null;
   const npAlbum = $('#transportNpAlbum');
@@ -1480,7 +1618,15 @@ async function loadLyrics(track: Track): Promise<LyricsBundle> {
     }
   } catch { /* fall through */ }
   const dur = engine.audio.duration && Number.isFinite(engine.audio.duration) ? engine.audio.duration : 180;
-  const bundle = synthesizeBundle(track.lyrics, dur);
+  const lines = track.lyrics && track.lyrics.length
+    ? track.lyrics
+    : [
+        track.title,
+        track.vibe || '—',
+        'Lyrics unavailable for this drop.',
+        'Press F for full-screen visualizer.'
+      ];
+  const bundle = synthesizeBundle(lines, dur);
   lyricsCache.set(track.id, bundle);
   return bundle;
 }
@@ -1535,7 +1681,7 @@ function buildLyricsLines(bundle: LyricsBundle) {
   lyricsLastWordIdx = -2;
   lyricsLastScrollIdx = -2;
   fsInner.innerHTML = bundle.lines.map((l, i) =>
-    `<p class="lyrics-fs__line lyrics-fs__line--future" data-fs-idx="${i}">${escapeHtml(l.text)}</p>`
+    `<p class="lyrics-fs__line lyrics-fs__line--future" data-fs-idx="${i}">${escapeHtml(capitalizeLyricLine(l.text))}</p>`
   ).join('');
   lyricsLineEls = Array.from(fsInner.querySelectorAll<HTMLParagraphElement>('.lyrics-fs__line'));
   fitLyricsLines();
@@ -1654,6 +1800,11 @@ function startKaraoke() {
       lyricsLastLineIdx = idx;
     }
 
+    if (karaokeOverlayOn && idx !== karaokeLastIdx) {
+      paintKaraokeOverlay(idx, activeLyrics);
+      karaokeLastIdx = idx;
+    }
+
     if (lyricsFsOpen && idx !== lyricsLastScrollIdx) {
       const active = lyricsLineEls[idx];
       if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1677,6 +1828,23 @@ function startKaraoke() {
       }
     }
 
+    if (karaokeOverlayOn && karaokeOverlayWordSpans.length && karaokeOverlayWords.length) {
+      let oa = -1;
+      for (let i = 0; i < karaokeOverlayWords.length; i++) {
+        const w = karaokeOverlayWords[i];
+        if (t >= w.s && t < w.e) { oa = i; break; }
+        if (t < w.s) { oa = i - 1; break; }
+      }
+      if (oa === -1 && t >= karaokeOverlayWords[karaokeOverlayWords.length - 1].e) oa = karaokeOverlayWords.length - 1;
+      if (oa !== karaokeOverlayWordIdx) {
+        for (let i = 0; i < karaokeOverlayWordSpans.length; i++) {
+          karaokeOverlayWordSpans[i].classList.toggle('karaoke__w--past', i < oa);
+          karaokeOverlayWordSpans[i].classList.toggle('karaoke__w--active', i === oa);
+        }
+        karaokeOverlayWordIdx = oa;
+      }
+    }
+
     // FFT amplitude coupling — active word glow + scale modulated by the
     // vocal-band energy so words physically "sing" with the track. Reads
     // the visualizer-owned analyser via the engine.
@@ -1693,6 +1861,159 @@ function startKaraoke() {
     lyricsRaf = requestAnimationFrame(tick);
   };
   lyricsRaf = requestAnimationFrame(tick);
+}
+
+/**
+ * Paints the center-screen karaoke overlay (#karaoke). Shows previous, current,
+ * and next line, each capitalized. Tinted by the album/track accent so it sits
+ * naturally over the visualizer.
+ */
+function paintKaraokeOverlay(idx: number, bundle: LyricsBundle) {
+  const host = $('#karaoke') as HTMLElement | null;
+  if (!host || host.hidden) return;
+  const prev2 = $('#karaokePrev2') as HTMLElement | null;
+  const prev = $('#karaokePrev') as HTMLElement | null;
+  const now = $('#karaokeNow') as HTMLElement | null;
+  const next = $('#karaokeNext') as HTMLElement | null;
+  const next2 = $('#karaokeNext2') as HTMLElement | null;
+  if (!prev || !now || !next) return;
+  const lines = bundle.lines;
+  if (prev2) prev2.textContent = idx > 1 ? capitalizeLyricLine(lines[idx - 2].text) : '';
+  prev.textContent = idx > 0 ? capitalizeLyricLine(lines[idx - 1].text) : '';
+  if (next2) next2.textContent = idx + 2 < lines.length ? capitalizeLyricLine(lines[idx + 2].text) : '';
+  next.textContent = idx + 1 < lines.length ? capitalizeLyricLine(lines[idx + 1].text) : '';
+
+  // Per-word render for current line — drives karaoke__w--active highlighting.
+  karaokeOverlayWords = [];
+  karaokeOverlayWordSpans = [];
+  karaokeOverlayWordIdx = -2;
+  const ln = lines[idx];
+  if (ln) {
+    const words = bundle.words ?? [];
+    let lineWords = words.filter(w => (w.line ?? -1) === idx);
+    if (!lineWords.length && words.length) {
+      lineWords = words.filter(w => w.s >= ln.s - 0.2 && w.s < ln.e + 0.2);
+    }
+    if (lineWords.length) {
+      karaokeOverlayWords = lineWords;
+      now.innerHTML = lineWords
+        .map((w, i) => {
+          const text = i === 0
+            ? escapeHtml(w.w.charAt(0).toUpperCase() + w.w.slice(1))
+            : escapeHtml(w.w);
+          return `<span class="karaoke__w" data-idx="${i}">${text}</span>`;
+        })
+        .join(' ');
+      karaokeOverlayWordSpans = Array.from(now.querySelectorAll<HTMLSpanElement>('.karaoke__w'));
+    } else {
+      now.textContent = capitalizeLyricLine(ln.text);
+    }
+  } else {
+    now.textContent = '';
+  }
+  host.classList.add('is-pulse');
+  setTimeout(() => host.classList.remove('is-pulse'), 360);
+}
+
+let karaokeDragBound = false;
+function bindKaraokeDrag() {
+  if (karaokeDragBound) return;
+  const host = $('#karaoke') as HTMLElement | null;
+  const handle = $('#karaokeHandle') as HTMLElement | null;
+  if (!host || !handle) return;
+  karaokeDragBound = true;
+
+  try {
+    const raw = localStorage.getItem('bz:karaoke:pos');
+    if (raw) {
+      const p = JSON.parse(raw) as { x: number; y: number };
+      if (Number.isFinite(p.x) && Number.isFinite(p.y)) {
+        host.style.left = `${p.x}px`;
+        host.style.top = `${p.y}px`;
+        host.style.right = 'auto';
+        host.style.bottom = 'auto';
+        host.style.transform = 'none';
+      }
+    }
+  } catch { /* private mode */ }
+
+  let dragging = false;
+  let startX = 0; let startY = 0;
+  let origLeft = 0; let origTop = 0;
+
+  const onMove = (e: PointerEvent) => {
+    if (!dragging) return;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const rect = host.getBoundingClientRect();
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    const nx = Math.max(8, Math.min(vw - rect.width - 8, origLeft + dx));
+    const ny = Math.max(8, Math.min(vh - rect.height - 8, origTop + dy));
+    host.style.left = `${nx}px`;
+    host.style.top = `${ny}px`;
+    host.style.right = 'auto';
+    host.style.bottom = 'auto';
+    host.style.transform = 'none';
+  };
+  const onUp = (e: PointerEvent) => {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('is-dragging');
+    host.classList.remove('is-dragging');
+    try { handle.releasePointerCapture(e.pointerId); } catch { /* noop */ }
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    const rect = host.getBoundingClientRect();
+    try { localStorage.setItem('bz:karaoke:pos', JSON.stringify({ x: rect.left, y: rect.top })); } catch { /* noop */ }
+  };
+  handle.addEventListener('pointerdown', (e: PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    dragging = true;
+    const rect = host.getBoundingClientRect();
+    // Lock to absolute pixel coords so transform-based centering doesn't fight the drag.
+    host.style.left = `${rect.left}px`;
+    host.style.top = `${rect.top}px`;
+    host.style.right = 'auto';
+    host.style.bottom = 'auto';
+    host.style.transform = 'none';
+    origLeft = rect.left;
+    origTop = rect.top;
+    startX = e.clientX;
+    startY = e.clientY;
+    handle.classList.add('is-dragging');
+    host.classList.add('is-dragging');
+    try { handle.setPointerCapture(e.pointerId); } catch { /* noop */ }
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    e.preventDefault();
+  });
+  // Double-click handle to reset to default position.
+  handle.addEventListener('dblclick', () => {
+    host.style.removeProperty('left');
+    host.style.removeProperty('top');
+    host.style.removeProperty('right');
+    host.style.removeProperty('bottom');
+    host.style.removeProperty('transform');
+    try { localStorage.removeItem('bz:karaoke:pos'); } catch { /* noop */ }
+  });
+}
+
+/**
+ * Toggle the center-screen karaoke overlay. Persists preference to localStorage.
+ */
+function setKaraokeOverlay(on: boolean) {
+  karaokeOverlayOn = on;
+  try { localStorage.setItem('bz:karaoke:overlay', on ? '1' : '0'); } catch { /* private mode */ }
+  const host = $('#karaoke') as HTMLElement | null;
+  if (host) host.hidden = !on;
+  const btn = $('#btnLyricsOverlay') as HTMLButtonElement | null;
+  if (btn) btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  if (on) bindKaraokeDrag();
+  if (on && activeLyrics) {
+    karaokeLastIdx = -2;
+    paintKaraokeOverlay(Math.max(0, lyricsLastLineIdx), activeLyrics);
+  }
 }
 
 function spawnRipple(host: HTMLElement, e: MouseEvent) {
@@ -1712,6 +2033,18 @@ function escapeHtml(s: string): string {
     : ch === '>' ? '&gt;'
     : ch === '"' ? '&quot;'
     : '&#39;');
+}
+
+/**
+ * Capitalize the first alphabetic character of a lyric line plus the first
+ * alphabetic character after sentence-ending punctuation. Preserves existing
+ * casing for proper nouns, acronyms, slang spellings (cuz it ain't on me).
+ */
+function capitalizeLyricLine(s: string): string {
+  if (!s) return s;
+  let out = s.replace(/^(\s*['"`(]*)([a-z])/, (_m, p, c) => p + c.toUpperCase());
+  out = out.replace(/([.!?]\s+['"`(]*)([a-z])/g, (_m, p, c) => p + c.toUpperCase());
+  return out;
 }
 
 async function play(track: Track) {
@@ -2332,7 +2665,7 @@ async function refreshCastLyrics(track: Track): Promise<void> {
             .filter(w => (w.line ?? -1) === i)
             .map(w => ({ w: w.w, s: w.s, e: w.e }))
         : [];
-      return { t: l.s, e: l.e, text: l.text, words };
+      return { t: l.s, e: l.e, text: capitalizeLyricLine(l.text), words };
     });
     renderCastLyricsList();
     if (cast.customChannelOpen) {
@@ -3051,6 +3384,24 @@ function bindCastSheet(): void {
     } catch { /* noop */ }
   });
 
+  // Branded TV UI (custom receiver App ID 228565CB) — persisted opt-in.
+  // Off by default so first-time users land on Default Media Receiver, which
+  // is registered on every Cast device. Toggle re-applies CastContext options
+  // so the next requestSession() lands on the chosen receiver.
+  const modeToggle = $('#castReceiverMode') as HTMLInputElement | null;
+  if (modeToggle) {
+    const saved = (() => { try { return localStorage.getItem(CAST_MODE_KEY) === 'custom'; } catch { return false; } })();
+    modeToggle.checked = saved;
+    if (saved) cast.enableCustomReceiver();
+    modeToggle.addEventListener('change', () => {
+      const on = modeToggle.checked;
+      try { localStorage.setItem(CAST_MODE_KEY, on ? 'custom' : 'default'); } catch { /* swallow */ }
+      if (on) cast.enableCustomReceiver();
+      else cast.disableCustomReceiver();
+      showToast(on ? 'Branded TV UI on — pick a device registered to 228565CB' : 'Default receiver — works on any Cast device');
+    });
+  }
+
   bindCastHueControls();
 }
 
@@ -3067,6 +3418,7 @@ function showToast(message: string): void {
 }
 
 const NOTIFY_LOCAL_KEY = 'bz:notify:email';
+const CAST_MODE_KEY = 'bz:cast:receiver-mode';
 
 async function refreshNotifyToggle(): Promise<void> {
   const btn = $('#notifyToggle') as HTMLButtonElement | null;
@@ -3483,7 +3835,7 @@ function bindUi() {
     const on = vizAutoCycle.checked;
     visualizer.setAutoCycle(on);
   });
-  const dlg = $('#vizPicker');
+  const dlg = $('#vizPicker') as HTMLElement | null;
   dlg?.addEventListener('toggle', (e) => {
     const open = (e as ToggleEvent).newState === 'open';
     const btn = $('#modeBtn');
@@ -3492,6 +3844,76 @@ function bindUi() {
       vizSearch.value = '';
       filterVizGrid(vizGrid, '');
       requestAnimationFrame(() => vizSearch.focus());
+    }
+    if (!open) {
+      // Restore focus to the opener button so keyboard nav stays on track.
+      (btn as HTMLButtonElement | null)?.focus({ preventScroll: true });
+    }
+  });
+
+  // Keyboard navigation inside the popover: arrow keys cycle chips,
+  // Home/End jump to ends, Enter activates focused chip, "/" focuses search,
+  // Esc closes (popover=auto already handles this — kept explicit for safety).
+  dlg?.addEventListener('keydown', (e: KeyboardEvent) => {
+    const k = e.key;
+    if (k === 'Escape') {
+      (dlg as HTMLElement & { hidePopover?: () => void }).hidePopover?.();
+      e.preventDefault();
+      return;
+    }
+    if (k === '/' && document.activeElement !== vizSearch) {
+      vizSearch?.focus();
+      e.preventDefault();
+      return;
+    }
+    const chips = Array.from(vizGrid?.querySelectorAll<HTMLButtonElement>('.viz-chip:not([hidden])') ?? []);
+    if (!chips.length) return;
+    const active = document.activeElement as HTMLElement | null;
+    const inGrid = active && vizGrid?.contains(active);
+    // Down/Right from search → first chip.
+    if (active === vizSearch && (k === 'ArrowDown' || k === 'ArrowRight')) {
+      chips[0]?.focus();
+      e.preventDefault();
+      return;
+    }
+    if (!inGrid) return;
+    const i = chips.indexOf(active as HTMLButtonElement);
+    if (i < 0) return;
+    let next = i;
+    if (k === 'ArrowRight') next = (i + 1) % chips.length;
+    else if (k === 'ArrowLeft') next = (i - 1 + chips.length) % chips.length;
+    else if (k === 'ArrowDown') {
+      // Estimate row width by clientWidth / chip width.
+      const w = chips[0].getBoundingClientRect().width || 1;
+      const rowSize = Math.max(1, Math.floor((vizGrid?.clientWidth ?? w) / w));
+      next = Math.min(chips.length - 1, i + rowSize);
+    }
+    else if (k === 'ArrowUp') {
+      const w = chips[0].getBoundingClientRect().width || 1;
+      const rowSize = Math.max(1, Math.floor((vizGrid?.clientWidth ?? w) / w));
+      next = Math.max(0, i - rowSize);
+      if (next === i) { vizSearch?.focus(); e.preventDefault(); return; }
+    }
+    else if (k === 'Home') next = 0;
+    else if (k === 'End') next = chips.length - 1;
+    else if (k === 'Enter' || k === ' ') {
+      chips[i].click();
+      e.preventDefault();
+      return;
+    }
+    else return;
+    chips[next]?.focus();
+    e.preventDefault();
+  });
+
+  // Search → ArrowDown / Enter jumps to first visible chip.
+  vizSearch?.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === 'ArrowDown') {
+      const first = vizGrid?.querySelector<HTMLButtonElement>('.viz-chip:not([hidden])');
+      if (first) {
+        first.focus();
+        e.preventDefault();
+      }
     }
   });
 
@@ -3636,6 +4058,7 @@ function bindUi() {
     moreMenu.style.bottom = `${window.innerHeight - r.top + 10}px`;
     moreMenu.hidden = false;
     moreBtn.setAttribute('aria-expanded', 'true');
+    mountSpotifyConnect(moreMenu);
   };
   moreBtn?.addEventListener('click', e => {
     e.stopPropagation();
@@ -3677,15 +4100,33 @@ function bindUi() {
   });
 
   $('#queueClose')?.addEventListener('click', () => closeQueuePanel());
-  $('#queueBackdrop')?.addEventListener('click', () => closeQueuePanel());
   document.querySelectorAll<HTMLButtonElement>('.queue-panel__tab').forEach(b => {
-    b.addEventListener('click', () => renderQueueTab(b.dataset.tab ?? 'up-next'));
+    b.addEventListener('click', () => {
+      renderQueueTab(b.dataset.tab ?? 'up-next');
+      bumpQueueIdle();
+    });
   });
+  $('#queuePanel')?.addEventListener('pointerdown', bumpQueueIdle);
   $('#queueBody')?.addEventListener('click', e => {
-    const row = (e.target as HTMLElement).closest('[data-q-track]') as HTMLButtonElement | null;
+    const target = e.target as HTMLElement;
+    const filterChip = target.closest<HTMLButtonElement>('[data-q-filter]');
+    if (filterChip) {
+      const kind = filterChip.dataset.qFilter ?? '';
+      const value = filterChip.dataset.qValue ?? '';
+      renderQueueTab(currentQueueTab, { kind, value });
+      bumpQueueIdle();
+      return;
+    }
+    const row = target.closest<HTMLButtonElement>('[data-q-track]');
     if (!row) return;
     const t = TRACK_BY_ID.get(row.dataset.qTrack!);
-    if (t) { closeQueuePanel(); play(t); }
+    if (t) {
+      play(t);
+      bumpQueueIdle();
+      const body = $('#queueBody');
+      body?.querySelectorAll<HTMLElement>('[data-q-track].is-current').forEach(el => el.classList.remove('is-current'));
+      row.classList.add('is-current');
+    }
   });
 
   $('#shortcutsCloseBtn')?.addEventListener('click', () => closeShortcuts());
@@ -3803,6 +4244,11 @@ function bindUi() {
     if ((e.data as { type?: string } | null)?.type === 'panda-appeal-close') closeAppeal();
   });
 
+  // Live lyrics overlay
+  $('#btnLyricsOverlay')?.addEventListener('click', () => setKaraokeOverlay(!karaokeOverlayOn));
+  $('#karaokeClose')?.addEventListener('click', () => setKaraokeOverlay(false));
+  setKaraokeOverlay(karaokeOverlayOn);
+
   // Search overlay
   $('#btnSearch')?.addEventListener('click', () => openSearch());
   $('#cmdk')?.addEventListener('click', e => {
@@ -3901,6 +4347,7 @@ function bindUi() {
     else if (e.code === 'KeyV') {
       if (e.shiftKey) visualizer.cycleModeReverse(); else visualizer.cycleMode();
     }
+    else if (e.code === 'KeyL' && e.shiftKey) { setKaraokeOverlay(!karaokeOverlayOn); }
     else if (e.code === 'KeyL' || e.code === 'KeyF') { if (lyricsFsOpen) closeLyricsFs(); else openLyricsFs(); }
     else if (e.code === 'KeyM') $('#btnVol')?.click();
     else if (e.code === 'KeyH') { if (currentTrackId) openShare('track', currentTrackId); }
@@ -4170,56 +4617,150 @@ function refreshLyricsFs() {
   if (albumEl) albumEl.textContent = album?.name ?? 'bZ';
 }
 
+let currentQueueTab = 'up-next';
+let currentQueueFilter: { kind: string; value: string } | null = null;
+let queueIdleTimer: ReturnType<typeof setTimeout> | null = null;
+let queueIdleDeadline = 0;
+let queueIdleTicker: ReturnType<typeof setInterval> | null = null;
+const QUEUE_IDLE_MS = 60_000;
+
 function openQueuePanel() {
   queuePanelOpen = true;
   $('#queuePanel')?.classList.add('is-open');
-  renderQueueTab('up-next');
+  if (!currentQueueTab) currentQueueTab = 'up-next';
+  renderQueueTab(currentQueueTab, currentQueueFilter);
+  bumpQueueIdle();
 }
 
 function closeQueuePanel() {
   queuePanelOpen = false;
   $('#queuePanel')?.classList.remove('is-open');
+  if (queueIdleTimer) { clearTimeout(queueIdleTimer); queueIdleTimer = null; }
+  if (queueIdleTicker) { clearInterval(queueIdleTicker); queueIdleTicker = null; }
 }
 
-function renderQueueTab(tab: string) {
+function bumpQueueIdle() {
+  if (!queuePanelOpen) return;
+  if (queueIdleTimer) clearTimeout(queueIdleTimer);
+  queueIdleDeadline = Date.now() + QUEUE_IDLE_MS;
+  queueIdleTimer = setTimeout(() => closeQueuePanel(), QUEUE_IDLE_MS);
+  updateQueueIdleHint();
+  if (!queueIdleTicker) {
+    queueIdleTicker = setInterval(updateQueueIdleHint, 1000);
+  }
+}
+
+function updateQueueIdleHint() {
+  const hint = $('#queueIdleHint');
+  if (!hint) return;
+  const remain = Math.max(0, Math.round((queueIdleDeadline - Date.now()) / 1000));
+  hint.textContent = `idle close in ${remain}s`;
+}
+
+interface QueueGroup { label: string; sub?: string; tracks: Track[]; }
+
+function renderQueueTab(tab: string, filter: { kind: string; value: string } | null = null) {
   const body = $('#queueBody');
   if (!body) return;
+  currentQueueTab = tab;
+  currentQueueFilter = filter && filter.value ? filter : null;
   document.querySelectorAll<HTMLButtonElement>('.queue-panel__tab').forEach(b => {
     const active = b.dataset.tab === tab;
     b.classList.toggle('is-active', active);
     b.setAttribute('aria-selected', active ? 'true' : 'false');
   });
+
+  if (tab === 'moods') {
+    body.innerHTML = renderQueueGroupedView(buildMoodGroups(), 'moods', filter);
+    return;
+  }
+  if (tab === 'albums') {
+    body.innerHTML = renderQueueGroupedView(buildAlbumGroups(), 'albums', filter);
+    return;
+  }
+
   let list: Track[] = [];
+  let emptyMsg = 'No tracks here yet.';
   if (tab === 'up-next') {
     const idx = TRACKS.findIndex(t => t.id === currentTrackId);
-    if (idx >= 0) list = TRACKS.slice(idx + 1).concat(TRACKS.slice(0, idx)).slice(0, 8);
-    else list = TRACKS.slice(0, 8);
+    if (idx >= 0) list = TRACKS.slice(idx + 1).concat(TRACKS.slice(0, idx)).slice(0, 12);
+    else list = TRACKS.slice(0, 12);
+    emptyMsg = 'No tracks queued.';
+  } else if (tab === 'ai') {
+    list = aiPicks(10).map(p => TRACK_BY_ID.get(p.trackId)).filter(Boolean) as Track[];
+    emptyMsg = 'AI picks warming up — play a few tracks and they appear here.';
   } else if (tab === 'recent') {
     list = recentTracks.map(id => TRACK_BY_ID.get(id)).filter(Boolean) as Track[];
+    emptyMsg = 'Tracks you played will appear here.';
   } else if (tab === 'top') {
     list = [...TRACKS]
       .map(t => ({ t, n: playCounts.get(t.id) ?? 0 }))
       .filter(x => x.n > 0)
       .sort((a, b) => b.n - a.n)
-      .slice(0, 12)
+      .slice(0, 16)
       .map(x => x.t);
+    emptyMsg = 'Most-played tracks will surface here.';
   }
-  if (!list.length) {
-    body.innerHTML = `<p class="queue-panel__empty">${tab === 'top' ? 'Most-played tracks will surface here.' : tab === 'recent' ? 'Tracks you played will appear here.' : 'No tracks queued.'}</p>`;
-    return;
+  body.innerHTML = list.length
+    ? `<ul class="queue-list" role="list">${list.map(t => renderQueueRow(t, tab === 'ai')).join('')}</ul>`
+    : `<p class="queue-panel__empty">${emptyMsg}</p>`;
+}
+
+function buildMoodGroups(): QueueGroup[] {
+  const groups = new Map<string, Track[]>();
+  for (const t of TRACKS) {
+    const tags = TRACK_TAGS.get(t.id);
+    if (!tags) continue;
+    for (const m of tags.moods) {
+      const arr = groups.get(m) ?? [];
+      arr.push(t);
+      groups.set(m, arr);
+    }
   }
-  body.innerHTML = list.map(t => {
-    const album = ALBUM_BY_ID.get(t.album);
-    const plays = playCounts.get(t.id) ?? 0;
-    return `<button class="queue-row" data-q-track="${t.id}" type="button">
-      <img src="${album?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="44" height="44" loading="lazy" />
-      <span class="queue-row__body">
-        <span class="queue-row__title">${escapeHtml(t.title)}</span>
-        <span class="queue-row__sub">${escapeHtml(album?.name ?? 'bZ')} · ${escapeHtml(t.vibe)}</span>
-      </span>
-      ${plays > 0 ? `<span class="queue-row__plays" aria-label="${plays} plays">${plays}×</span>` : ''}
+  return [...groups.entries()]
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([label, tracks]) => ({ label, tracks }));
+}
+
+function buildAlbumGroups(): QueueGroup[] {
+  return ALBUMS.map(a => ({
+    label: a.name,
+    sub: a.tagline ?? '',
+    tracks: TRACKS.filter(t => t.album === a.id)
+  })).filter(g => g.tracks.length > 0);
+}
+
+function renderQueueGroupedView(groups: QueueGroup[], kind: string, filter: { kind: string; value: string } | null) {
+  if (!groups.length) return `<p class="queue-panel__empty">No groups yet.</p>`;
+  const activeValue = filter?.kind === kind ? filter.value : groups[0].label;
+  const chips = groups.map(g => {
+    const isActive = g.label === activeValue;
+    return `<button class="queue-chip${isActive ? ' is-active' : ''}" type="button" data-q-filter="${escapeHtml(kind)}" data-q-value="${escapeHtml(g.label)}">
+      <span>${escapeHtml(g.label)}</span><span class="queue-chip__n">${g.tracks.length}</span>
     </button>`;
   }).join('');
+  const active = groups.find(g => g.label === activeValue) ?? groups[0];
+  const rows = active.tracks.map(t => renderQueueRow(t, false)).join('');
+  return `<div class="queue-chips" role="tablist">${chips}</div>
+    ${active.sub ? `<p class="queue-group__sub">${escapeHtml(active.sub)}</p>` : ''}
+    <ul class="queue-list" role="list">${rows}</ul>`;
+}
+
+function renderQueueRow(t: Track, showRank: boolean): string {
+  const album = ALBUM_BY_ID.get(t.album);
+  const plays = playCounts.get(t.id) ?? 0;
+  const isCurrent = t.id === currentTrackId;
+  const cover = album?.cover ?? '/art/cover-panda-desiiignare.png';
+  const rankAttr = showRank ? `data-q-rank="1"` : '';
+  return `<li><button class="queue-row${isCurrent ? ' is-current' : ''}" data-q-track="${escapeHtml(t.id)}" type="button" ${rankAttr}>
+    <img src="${cover}" alt="" width="44" height="44" loading="lazy" />
+    <span class="queue-row__body">
+      <span class="queue-row__title">${escapeHtml(t.title)}</span>
+      <span class="queue-row__sub">${escapeHtml(album?.name ?? 'bZ')} · ${escapeHtml(t.vibe)}</span>
+    </span>
+    ${isCurrent ? '<span class="queue-row__now" aria-label="Now playing">▶</span>' : ''}
+    ${plays > 0 && !isCurrent ? `<span class="queue-row__plays" aria-label="${plays} plays">${plays}×</span>` : ''}
+  </button></li>`;
 }
 
 function openShortcuts() {
@@ -4584,11 +5125,158 @@ window.addEventListener('DOMContentLoaded', () => {
   refreshLoopBtn();
   refreshShuffleBtn();
   bindInstallPrompt();
+  void handleSpotifyCallback();
   bootstrapInitialRoute();
   registerServiceWorker();
   void refreshNotifyToggle();
   bindAiPlaylist();
   refreshAiPlaylist();
+  mountAIChat({
+    engine,
+    onCommand: (cmd, args) => {
+      const lc = cmd.toLowerCase();
+      const parseTime = (s: string) => {
+        if (!s) return NaN;
+        if (s.includes(':')) {
+          const [m, sec] = s.split(':').map(Number);
+          return (m || 0) * 60 + (sec || 0);
+        }
+        const n = parseFloat(s);
+        if (s.endsWith('%')) return ((engine.audio.duration || 0) * n) / 100;
+        if (n > 0 && n < 1) return (engine.audio.duration || 0) * n;
+        return n;
+      };
+      if (lc === 'play') { void engine.audio.play(); return true; }
+      if (lc === 'pause') { engine.audio.pause(); return true; }
+      if (lc === 'toggle') { ($('#btnPlay') as HTMLButtonElement | null)?.click(); return true; }
+      if (lc === 'stop') { engine.audio.pause(); engine.audio.currentTime = 0; return true; }
+      if (lc === 'next') { ($('#btnNext') as HTMLButtonElement | null)?.click(); return true; }
+      if (lc === 'prev' || lc === 'previous' || lc === 'back') { ($('#btnPrev') as HTMLButtonElement | null)?.click(); return true; }
+      if (lc === 'like') { ($('#btnLike') as HTMLButtonElement | null)?.click(); return true; }
+      if (lc === 'seek') {
+        const t = parseTime(args[0] || '');
+        if (Number.isFinite(t) && t >= 0) {
+          engine.audio.currentTime = Math.min(t, engine.audio.duration || t);
+        }
+        return true;
+      }
+      if (lc === 'speed') {
+        const r = parseFloat(args[0] || '');
+        if (Number.isFinite(r) && r >= 0.25 && r <= 4) engine.audio.playbackRate = r;
+        return true;
+      }
+      if (lc === 'pitch') {
+        const on = args[0]?.toLowerCase() !== 'off';
+        try { (engine.audio as HTMLAudioElement & { preservesPitch?: boolean }).preservesPitch = on; } catch { /* ignore */ }
+        return true;
+      }
+      if (lc === 'sleep') {
+        const arg = (args[0] || 'track').toLowerCase();
+        const mins = parseFloat(arg);
+        const ms = Number.isFinite(mins) ? mins * 60000 : (arg === 'album' ? 30 * 60000 : 5 * 60000);
+        const startVol = engine.audio.volume;
+        const t0 = performance.now();
+        const fade = () => {
+          const k = (performance.now() - t0) / ms;
+          if (k >= 1) { engine.audio.pause(); engine.audio.volume = startVol; return; }
+          engine.audio.volume = startVol * (1 - k);
+          requestAnimationFrame(fade);
+        };
+        requestAnimationFrame(fade);
+        return true;
+      }
+      if (lc === 'shuffle') { ($('#btnShuffle') as HTMLButtonElement | null)?.click(); return true; }
+      if (lc === 'repeat' || lc === 'loop') { ($('#btnLoop') as HTMLButtonElement | null)?.click(); return true; }
+      if (lc === 'viz') {
+        const arg = (args[0] || '').toLowerCase();
+        if (!arg || arg === 'next') { visualizer.cycleMode(); return true; }
+        if (arg === 'prev') { visualizer.cycleModeReverse(); return true; }
+        if (arg === 'surprise' || arg === 'random') {
+          const modes = visualizer.modeCatalog();
+          visualizer.setMode(modes[Math.floor(Math.random() * modes.length)]);
+          return true;
+        }
+        try { visualizer.setMode(arg as VizMode); } catch { /* ignore */ }
+        return true;
+      }
+      if (lc === 'trails') {
+        const on = args[0]?.toLowerCase() !== 'off';
+        try { (visualizer as unknown as { setTrails?: (b: boolean) => void }).setTrails?.(on); } catch { /* ignore */ }
+        return true;
+      }
+      if (lc === 'palette') {
+        if (!args[0] || args[0].toLowerCase() === 'album') { visualizer.setPalette(null); return true; }
+        return true;
+      }
+      if (lc === 'eq') {
+        const preset = (args[0] || '').toLowerCase();
+        const presets: Record<string, { bass: number; mid: number; treble: number }> = {
+          flat: { bass: 0, mid: 0, treble: 0 },
+          bass: { bass: 6, mid: 0, treble: 0 },
+          vocal: { bass: -2, mid: 4, treble: 1 },
+          treble: { bass: 0, mid: 0, treble: 6 },
+          loud: { bass: 5, mid: -1, treble: 4 }
+        };
+        if (presets[preset]) { engine.setEQ(presets[preset]); return true; }
+        const n = parseFloat(args[1] || '');
+        if (Number.isFinite(n) && (preset === 'bass' || preset === 'mid' || preset === 'treble')) {
+          engine.setEQ({ [preset]: n } as Partial<{ bass: number; mid: number; treble: number }>);
+        }
+        return true;
+      }
+      if (lc === 'reverb') {
+        const a = (args[0] || '').toLowerCase();
+        const presets = ['dry', 'room', 'hall', 'cathedral', 'spring', 'plate'];
+        if (presets.includes(a)) { engine.setReverbPreset(a as 'dry' | 'room' | 'hall' | 'cathedral' | 'spring' | 'plate'); return true; }
+        if (a === 'wet') {
+          const v = parseFloat(args[1] || '');
+          if (Number.isFinite(v)) engine.setReverbWet(v);
+        }
+        return true;
+      }
+      if (lc === 'cast') { ($('#btnCast') as HTMLButtonElement | null)?.click(); return true; }
+      if (lc === 'airplay') { ($('#btnAirplay') as HTMLButtonElement | null)?.click(); return true; }
+      if (lc === 'snap') {
+        const c = $('#bg') as HTMLCanvasElement | null;
+        if (c) {
+          c.toBlob(blob => {
+            if (!blob) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `bz-viz-${Date.now()}.png`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+          }, 'image/png');
+        }
+        return true;
+      }
+      if (lc === 'clip') {
+        const secs = Math.max(2, Math.min(60, parseFloat(args[0] || '15')));
+        const c = $('#bg') as HTMLCanvasElement | null;
+        if (!c || !('captureStream' in c)) return true;
+        const stream = (c as HTMLCanvasElement & { captureStream: (f: number) => MediaStream }).captureStream(30);
+        const rec = new MediaRecorder(stream, { mimeType: 'video/webm' });
+        const chunks: Blob[] = [];
+        rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+        rec.onstop = () => {
+          const blob = new Blob(chunks, { type: 'video/webm' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `bz-clip-${Date.now()}.webm`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        };
+        rec.start();
+        setTimeout(() => rec.stop(), secs * 1000);
+        return true;
+      }
+      if (lc === 'debug') {
+        document.body.classList.toggle('debug-on');
+        return true;
+      }
+      return false;
+    }
+  });
   loadGlobalStats().then(() => refreshAiPlaylist());
   engine.audio.addEventListener('timeupdate', () => {
     if (!currentTrackId) return;

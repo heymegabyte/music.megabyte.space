@@ -7,6 +7,7 @@ const UNSUBSCRIBE_URL = '/api/push/unsubscribe';
 
 export type PushState = 'unsupported' | 'denied' | 'default' | 'subscribed' | 'unsubscribed';
 
+/** Feature-detect Service Worker + Push API + Notification API together. */
 export function pushSupported(): boolean {
   return (
     typeof window !== 'undefined' &&
@@ -16,6 +17,11 @@ export function pushSupported(): boolean {
   );
 }
 
+/**
+ * Resolve the current push-notification state for the active origin.
+ * `unsupported` — API missing. `denied` — user blocked. `default` — never asked.
+ * `subscribed` — active subscription registered. `unsubscribed` — granted but no sub.
+ */
 export async function pushState(): Promise<PushState> {
   if (!pushSupported()) return 'unsupported';
   if (Notification.permission === 'denied') return 'denied';
@@ -26,6 +32,13 @@ export async function pushState(): Promise<PushState> {
   return Notification.permission === 'default' ? 'default' : 'unsubscribed';
 }
 
+/**
+ * Subscribe to push notifications. Idempotent — re-posts an existing
+ * subscription to the worker if one is already registered. On first call,
+ * prompts the user for permission. `reason` carries the failure mode
+ * (`'unsupported'`, `'denied'`, `'default'`, `'vapid_unavailable'`) so the
+ * UI can show a targeted message.
+ */
 export async function subscribePush(): Promise<{ ok: boolean; reason?: string }> {
   if (!pushSupported()) return { ok: false, reason: 'unsupported' };
   if (Notification.permission === 'denied') return { ok: false, reason: 'denied' };
@@ -49,6 +62,11 @@ export async function subscribePush(): Promise<{ ok: boolean; reason?: string }>
   return { ok: true };
 }
 
+/**
+ * Cancel push notifications. Best-effort: posts to the worker so KV is
+ * cleaned proactively, but if the network call fails the worker prunes
+ * 410-Gone endpoints on the next send pass anyway.
+ */
 export async function unsubscribePush(): Promise<boolean> {
   if (!pushSupported()) return false;
   const reg = await navigator.serviceWorker.getRegistration();

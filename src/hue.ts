@@ -31,18 +31,20 @@ export interface GradientLight {
   points: number;
 }
 
-/** Per-frame audio signal driving the gradient. */
+/** Per-frame audio signal driving the gradient. Lights are aesthetic-only —
+ *  only `bass`/`mid`/`treble` modulate brightness; transient drop/build
+ *  predictors are accepted for API stability but ignored (no strobing). */
 export interface HueBands {
   bass: number;       // 0-1 (0-150Hz region)
   mid: number;        // 0-1 (150Hz-2kHz region)
   treble: number;     // 0-1 (2kHz+)
-  beat: number;       // 0-1 transient kick pulse
-  bpm?: number;       // for tempo-locked color drift
-  /** True for ~150ms before AudioEngine predicts a bass drop. Triggers white strobe. */
+  beat: number;       // 0-1 transient kick pulse (ignored — aesthetic mode)
+  bpm?: number;       // (ignored — phase drift is constant)
+  /** Accepted for API stability — ignored in aesthetic mode. */
   dropImminent?: boolean;
-  /** 0-1 smoothed RMS — climbs during a build, drives sustained pre-drop brightness lift. */
+  /** Accepted for API stability — ignored in aesthetic mode. */
   dropEnergy?: number;
-  /** 0-1 build-phase slope — when >0.5 we're in a crescendo, palette sweep accelerates. */
+  /** Accepted for API stability — ignored in aesthetic mode. */
   buildPhase?: number;
 }
 
@@ -268,35 +270,35 @@ export class HueSync {
   }
 
   /**
-   * Drive lights from current audio frame.
+   * Drive lights from current audio frame — aesthetic ambient mode.
+   * Heavy smoothing + low refresh + no transient kicks: the room reads as
+   * mood lighting that gently breathes with the bass. All snap/strobe/drop
+   * behavior was removed — the on-screen visualizer carries the music
+   * detail via Web Audio API analyser, while the lights stay calm.
    * @param accentRgb - palette accent for ambient color (drives v1 group action)
-   * @param bands - bass/mid/treble + beat for multi-zone gradient frames
+   * @param bands - bass/mid/treble for gentle per-zone brightness modulation
    */
   async pulse(accentRgb: [number, number, number], bands: HueBands): Promise<void> {
     if (!this.isReady()) return;
 
-    const { bass: bassEnergy, beat: beatPulse } = bands;
+    const { bass: bassEnergy } = bands;
+    // Heavy smoothing on the accent color so the bar drifts between palette
+    // shades instead of snapping. Aesthetic background light, not a strobe.
     this.smoothed = [
-      this.smoothed[0] * 0.7 + accentRgb[0] * 0.3,
-      this.smoothed[1] * 0.7 + accentRgb[1] * 0.3,
-      this.smoothed[2] * 0.7 + accentRgb[2] * 0.3
+      this.smoothed[0] * 0.92 + accentRgb[0] * 0.08,
+      this.smoothed[1] * 0.92 + accentRgb[1] * 0.08,
+      this.smoothed[2] * 0.92 + accentRgb[2] * 0.08
     ];
-    // Drop predictor override: AudioEngine flips `dropImminent` ~150ms before the kick,
-    // and `dropEnergy` ramps through the build. Together they wash the bar to white
-    // just-in-time so the strobe lands ON the drop, not behind it.
-    const dropFlash = bands.dropImminent ? 1 : 0;
-    const buildLift = Math.max(0, Math.min(1, bands.dropEnergy ?? 0));
-    const flash = Math.max(0, Math.min(1, Math.max(beatPulse, dropFlash)));
-    const r = this.smoothed[0] + (255 - this.smoothed[0]) * flash * 0.55;
-    const g = this.smoothed[1] + (255 - this.smoothed[1]) * flash * 0.55;
-    const b = this.smoothed[2] + (255 - this.smoothed[2]) * flash * 0.55;
+    const r = this.smoothed[0];
+    const g = this.smoothed[1];
+    const b = this.smoothed[2];
 
     const intensity = this.config.intensity;
     const baseBri = rgbBrightness(r, g, b);
-    // During the build, lift the brightness floor so the room visibly rides the
-    // crescendo before the strobe punches white at the drop.
-    const briFloor = 0.06 + buildLift * 0.35;
-    const modulated = Math.max(briFloor, Math.min(1, baseBri * (0.55 + 0.45 * bassEnergy * (0.4 + 0.6 * intensity))));
+    // Gentle bass-driven breath. Floor at 35% so the room never goes dark.
+    // Top out at 80% so the lights ride softly above the screen rather than
+    // dominating the room.
+    const modulated = Math.max(0.35, Math.min(0.8, baseBri * (0.55 + 0.25 * bassEnergy * (0.4 + 0.6 * intensity))));
     const bri = Math.max(1, Math.round(modulated * 254));
     const xy = rgbToXY(r, g, b);
 
@@ -306,7 +308,7 @@ export class HueSync {
     // Runs in parallel with the v1 group action — the v1 PUT keeps non-gradient
     // bulbs in the same room reactive, while v2 paints each light's zones.
     if (this.config.useGradient && this.gradientLights.length) {
-      void this.streamGradient(bands, flash, bri);
+      void this.streamGradient(bands, bri);
     }
 
     if (!this.config.groupId) return;
@@ -316,7 +318,9 @@ export class HueSync {
     this.lastFrameAt = now;
 
     const url = `https://${this.config.bridgeIp}/api/${this.config.appKey}/groups/${this.config.groupId}/action`;
-    const body = { on: true, bri, xy, transitiontime: 1 };
+    // transitiontime: 4 = 400ms — Hue blends between frames instead of snapping,
+    // so the bar drifts like a slow lava lamp rather than a strobe.
+    const body = { on: true, bri, xy, transitiontime: 4 };
 
     this.inflight += 1;
     try {
@@ -331,36 +335,29 @@ export class HueSync {
   }
 
   /**
-   * Push a fresh gradient frame to every gradient-capable light.
+   * Push a slow ambient gradient frame to every gradient-capable light.
    *
-   * Visual model — what makes Hue Play Light Bars actually look legit:
-   *   - **Zone-band mapping.** zone[0] = bass (warm, dense), zone[mid] = mid (accent),
-   *     zone[end] = treble (bright, airy). Each zone's brightness modulated by its
-   *     own band's energy, so kicks light up the bass zone, hi-hats sparkle the top.
-   *   - **Palette sweep.** Each frame rotates which palette swatch lands on which
-   *     zone via `phase` — phase ticks every frame, kicks forward on each beat.
-   *     Result: color travels across the bar like a wave, never static.
-   *   - **Per-light phase offset.** Two bars flanking a TV mirror but offset by
-   *     half a beat (lightIdx × half-period), so they don't pulse in lockstep.
-   *   - **Tempo drift.** When BPM is known, phase advances proportionally so the
-   *     wave speed matches the song. No BPM = constant 22Hz drift.
-   *   - **Beat burst.** On every detected kick, zone[0] briefly washes toward
-   *     white over the bass color underneath. That's the Spotify-canvas snap.
+   * Aesthetic-only model — the lights are background mood, not a club rig:
+   *   - **Zone-band mapping.** zone[0] = bass region, zone[end] = treble.
+   *     Per-zone brightness modulates softly with that band's energy.
+   *   - **Slow palette drift.** Phase advances at a constant 0.02 / frame
+   *     regardless of tempo or build phase, so color travels like a lava
+   *     lamp instead of racing into a drop.
+   *   - **Per-light phase offset.** Two bars flanking a TV stagger so they
+   *     don't drift in lockstep.
+   *   - **No beat burst, no drop strobe, no build acceleration.** Detail
+   *     work belongs on screen (Web Audio API canvas), not in the room.
    */
-  private async streamGradient(bands: HueBands, flash: number, bri: number): Promise<void> {
+  private async streamGradient(bands: HueBands, bri: number): Promise<void> {
     const now = performance.now();
-    // Drop-imminent frames bypass the 45ms v2 throttle so the strobe lands on the kick.
-    if (!bands.dropImminent && now - this.lastV2At < MIN_V2_MS) return;
-    if (this.v2Inflight >= 3) return;
+    // Hard throttle to ~5Hz. Aesthetic background — no strobes, no drop bypass.
+    if (now - this.lastV2At < MIN_V2_MS * 4) return;
+    if (this.v2Inflight >= 2) return;
     this.lastV2At = now;
 
-    // Phase advances ~1 step per frame, kicks forward on beat for snappy travel.
-    // BPM scales the base step so 60 BPM ≈ 1 step / frame, 140 BPM ≈ 2.3 / frame.
-    // During a build (`buildPhase` rising), accelerate the sweep so color travel
-    // visibly speeds into the drop — the eye reads it as tension before release.
-    const bpmScale = bands.bpm && bands.bpm > 30 ? bands.bpm / 60 : 1;
-    const buildAccel = 1 + (bands.buildPhase ?? 0) * 1.5;
-    this.phase = (this.phase + 0.08 * bpmScale * buildAccel + flash * 1.4) % 1024;
+    // Constant slow drift — phase moves at one rate regardless of tempo or
+    // build phase. The room reads as ambient mood lighting, not a club.
+    this.phase = (this.phase + 0.02) % 1024;
 
     const briPct = Math.max(1, Math.min(100, Math.round((bri / 254) * 100)));
     const palette = this.paletteRgb;
@@ -373,27 +370,22 @@ export class HueSync {
 
       for (let i = 0; i < points; i++) {
         const t = i / (points - 1);                 // 0 = bass end, 1 = treble end
-        // Pick band per zone: lerp bass→mid→treble across positions.
+        // Heavily-smoothed per-zone band energy. Gentle wash, no transients.
         const zoneBand = t < 0.5
           ? bands.bass * (1 - t * 2) + bands.mid * (t * 2)
           : bands.mid * (1 - (t - 0.5) * 2) + bands.treble * ((t - 0.5) * 2);
 
-        // Pick palette swatch via rotating phase + per-light offset + zone index.
+        // Pick palette swatch via slow rotating phase + per-light offset + zone index.
         const swatchIdx = Math.floor(this.phase * 0.05 + lightOffset + i * 0.6) % palette.length;
         const baseColor = palette[(swatchIdx + palette.length) % palette.length];
 
-        // White burst on zone[0] when beat hits (the kick snap). On a predicted drop,
-        // every zone washes toward white — full-bar strobe, not just the bass end.
-        const dropAll = bands.dropImminent ? 0.9 : 0;
-        const beatBurst = i === 0 ? flash * 0.75 : i === 1 ? flash * 0.35 : 0;
-        const burst = Math.max(beatBurst, dropAll);
-        const r = baseColor[0] + (255 - baseColor[0]) * burst;
-        const g = baseColor[1] + (255 - baseColor[1]) * burst;
-        const b = baseColor[2] + (255 - baseColor[2]) * burst;
+        // No white burst, no drop strobe — just the palette color modulated by
+        // gentle per-zone amplitude. Floor at 55% so dark sections stay lit.
+        const r = baseColor[0];
+        const g = baseColor[1];
+        const b = baseColor[2];
 
-        // Per-zone brightness via that zone's band energy. Floor at 30% so dark
-        // sections don't go fully black between transients.
-        const zoneAmp = 0.30 + 0.70 * zoneBand;
+        const zoneAmp = 0.55 + 0.25 * zoneBand;
         const zoneR = Math.round(r * zoneAmp);
         const zoneG = Math.round(g * zoneAmp);
         const zoneB = Math.round(b * zoneAmp);

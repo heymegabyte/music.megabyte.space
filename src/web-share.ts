@@ -8,14 +8,21 @@ export interface SharePayload {
   files?: File[];
 }
 
+/** Feature-detect `navigator.share`. Cheap; safe to call from module scope. */
 export function nativeShareSupported(): boolean {
   return typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 }
 
+/** Feature-detect file sharing (`navigator.canShare({ files })`). */
 export function canShareFiles(): boolean {
   return nativeShareSupported() && typeof navigator.canShare === 'function';
 }
 
+/**
+ * Trigger the platform share sheet. Resolves to `'cancelled'` on AbortError or
+ * any other failure (treating cancel as success so the caller doesn't re-prompt).
+ * Returns `'unsupported'` synchronously-shaped when the API is missing.
+ */
 export async function nativeShare(payload: SharePayload): Promise<'shared' | 'cancelled' | 'unsupported'> {
   if (!nativeShareSupported()) return 'unsupported';
   const data: ShareData = { title: payload.title, text: payload.text, url: payload.url };
@@ -31,7 +38,12 @@ export async function nativeShare(payload: SharePayload): Promise<'shared' | 'ca
   }
 }
 
-// Best for mobile: try native first, fall back to caller-provided fallback (typically opens dialog).
+/**
+ * Mobile-first share: invoke the native sheet on coarse-pointer devices (touch),
+ * otherwise call `fallback` (typically a custom in-page share dialog).
+ * If the user cancels the native sheet, do NOT show the fallback — that would
+ * feel like the app is harassing them.
+ */
 export async function shareWithFallback(payload: SharePayload, fallback: () => void): Promise<void> {
   if (nativeShareSupported() && shouldPreferNative()) {
     const result = await nativeShare(payload);

@@ -66,12 +66,64 @@ function lerpPalette(p: Array<[number, number, number]>, t: number): [number, nu
   ];
 }
 
-function paletteAt(t: number) { return lerpPalette(PALETTE_KEYFRAMES, t); }
+// Module-level vibrance knob — Visualizer.draw() updates from cur.build /
+// cur.centroid each frame. Push every paletteAt() result through a saturation
+// stretch + centroid-driven hue rotation so the colours follow the music's
+// spectral character (centroid up→hue walks up the wheel).
+let VIBRANCE = 1.18;        // saturation multiplier, 1=neutral
+let HUE_SHIFT = 0;          // degrees, -180..180
+
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255; g /= 255; b /= 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (mx + mn) / 2;
+  if (mx !== mn) {
+    const d = mx - mn;
+    s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+    if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0));
+    else if (mx === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return [h, s, l];
+}
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  if (s === 0) {
+    const v = Math.round(l * 255);
+    return [v, v, v];
+  }
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  const hue2rgb = (t: number) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 0.5) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  return [
+    Math.round(hue2rgb(h + 1 / 3) * 255),
+    Math.round(hue2rgb(h) * 255),
+    Math.round(hue2rgb(h - 1 / 3) * 255)
+  ];
+}
+function vibrantize(rgb: [number, number, number]): [number, number, number] {
+  if (VIBRANCE === 1 && HUE_SHIFT === 0) return rgb;
+  const [h, s, l] = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+  const h2 = (h + HUE_SHIFT / 360 + 1) % 1;
+  const s2 = Math.max(0, Math.min(1, s * VIBRANCE));
+  // Slight luminance lift only when colour is already saturated, keeps grays grey.
+  const l2 = Math.max(0, Math.min(1, l + (s > 0.3 ? 0.04 : 0)));
+  return hslToRgb(h2, s2, l2);
+}
+
+function paletteAt(t: number) { return vibrantize(lerpPalette(PALETTE_KEYFRAMES, t)); }
 function lovePalette(t: number) { return lerpPalette(LOVE_PALETTE, t); }
 function starPalette(t: number) { return lerpPalette(STAR_PALETTE, t); }
 
 export type VizMode =
-  // new — the 14 beautiful ones
   | 'starfield'
   | 'constellation'
   | 'galaxy'
@@ -80,10 +132,8 @@ export type VizMode =
   | 'petals'
   | 'plasma'
   | 'mandala'
-  | 'lightning'
   | 'fireflies'
   | 'bokeh'
-  // existing
   | 'composite'
   | 'tunnel'
   | 'lissajous'
@@ -91,55 +141,48 @@ export type VizMode =
   | 'bars'
   | 'wave'
   | 'kaleidoscope'
-  // palette-driven (per-track unique)
-  | 'palette-orbs'     // 5 swatch orbits, each tied to a band
-  | 'drop-strobe'      // accent flash on predicted drop
-  | 'prism'            // chromatic-aberration radial bars
-  // expansion catalog (per-track palette aware)
-  | 'synthwave'        // perspective grid floor with sun
-  | 'wormhole'         // recursive tunnel rings
-  | 'vortex'           // spiral particle galaxy
-  | 'sunburst'         // radial rays pulsing on beat
-  | 'mirror-wave'      // symmetric quad-mirrored oscilloscope
-  | 'hex-grid'         // hexagons lit by frequency cells
-  | 'liquid'           // morphing metaballs
-  | 'vinyl'            // spinning record + grooves
-  | 'matrix'           // falling glyph rain
-  | 'smoke'            // particle smoke
-  | 'strings'          // vibrating spectrum strings
-  | 'spider'           // radial web
-  | 'cymatics'         // standing-wave interference
-  | 'confetti'         // drop-triggered burst
-  | 'bloom'            // soft glowing orbs
-  | 'rose'             // rose-curve (rhodonea) spirograph
-  | 'waterfall'        // 2D scrolling spectrogram
-  | 'gem'              // refracting crystal facets
-  | 'monolith'         // EQ cityscape
-  | 'nebula'           // gas cloud blobs
-  | 'swarm'            // boids flock
-  | 'ribbons'          // flowing audio bands
-  | 'starburst'        // sharp beat-burst particles
-  | 'gravity'          // orbital particles
-  | 'lattice'          // 3D rotating wireframe cube
-  | 'flux';            // magnetic field lines
+  | 'palette-orbs'
+  | 'drop-strobe'
+  | 'prism'
+  | 'wormhole'
+  | 'vortex'
+  | 'sunburst'
+  | 'mirror-wave'
+  | 'hex-grid'
+  | 'liquid'
+  | 'vinyl'
+  | 'smoke'
+  | 'strings'
+  | 'spider'
+  | 'cymatics'
+  | 'confetti'
+  | 'bloom'
+  | 'rose'
+  | 'waterfall'
+  | 'monolith'
+  | 'nebula'
+  | 'ribbons'
+  | 'gravity'
+  | 'lattice'
+  | 'flux';
 
 const MODE_ORDER: VizMode[] = [
   'starfield', 'constellation', 'galaxy', 'supernova', 'aurora',
   'petals',
-  'plasma', 'mandala', 'lightning', 'fireflies', 'bokeh',
+  'plasma', 'mandala', 'fireflies', 'bokeh',
   'palette-orbs', 'drop-strobe', 'prism',
-  'synthwave', 'wormhole', 'vortex', 'sunburst', 'mirror-wave',
-  'hex-grid', 'liquid', 'vinyl', 'matrix', 'smoke', 'strings',
+  'wormhole', 'vortex', 'sunburst', 'mirror-wave',
+  'hex-grid', 'liquid', 'vinyl', 'smoke', 'strings',
   'spider', 'cymatics', 'confetti', 'bloom', 'rose', 'waterfall',
-  'gem', 'monolith', 'nebula', 'swarm', 'ribbons',
-  'starburst', 'gravity', 'lattice', 'flux',
+  'monolith', 'nebula', 'ribbons',
+  'gravity', 'lattice', 'flux',
   'composite', 'tunnel', 'lissajous', 'rings', 'bars', 'wave', 'kaleidoscope'
 ];
 
 // pure-dark background (no gradient blob field underneath)
 const PURE_BG_MODES: Set<VizMode> = new Set([
   'starfield', 'constellation', 'galaxy', 'plasma', 'drop-strobe',
-  'synthwave', 'wormhole', 'matrix', 'waterfall', 'lattice', 'monolith'
+  'wormhole', 'waterfall', 'lattice', 'monolith'
 ]);
 
 type Star3D = { x: number; y: number; z: number; px: number; py: number };
@@ -147,21 +190,26 @@ type Star2D = { x: number; y: number; bin: number; tw: number };
 type GalaxyParticle = { theta: number; r: number; size: number; color: [number, number, number] };
 type SupernovaRing = { age: number; max: number; color: [number, number, number] };
 type HeartItem = { x: number; vy: number; size: number; rot: number; vrot: number; sway: number; color: [number, number, number]; life: number };
-type Bolt = { points: Array<[number, number]>; age: number; ttl: number; col: [number, number, number] };
 type Firefly = { x: number; y: number; ax: number; ay: number; phase: number; rate: number; color: [number, number, number] };
 type BokehItem = { x: number; y: number; size: number; vx: number; vy: number; color: [number, number, number]; alpha: number };
-type LNode = { x: number; y: number };
 
 export class Visualizer {
   private bg: HTMLCanvasElement;
   private bgCtx: CanvasRenderingContext2D;
   private engine: AudioEngine;
+  // Adaptive DPR — climbs to native (≤3) on sustained high FPS,
+  // drops to 1.5 when FPS struggles. Re-evaluated every ~500ms.
   private dpr = Math.min(2, window.devicePixelRatio || 1);
+  private dprTarget = this.dpr;
+  private dprMax = Math.min(3, window.devicePixelRatio || 1);
+  private dprMin = 1.25;
+  private lastDprCheck = 0;
   private rafId: number | null = null;
   private t0 = performance.now();
   private accent: [number, number, number] = [0, 229, 255];
   private mode: VizMode = 'starfield';
   private autoCycle = true;
+  private manualCycleStarted = false;
   private lastCycleAt = 0;
   private fpsEMA = 60;
   private lastFrame = performance.now();
@@ -169,6 +217,41 @@ export class Visualizer {
   private hudPeakBin = 0;
   private trail = false;
   private listeners = new Set<(m: VizMode) => void>();
+  // Per-frame audio + render snapshot — populated once at top of draw(), then
+  // read by every mode + overlay. Avoids per-mode recomputation of bands()
+  // / tempoPhase() / channelEnergy() and lets cheap reads replace allocations.
+  private cur = {
+    t: 0,           // seconds since t0
+    beat: 0,        // engine.beatPulse 0..1
+    bpm: 0,
+    bass: 0, lowMid: 0, mid: 0, highMid: 0, treble: 0, presence: 0, brilliance: 0,
+    centroid: 0, stereo: 0, flux: 0,
+    chL: 0, chR: 0,
+    tempo: 0,       // tempoPhase 0..1
+    build: 0,       // buildPhase 0..1
+    drop: false,    // dropImminent this frame
+    dropE: 0,       // smoothed RMS 0..1
+    quality: 'high' as 'high' | 'medium' | 'low',
+    glow: true      // false when fpsEMA<48 → skip shadowBlur for speed
+  };
+  // Global drop flash — armed on dropImminent, decays at ~120ms.
+  private dropFlash = 0;
+
+  // Shared particle pool — emits on dropImminent + sustained beat peaks.
+  // Screen-blended, scales speed with bass, rotates hue via centroid.
+  private particles: Array<{
+    x: number; y: number; vx: number; vy: number;
+    life: number; max: number; size: number; hue: number;
+  }> = [];
+
+  // Offscreen bloom canvas — quarter-res scratch buffer, allocated once on
+  // first FX pass. Resized whenever main canvas dimensions change.
+  private bloomCanvas: HTMLCanvasElement | null = null;
+  private bloomCtx: CanvasRenderingContext2D | null = null;
+
+  // Cumulative hue drift — integrated over time so the centroid drives
+  // long-term colour evolution rather than just snapping per frame.
+  private hueDrift = 0;
 
   private vizState: {
     starfield?: { stars: Star3D[] };
@@ -177,17 +260,25 @@ export class Visualizer {
     supernova?: { rings: SupernovaRing[] };
     petals?: { items: HeartItem[] };
     plasma?: { off: HTMLCanvasElement; offCtx: CanvasRenderingContext2D; img: ImageData };
-    lightning?: { bolts: Bolt[]; nodes: LNode[]; lastBeatAt: number };
     fireflies?: { items: Firefly[] };
     bokeh?: { items: BokehItem[] };
   } = {};
 
   constructor(bg: HTMLCanvasElement, engine: AudioEngine) {
     this.bg = bg;
-    this.bgCtx = bg.getContext('2d', { alpha: true })!;
+    // desynchronized=true releases the rAF→compositor handoff on Chromium,
+    // shaving ~4-8ms of latency per frame on the GPU compositor path. Falls
+    // back gracefully when the flag isn't honored.
+    this.bgCtx = bg.getContext('2d', { alpha: true, desynchronized: true }) as CanvasRenderingContext2D;
     this.engine = engine;
     this.resize();
     window.addEventListener('resize', () => this.resize(), { passive: true });
+    // Visibility throttling — pause rAF when tab hidden so we don't burn cycles
+    // on an offscreen canvas. Auto-resumes when visible.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.stop();
+      else if (this.rafId === null) this.start();
+    });
     this.prewarmHeavyState();
   }
 
@@ -250,12 +341,6 @@ export class Visualizer {
     }
     this.vizState.bokeh = { items: bokeh };
 
-    const lnodes: LNode[] = [];
-    for (let i = 0; i < 18; i++) {
-      lnodes.push({ x: 0.08 + Math.random() * 0.84, y: 0.12 + Math.random() * 0.76 });
-    }
-    this.vizState.lightning = { bolts: [], nodes: lnodes, lastBeatAt: 0 };
-
     this.vizState.supernova = { rings: [] };
     this.vizState.petals = { items: [] };
   }
@@ -284,22 +369,36 @@ export class Visualizer {
   setMode(mode: VizMode) {
     this.mode = mode;
     this.autoCycle = false;
+    this.manualCycleStarted = false;
     this.emitMode();
   }
   cycleMode() {
-    const i = MODE_ORDER.indexOf(this.mode);
-    this.mode = MODE_ORDER[(i + 1) % MODE_ORDER.length];
+    if (!this.manualCycleStarted) {
+      this.mode = MODE_ORDER[0];
+      this.manualCycleStarted = true;
+    } else {
+      const i = MODE_ORDER.indexOf(this.mode);
+      this.mode = MODE_ORDER[(i + 1) % MODE_ORDER.length];
+    }
     this.autoCycle = false;
     this.emitMode();
   }
   cycleModeReverse() {
-    const i = MODE_ORDER.indexOf(this.mode);
-    this.mode = MODE_ORDER[(i - 1 + MODE_ORDER.length) % MODE_ORDER.length];
+    if (!this.manualCycleStarted) {
+      this.mode = MODE_ORDER[MODE_ORDER.length - 1];
+      this.manualCycleStarted = true;
+    } else {
+      const i = MODE_ORDER.indexOf(this.mode);
+      this.mode = MODE_ORDER[(i - 1 + MODE_ORDER.length) % MODE_ORDER.length];
+    }
     this.autoCycle = false;
     this.emitMode();
   }
   modeCatalog(): VizMode[] { return MODE_ORDER.slice(); }
-  setAutoCycle(on: boolean) { this.autoCycle = on; }
+  setAutoCycle(on: boolean) {
+    this.autoCycle = on;
+    if (on) this.manualCycleStarted = false;
+  }
   currentMode(): VizMode { return this.mode; }
   onModeChange(fn: (m: VizMode) => void) {
     this.listeners.add(fn);
@@ -327,6 +426,14 @@ export class Visualizer {
   }
 
   private bandEnergy(from: number, to: number) {
+    // Fast paths — most modes ask for canonical bands. Hit the cached
+    // snapshot rather than re-summing freqData. Falls back to the scan for
+    // bespoke ranges no mode actually uses today.
+    const c = this.cur;
+    if (from === 0    && to === 0.06) return c.bass;
+    if (from === 0.08 && to === 0.32) return c.mid;
+    if (from === 0.32 && to === 0.85) return (c.treble + c.presence) * 0.5;
+    if (from === 0    && to === 0.5)  return (c.bass + c.lowMid + c.mid + c.highMid) * 0.25;
     const f = this.engine.freqData;
     if (!f.length) return 0;
     const lo = Math.floor(f.length * from);
@@ -357,7 +464,67 @@ export class Visualizer {
 
     this.engine.sample();
 
-    if (this.autoCycle && this.engine.beatPulse > 0.85) {
+    // Hydrate the per-frame signal snapshot. Every mode + overlay reads this
+    // instead of re-querying the engine, so 40 modes share one band-pass per
+    // frame rather than 40.
+    const e = this.engine;
+    const b = e.bands();
+    const ch = e.channelEnergy();
+    this.cur.t = ((now - this.t0) / 1000) * 0.14;
+    this.cur.beat = e.beatPulse;
+    this.cur.bpm = e.bpm;
+    this.cur.bass = b.bass;
+    this.cur.lowMid = b.lowMid;
+    this.cur.mid = b.mid;
+    this.cur.highMid = b.highMid;
+    this.cur.treble = b.treble;
+    this.cur.presence = b.presence;
+    this.cur.brilliance = b.brilliance;
+    this.cur.centroid = b.centroid;
+    this.cur.stereo = b.stereo;
+    this.cur.flux = b.flux;
+    this.cur.chL = ch.l;
+    this.cur.chR = ch.r;
+    this.cur.tempo = e.tempoPhase(now);
+    this.cur.build = e.buildPhase;
+    this.cur.drop = e.dropImminent;
+    this.cur.dropE = e.dropEnergy;
+
+    // Vibrance + hue drift — boosts saturation 1.18→1.42 during builds, drifts
+    // the wheel slowly by centroid (bright spectra walk toward yellow/green,
+    // bass-heavy walks toward magenta/red). Wraps every 360°.
+    const dtFrame = 1 / Math.max(30, this.fpsEMA);
+    this.hueDrift = (this.hueDrift + (this.cur.centroid - 0.5) * 18 * dtFrame) % 360;
+    VIBRANCE = 1.18 + this.cur.build * 0.24 + this.cur.beat * 0.06;
+    HUE_SHIFT = this.hueDrift;
+
+    // Adaptive quality knob — driven by sustained fpsEMA. high=full counts,
+    // medium=66% particles + skip shadowBlur, low=40% particles + skinny strokes.
+    this.cur.quality = this.fpsEMA > 54 ? 'high' : this.fpsEMA > 38 ? 'medium' : 'low';
+    this.cur.glow = this.fpsEMA > 48;
+
+    // Adaptive DPR — re-evaluated every 500ms to avoid resize thrash. Climbs
+    // toward native devicePixelRatio when FPS sustains >58, drops to 1.5 when
+    // FPS falls below 38. Stays where it is in the middle band.
+    if (now - this.lastDprCheck > 500) {
+      this.lastDprCheck = now;
+      const targetUp = this.fpsEMA > 58 && this.dprTarget < this.dprMax;
+      const targetDown = this.fpsEMA < 38 && this.dprTarget > this.dprMin;
+      if (targetUp) this.dprTarget = Math.min(this.dprMax, this.dprTarget + 0.25);
+      else if (targetDown) this.dprTarget = Math.max(this.dprMin, this.dprTarget - 0.25);
+      if (Math.abs(this.dprTarget - this.dpr) >= 0.2) {
+        this.dpr = this.dprTarget;
+        this.resize();
+      }
+    }
+
+    // Drop flash — armed when the engine fires dropImminent. Decays each frame
+    // (~120ms half-life). Modes that don't directly read engine.dropImminent
+    // still get a global brightness pulse on the climax.
+    if (e.dropImminent) this.dropFlash = 1;
+    else this.dropFlash *= 0.88;
+
+    if (this.autoCycle && e.beatPulse > 0.85) {
       if (now - this.lastCycleAt > 8000) {
         const i = MODE_ORDER.indexOf(this.mode);
         this.mode = MODE_ORDER[(i + 1) % MODE_ORDER.length];
@@ -397,13 +564,11 @@ export class Visualizer {
       case 'petals':        this.drawPetals(ctx, w, h); break;
       case 'plasma':        this.drawPlasma(ctx, w, h); break;
       case 'mandala':       this.drawMandala(ctx, w, h); break;
-      case 'lightning':     this.drawLightning(ctx, w, h); break;
       case 'fireflies':     this.drawFireflies(ctx, w, h); break;
       case 'bokeh':         this.drawBokeh(ctx, w, h); break;
       case 'palette-orbs':  this.drawPaletteOrbs(ctx, w, h); break;
       case 'drop-strobe':   this.drawDropStrobe(ctx, w, h); break;
       case 'prism':         this.drawPrism(ctx, w, h); break;
-      case 'synthwave':     this.drawSynthwave(ctx, w, h); break;
       case 'wormhole':      this.drawWormhole(ctx, w, h); break;
       case 'vortex':        this.drawVortex(ctx, w, h); break;
       case 'sunburst':      this.drawSunburst(ctx, w, h); break;
@@ -411,7 +576,6 @@ export class Visualizer {
       case 'hex-grid':      this.drawHexGrid(ctx, w, h); break;
       case 'liquid':        this.drawLiquid(ctx, w, h); break;
       case 'vinyl':         this.drawVinyl(ctx, w, h); break;
-      case 'matrix':        this.drawMatrix(ctx, w, h); break;
       case 'smoke':         this.drawSmoke(ctx, w, h); break;
       case 'strings':       this.drawStrings(ctx, w, h); break;
       case 'spider':        this.drawSpider(ctx, w, h); break;
@@ -420,12 +584,9 @@ export class Visualizer {
       case 'bloom':         this.drawBloom(ctx, w, h); break;
       case 'rose':          this.drawRose(ctx, w, h); break;
       case 'waterfall':     this.drawWaterfall(ctx, w, h); break;
-      case 'gem':           this.drawGem(ctx, w, h); break;
       case 'monolith':      this.drawMonolith(ctx, w, h); break;
       case 'nebula':        this.drawNebula(ctx, w, h); break;
-      case 'swarm':         this.drawSwarm(ctx, w, h); break;
       case 'ribbons':       this.drawRibbons(ctx, w, h); break;
-      case 'starburst':     this.drawStarburst(ctx, w, h); break;
       case 'gravity':       this.drawGravity(ctx, w, h); break;
       case 'lattice':       this.drawLattice(ctx, w, h); break;
       case 'flux':          this.drawFlux(ctx, w, h); break;
@@ -437,21 +598,181 @@ export class Visualizer {
       case 'wave':          this.drawOscilloscope(ctx, w, h); break;
       case 'kaleidoscope':  this.drawKaleidoscope(ctx, w, h); break;
     }
+    // Drop-flash overlay — single screen-blended radial sheen tied to the
+    // engine's predicted drops. Fires on every mode without per-mode patching.
+    if (this.dropFlash > 0.04) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      const a = this.dropFlash;
+      const v = this.trackPalette?.vibrant ?? this.accent;
+      const grad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.6);
+      grad.addColorStop(0, `rgba(${v[0]},${v[1]},${v[2]},${0.22 * a})`);
+      grad.addColorStop(0.55, `rgba(${v[0]},${v[1]},${v[2]},${0.08 * a})`);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+      ctx.restore();
+    }
+
+    // Post-FX stack: particle bursts (drop/beat) → bloom (downsampled blur,
+    // bass-driven) → chromatic aberration (RGB split, bass-driven offset).
+    // All three are FPS-gated so low-power devices still hit 60.
+    this.applyPostFX(ctx, w, h);
+
     this.drawVignette(ctx, w, h, this.engine.beatPulse);
+  }
+
+  // ─── Post-FX pipeline ───────────────────────────────────────────────────
+  // Cinematic stack lifted from 2026 generative-art canon: HSL hue-drift
+  // (already applied via VIBRANCE/HUE_SHIFT in paletteAt) → particle bursts
+  // → bloom → chromatic aberration. Each stage opts out automatically when
+  // cur.quality drops to 'low' so the floor is always 60fps.
+  private applyPostFX(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    const c = this.cur;
+    const dt = 1 / Math.max(30, this.fpsEMA);
+
+    // ─ 1. Particle emitter ────────────────────────────────────────────────
+    // Drops spawn a 20-particle starburst; sustained heavy beats spawn a
+    // single particle each frame. Capped at 240 particles total (ring-pool).
+    if (c.drop && this.particles.length < 240) {
+      const n = 24;
+      const v = this.trackPalette?.vibrant ?? this.accent;
+      const baseHue = rgbToHsl(v[0], v[1], v[2])[0] * 360;
+      for (let i = 0; i < n; i++) {
+        const ang = (i / n) * Math.PI * 2 + Math.random() * 0.4;
+        const spd = (3 + Math.random() * 5) * this.dpr;
+        this.particles.push({
+          x: w / 2, y: h / 2,
+          vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
+          life: 0, max: 0.9 + Math.random() * 0.7,
+          size: this.dpr * (2 + Math.random() * 3),
+          hue: (baseHue + i * (360 / n)) % 360
+        });
+      }
+    }
+    if (c.beat > 0.72 && this.particles.length < 200 && Math.random() < 0.4) {
+      const ang = Math.random() * Math.PI * 2;
+      const spd = (1.5 + c.bass * 4) * this.dpr;
+      this.particles.push({
+        x: w / 2 + (Math.random() - 0.5) * w * 0.4,
+        y: h / 2 + (Math.random() - 0.5) * h * 0.4,
+        vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
+        life: 0, max: 0.7 + Math.random() * 0.5,
+        size: this.dpr * (1.4 + Math.random() * 2),
+        hue: c.centroid * 360 + Math.random() * 60
+      });
+    }
+    if (this.particles.length) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      for (let i = this.particles.length - 1; i >= 0; i--) {
+        const p = this.particles[i];
+        p.life += dt;
+        if (p.life >= p.max) { this.particles.splice(i, 1); continue; }
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.965;
+        p.vy *= 0.965;
+        p.vy += 0.08 * this.dpr;       // mild gravity
+        const k = 1 - p.life / p.max;
+        const rgb = hslToRgb((p.hue % 360) / 360, 1, 0.6);
+        ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${0.85 * k})`;
+        if (c.glow) {
+          ctx.shadowBlur = p.size * 5;
+          ctx.shadowColor = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.9)`;
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * (0.6 + k * 0.7), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+
+    // ─ 2. Bloom ───────────────────────────────────────────────────────────
+    // Quarter-res downsample → blur → upsample → screen blend. Intensity
+    // tied to bass + beat + dropFlash. Skipped on low quality.
+    const bloomAmt = c.bass * 0.7 + c.beat * 0.4 + this.dropFlash * 0.55;
+    if (c.quality !== 'low' && bloomAmt > 0.18) {
+      const bw = Math.max(64, Math.floor(w / 4));
+      const bh = Math.max(36, Math.floor(h / 4));
+      if (!this.bloomCanvas || this.bloomCanvas.width !== bw || this.bloomCanvas.height !== bh) {
+        this.bloomCanvas = document.createElement('canvas');
+        this.bloomCanvas.width = bw;
+        this.bloomCanvas.height = bh;
+        this.bloomCtx = this.bloomCanvas.getContext('2d', { willReadFrequently: false });
+      }
+      const bctx = this.bloomCtx!;
+      bctx.globalCompositeOperation = 'source-over';
+      bctx.clearRect(0, 0, bw, bh);
+      // High-pass on the way down: drawImage with screen op + dark overlay
+      // would be ideal but a single drawImage + filter blur suffices on
+      // Chromium/Safari without measurable cost.
+      const supportsFilter = 'filter' in bctx;
+      if (supportsFilter) bctx.filter = `blur(${Math.round(2 + bloomAmt * 6)}px)`;
+      bctx.drawImage(this.bg, 0, 0, bw, bh);
+      if (supportsFilter) bctx.filter = 'none';
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = Math.min(0.7, 0.18 + bloomAmt * 0.55);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(this.bloomCanvas, 0, 0, w, h);
+      ctx.restore();
+    }
+
+    // ─ 3. Chromatic aberration ────────────────────────────────────────────
+    // Re-draws the canvas onto itself with a slight red+blue offset using
+    // the 'lighter' composite, producing an RGB-split halo on bright edges.
+    // Magnitude tracks bass × dpr; capped at 6px so it never gets garish.
+    const abAmt = c.bass * 0.85 + this.dropFlash * 0.6 + c.beat * 0.25;
+    if (c.quality === 'high' && abAmt > 0.22) {
+      const off = Math.min(6 * this.dpr, abAmt * 5 * this.dpr);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = Math.min(0.35, 0.15 + abAmt * 0.3);
+      // red channel offset right, blue channel offset left
+      ctx.filter = 'url(#bzChromaR) blur(0px)';
+      // Filter URLs aren't reliably supported on canvas; fall back to a
+      // tinted-overlay approach using the bloom buffer if it's populated.
+      ctx.filter = 'none';
+      if (this.bloomCanvas) {
+        ctx.globalCompositeOperation = 'lighter';
+        // red shifted right
+        ctx.globalAlpha = Math.min(0.4, 0.12 + abAmt * 0.32);
+        ctx.drawImage(this.bloomCanvas, off, 0, w, h);
+        // blue shifted left (re-uses bloom buffer; cyan-ish tint via screen blend)
+        ctx.globalAlpha = Math.min(0.32, 0.1 + abAmt * 0.26);
+        ctx.drawImage(this.bloomCanvas, -off, 0, w, h);
+      }
+      ctx.restore();
+    }
   }
 
   fps() { return this.fpsEMA; }
   audioMeters() {
+    const c = this.cur;
     return {
-      bass: this.bandEnergy(0, 0.06),
-      mid: this.bandEnergy(0.08, 0.32),
-      treble: this.bandEnergy(0.32, 0.85),
-      bpm: this.engine.bpm,
-      beat: this.engine.beatPulse,
-      ch: this.engine.channelEnergy(),
+      bass: c.bass,
+      mid: c.mid,
+      treble: c.treble,
+      presence: c.presence,
+      brilliance: c.brilliance,
+      centroid: c.centroid,
+      stereo: c.stereo,
+      bpm: c.bpm,
+      beat: c.beat,
+      ch: { l: c.chL, r: c.chR },
+      tempoPhase: c.tempo,
+      buildPhase: c.build,
+      dropEnergy: c.dropE,
+      dropImminent: c.drop,
       peakHz: this.hudFreq,
       fft: this.engine.analyser?.fftSize || 0,
-      sr: this.engine.ctx?.sampleRate || 0
+      sr: this.engine.ctx?.sampleRate || 0,
+      dpr: this.dpr,
+      quality: c.quality
     };
   }
 
@@ -463,23 +784,26 @@ export class Visualizer {
   }
 
   private drawColorBlobs(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
-    const beat = this.engine.beatPulse;
-    const bass = this.bandEnergy(0, 0.06);
-    const mid = this.bandEnergy(0.08, 0.32);
-    const treble = this.bandEnergy(0.32, 0.85);
-    const energies = [bass, mid, treble, bass * 0.7 + mid * 0.3, mid * 0.5 + treble * 0.5];
-    const baseR = Math.max(w, h) * (0.35 + beat * 0.1);
+    const c = this.cur;
+    const t = c.t;
+    const beat = c.beat;
+    // 5 blobs mapped to spectral 5-band split (was 3 ad-hoc bands).
+    // The 4th + 5th now ride highMid + presence so cymbals/hi-hats actually
+    // wake up the upper blobs instead of mid bleed.
+    const energies = [c.bass, c.mid, c.treble, c.highMid, c.presence];
+    const baseR = Math.max(w, h) * (0.35 + beat * 0.1 + c.build * 0.08);
+    const tempoOff = c.tempo * Math.PI * 2;
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     for (let i = 0; i < 5; i++) {
       const phase = t * 0.06 + i * 0.41;
       const orbit = 0.18 + (i * 0.11);
-      const cx = w / 2 + Math.cos(phase * Math.PI * 2 + i) * w * orbit;
-      const cy = h / 2 + Math.sin(phase * Math.PI * 2 * 0.83 + i * 1.7) * h * orbit;
+      // Tempo-locked orbital wobble — blobs breathe with the BPM, not just rAF.
+      const cx = w / 2 + Math.cos(phase * Math.PI * 2 + i + tempoOff * 0.5) * w * orbit;
+      const cy = h / 2 + Math.sin(phase * Math.PI * 2 * 0.83 + i * 1.7 + tempoOff * 0.33) * h * orbit;
       const e = energies[i];
       const r = baseR * (0.45 + e * 0.55 + beat * 0.18);
-      const ck = paletteAt(t * 0.05 + i * 0.2);
+      const ck = paletteAt(t * 0.05 + i * 0.2 + c.centroid * 0.4);
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
       grad.addColorStop(0, `rgba(${ck[0]},${ck[1]},${ck[2]},${0.42 + e * 0.45 + beat * 0.18})`);
       grad.addColorStop(0.45, `rgba(${ck[0]},${ck[1]},${ck[2]},${0.16 + e * 0.18})`);
@@ -505,9 +829,12 @@ export class Visualizer {
     }
     const stars = this.vizState.starfield.stars;
     const cx = w / 2, cy = h / 2;
-    const bass = this.bandEnergy(0, 0.06);
-    const beat = this.engine.beatPulse;
-    const speed = 0.003 + bass * 0.018 + beat * 0.025;
+    const bass = this.cur.bass;
+    const beat = this.cur.beat;
+    // Drop-locked warp burst — speed surges 50% when drop fires.
+    const warpBoost = this.cur.drop ? 0.04 : 0;
+    const speed = 0.003 + bass * 0.018 + beat * 0.025 + this.cur.build * 0.008 + warpBoost;
+    const useGlow = this.cur.glow;
     ctx.save();
     ctx.lineCap = 'round';
     for (const s of stars) {
@@ -536,8 +863,10 @@ export class Visualizer {
         ctx.stroke();
       }
       ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${0.55 + depth * 0.45})`;
-      ctx.shadowBlur = size * 4;
-      ctx.shadowColor = `rgba(${col[0]},${col[1]},${col[2]},0.8)`;
+      if (useGlow) {
+        ctx.shadowBlur = size * 4;
+        ctx.shadowColor = `rgba(${col[0]},${col[1]},${col[2]},0.8)`;
+      }
       ctx.beginPath();
       ctx.arc(sx, sy, size, 0, Math.PI * 2);
       ctx.fill();
@@ -563,7 +892,7 @@ export class Visualizer {
     }
     const stars = this.vizState.constellation.stars;
     const f = this.engine.freqData;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const treble = this.bandEnergy(0.32, 0.85);
     const linkDist = 0.16 + treble * 0.12;
     ctx.save();
@@ -632,7 +961,7 @@ export class Visualizer {
       this.vizState.galaxy = { particles };
     }
     const ps = this.vizState.galaxy.particles;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const cx = w / 2, cy = h / 2;
     const scale = Math.min(w, h);
@@ -668,29 +997,32 @@ export class Visualizer {
   private drawSupernova(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.vizState.supernova) this.vizState.supernova = { rings: [] };
     const st = this.vizState.supernova;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const cx = w / 2, cy = h / 2;
     const beat = this.engine.beatPulse;
-    const treble = this.bandEnergy(0.32, 0.85);
-    const bass = this.bandEnergy(0, 0.06);
+    const b = this.engine.bands();
+    const drop = this.engine.dropImminent;
     const dt = 1 / Math.max(30, this.fpsEMA);
 
-    if (beat > 0.7 && (st.rings.length === 0 || st.rings[st.rings.length - 1].age > 0.06)) {
-      st.rings.push({ age: 0, max: 1.6, color: paletteAt(t * 0.1) });
+    if (beat > 0.68 && (st.rings.length === 0 || st.rings[st.rings.length - 1].age > 0.05)) {
+      st.rings.push({ age: 0, max: 1.7 + b.bass * 0.6, color: paletteAt(t * 0.1) });
+    }
+    if (drop && (st.rings.length === 0 || st.rings[st.rings.length - 1].age > 0.18)) {
+      st.rings.push({ age: 0, max: 2.4, color: [255, 240, 220] });
     }
 
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
-    const coreR = Math.min(w, h) * (0.05 + bass * 0.08);
+    const coreR = Math.min(w, h) * (0.05 + b.bass * 0.11 + beat * 0.04);
 
-    // corona ray spikes
-    const rays = 16;
+    const rays = 24;
     for (let i = 0; i < rays; i++) {
-      const a = (i / rays) * Math.PI * 2 + t * 0.35;
-      const len = Math.min(w, h) * (0.1 + treble * 0.32 + beat * 0.12);
-      const c = paletteAt(t * 0.1 + i / rays);
-      ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.45 + treble * 0.45})`;
-      ctx.lineWidth = this.dpr * (1.5 + treble * 4);
+      const a = (i / rays) * Math.PI * 2 + t * 0.4 + this.engine.tempoPhase() * Math.PI;
+      const harm = 1 + Math.sin(a * 4 + t * 1.8) * 0.18;
+      const len = Math.min(w, h) * (0.1 + b.treble * 0.38 + beat * 0.14 + b.brilliance * 0.18) * harm;
+      const c = paletteAt(t * 0.1 + i / rays + b.centroid * 0.4);
+      ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.5 + b.treble * 0.45})`;
+      ctx.lineWidth = this.dpr * (1.6 + b.treble * 5 + beat * 1.5);
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(cx + Math.cos(a) * coreR, cy + Math.sin(a) * coreR);
@@ -698,27 +1030,25 @@ export class Visualizer {
       ctx.stroke();
     }
 
-    // glowing core
-    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR * 2.4);
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR * 2.6);
     grad.addColorStop(0, 'rgba(255,255,255,1)');
-    grad.addColorStop(0.35, `rgba(255,240,200,${0.7 + beat * 0.25})`);
-    grad.addColorStop(0.7, 'rgba(255,160,120,0.3)');
+    grad.addColorStop(0.3, `rgba(255,240,200,${0.7 + beat * 0.3})`);
+    grad.addColorStop(0.65, `rgba(255,160,120,${0.32 + b.presence * 0.2})`);
     grad.addColorStop(1, 'rgba(255,80,140,0)');
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(cx, cy, coreR * 2.4, 0, Math.PI * 2);
+    ctx.arc(cx, cy, coreR * 2.6, 0, Math.PI * 2);
     ctx.fill();
 
-    // shockwave rings
     for (let i = st.rings.length - 1; i >= 0; i--) {
       const r = st.rings[i];
       r.age += dt;
       if (r.age > r.max) { st.rings.splice(i, 1); continue; }
       const k = r.age / r.max;
-      const radius = k * Math.min(w, h) * 0.6;
-      const alpha = (1 - k) * 0.85;
+      const radius = k * Math.min(w, h) * 0.65;
+      const alpha = (1 - k) * (0.85 + b.brilliance * 0.15);
       ctx.strokeStyle = `rgba(${r.color[0]},${r.color[1]},${r.color[2]},${alpha})`;
-      ctx.lineWidth = this.dpr * (1 + (1 - k) * 5);
+      ctx.lineWidth = this.dpr * (1 + (1 - k) * 5.5);
       ctx.beginPath();
       ctx.arc(cx, cy, radius, 0, Math.PI * 2);
       ctx.stroke();
@@ -728,47 +1058,53 @@ export class Visualizer {
 
   // 5. aurora — flowing draped ribbons across the sky
   private drawAurora(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
-    const mid = this.bandEnergy(0.08, 0.32);
-    const treble = this.bandEnergy(0.32, 0.85);
-    const bass = this.bandEnergy(0, 0.06);
-    const ribbons = 4;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const b = this.engine.bands();
+    const beat = this.engine.beatPulse;
+    const tempo = this.engine.tempoPhase();
+    const ce = this.engine.channelEnergy();
+    const skew = (ce.r - ce.l) * h * 0.05;
+    const ribbons = 5;
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
-    const steps = 90;
+    const steps = 140;
 
     for (let r = 0; r < ribbons; r++) {
-      const baseY = h * (0.16 + r * 0.18);
-      const amp = h * (0.06 + mid * 0.1);
-      const speed = 0.28 + r * 0.13;
-      const c1 = paletteAt(t * 0.04 + r * 0.18);
-      const c2 = paletteAt(t * 0.04 + r * 0.18 + 0.4);
-      const ribbonH = h * (0.16 + treble * 0.14);
+      const baseY = h * (0.14 + r * 0.16);
+      const amp = h * (0.06 + b.mid * 0.13 + beat * 0.04);
+      const speed = 0.3 + r * 0.14;
+      const c1 = paletteAt(t * 0.05 + r * 0.17 + b.centroid * 0.3);
+      const c2 = paletteAt(t * 0.05 + r * 0.17 + 0.4);
+      const ribbonH = h * (0.16 + b.treble * 0.18 + b.brilliance * 0.1);
 
       ctx.beginPath();
       for (let i = 0; i <= steps; i++) {
         const x = (i / steps) * w;
-        const phase = (i / steps) * 4 + t * speed + r;
+        const phase = (i / steps) * 4 + t * speed + r + tempo * Math.PI;
         const y = baseY
           + Math.sin(phase) * amp
-          + Math.sin(phase * 2.3 + r) * amp * 0.4
-          + Math.sin(phase * 0.7 + bass * 6) * amp * 0.3;
+          + Math.sin(phase * 2.4 + r) * amp * 0.45
+          + Math.sin(phase * 0.7 + b.bass * 7) * amp * 0.34
+          + Math.sin(phase * 5 + b.brilliance * 8) * amp * 0.12
+          + skew * (r + 1);
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       for (let i = steps; i >= 0; i--) {
         const x = (i / steps) * w;
-        const phase = (i / steps) * 4 + t * speed + r;
+        const phase = (i / steps) * 4 + t * speed + r + tempo * Math.PI;
         const y = baseY
           + Math.sin(phase) * amp
-          + Math.sin(phase * 2.3 + r) * amp * 0.4
-          + Math.sin(phase * 0.7 + bass * 6) * amp * 0.3;
+          + Math.sin(phase * 2.4 + r) * amp * 0.45
+          + Math.sin(phase * 0.7 + b.bass * 7) * amp * 0.34
+          + Math.sin(phase * 5 + b.brilliance * 8) * amp * 0.12
+          + skew * (r + 1);
         ctx.lineTo(x, y + ribbonH);
       }
       ctx.closePath();
 
       const grad = ctx.createLinearGradient(0, baseY - amp, 0, baseY + ribbonH);
-      grad.addColorStop(0, `rgba(${c1[0]},${c1[1]},${c1[2]},${0.55 + treble * 0.35})`);
-      grad.addColorStop(0.5, `rgba(${c2[0]},${c2[1]},${c2[2]},${0.25 + mid * 0.2})`);
+      grad.addColorStop(0, `rgba(${c1[0]},${c1[1]},${c1[2]},${0.6 + b.treble * 0.38})`);
+      grad.addColorStop(0.5, `rgba(${c2[0]},${c2[1]},${c2[2]},${0.28 + b.mid * 0.22})`);
       grad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = grad;
       ctx.fill();
@@ -792,7 +1128,7 @@ export class Visualizer {
   private drawPetals(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.vizState.petals) this.vizState.petals = { items: [] };
     const st = this.vizState.petals;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const bass = this.bandEnergy(0, 0.06);
     const mid = this.bandEnergy(0.08, 0.32);
@@ -837,52 +1173,66 @@ export class Visualizer {
   private drawPlasma(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.vizState.plasma) {
       const off = document.createElement('canvas');
-      off.width = 160;
-      off.height = 90;
+      off.width = 240;
+      off.height = 135;
       const offCtx = off.getContext('2d', { willReadFrequently: true })!;
-      const img = offCtx.createImageData(160, 90);
+      const img = offCtx.createImageData(240, 135);
       this.vizState.plasma = { off, offCtx, img };
     }
     const st = this.vizState.plasma;
-    const t = (performance.now() - this.t0) / 1000;
-    const bass = this.bandEnergy(0, 0.06);
-    const mid = this.bandEnergy(0.08, 0.32);
-    const treble = this.bandEnergy(0.32, 0.85);
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const b = this.engine.bands();
     const beat = this.engine.beatPulse;
+    const phase = this.engine.tempoPhase() * Math.PI * 2;
+    const drop = this.engine.dropImminent ? 1 : 0;
     const pw = st.off.width, ph = st.off.height;
     const data = st.img.data;
-    const f1 = 0.045 + bass * 0.05;
-    const f2 = 0.07 + treble * 0.05;
-    const f3 = 0.05 + mid * 0.04;
-    const f4 = 0.04 + beat * 0.04;
+    const f1 = 0.045 + b.bass * 0.09 + beat * 0.02;
+    const f2 = 0.072 + b.treble * 0.07;
+    const f3 = 0.052 + b.mid * 0.06;
+    const f4 = 0.041 + beat * 0.06;
+    const f5 = 0.018 + b.presence * 0.04;
+    const stereoSkew = (this.engine.channelEnergy().r - this.engine.channelEnergy().l) * 1.4;
+    const dropBoost = drop * 0.4;
     let idx = 0;
     for (let y = 0; y < ph; y++) {
+      const dy = y - ph / 2;
       for (let x = 0; x < pw; x++) {
+        const dx = x - pw / 2 + stereoSkew * 18;
+        const r = Math.sqrt(dx * dx + dy * dy);
+        const ang = Math.atan2(dy, dx);
         const v = (
-          Math.sin(x * f1 + t * 1.2)
-          + Math.sin(y * f2 + t * 0.9)
-          + Math.sin((x + y) * f3 * 0.5 + t * 0.7)
-          + Math.sin(Math.sqrt((x - pw / 2) * (x - pw / 2) + (y - ph / 2) * (y - ph / 2)) * f4 + t * 1.4)
-        ) / 4;
-        const col = paletteAt(v * 0.5 + 0.5 + t * 0.04);
-        data[idx++] = col[0];
-        data[idx++] = col[1];
-        data[idx++] = col[2];
+          Math.sin(x * f1 + t * 1.4 + phase)
+          + Math.sin(y * f2 + t * 1.05 - phase * 0.5)
+          + Math.sin((x + y) * f3 * 0.5 + t * 0.85)
+          + Math.sin(r * f4 + t * 1.6)
+          + Math.sin(ang * 3 + r * f5 + t * 0.6) * (0.5 + b.brilliance)
+        ) / 5;
+        const col = paletteAt(v * 0.55 + 0.5 + t * 0.05 + b.centroid * 0.3);
+        const lift = 1 + beat * 0.18 + dropBoost;
+        data[idx++] = Math.min(255, col[0] * lift);
+        data[idx++] = Math.min(255, col[1] * lift);
+        data[idx++] = Math.min(255, col[2] * lift);
         data[idx++] = 255;
       }
     }
     st.offCtx.putImageData(st.img, 0, 0);
     ctx.save();
-    ctx.globalAlpha = 0.82 + beat * 0.15;
+    ctx.globalAlpha = 0.85 + beat * 0.12 + dropBoost * 0.1;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(st.off, 0, 0, w, h);
+    if (b.brilliance > 0.35) {
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.globalAlpha = b.brilliance * 0.35;
+      ctx.drawImage(st.off, 0, 0, w, h);
+    }
     ctx.restore();
   }
 
   // 10. mandala — concentric rings of petals with 12-fold symmetry
   private drawMandala(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const cx = w / 2, cy = h / 2;
     const beat = this.engine.beatPulse;
     const f = this.engine.freqData;
@@ -937,108 +1287,7 @@ export class Visualizer {
     ctx.restore();
   }
 
-  // 11. lightning — jagged bolts arc between nodes on every beat
-  private genBoltPoints(x0: number, y0: number, x1: number, y1: number, generations: number, disp: number): Array<[number, number]> {
-    let pts: Array<[number, number]> = [[x0, y0], [x1, y1]];
-    for (let g = 0; g < generations; g++) {
-      const next: Array<[number, number]> = [];
-      for (let i = 0; i < pts.length - 1; i++) {
-        const [ax, ay] = pts[i];
-        const [bx, by] = pts[i + 1];
-        next.push([ax, ay]);
-        const mx = (ax + bx) / 2;
-        const my = (ay + by) / 2;
-        const dx = bx - ax, dy = by - ay;
-        const nx = -dy, ny = dx;
-        const len = Math.sqrt(nx * nx + ny * ny) || 1;
-        const k = (Math.random() - 0.5) * disp * Math.pow(0.55, g);
-        next.push([mx + (nx / len) * k, my + (ny / len) * k]);
-      }
-      next.push(pts[pts.length - 1]);
-      pts = next;
-    }
-    return pts;
-  }
-
-  private drawLightning(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    if (!this.vizState.lightning) {
-      const nodes: LNode[] = [];
-      for (let i = 0; i < 18; i++) {
-        nodes.push({ x: 0.08 + Math.random() * 0.84, y: 0.12 + Math.random() * 0.76 });
-      }
-      this.vizState.lightning = { bolts: [], nodes, lastBeatAt: 0 };
-    }
-    const st = this.vizState.lightning;
-    const now = performance.now();
-    const t = (now - this.t0) / 1000;
-    const dt = 1 / Math.max(30, this.fpsEMA);
-    const beat = this.engine.beatPulse;
-
-    if (beat > 0.7 && now - st.lastBeatAt > 90) {
-      const count = 1 + Math.floor(beat * 3);
-      for (let k = 0; k < count; k++) {
-        const a = st.nodes[Math.floor(Math.random() * st.nodes.length)];
-        const b = st.nodes[Math.floor(Math.random() * st.nodes.length)];
-        if (a === b) continue;
-        const ax = a.x * w, ay = a.y * h, bx = b.x * w, by = b.y * h;
-        const disp = Math.hypot(bx - ax, by - ay) * 0.18;
-        st.bolts.push({
-          points: this.genBoltPoints(ax, ay, bx, by, 5, disp),
-          age: 0, ttl: 0.32 + Math.random() * 0.18,
-          col: paletteAt(t * 0.1 + Math.random() * 0.3)
-        });
-      }
-      st.lastBeatAt = now;
-    }
-
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-
-    // nodes
-    for (const n of st.nodes) {
-      const col = paletteAt(t * 0.08 + n.x);
-      ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${0.35 + beat * 0.45})`;
-      ctx.shadowBlur = 16 * this.dpr;
-      ctx.shadowColor = `rgba(${col[0]},${col[1]},${col[2]},0.8)`;
-      ctx.beginPath();
-      ctx.arc(n.x * w, n.y * h, this.dpr * (2.4 + beat * 2.5), 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.shadowBlur = 0;
-    // bolts (cached points, no flicker)
-    for (let i = st.bolts.length - 1; i >= 0; i--) {
-      const b = st.bolts[i];
-      b.age += dt;
-      if (b.age > b.ttl) { st.bolts.splice(i, 1); continue; }
-      const k = b.age / b.ttl;
-      const alpha = 1 - k;
-      const col = b.col;
-      // halo
-      ctx.strokeStyle = `rgba(${col[0]},${col[1]},${col[2]},${alpha * 0.45})`;
-      ctx.lineWidth = this.dpr * 7;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      for (let p = 0; p < b.points.length; p++) {
-        const [px, py] = b.points[p];
-        if (p === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-      }
-      ctx.stroke();
-      // core
-      ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-      ctx.lineWidth = this.dpr * 1.5;
-      ctx.beginPath();
-      for (let p = 0; p < b.points.length; p++) {
-        const [px, py] = b.points[p];
-        if (p === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-      }
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  }
-
-  // 12. fireflies meadow — slow wandering glow particles with own pulse rates
+  // fireflies meadow — slow wandering glow particles with own pulse rates
   private drawFireflies(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.vizState.fireflies) {
       const items: Firefly[] = [];
@@ -1055,7 +1304,7 @@ export class Visualizer {
       }
       this.vizState.fireflies = { items };
     }
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const items = this.vizState.fireflies.items;
     const beat = this.engine.beatPulse;
     const treble = this.bandEnergy(0.32, 0.85);
@@ -1153,7 +1402,7 @@ export class Visualizer {
     const cy = h / 2;
     const f = this.engine.freqData;
     if (!f.length) return;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const rings = 28;
     const radMax = Math.min(w, h) * 0.55;
@@ -1187,7 +1436,7 @@ export class Visualizer {
     const cx = w / 2;
     const cy = h / 2;
     const r = Math.min(w, h) * 0.32;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const accent = this.accent;
     const beat = this.engine.beatPulse;
     const samples = Math.min(tL.length, 1024);
@@ -1224,24 +1473,25 @@ export class Visualizer {
     const cy = h / 2;
     const f = this.engine.freqData;
     if (!f.length) return;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const rings = 64;
-    const radMax = Math.min(w, h) * 0.46;
+    const radMax = Math.min(w, h) * 0.46 * (1 + (this.cur.drop ? 0.08 : 0));
     const beat = this.engine.beatPulse;
+    const drop = this.cur.drop ? 1 : 0;
 
     for (let r = 0; r < rings; r++) {
       const idx = Math.floor((r / rings) * f.length * 0.55);
       const v = (f[idx] || 0) / 255;
-      const ck = paletteAt(t * 0.04 + r / rings);
-      const rad = (r / rings) * radMax * (1 + v * 0.18 + beat * 0.04);
+      const ck = paletteAt(t * 0.04 + r / rings + this.cur.centroid * 0.3);
+      const rad = (r / rings) * radMax * (1 + v * 0.18 + beat * 0.04 + drop * 0.06);
       ctx.beginPath();
       ctx.arc(cx, cy, rad, 0, Math.PI * 2);
       if (r % 4 === 0 && v > 0.18) {
-        ctx.fillStyle = `rgba(${ck[0]},${ck[1]},${ck[2]},${0.05 + v * 0.18})`;
+        ctx.fillStyle = `rgba(${ck[0]},${ck[1]},${ck[2]},${0.05 + v * 0.18 + drop * 0.06})`;
         ctx.fill();
       }
-      ctx.strokeStyle = `rgba(${ck[0]},${ck[1]},${ck[2]},${0.08 + v * 0.78})`;
-      ctx.lineWidth = this.dpr * (0.6 + v * 3.2);
+      ctx.strokeStyle = `rgba(${ck[0]},${ck[1]},${ck[2]},${0.08 + v * 0.78 + drop * 0.15})`;
+      ctx.lineWidth = this.dpr * (0.6 + v * 3.2 + drop * 1.4);
       ctx.stroke();
     }
 
@@ -1262,28 +1512,57 @@ export class Visualizer {
     const cy = h / 2;
     const f = this.engine.freqData;
     if (!f.length) return;
-    const bars = 96;
-    const step = Math.max(1, Math.floor(f.length / bars));
-    const radInner = Math.min(w, h) * 0.15;
-    const radOuter = Math.min(w, h) * 0.4;
-    const t = (performance.now() - this.t0) / 1000;
+    const bars = 128;
+    const step = Math.max(1, Math.floor(f.length * 0.7 / bars));
+    const radInner = Math.min(w, h) * 0.14;
+    const radOuter = Math.min(w, h) * 0.43;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
+    const b = this.engine.bands();
+    const tempo = this.engine.tempoPhase();
+    const drop = this.engine.dropImminent ? 1 : 0;
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.rotate(t * 0.06);
+    ctx.rotate(t * 0.08 + tempo * Math.PI * 0.3);
+    ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < bars; i++) {
       let sum = 0;
       for (let k = 0; k < step; k++) sum += f[i * step + k] || 0;
       const v = sum / step / 255;
       const a = (i / bars) * Math.PI * 2;
-      const len = radInner + v * (radOuter - radInner) * (1 + beat * 0.4);
-      const ck = paletteAt(t * 0.07 + i / bars);
+      const len = radInner + v * (radOuter - radInner) * (1 + beat * 0.5 + drop * 0.25);
+      const ck = paletteAt(t * 0.08 + i / bars + b.centroid * 0.4);
+      const grad = ctx.createLinearGradient(Math.cos(a) * radInner, Math.sin(a) * radInner, Math.cos(a) * len, Math.sin(a) * len);
+      grad.addColorStop(0, `rgba(${ck[0]},${ck[1]},${ck[2]},${0.35 + v * 0.5})`);
+      grad.addColorStop(1, `rgba(255,255,255,${0.15 + v * 0.55})`);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = this.dpr * (2 + v * 2.4 + beat * 0.8);
+      ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(Math.cos(a) * radInner, Math.sin(a) * radInner);
       ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
-      ctx.strokeStyle = `rgba(${ck[0]},${ck[1]},${ck[2]},${0.4 + v * 0.6})`;
-      ctx.lineWidth = this.dpr * 2.2;
-      ctx.lineCap = 'round';
+      ctx.stroke();
+      if (v > 0.7) {
+        ctx.fillStyle = `rgba(${ck[0]},${ck[1]},${ck[2]},${0.6})`;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * len, Math.sin(a) * len, this.dpr * (1.8 + v * 2.4), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    // mirror inner bars (low frequency emphasis)
+    const innerR = radInner * 0.94;
+    for (let i = 0; i < bars; i += 2) {
+      let sum = 0;
+      for (let k = 0; k < step; k++) sum += f[i * step + k] || 0;
+      const v = sum / step / 255;
+      const a = (i / bars) * Math.PI * 2 + Math.PI;
+      const len = innerR - v * innerR * 0.7 * (1 + beat * 0.3);
+      const ck = paletteAt(t * 0.08 + 0.5 + i / bars);
+      ctx.strokeStyle = `rgba(${ck[0]},${ck[1]},${ck[2]},${0.18 + v * 0.42})`;
+      ctx.lineWidth = this.dpr * (1 + v * 2);
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * innerR, Math.sin(a) * innerR);
+      ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
       ctx.stroke();
     }
     ctx.restore();
@@ -1293,27 +1572,36 @@ export class Visualizer {
     const tL = this.engine.timeData;
     if (!tL.length) return;
     const cy = h / 2;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const accent = this.accent;
+    const beat = this.engine.beatPulse;
+    const b = this.engine.bands();
+    const drop = this.engine.dropImminent ? 1 : 0;
     ctx.save();
     ctx.lineWidth = this.dpr * 2.4;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    for (let layer = 0; layer < 3; layer++) {
-      const ck = paletteAt(t * 0.05 + layer * 0.2);
-      const off = (layer - 1) * h * 0.04;
+    ctx.globalCompositeOperation = 'lighter';
+    const layers = 5;
+    for (let layer = 0; layer < layers; layer++) {
+      const ck = paletteAt(t * 0.06 + layer * 0.17 + b.centroid * 0.3);
+      const off = (layer - (layers - 1) / 2) * h * 0.045;
+      const amp = h * (0.18 + beat * 0.1 + drop * 0.08 + b.bass * 0.06);
+      const phaseShift = layer * 0.08;
       ctx.beginPath();
       for (let i = 0; i < tL.length; i++) {
         const x = (i / tL.length) * w;
         const v = (tL[i] - 128) / 128;
-        const y = cy + off + v * h * (0.18 + this.engine.beatPulse * 0.08);
+        const y = cy + off + v * amp + Math.sin(i * 0.08 + t * 2 + phaseShift) * h * 0.012 * b.treble;
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
-      ctx.strokeStyle = layer === 1
-        ? `rgba(${accent[0]},${accent[1]},${accent[2]},0.95)`
-        : `rgba(${ck[0]},${ck[1]},${ck[2]},0.55)`;
-      ctx.shadowBlur = layer === 1 ? 18 * this.dpr : 0;
-      ctx.shadowColor = `rgba(${accent[0]},${accent[1]},${accent[2]},0.8)`;
+      const isMain = layer === Math.floor(layers / 2);
+      ctx.strokeStyle = isMain
+        ? `rgba(${accent[0]},${accent[1]},${accent[2]},${0.92 + beat * 0.08})`
+        : `rgba(${ck[0]},${ck[1]},${ck[2]},${0.4 + b.mid * 0.3})`;
+      ctx.shadowBlur = isMain ? (20 + drop * 24) * this.dpr : 6 * this.dpr;
+      ctx.shadowColor = `rgba(${accent[0]},${accent[1]},${accent[2]},0.85)`;
+      ctx.lineWidth = this.dpr * (isMain ? 2.8 + beat * 1.4 : 1.6);
       ctx.stroke();
     }
     ctx.restore();
@@ -1325,7 +1613,7 @@ export class Visualizer {
     const cy = h / 2;
     const f = this.engine.freqData;
     if (!f.length) return;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     ctx.save();
     ctx.translate(cx, cy);
@@ -1372,7 +1660,7 @@ export class Visualizer {
   // ─── palette-orbs ─── 5 swatch orbits, each tied to a frequency band.
   // Per-track palette guarantees no two songs look identical.
   private drawPaletteOrbs(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const palette = this.trackPalette;
     const swatches: Array<[number, number, number]> = palette
@@ -1423,7 +1711,7 @@ export class Visualizer {
   // ─── drop-strobe ─── full-frame accent flash when AudioEngine.dropImminent
   // fires (RMS flux predictor lookahead ~150ms). Cinematic climax cue.
   private drawDropStrobe(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const engine = this.engine;
     if (engine.dropImminent) this.strobePulse = 1;
     this.strobePulse = Math.max(0, this.strobePulse - 0.018);
@@ -1471,7 +1759,7 @@ export class Visualizer {
   // ─── prism ─── radial bars with chromatic-aberration R/G/B split.
   // CA offset scales with treble. Pulls colors from per-track palette.
   private drawPrism(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const treble = this.bandEnergy(0.40, 0.85);
     const palette = this.trackPalette;
@@ -1534,88 +1822,33 @@ export class Visualizer {
   // ─── catalog expansion (26 modes) ──────────────────────────────────────
   // All palette-aware via paletteAt() / this.trackPalette. Lightweight 2D.
 
-  private drawSynthwave(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
-    const beat = this.engine.beatPulse;
-    const bass = this.bandEnergy(0, 0.08);
-    const horizon = h * 0.55;
-    const p = this.trackPalette;
-    const vib = p?.vibrant ?? paletteAt(0);
-    const comp = p?.complementary ?? paletteAt(0.4);
-    // sky gradient
-    const sky = ctx.createLinearGradient(0, 0, 0, horizon);
-    sky.addColorStop(0, `rgba(${comp[0]},${comp[1]},${comp[2]},0.22)`);
-    sky.addColorStop(1, `rgba(${vib[0]},${vib[1]},${vib[2]},0.08)`);
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, w, horizon);
-    // sun
-    const sunR = Math.min(w, h) * (0.12 + beat * 0.04);
-    const sg = ctx.createRadialGradient(w / 2, horizon * 0.9, sunR * 0.2, w / 2, horizon * 0.9, sunR);
-    sg.addColorStop(0, `rgba(${vib[0]},${vib[1]},${vib[2]},1)`);
-    sg.addColorStop(1, `rgba(${vib[0]},${vib[1]},${vib[2]},0)`);
-    ctx.fillStyle = sg;
-    ctx.beginPath();
-    ctx.arc(w / 2, horizon * 0.9, sunR, 0, Math.PI * 2);
-    ctx.fill();
-    // sun stripes
-    for (let i = 0; i < 6; i++) {
-      const y = horizon * 0.65 + i * sunR * 0.18 + t * 4;
-      ctx.fillStyle = `rgba(2,2,8,0.7)`;
-      ctx.fillRect(w / 2 - sunR, y, sunR * 2, sunR * 0.06);
-    }
-    // perspective grid
-    ctx.strokeStyle = `rgba(${vib[0]},${vib[1]},${vib[2]},${0.55 + bass * 0.35})`;
-    ctx.lineWidth = this.dpr * 1.4;
-    // horizontal lines marching toward camera
-    const rows = 14;
-    for (let i = 0; i < rows; i++) {
-      const f = ((i + (t * (0.5 + bass * 1.5))) % rows) / rows;
-      const yLine = horizon + Math.pow(f, 2.6) * (h - horizon);
-      ctx.globalAlpha = 0.15 + f * 0.75;
-      ctx.beginPath();
-      ctx.moveTo(0, yLine);
-      ctx.lineTo(w, yLine);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-    // vanishing point verticals
-    const vx = w / 2;
-    for (let i = -10; i <= 10; i++) {
-      ctx.beginPath();
-      ctx.moveTo(vx + (i / 10) * w * 0.05, horizon);
-      ctx.lineTo(vx + (i / 10) * w * 2.5, h);
-      ctx.globalAlpha = 0.45;
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-  }
-
   private drawWormhole(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const bass = this.bandEnergy(0, 0.08);
+    const drop = this.cur.drop ? 1 : 0;
     const cx = w / 2;
     const cy = h / 2;
     const maxR = Math.hypot(w, h) * 0.55;
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.rotate(t * 0.06);
+    ctx.rotate(t * 0.06 + this.cur.tempo * Math.PI * 0.5);
     const rings = 28;
     for (let i = 0; i < rings; i++) {
-      const f = ((i + (t * (0.6 + bass * 1.4))) % rings) / rings;
+      const f = ((i + (t * (0.6 + bass * 1.4 + drop * 0.6))) % rings) / rings;
       const r = Math.pow(1 - f, 2.2) * maxR;
-      const c = paletteAt(f + t * 0.04);
+      const c = paletteAt(f + t * 0.04 + this.cur.centroid * 0.4);
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.15 + (1 - f) * 0.7})`;
-      ctx.lineWidth = this.dpr * (1.4 + (1 - f) * 6 + beat * 2);
+      ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.15 + (1 - f) * 0.7 + drop * 0.2})`;
+      ctx.lineWidth = this.dpr * (1.4 + (1 - f) * 6 + beat * 2 + drop * 2.5);
       ctx.stroke();
     }
     ctx.restore();
   }
 
   private drawVortex(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const cx = w / 2;
     const cy = h / 2;
@@ -1645,7 +1878,7 @@ export class Visualizer {
   }
 
   private drawSunburst(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const f = this.engine.freqData;
     const cx = w / 2;
@@ -1750,7 +1983,7 @@ export class Visualizer {
   }
 
   private drawLiquid(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const bass = this.bandEnergy(0, 0.08);
     const mid = this.bandEnergy(0.08, 0.32);
     const beat = this.engine.beatPulse;
@@ -1776,7 +2009,7 @@ export class Visualizer {
   }
 
   private drawVinyl(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const cx = w / 2;
     const cy = h / 2;
@@ -1822,45 +2055,8 @@ export class Visualizer {
     ctx.restore();
   }
 
-  private drawMatrix(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const beat = this.engine.beatPulse;
-    const treble = this.bandEnergy(0.32, 0.85);
-    const cell = Math.max(14, Math.min(w, h) / 56);
-    const cols = Math.ceil(w / cell);
-    const st = (this.vizState as { matrix?: { col: number[]; speed: number[] } });
-    if (!st.matrix || st.matrix.col.length !== cols) {
-      st.matrix = {
-        col: Array.from({ length: cols }, () => Math.random() * h),
-        speed: Array.from({ length: cols }, () => cell * (0.4 + Math.random() * 1.2))
-      };
-    }
-    ctx.fillStyle = 'rgba(2,2,8,0.18)';
-    ctx.fillRect(0, 0, w, h);
-    const glyphs = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789';
-    ctx.font = `${cell * 1.05}px monospace`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const c = this.trackPalette?.vibrant ?? [120, 255, 160];
-    for (let i = 0; i < cols; i++) {
-      const y = st.matrix.col[i];
-      const s = st.matrix.speed[i] * (0.85 + treble * 1.4);
-      st.matrix.col[i] = (y + s) % (h + cell * 18);
-      // head
-      ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.95})`;
-      const g0 = glyphs[Math.floor(Math.random() * glyphs.length)];
-      ctx.fillText(g0, i * cell + cell / 2, y);
-      // trail
-      for (let k = 1; k < 16; k++) {
-        ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${(1 - k / 16) * 0.6})`;
-        const g = glyphs[Math.floor(Math.random() * glyphs.length)];
-        ctx.fillText(g, i * cell + cell / 2, y - k * cell);
-      }
-    }
-    if (beat > 0.85) ctx.globalAlpha = 1;
-  }
-
   private drawSmoke(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const bass = this.bandEnergy(0, 0.08);
     const st = (this.vizState as { smoke?: { items: { x: number; y: number; vx: number; vy: number; r: number; life: number; c: [number, number, number] }[] } });
     if (!st.smoke) st.smoke = { items: [] };
@@ -1900,7 +2096,7 @@ export class Visualizer {
   }
 
   private drawStrings(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const f = this.engine.freqData;
     const strings = 14;
     const gap = h / (strings + 1);
@@ -1967,7 +2163,7 @@ export class Visualizer {
   }
 
   private drawCymatics(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const bass = this.bandEnergy(0, 0.08);
     const mid = this.bandEnergy(0.08, 0.32);
     const treble = this.bandEnergy(0.32, 0.85);
@@ -2041,7 +2237,7 @@ export class Visualizer {
   }
 
   private drawBloom(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const orbs = 9;
     ctx.save();
@@ -2067,7 +2263,7 @@ export class Visualizer {
   }
 
   private drawRose(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const mid = this.bandEnergy(0.08, 0.32);
     const cx = w / 2;
@@ -2129,48 +2325,6 @@ export class Visualizer {
     ctx.drawImage(off.off, 0, 0);
   }
 
-  private drawGem(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
-    const beat = this.engine.beatPulse;
-    const bass = this.bandEnergy(0, 0.08);
-    const cx = w / 2;
-    const cy = h / 2;
-    const R = Math.min(w, h) * (0.30 + bass * 0.05);
-    const sides = 8;
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(t * 0.25);
-    // facets
-    for (let s = 0; s < sides; s++) {
-      const a0 = (s / sides) * Math.PI * 2;
-      const a1 = ((s + 1) / sides) * Math.PI * 2;
-      const c = paletteAt(s / sides + t * 0.05);
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(Math.cos(a0) * R, Math.sin(a0) * R);
-      ctx.lineTo(Math.cos(a1) * R, Math.sin(a1) * R);
-      ctx.closePath();
-      const grad = ctx.createLinearGradient(0, 0, Math.cos((a0 + a1) / 2) * R, Math.sin((a0 + a1) / 2) * R);
-      grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.85})`);
-      grad.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},${0.25})`);
-      ctx.fillStyle = grad;
-      ctx.fill();
-      ctx.strokeStyle = `rgba(255,255,255,${0.15 + beat * 0.25})`;
-      ctx.lineWidth = this.dpr;
-      ctx.stroke();
-    }
-    // highlight
-    const hc = paletteAt(0.1);
-    const hg = ctx.createRadialGradient(-R * 0.3, -R * 0.3, 0, -R * 0.3, -R * 0.3, R * 0.7);
-    hg.addColorStop(0, `rgba(255,255,255,${0.3 + beat * 0.4})`);
-    hg.addColorStop(1, `rgba(${hc[0]},${hc[1]},${hc[2]},0)`);
-    ctx.fillStyle = hg;
-    ctx.beginPath();
-    ctx.arc(0, 0, R, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
   private drawMonolith(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const f = this.engine.freqData;
     const bars = 40;
@@ -2205,7 +2359,7 @@ export class Visualizer {
   }
 
   private drawNebula(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const mid = this.bandEnergy(0.08, 0.32);
     const blobs = 14;
     ctx.save();
@@ -2238,48 +2392,8 @@ export class Visualizer {
     ctx.restore();
   }
 
-  private drawSwarm(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
-    const beat = this.engine.beatPulse;
-    const treble = this.bandEnergy(0.32, 0.85);
-    const st = (this.vizState as { swarm?: { items: { x: number; y: number; vx: number; vy: number }[] } });
-    if (!st.swarm) {
-      st.swarm = {
-        items: Array.from({ length: 140 }, () => ({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 2,
-          vy: (Math.random() - 0.5) * 2
-        }))
-      };
-    }
-    const items = st.swarm.items;
-    // attractor moves
-    const ax = w / 2 + Math.cos(t * 0.6) * w * 0.3;
-    const ay = h / 2 + Math.sin(t * 0.4) * h * 0.3;
-    for (let i = 0; i < items.length; i++) {
-      const p = items[i];
-      const dx = ax - p.x;
-      const dy = ay - p.y;
-      const d = Math.hypot(dx, dy) + 0.01;
-      p.vx += (dx / d) * (0.3 + beat * 0.6);
-      p.vy += (dy / d) * (0.3 + beat * 0.6);
-      p.vx *= 0.96;
-      p.vy *= 0.96;
-      p.x += p.vx;
-      p.y += p.vy;
-      if (p.x < 0) p.x += w; else if (p.x > w) p.x -= w;
-      if (p.y < 0) p.y += h; else if (p.y > h) p.y -= h;
-      const c = paletteAt((i / items.length + t * 0.05) % 1);
-      ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.6 + treble * 0.3})`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, this.dpr * (1.3 + beat * 1.4), 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
   private drawRibbons(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const f = this.engine.freqData;
     const ribbons = 6;
     ctx.save();
@@ -2305,55 +2419,8 @@ export class Visualizer {
     ctx.restore();
   }
 
-  private drawStarburst(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
-    const beat = this.engine.beatPulse;
-    const drop = this.engine.dropImminent;
-    const st = (this.vizState as { starburst?: { items: { x: number; y: number; vx: number; vy: number; life: number; c: [number, number, number] }[] } });
-    if (!st.starburst) st.starburst = { items: [] };
-    const items = st.starburst.items;
-    if (beat > 0.7 || drop) {
-      const n = 40;
-      for (let i = 0; i < n; i++) {
-        const a = (i / n) * Math.PI * 2 + Math.random() * 0.3;
-        const sp = 10 + Math.random() * 16;
-        items.push({
-          x: w / 2,
-          y: h / 2,
-          vx: Math.cos(a) * sp,
-          vy: Math.sin(a) * sp,
-          life: 1,
-          c: paletteAt(i / n + t * 0.1)
-        });
-      }
-    }
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = items.length - 1; i >= 0; i--) {
-      const p = items[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vx *= 0.94;
-      p.vy *= 0.94;
-      p.life -= 0.016;
-      if (p.life <= 0) { items.splice(i, 1); continue; }
-      const tail = 12;
-      const grad = ctx.createLinearGradient(p.x, p.y, p.x - p.vx * tail, p.y - p.vy * tail);
-      grad.addColorStop(0, `rgba(${p.c[0]},${p.c[1]},${p.c[2]},${p.life})`);
-      grad.addColorStop(1, `rgba(${p.c[0]},${p.c[1]},${p.c[2]},0)`);
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = this.dpr * 2;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo(p.x - p.vx * tail, p.y - p.vy * tail);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
-
   private drawGravity(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const cx = w / 2;
     const cy = h / 2;
@@ -2400,7 +2467,7 @@ export class Visualizer {
   }
 
   private drawLattice(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const bass = this.bandEnergy(0, 0.08);
     const cx = w / 2;
@@ -2470,7 +2537,7 @@ export class Visualizer {
   }
 
   private drawFlux(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = ((performance.now() - this.t0) / 1000) * 0.14;
     const beat = this.engine.beatPulse;
     const mid = this.bandEnergy(0.08, 0.32);
     const cx = w / 2;
