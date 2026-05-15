@@ -792,15 +792,15 @@ export class Visualizer {
     // wake up the upper blobs instead of mid bleed.
     const energies = [c.bass, c.mid, c.treble, c.highMid, c.presence];
     const baseR = Math.max(w, h) * (0.35 + beat * 0.1 + c.build * 0.08);
-    const tempoOff = c.tempo * Math.PI * 2;
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     for (let i = 0; i < 5; i++) {
+      // Ambient drift only — no BPM-locked wobble. Background blobs orbit
+      // slowly so the user-selectable foreground modes own the visible motion.
       const phase = t * 0.06 + i * 0.41;
       const orbit = 0.18 + (i * 0.11);
-      // Tempo-locked orbital wobble — blobs breathe with the BPM, not just rAF.
-      const cx = w / 2 + Math.cos(phase * Math.PI * 2 + i + tempoOff * 0.5) * w * orbit;
-      const cy = h / 2 + Math.sin(phase * Math.PI * 2 * 0.83 + i * 1.7 + tempoOff * 0.33) * h * orbit;
+      const cx = w / 2 + Math.cos(phase * Math.PI * 2 + i) * w * orbit;
+      const cy = h / 2 + Math.sin(phase * Math.PI * 2 * 0.83 + i * 1.7) * h * orbit;
       const e = energies[i];
       const r = baseR * (0.45 + e * 0.55 + beat * 0.18);
       const ck = paletteAt(t * 0.05 + i * 0.2 + c.centroid * 0.4);
