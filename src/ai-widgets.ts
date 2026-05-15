@@ -983,3 +983,46 @@ export function renderWidgets(widgets?: AiChatWidget[] | null): string {
   const rendered = widgets.slice(0, 24).map(renderWidget).filter(Boolean).join('');
   return rendered ? `<div class="aichat__widgets" role="list">${rendered}</div>` : '';
 }
+
+const VALID_WIDGET_KINDS: ReadonlySet<string> = new Set([
+  'text-card', 'cta', 'link-card', 'photo', 'gallery', 'track-card', 'album-card',
+  'pricing-card', 'faq-accordion', 'mini-table', 'stat-card', 'timeline',
+  'command-palette', 'related-pages', 'citation', 'status-badge', 'alert',
+  'code-snippet', 'audio-card', 'quick-reply', 'progress', 'feedback',
+  'search-results', 'breadcrumb', 'chart', 'person-card', 'event-card',
+  'carousel', 'next-best-action', 'before-after', 'newsletter-signup',
+  'checklist', 'document-card', 'comparison-table'
+]);
+
+/**
+ * Strip ```aiwidgets``` fenced blocks from streamed assistant text. Each block
+ * must contain a JSON array of widget objects; invalid JSON or unknown `kind`
+ * values are dropped. Returns the cleaned markdown plus any widgets recovered.
+ * Caps total widgets at 24 to mirror the renderer.
+ */
+export function parseAiWidgets(text: string): { text: string; widgets: AiChatWidget[] } {
+  if (typeof text !== 'string' || !text.includes('aiwidgets')) {
+    return { text, widgets: [] };
+  }
+  const widgets: AiChatWidget[] = [];
+  const re = /```(?:aiwidgets|aiwidget)\s*\n([\s\S]*?)\n```/g;
+  const cleaned = text.replace(re, (_match, body: string) => {
+    try {
+      const parsed = JSON.parse(body);
+      const arr = Array.isArray(parsed) ? parsed : [parsed];
+      for (const w of arr) {
+        if (
+          w &&
+          typeof w === 'object' &&
+          typeof (w as { kind?: unknown }).kind === 'string' &&
+          VALID_WIDGET_KINDS.has((w as { kind: string }).kind) &&
+          widgets.length < 24
+        ) {
+          widgets.push(w as AiChatWidget);
+        }
+      }
+    } catch {}
+    return '';
+  });
+  return { text: cleaned.replace(/\n{3,}/g, '\n\n').trim(), widgets };
+}

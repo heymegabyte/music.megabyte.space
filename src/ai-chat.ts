@@ -11,7 +11,7 @@ import type { AudioEngine } from './audio';
 import type { Track } from './types';
 import { TRACKS, ALBUMS, TRACK_BY_ID, ALBUM_BY_ID, ROBERT_GREENE_WISDOM, tracksForAlbum } from './data';
 import { getTrackTags } from './tags';
-import { renderWidgets, type AiChatWidget } from './ai-widgets';
+import { renderWidgets, parseAiWidgets, type AiChatWidget } from './ai-widgets';
 import { buildShortCommandsPalette } from './ai-shortcommands';
 
 interface ChatMessage {
@@ -141,6 +141,19 @@ function personaSystem(p: Persona, override: string): string {
   if (override.trim()) return override.trim();
   return PERSONAS[p]?.system || PERSONAS.dj.system;
 }
+
+const WIDGET_HINT =
+  '\n\nOptional structured output: when a visual would help, append a fenced ' +
+  '```aiwidgets``` block containing a JSON array of widget objects. Render markdown ' +
+  'first, then the fenced block at the very end. Available kinds: track-card, ' +
+  'album-card, link-card, cta, photo, gallery, pricing-card, faq-accordion, ' +
+  'mini-table, comparison-table, stat-card, chart, timeline, citation, alert, ' +
+  'status-badge, code-snippet, checklist, document-card, person-card, event-card, ' +
+  'carousel, before-after, newsletter-signup, next-best-action, quick-reply, ' +
+  'progress, search-results, breadcrumb, related-pages, command-palette, ' +
+  'audio-card, text-card, feedback. Use at most three widgets per message. ' +
+  'Required fields per kind are documented in docs/ai-chat-widgets.md. Never ' +
+  'use widgets when the answer is a single sentence — let markdown stand alone.';
 
 const VARIABLE_HELP = '{{track}} {{artist}} {{album}} {{lyric}} {{time}} {{bpm}} {{wisdom}}';
 
@@ -1094,7 +1107,7 @@ export function mountAIChat(opts: MountOpts = {}) {
       ...sess.messages.filter(m => m.pinned).map(m => `[${m.role}] ${m.content.slice(0, 160)}`)
     ];
     const pins = pinNotes.length ? `\n\nUser-pinned memory:\n- ${pinNotes.join('\n- ')}` : '';
-    const fullSystem = `${systemBase}\n\nLive context: ${ctxLine}${summary}${pins}`;
+    const fullSystem = `${systemBase}\n\nLive context: ${ctxLine}${summary}${pins}${WIDGET_HINT}`;
 
     bumpStreak();
     if (continueBanner) continueBanner.hidden = true;
@@ -1176,6 +1189,14 @@ export function mountAIChat(opts: MountOpts = {}) {
       if (rateBox) rateBox.hidden = true;
       if (stopReason === 'max_tokens' && continueBanner) {
         continueBanner.hidden = false;
+      }
+      if (aiMsg.content && aiMsg.content.includes('aiwidgets')) {
+        const parsed = parseAiWidgets(aiMsg.content);
+        if (parsed.widgets.length) {
+          aiMsg.content = parsed.text;
+          aiMsg.widgets = parsed.widgets;
+          renderMessages();
+        }
       }
       sess.updatedAt = Date.now();
       saveState();
@@ -1700,7 +1721,16 @@ export function mountAIChat(opts: MountOpts = {}) {
       hostHandled: true,
       run: () => false
     },
-    debug: { sig: '', desc: 'open replay-debug overlay', cat: 'Intel', hostHandled: true, run: () => false }
+    debug: { sig: '', desc: 'open replay-debug overlay', cat: 'Intel', hostHandled: true, run: () => false },
+    stats: {
+      sig: '',
+      desc: 'top tracks by plays + shares',
+      cat: 'Intel',
+      run: () => {
+        showStats();
+        return true;
+      }
+    }
   };
 
   function showSlashHelp() {
@@ -1776,6 +1806,57 @@ export function mountAIChat(opts: MountOpts = {}) {
     const widget = buildShortCommandsPalette(SLASH);
     const totals = `${Object.keys(SLASH).length} commands across ${widget.groups.length} groups`;
     pushAssistantWithWidgets(`**Shortcommands** — ${totals}.`, [widget]);
+  }
+
+  async function showStats() {
+    setStatus('Fetching stats…');
+    try {
+      const res = await fetch('/api/stats', { headers: { accept: 'application/json' } });
+      if (!res.ok) {
+        pushAssistant(`Could not load /api/stats (HTTP ${res.status}).`);
+        setStatus('');
+        return;
+      }
+      const data = (await res.json()) as { tracks?: Record<string, { plays?: number; shares?: number }> };
+      const entries = Object.entries(data.tracks || {});
+      if (!entries.length) {
+        pushAssistant('No play or share data yet — counters are warming up.');
+        setStatus('');
+        return;
+      }
+      const top = entries
+        .map(([id, v]) => ({ id, plays: Number(v.plays) || 0, shares: Number(v.shares) || 0 }))
+        .sort((a, b) => b.plays + b.shares - (a.plays + a.shares))
+        .slice(0, 10);
+      const labels = top.map(t => TRACK_BY_ID.get(t.id)?.title || t.id);
+      const playsChart: AiChatWidget = {
+        kind: 'chart',
+        title: `Top ${top.length} tracks by plays`,
+        label: labels.join(' · '),
+        series: top.map(t => t.plays),
+        unit: 'plays',
+        variant: 'bar',
+        caption: `Σ plays ${top.reduce((s, t) => s + t.plays, 0)} · Σ shares ${top.reduce((s, t) => s + t.shares, 0)}`
+      };
+      const rows = top.map(t => ({
+        label: TRACK_BY_ID.get(t.id)?.title || t.id,
+        values: [String(t.plays), String(t.shares)]
+      }));
+      const table: AiChatWidget = {
+        kind: 'comparison-table',
+        caption: 'Plays vs. shares',
+        columns: ['Track', 'Plays', 'Shares'],
+        rows
+      };
+      pushAssistantWithWidgets(
+        `**Stats** — ${entries.length} tracks counted; showing top ${top.length}.`,
+        [playsChart, table]
+      );
+    } catch {
+      pushAssistant('Stats fetch failed — try again in a moment.');
+    } finally {
+      setStatus('');
+    }
   }
 
   function showTrackCard(id: string | undefined) {

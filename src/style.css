@@ -1537,7 +1537,7 @@ html.is-playing .ai-playlist--rail {
 .transport {
   position: sticky;
   bottom: 0;
-  align-self: end;
+  align-self: stretch;
   grid-row: 3;
   z-index: 3;
   display: grid;
@@ -6924,12 +6924,13 @@ body.cast-tv-open .transport {
 /* ---------- Now-playing widget below header ---------- */
 .aichat__now {
   display: grid;
-  grid-template-columns: 56px 1fr auto;
+  grid-template-columns: 44px 1fr auto;
   align-items: center;
-  gap: 12px;
-  margin: 12px var(--aichat-pad) 4px;
-  padding: 10px 12px;
-  min-height: calc(56px + 20px);
+  gap: 10px;
+  margin: 10px var(--aichat-pad) 4px;
+  padding: 8px 10px;
+  min-height: 60px;
+  max-height: 64px;
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--aichat-accent) 14%, rgba(6, 6, 16, 0.7)) 0%,
@@ -6973,9 +6974,9 @@ body.cast-tv-open .transport {
 }
 
 .aichat__now-cover {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   flex-shrink: 0;
   background: linear-gradient(
     135deg,
@@ -7036,16 +7037,16 @@ body.cast-tv-open .transport {
 
 .aichat__now-text {
   display: grid;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
   align-content: center;
-  max-height: 56px;
+  max-height: 44px;
   overflow: hidden;
 }
 .aichat__now-title {
-  font-size: 0.98rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -7102,7 +7103,7 @@ body.cast-tv-open .transport {
 .aichat__now-pulse {
   display: flex;
   gap: 2px;
-  height: 36px;
+  height: 26px;
   align-items: flex-end;
 }
 .aichat__now-pulse span {
@@ -7113,15 +7114,15 @@ body.cast-tv-open .transport {
   transition: transform 80ms linear;
 }
 .aichat__now-pulse span:nth-child(1) {
-  height: 22px;
+  height: 16px;
   transform: scaleY(calc(0.35 + var(--aichat-amp) * 0.7));
 }
 .aichat__now-pulse span:nth-child(2) {
-  height: 36px;
+  height: 26px;
   transform: scaleY(calc(0.55 + var(--aichat-amp) * 0.85));
 }
 .aichat__now-pulse span:nth-child(3) {
-  height: 28px;
+  height: 20px;
   transform: scaleY(calc(0.4 + var(--aichat-amp) * 0.95));
 }
 .aichat__now-arrow {

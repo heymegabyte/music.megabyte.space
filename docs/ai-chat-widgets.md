@@ -43,6 +43,21 @@ A client message is `ChatMessage`. The renderer in `ai-chat.ts` appends `renderW
 | `alert`           | Banner with `role=alert`/`role=status` based on tone  | `title`, `tone`                                        |
 | `code-snippet`    | Highlighted code with copy button                     | `code`                                                 |
 | `audio-card`      | Mini player teaser linking into the catalog           | `trackId`, `title`, `href`                             |
+| `quick-reply`     | Tap-to-send reply chips                               | `options[].label`                                      |
+| `progress`        | Progress bar plus optional step list                  | `percent` or `steps[]`                                 |
+| `feedback`        | Inline thumbs-up/down with `aichat:feedback` dispatch | `responseId` (optional)                                |
+| `search-results`  | Result list with title, href, snippet                 | `results[].title`, `results[].href`                    |
+| `breadcrumb`      | Inline breadcrumb trail                               | `items[].label`                                        |
+| `chart`           | Pure-SVG sparkline or bar chart                       | `series[]`                                             |
+| `person-card`     | Avatar, role, bio, and link row                       | `name`                                                 |
+| `event-card`      | Date/time/place card with optional CTA                | `title`, `when`                                        |
+| `carousel`        | Horizontal-scroll image carousel                      | `items[].src`, `items[].alt`                           |
+| `next-best-action`| Headlined recommendation with primary/secondary CTA   | `primary.label`                                        |
+| `before-after`    | Side-by-side comparison of two images                 | `before.src`, `before.alt`, `after.src`, `after.alt`   |
+| `newsletter-signup` | Email capture wired to `POST /api/subscribe`        | (none — emits `aichat:newsletter` on success)          |
+| `checklist`       | Tickable item list with progress bar                  | `items[].label`                                        |
+| `document-card`   | Downloadable doc tile with format and size            | `title`, `href`                                        |
+| `comparison-table`| Feature matrix with boolean ✓/— cells + highlight col | `columns[]`, `rows[].label`, `rows[].values[]`         |
 
 ## Example payload
 

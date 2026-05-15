@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { escapeHtml, renderWidget, renderWidgets, safeUrl, type AiChatWidget } from './ai-widgets';
+import {
+  escapeHtml,
+  parseAiWidgets,
+  renderWidget,
+  renderWidgets,
+  safeUrl,
+  type AiChatWidget
+} from './ai-widgets';
 
 describe('escapeHtml', () => {
   it('escapes the five entity characters', () => {
@@ -890,5 +897,88 @@ describe('renderWidgets bundle', () => {
     );
     const html = renderWidgets(widgets);
     expect((html.match(/aichat__widget--text/g) || []).length).toBe(24);
+  });
+});
+
+describe('parseAiWidgets', () => {
+  it('returns empty widgets when no fenced block present', () => {
+    const out = parseAiWidgets('Plain markdown body.');
+    expect(out.widgets).toEqual([]);
+    expect(out.text).toBe('Plain markdown body.');
+  });
+
+  it('returns empty widgets for non-string input', () => {
+    const out = parseAiWidgets(null as unknown as string);
+    expect(out.widgets).toEqual([]);
+    expect(out.text).toBe(null);
+  });
+
+  it('extracts a widget array and strips the fenced block', () => {
+    const input = [
+      'Here are picks.',
+      '',
+      '```aiwidgets',
+      '[{"kind":"text-card","body":"hello"}]',
+      '```'
+    ].join('\n');
+    const out = parseAiWidgets(input);
+    expect(out.widgets).toHaveLength(1);
+    expect(out.widgets[0]).toEqual({ kind: 'text-card', body: 'hello' });
+    expect(out.text).toBe('Here are picks.');
+    expect(out.text).not.toContain('aiwidgets');
+  });
+
+  it('accepts a single object as well as an array', () => {
+    const input = '```aiwidgets\n{"kind":"text-card","body":"solo"}\n```';
+    const out = parseAiWidgets(input);
+    expect(out.widgets).toHaveLength(1);
+    expect((out.widgets[0] as { body: string }).body).toBe('solo');
+  });
+
+  it('drops entries with unknown kinds', () => {
+    const input =
+      '```aiwidgets\n[{"kind":"text-card","body":"ok"},{"kind":"nope","body":"x"}]\n```';
+    const out = parseAiWidgets(input);
+    expect(out.widgets).toHaveLength(1);
+    expect((out.widgets[0] as { kind: string }).kind).toBe('text-card');
+  });
+
+  it('drops fenced block silently when JSON is malformed', () => {
+    const input = 'Lead.\n\n```aiwidgets\n{not json\n```';
+    const out = parseAiWidgets(input);
+    expect(out.widgets).toEqual([]);
+    expect(out.text).toBe('Lead.');
+  });
+
+  it('caps recovered widgets at 24', () => {
+    const big = Array.from({ length: 40 }, (_, i) => ({ kind: 'text-card', body: `w${i}` }));
+    const input = '```aiwidgets\n' + JSON.stringify(big) + '\n```';
+    const out = parseAiWidgets(input);
+    expect(out.widgets).toHaveLength(24);
+  });
+
+  it('passes hostile content through unmodified for the renderer to escape', () => {
+    const input = '```aiwidgets\n[{"kind":"text-card","body":"<img onerror=x>"}]\n```';
+    const out = parseAiWidgets(input);
+    expect(out.widgets).toHaveLength(1);
+    expect((out.widgets[0] as { body: string }).body).toBe('<img onerror=x>');
+    expect(renderWidget(out.widgets[0])).not.toContain('<img onerror');
+  });
+
+  it('handles multiple fenced blocks in one message', () => {
+    const input = [
+      '```aiwidgets',
+      '[{"kind":"text-card","body":"first"}]',
+      '```',
+      '',
+      'Middle prose.',
+      '',
+      '```aiwidgets',
+      '[{"kind":"text-card","body":"second"}]',
+      '```'
+    ].join('\n');
+    const out = parseAiWidgets(input);
+    expect(out.widgets).toHaveLength(2);
+    expect(out.text).toBe('Middle prose.');
   });
 });
