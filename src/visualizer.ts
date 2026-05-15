@@ -70,7 +70,7 @@ function lerpPalette(p: Array<[number, number, number]>, t: number): [number, nu
 // cur.centroid each frame. Push every paletteAt() result through a saturation
 // stretch + centroid-driven hue rotation so the colours follow the music's
 // spectral character (centroid up→hue walks up the wheel).
-let VIBRANCE = 1.18;        // saturation multiplier, 1=neutral
+let VIBRANCE = 1.0;         // saturation multiplier, 1=neutral
 let HUE_SHIFT = 0;          // degrees, -180..180
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
@@ -470,7 +470,7 @@ export class Visualizer {
     const e = this.engine;
     const b = e.bands();
     const ch = e.channelEnergy();
-    this.cur.t = ((now - this.t0) / 1000) * 0.14;
+    this.cur.t = (now - this.t0) / 1000;
     this.cur.beat = e.beatPulse;
     this.cur.bpm = e.bpm;
     this.cur.bass = b.bass;
@@ -495,7 +495,7 @@ export class Visualizer {
     // bass-heavy walks toward magenta/red). Wraps every 360°.
     const dtFrame = 1 / Math.max(30, this.fpsEMA);
     this.hueDrift = (this.hueDrift + (this.cur.centroid - 0.5) * 18 * dtFrame) % 360;
-    VIBRANCE = 1.18 + this.cur.build * 0.24 + this.cur.beat * 0.06;
+    VIBRANCE = 1.0 + this.cur.build * 0.28 + this.cur.beat * 0.08;
     HUE_SHIFT = this.hueDrift;
 
     // Adaptive quality knob — driven by sustained fpsEMA. high=full counts,
@@ -892,7 +892,7 @@ export class Visualizer {
     }
     const stars = this.vizState.constellation.stars;
     const f = this.engine.freqData;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const treble = this.bandEnergy(0.32, 0.85);
     const linkDist = 0.16 + treble * 0.12;
     ctx.save();
@@ -961,7 +961,7 @@ export class Visualizer {
       this.vizState.galaxy = { particles };
     }
     const ps = this.vizState.galaxy.particles;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const cx = w / 2, cy = h / 2;
     const scale = Math.min(w, h);
@@ -997,7 +997,7 @@ export class Visualizer {
   private drawSupernova(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.vizState.supernova) this.vizState.supernova = { rings: [] };
     const st = this.vizState.supernova;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const cx = w / 2, cy = h / 2;
     const beat = this.engine.beatPulse;
     const b = this.engine.bands();
@@ -1058,7 +1058,7 @@ export class Visualizer {
 
   // 5. aurora — flowing draped ribbons across the sky
   private drawAurora(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const b = this.engine.bands();
     const beat = this.engine.beatPulse;
     const tempo = this.engine.tempoPhase();
@@ -1128,7 +1128,7 @@ export class Visualizer {
   private drawPetals(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.vizState.petals) this.vizState.petals = { items: [] };
     const st = this.vizState.petals;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const bass = this.bandEnergy(0, 0.06);
     const mid = this.bandEnergy(0.08, 0.32);
@@ -1180,7 +1180,7 @@ export class Visualizer {
       this.vizState.plasma = { off, offCtx, img };
     }
     const st = this.vizState.plasma;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const b = this.engine.bands();
     const beat = this.engine.beatPulse;
     const phase = this.engine.tempoPhase() * Math.PI * 2;
@@ -1232,7 +1232,7 @@ export class Visualizer {
 
   // 10. mandala — concentric rings of petals with 12-fold symmetry
   private drawMandala(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const cx = w / 2, cy = h / 2;
     const beat = this.engine.beatPulse;
     const f = this.engine.freqData;
@@ -1304,7 +1304,7 @@ export class Visualizer {
       }
       this.vizState.fireflies = { items };
     }
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const items = this.vizState.fireflies.items;
     const beat = this.engine.beatPulse;
     const treble = this.bandEnergy(0.32, 0.85);
@@ -1402,7 +1402,7 @@ export class Visualizer {
     const cy = h / 2;
     const f = this.engine.freqData;
     if (!f.length) return;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const rings = 28;
     const radMax = Math.min(w, h) * 0.55;
@@ -1436,7 +1436,7 @@ export class Visualizer {
     const cx = w / 2;
     const cy = h / 2;
     const r = Math.min(w, h) * 0.32;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const accent = this.accent;
     const beat = this.engine.beatPulse;
     const samples = Math.min(tL.length, 1024);
@@ -1473,7 +1473,7 @@ export class Visualizer {
     const cy = h / 2;
     const f = this.engine.freqData;
     if (!f.length) return;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const rings = 64;
     const radMax = Math.min(w, h) * 0.46 * (1 + (this.cur.drop ? 0.08 : 0));
     const beat = this.engine.beatPulse;
@@ -1516,7 +1516,7 @@ export class Visualizer {
     const step = Math.max(1, Math.floor(f.length * 0.7 / bars));
     const radInner = Math.min(w, h) * 0.14;
     const radOuter = Math.min(w, h) * 0.43;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const b = this.engine.bands();
     const tempo = this.engine.tempoPhase();
@@ -1572,7 +1572,7 @@ export class Visualizer {
     const tL = this.engine.timeData;
     if (!tL.length) return;
     const cy = h / 2;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const accent = this.accent;
     const beat = this.engine.beatPulse;
     const b = this.engine.bands();
@@ -1613,7 +1613,7 @@ export class Visualizer {
     const cy = h / 2;
     const f = this.engine.freqData;
     if (!f.length) return;
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     ctx.save();
     ctx.translate(cx, cy);
@@ -1660,7 +1660,7 @@ export class Visualizer {
   // ─── palette-orbs ─── 5 swatch orbits, each tied to a frequency band.
   // Per-track palette guarantees no two songs look identical.
   private drawPaletteOrbs(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const palette = this.trackPalette;
     const swatches: Array<[number, number, number]> = palette
@@ -1711,7 +1711,7 @@ export class Visualizer {
   // ─── drop-strobe ─── full-frame accent flash when AudioEngine.dropImminent
   // fires (RMS flux predictor lookahead ~150ms). Cinematic climax cue.
   private drawDropStrobe(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const engine = this.engine;
     if (engine.dropImminent) this.strobePulse = 1;
     this.strobePulse = Math.max(0, this.strobePulse - 0.018);
@@ -1759,7 +1759,7 @@ export class Visualizer {
   // ─── prism ─── radial bars with chromatic-aberration R/G/B split.
   // CA offset scales with treble. Pulls colors from per-track palette.
   private drawPrism(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const treble = this.bandEnergy(0.40, 0.85);
     const palette = this.trackPalette;
@@ -1823,7 +1823,7 @@ export class Visualizer {
   // All palette-aware via paletteAt() / this.trackPalette. Lightweight 2D.
 
   private drawWormhole(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const bass = this.bandEnergy(0, 0.08);
     const drop = this.cur.drop ? 1 : 0;
@@ -1848,7 +1848,7 @@ export class Visualizer {
   }
 
   private drawVortex(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const cx = w / 2;
     const cy = h / 2;
@@ -1878,7 +1878,7 @@ export class Visualizer {
   }
 
   private drawSunburst(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const f = this.engine.freqData;
     const cx = w / 2;
@@ -1983,7 +1983,7 @@ export class Visualizer {
   }
 
   private drawLiquid(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const bass = this.bandEnergy(0, 0.08);
     const mid = this.bandEnergy(0.08, 0.32);
     const beat = this.engine.beatPulse;
@@ -2009,7 +2009,7 @@ export class Visualizer {
   }
 
   private drawVinyl(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const cx = w / 2;
     const cy = h / 2;
@@ -2056,7 +2056,7 @@ export class Visualizer {
   }
 
   private drawSmoke(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const bass = this.bandEnergy(0, 0.08);
     const st = (this.vizState as { smoke?: { items: { x: number; y: number; vx: number; vy: number; r: number; life: number; c: [number, number, number] }[] } });
     if (!st.smoke) st.smoke = { items: [] };
@@ -2096,7 +2096,7 @@ export class Visualizer {
   }
 
   private drawStrings(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const f = this.engine.freqData;
     const strings = 14;
     const gap = h / (strings + 1);
@@ -2163,7 +2163,7 @@ export class Visualizer {
   }
 
   private drawCymatics(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const bass = this.bandEnergy(0, 0.08);
     const mid = this.bandEnergy(0.08, 0.32);
     const treble = this.bandEnergy(0.32, 0.85);
@@ -2237,7 +2237,7 @@ export class Visualizer {
   }
 
   private drawBloom(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const orbs = 9;
     ctx.save();
@@ -2263,7 +2263,7 @@ export class Visualizer {
   }
 
   private drawRose(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const mid = this.bandEnergy(0.08, 0.32);
     const cx = w / 2;
@@ -2359,7 +2359,7 @@ export class Visualizer {
   }
 
   private drawNebula(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const mid = this.bandEnergy(0.08, 0.32);
     const blobs = 14;
     ctx.save();
@@ -2393,7 +2393,7 @@ export class Visualizer {
   }
 
   private drawRibbons(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const f = this.engine.freqData;
     const ribbons = 6;
     ctx.save();
@@ -2420,7 +2420,7 @@ export class Visualizer {
   }
 
   private drawGravity(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const cx = w / 2;
     const cy = h / 2;
@@ -2467,7 +2467,7 @@ export class Visualizer {
   }
 
   private drawLattice(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const bass = this.bandEnergy(0, 0.08);
     const cx = w / 2;
@@ -2537,7 +2537,7 @@ export class Visualizer {
   }
 
   private drawFlux(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = ((performance.now() - this.t0) / 1000) * 0.14;
+    const t = (performance.now() - this.t0) / 1000;
     const beat = this.engine.beatPulse;
     const mid = this.bandEnergy(0.08, 0.32);
     const cx = w / 2;
