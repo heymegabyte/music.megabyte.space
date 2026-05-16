@@ -9277,12 +9277,22 @@ a.aichat__widget:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px var(--aichat-pad);
+  margin: 4px var(--aichat-pad) 4px;
+  padding: 8px 10px;
+  min-height: 40px;
   font-size: 0.78rem;
   font-family: var(--font-display);
   color: var(--ink);
-  background: linear-gradient(90deg, rgba(124, 58, 237, 0.16), rgba(0, 229, 255, 0.08));
-  border-bottom: 1px solid var(--line);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--aichat-accent) 14%, rgba(6, 6, 16, 0.7)) 0%,
+    color-mix(in srgb, var(--violet) 12%, rgba(6, 6, 16, 0.7)) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--aichat-accent) 28%, transparent);
+  border-radius: 14px;
+  box-shadow:
+    0 12px 32px -18px color-mix(in srgb, var(--aichat-accent) 45%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .aichat__ritual[hidden] {
   display: none;
