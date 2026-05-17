@@ -118,6 +118,49 @@ test.describe('cast-receiver — standalone streaming', () => {
     expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
   });
 
+  test('?demo=1 auto-seeds the full TRACKS catalogue without a sender', async ({ page }) => {
+    test.setTimeout(60_000);
+    const errs = recordConsoleErrors(page);
+
+    await page.goto(`${RECEIVER_PATH}?demo=1`, { waitUntil: 'domcontentloaded' });
+
+    // Wait for the receiver to load + the queue to populate from URL params.
+    await page.waitForFunction(() => {
+      const api = (window as unknown as { __castReceiver?: { runtime?: { queue?: unknown[] } } }).__castReceiver;
+      return !!api?.runtime?.queue && Array.isArray(api.runtime.queue) && api.runtime.queue.length > 1;
+    }, { timeout: 15_000 });
+
+    const queueLen = await page.evaluate(() => {
+      const api = (window as unknown as { __castReceiver: { runtime: { queue: unknown[] } } }).__castReceiver;
+      return api.runtime.queue.length;
+    });
+    // The full bZ catalog is 40+ tracks — anything short of 20 means the
+    // auto-seed regressed silently. Tight bound on the low end, generous
+    // on the high end to absorb future track additions without churn.
+    expect(queueLen).toBeGreaterThanOrEqual(20);
+
+    // First track must be the one loaded into the now-playing chrome.
+    await expect(page.locator('#title')).not.toBeEmpty({ timeout: 10_000 });
+    await expect(page.locator('#artist')).toHaveText('bZ');
+
+    expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
+  });
+
+  test('?track=<id> auto-seeds and starts at the named track', async ({ page }) => {
+    test.setTimeout(60_000);
+    const errs = recordConsoleErrors(page);
+
+    await page.goto(`${RECEIVER_PATH}?track=chef-lu-stew&autoplay=0`, { waitUntil: 'domcontentloaded' });
+
+    await page.waitForFunction(() => {
+      const api = (window as unknown as { __castReceiver?: { state: () => { trackId: string | null } } }).__castReceiver;
+      return api?.state().trackId === 'chef-lu-stew';
+    }, { timeout: 15_000 });
+
+    await expect(page.locator('#title')).toHaveText('Chef Lu Stew');
+    expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
+  });
+
   test('seek + pause via __castReceiver mutate the audio element', async ({ page }) => {
     test.setTimeout(60_000);
     const errs = recordConsoleErrors(page);

@@ -98,6 +98,10 @@ let lastLyricsActiveWordIdx = -2;
 // through a native <audio> element so the page is still demoable + testable.
 let standaloneMode = false;
 let standaloneAudio: HTMLAudioElement | null = null;
+// Browser autoplay policy rejects play() until the user has interacted with
+// the page. That's a needs-gesture state, NOT a playback error — surface a
+// hint + attempt resume on the next click instead of logging + retrying.
+let pendingAutoplayResume = false;
 
 // Playback failure backoff: per-track strike count, then skip after 3 strikes
 // so the playlist never wedges on one bad object.
@@ -164,10 +168,21 @@ function buildStandalonePlayer() {
         standaloneAudio.src = url;
         const cur = Math.max(0, req?.currentTime ?? 0);
         if (cur) standaloneAudio.currentTime = cur;
-        if (req?.autoplay !== false) standaloneAudio.play().catch(() => fire('ERROR'));
+        if (req?.autoplay !== false) {
+          standaloneAudio.play().catch((err: any) => {
+            if (err && (err.name === 'NotAllowedError' || /user (?:didn'?t|did not) interact|gesture/i.test(err.message ?? ''))) {
+              pendingAutoplayResume = true;
+              toast('Tap to start playback', 'live', 4000);
+              return;
+            }
+            fire('ERROR');
+          });
+        }
       }
     },
-    play: () => standaloneAudio?.play().catch(() => { /* user-gesture required first */ }),
+    play: () => standaloneAudio?.play().catch((err: any) => {
+      if (err?.name === 'NotAllowedError') pendingAutoplayResume = true;
+    }),
     pause: () => standaloneAudio?.pause(),
     stop: () => { if (standaloneAudio) { standaloneAudio.pause(); standaloneAudio.currentTime = 0; } },
     seek: (s: number) => { if (standaloneAudio) standaloneAudio.currentTime = Math.max(0, s); },
@@ -321,6 +336,18 @@ function exposeStandaloneApi() {
     })
   };
   setStatus('stale', 'Standalone preview · pump via __castReceiver');
+  // Browser autoplay policy blocks the first play() until a user gesture.
+  // The first click/key/touch anywhere on the page resumes playback if we
+  // had to defer it. One handler covers all input modalities (mouse, touch,
+  // keyboard, gamepad-as-keyboard via D-pad).
+  const resumeOnGesture = () => {
+    if (!pendingAutoplayResume || !standaloneAudio) return;
+    pendingAutoplayResume = false;
+    standaloneAudio.play().catch(() => { pendingAutoplayResume = true; });
+  };
+  ['click', 'keydown', 'touchstart'].forEach((evt) => {
+    document.addEventListener(evt, resumeOnGesture, { passive: true });
+  });
   maybeAutoSeed();
 }
 
