@@ -6928,9 +6928,8 @@ body.cast-tv-open .transport {
   align-items: center;
   gap: 10px;
   margin: 10px var(--aichat-pad) 4px;
-  padding: 8px 10px;
-  min-height: 60px;
-  max-height: 64px;
+  padding: 10px 12px;
+  min-height: 76px;
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--aichat-accent) 14%, rgba(6, 6, 16, 0.7)) 0%,
@@ -7037,11 +7036,9 @@ body.cast-tv-open .transport {
 
 .aichat__now-text {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
   align-content: center;
-  max-height: 44px;
-  overflow: hidden;
 }
 .aichat__now-title {
   font-size: 0.9rem;

@@ -41,6 +41,7 @@ import {
   type LogPayload, type HelloPayload,
   isCastMsg, packMsg
 } from '../src/cast-protocol';
+import { TRACKS, ALBUMS } from '../src/data';
 
 interface StandaloneApi {
   standalone: true;
@@ -298,7 +299,10 @@ function init() {
 }
 
 // Expose a minimal API for standalone preview/QA — Playwright and devtools
-// can pump messages without a real Cast session.
+// can pump messages without a real Cast session. Also auto-seeds a queue when
+// the page opens with ?demo=1 or ?track=<id> so the receiver renders the same
+// way it would on a real TV with a sender connected. This lets every reviewer
+// hit `npm run cast:preview` and see the final 10-foot UI in a browser tab.
 function exposeStandaloneApi() {
   window.__castReceiver = {
     standalone: true,
@@ -317,6 +321,38 @@ function exposeStandaloneApi() {
     })
   };
   setStatus('stale', 'Standalone preview · pump via __castReceiver');
+  maybeAutoSeed();
+}
+
+// URL-driven demo seed: `?demo=1` loads the full TRACKS catalog;
+// `?track=<id>` starts at one specific track; `?autoplay=0` boots paused so
+// click-to-play is testable without user-gesture autoplay friction.
+function maybeAutoSeed() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const wantsDemo = params.get('demo') === '1';
+    const trackId = params.get('track');
+    const autoplay = params.get('autoplay') !== '0';
+    if (!wantsDemo && !trackId) return;
+    const items = TRACKS.map(t => {
+      const album = ALBUMS.find(a => a.trackIds.includes(t.id));
+      const cover = album?.cover ?? '/art/cover-panda-desiiignare.png';
+      return {
+        id: t.id,
+        title: t.title,
+        artist: t.artist,
+        album: album?.name ?? 'bZ',
+        cover: new URL(cover, location.href).toString(),
+        audio: new URL(t.file, location.href).toString(),
+        vibe: t.vibe
+      } satisfies ReceiverQueueItem;
+    });
+    const startIndex = trackId ? Math.max(0, items.findIndex(x => x.id === trackId)) : 0;
+    log('info', 'preview', `auto-seed ${items.length} tracks start=${items[startIndex]?.id ?? '?'} autoplay=${autoplay}`);
+    onQueueLoad({ items, startIndex, autoplay, startPosition: 0 });
+  } catch (err) {
+    logErr('auto-seed', err);
+  }
 }
 
 // ─── Sender → receiver dispatch ─────────────────────────────────────────────
@@ -846,6 +882,45 @@ function setupKeyboard() {
 }
 
 // ─── Visualizer ────────────────────────────────────────────────────────────
+// Real-FFT bars + palette-driven ambient blobs. Mirrors src/visualizer.ts on
+// the sender so the 10-foot UI feels continuous with the website.
+//
+// Audio graph: <audio> → MediaElementAudioSourceNode → AnalyserNode → destination.
+// The MediaElementAudioSourceNode is built lazily once per element (creating it
+// twice on the same element throws InvalidStateError) and cached on `__bzSrc`.
+let audioCtx: AudioContext | null = null;
+let analyser: AnalyserNode | null = null;
+let analyserFreq: Uint8Array | null = null;
+let analyserBound: HTMLMediaElement | null = null;
+
+function ensureAnalyser(): AnalyserNode | null {
+  const el: HTMLMediaElement | null = standaloneAudio ?? (playerManager.getMediaElement?.() as HTMLMediaElement | null) ?? null;
+  if (!el) return null;
+  if (analyser && analyserBound === el) return analyser;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const node = analyser ?? audioCtx.createAnalyser();
+    node.fftSize = 256;
+    node.smoothingTimeConstant = 0.78;
+    let src: MediaElementAudioSourceNode | undefined = (el as any).__bzSrc;
+    if (!src) {
+      src = audioCtx.createMediaElementSource(el);
+      (el as any).__bzSrc = src;
+    }
+    try { (src as any).disconnect(); } catch { /* first bind */ }
+    src.connect(node);
+    node.connect(audioCtx.destination);
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {/* autoplay policy */});
+    analyser = node;
+    analyserBound = el;
+    analyserFreq = new Uint8Array(node.frequencyBinCount);
+    return node;
+  } catch (err) {
+    logErr('analyser-init', err);
+    return null;
+  }
+}
+
 function startVisualizer() {
   const canvas = $('#viz') as HTMLCanvasElement | null;
   if (!canvas) return;
@@ -858,36 +933,85 @@ function startVisualizer() {
   window.addEventListener('resize', resize);
   const ctx2 = canvas.getContext('2d', { alpha: true });
   if (!ctx2) return;
-  let t0 = performance.now();
-  let raf = 0;
+  let blobPhase = 0;
+  const smooth: number[] = new Array(64).fill(0);
   const tick = (t: number) => {
-    raf = requestAnimationFrame(tick);
-    const dt = (t - t0) / 1000;
-    t0 = t;
+    requestAnimationFrame(tick);
     if (document.hidden) return;
     const w = canvas.width, h = canvas.height;
     ctx2.clearRect(0, 0, w, h);
     const playing = playerManager.getPlayerState?.() === 'PLAYING';
-    if (!playing) return;
     const accent = getCSS('--accent') || '#00e5ff';
     const vibrant = getCSS('--vibrant') || '#ff4ab6';
-    const phase = (t / 1000) * 1.2;
+    const muted = getCSS('--muted') || '#7c3aed';
+
+    // 1) Palette ambient blobs — always drawn so idle isn't dead empty.
+    blobPhase += 0.0035;
+    const blobs: Array<[number, number, string, number]> = [
+      [0.22 + 0.08 * Math.sin(blobPhase), 0.30 + 0.06 * Math.cos(blobPhase * 0.9), accent, 0.20],
+      [0.78 + 0.06 * Math.cos(blobPhase * 1.1), 0.40 + 0.07 * Math.sin(blobPhase * 0.7), vibrant, 0.18],
+      [0.50 + 0.05 * Math.sin(blobPhase * 1.3), 0.75 + 0.05 * Math.cos(blobPhase), muted, 0.14]
+    ];
+    for (const [bx, by, color, alpha] of blobs) {
+      const r = Math.max(w, h) * 0.55;
+      const grad = ctx2.createRadialGradient(bx * w, by * h, 0, bx * w, by * h, r);
+      grad.addColorStop(0, hexToRgba(color, alpha));
+      grad.addColorStop(1, hexToRgba(color, 0));
+      ctx2.fillStyle = grad;
+      ctx2.fillRect(0, 0, w, h);
+    }
+    if (!playing) return;
+
+    // 2) Real FFT bars (sender-mirror) — fall back to gentle waveform if the
+    // analyser isn't wired yet (autoplay policy, cross-origin without CORS, etc.).
+    const an = ensureAnalyser();
     const bars = 64;
     const bw = w / bars;
+    let arr: number[] = new Array(bars).fill(0);
+    if (an && analyserFreq) {
+      an.getByteFrequencyData(analyserFreq);
+      const bins = analyserFreq.length;
+      for (let i = 0; i < bars; i++) {
+        const lo = Math.floor((i / bars) * bins);
+        const hi = Math.floor(((i + 1) / bars) * bins);
+        let s = 0, n = 0;
+        for (let j = lo; j < hi && j < bins; j++) { s += analyserFreq[j]; n++; }
+        arr[i] = n ? (s / n) / 255 : 0;
+      }
+    } else {
+      const phase = (t / 1000) * 1.2;
+      for (let i = 0; i < bars; i++) {
+        const f = (Math.sin(phase + i * 0.18) + 1) / 2;
+        const energy = 0.5 + 0.5 * Math.sin(phase * 1.5 + i * 0.31);
+        arr[i] = 0.4 + 0.6 * f * energy;
+      }
+    }
     for (let i = 0; i < bars; i++) {
-      const f = (Math.sin(phase + i * 0.18) + 1) / 2;
-      const energy = 0.5 + 0.5 * Math.sin(phase * 1.5 + i * 0.31);
-      const bh = h * 0.18 * (0.4 + 0.6 * f * energy);
+      smooth[i] = smooth[i] * 0.72 + arr[i] * 0.28;
+      const v = smooth[i];
+      const bh = h * 0.22 * Math.max(0.05, v);
       const grad = ctx2.createLinearGradient(0, h - bh, 0, h);
       grad.addColorStop(0, vibrant);
       grad.addColorStop(1, accent);
       ctx2.fillStyle = grad;
       ctx2.fillRect(i * bw + 1, h - bh, bw - 2, bh);
     }
-    void dt;
   };
-  raf = requestAnimationFrame(tick);
-  void raf;
+  requestAnimationFrame(tick);
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  // Tolerates '#rrggbb', '#rgb', 'rgb(...)', 'rgba(...)'.
+  if (hex.startsWith('rgb')) {
+    const m = hex.match(/-?\d+(\.\d+)?/g);
+    if (m && m.length >= 3) return `rgba(${m[0]}, ${m[1]}, ${m[2]}, ${alpha})`;
+    return hex;
+  }
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const n = parseInt(h, 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 // ─── Tick loop + outbound ──────────────────────────────────────────────────

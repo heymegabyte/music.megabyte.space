@@ -79,13 +79,12 @@ export class CastBridge {
   private outboundQueue: PendingMessage[] = [];
   private senderTickTimer = 0;
   private staleWatchTimer = 0;
-  // Default Media Receiver (CC1AD845) is the primary App ID — Google's stock
-  // 10-foot UI renders album art + title + artist + progress via session.loadMedia().
-  // Custom namespace is skipped on default receiver since it doesn't speak it.
-  // Custom App ID (228565CB) is opt-in via enableCustomReceiver() — devices that
-  // aren't bound to it return select_unknown_id:905 from requestSession(), which
-  // looks like a silent failure to users (Chrome falls back to Remote Playback).
-  private appId = RECEIVER_FALLBACK;
+  // Custom branded receiver (228565CB) is the primary App ID — full bZ UI w/
+  // playlist sidebar, real-FFT visualizer, palette-synced lyrics, queue control.
+  // Devices that aren't bound to it return select_unknown_id:905 from
+  // requestSession() — we transparently retry with Default Media Receiver
+  // (CC1AD845) so unbound TVs still play audio with Google's stock 10-foot UI.
+  private appId = CAST_APP_ID;
   private fallbackTried = false;
   private get usesCustomReceiver(): boolean { return this.appId !== RECEIVER_FALLBACK; }
 

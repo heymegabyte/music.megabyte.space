@@ -6,6 +6,7 @@
   "description": "Panda Desiiignare — bZ — Web Audio API music experience",
   "scripts": {
     "dev": "vite",
+    "cast:preview": "vite --open=/cast-receiver/?demo=1",
     "prebuild": "node scripts/gen-og-cards.mjs",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
