@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: typecheck + format + test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      - name: Vitest
+        run: npm test
+
+      - name: Vite build
+        run: npm run build
+
+      # Prettier is intentionally not gated yet — the source has not been
+      # formatted in bulk (see CLAUDE.md "Don't introduce ESLint/format in the
+      # same PR as feature work"). Run `npm run format` in a dedicated PR
+      # before flipping this on:
+      # - name: Prettier
+      #   run: npm run format:check

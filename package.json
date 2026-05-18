@@ -1,0 +1,38 @@
+{
+  "name": "panda-desiiignare",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Panda Desiiignare — bZ — Web Audio API music experience",
+  "scripts": {
+    "dev": "vite",
+    "cast:preview": "vite --open=/cast-receiver/?demo=1",
+    "prebuild": "node scripts/gen-og-cards.mjs",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,html,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,html,css}\"",
+    "og:cards": "node scripts/gen-og-cards.mjs",
+    "preview": "vite preview --port 4173 --host",
+    "drop:broadcast": "node scripts/drop-broadcast.mjs",
+    "lyrics:capitalize": "node scripts/capitalize-lyrics.mjs",
+    "lyrics:fetch-suno": "node scripts/fetch-suno-lyrics.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "lottie-web": "^5.12.2",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260504.1",
+    "@playwright/test": "^1.59.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.9",
+    "wrangler": "^4.87.0"
+  }
+}

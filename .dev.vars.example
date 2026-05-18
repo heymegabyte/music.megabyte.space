@@ -1,0 +1,38 @@
+# Wrangler dev-time secrets — copy to `.dev.vars` (gitignored) and fill in.
+#
+# Real values for production live in Cloudflare:
+#   npx wrangler secret put <NAME>
+#
+# Non-secret vars (LISTMONK_URL, LISTMONK_API_USER, LISTMONK_LIST_NAME) are
+# already declared in `wrangler.toml` and do not belong here.
+
+# --- AI DJ drawer (/api/ai/chat) ----------------------------------------
+# Streaming Claude Haiku calls. Without this, the endpoint returns 503.
+# Get from: https://console.anthropic.com/settings/keys
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Optional model override. Defaults to `claude-haiku-4-5-20251001`.
+# ANTHROPIC_MODEL=claude-haiku-4-5-20251001
+
+# --- Listmonk subscribe (/api/subscribe) --------------------------------
+# Token paired with LISTMONK_API_USER from wrangler.toml. Without this,
+# the worker falls back to a memory-only cache and never persists subs.
+LISTMONK_API_TOKEN=
+
+# Optional pinned list id. If unset, the worker auto-discovers (or creates)
+# the list named by LISTMONK_LIST_NAME on first use.
+# LISTMONK_LIST_ID=1
+
+# --- Web Push (/api/push/*) --------------------------------------------
+# Generate a fresh keypair with `node scripts/gen-vapid.mjs`.
+# - VAPID_PUBLIC_KEY: base64url-encoded uncompressed P-256 point.
+# - VAPID_PRIVATE_JWK: the FULL JsonWebKey object as a JSON string.
+# - VAPID_SUBJECT: contact URL or `mailto:` per RFC 8292.
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_JWK={}
+VAPID_SUBJECT=mailto:brian@megabyte.space
+
+# Bearer token gating POST /api/push/send (admin-only broadcast).
+# Choose any high-entropy string; the value must match the Authorization
+# header on every send. Treat it like a password — leak = spam fan-out.
+PUSH_ADMIN_TOKEN=

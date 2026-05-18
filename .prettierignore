@@ -1,0 +1,16 @@
+node_modules
+dist
+.vite
+.wrangler
+.playwright-mcp
+.verify-shots
+.og-markers
+test-results
+playwright-report
+public/audio
+public/art
+public/og
+public/video
+package-lock.json
+src/bear-data.ts
+src/data.ts

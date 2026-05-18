@@ -1,0 +1,141 @@
+name: drop-broadcast
+
+# Listmonk campaign + (optional) push fan-out for a freshly added bZ track.
+#
+# Two safe entry points:
+#   1. workflow_dispatch — pick a track id, dry-run by default, opt-in to send.
+#   2. tag push `drop-<trackId>` — explicit "I really mean it" trigger.
+#
+# Never auto-runs on src/data.ts changes — emails are real people, real money,
+# real reputation. Operator must opt-in every time.
+
+on:
+  workflow_dispatch:
+    inputs:
+      track_id:
+        description: 'Track id (slug from src/data.ts). Leave blank to broadcast every track added since the previous commit.'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run — render HTML, do NOT create or send the campaign.'
+        required: true
+        type: boolean
+        default: true
+      push:
+        description: 'Also fan-out via Web Push (/api/push/send).'
+        required: true
+        type: boolean
+        default: false
+      from:
+        description: 'From header override (default: bZ <hi@megabyte.space>).'
+        required: false
+        type: string
+
+  push:
+    tags:
+      - 'drop-*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: drop-broadcast
+  cancel-in-progress: false
+
+jobs:
+  broadcast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      LISTMONK_URL: ${{ secrets.LISTMONK_URL }}
+      LISTMONK_API_USER: ${{ secrets.LISTMONK_API_USER }}
+      LISTMONK_API_TOKEN: ${{ secrets.LISTMONK_API_TOKEN }}
+      LISTMONK_LIST_NAME: ${{ vars.LISTMONK_LIST_NAME || 'music.megabyte.space' }}
+      PUSH_BASE_URL: ${{ vars.PUSH_BASE_URL || 'https://music.megabyte.space' }}
+      PUSH_ADMIN_TOKEN: ${{ secrets.PUSH_ADMIN_TOKEN }}
+    steps:
+      - name: Guard — required Listmonk secrets
+        run: |
+          missing=()
+          [ -n "$LISTMONK_URL" ]       || missing+=(LISTMONK_URL)
+          [ -n "$LISTMONK_API_USER" ]  || missing+=(LISTMONK_API_USER)
+          [ -n "$LISTMONK_API_TOKEN" ] || missing+=(LISTMONK_API_TOKEN)
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing required secrets: ${missing[*]}"
+            echo "Set them at https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+
+      - name: Resolve track ids
+        id: resolve
+        run: |
+          set -euo pipefail
+          ref="${{ github.ref }}"
+          input="${{ inputs.track_id }}"
+          ids=""
+          if [[ "$ref" == refs/tags/drop-* ]]; then
+            ids="${ref#refs/tags/drop-}"
+            echo "Tag-trigger: $ids"
+          elif [ -n "$input" ]; then
+            ids="$input"
+            echo "Dispatch input: $ids"
+          else
+            echo "No id provided — diffing src/data.ts vs HEAD~1"
+            ids="$(node scripts/list-new-tracks.mjs HEAD~1 | xargs || true)"
+            if [ -z "$ids" ]; then
+              echo "::warning::No new tracks detected since HEAD~1. Nothing to broadcast."
+              echo "ids=" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Detected: $ids"
+          fi
+          echo "ids=$ids" >> "$GITHUB_OUTPUT"
+
+      - name: Broadcast
+        if: steps.resolve.outputs.ids != ''
+        run: |
+          set -euo pipefail
+          flags=()
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            flags+=(--dry)
+            echo "::notice::DRY RUN — campaign will be rendered but not created or sent."
+          fi
+          if [ "${{ inputs.push }}" = "true" ]; then
+            flags+=(--push)
+          fi
+          if [ -n "${{ inputs.from }}" ]; then
+            flags+=(--from "${{ inputs.from }}")
+          fi
+          for id in ${{ steps.resolve.outputs.ids }}; do
+            echo "::group::drop:$id"
+            node scripts/drop-broadcast.mjs "$id" "${flags[@]}"
+            echo "::endgroup::"
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## drop-broadcast"
+            echo ""
+            echo "- **Trigger:** ${{ github.event_name }}"
+            echo "- **Ref:** \`${{ github.ref }}\`"
+            echo "- **Track ids:** \`${{ steps.resolve.outputs.ids || '(none)' }}\`"
+            echo "- **Dry run:** \`${{ inputs.dry_run }}\`"
+            echo "- **Push fan-out:** \`${{ inputs.push }}\`"
+            echo "- **List:** \`$LISTMONK_LIST_NAME\`"
+          } >> "$GITHUB_STEP_SUMMARY"
