@@ -23,6 +23,15 @@
   --accent: #00e5ff;
   --accent-soft: rgba(0, 229, 255, 0.18);
   --violet: #7c3aed;
+  /* Readable-on-dark text color derived from --accent (and album-accent
+     fallback). Mixes 30% near-white into the accent in OKLCH so even
+     palette-extracted dark colors (any album cover can produce dark
+     navy / forest / wine accents) stay legible on the #060610 canvas.
+     Use --ink-accent / --ink-album-accent for any TEXT that takes an
+     accent color. Borders + backgrounds keep using --accent / --album-accent
+     raw — only foreground text gets the lift. WCAG-2.2 contrast safety net. */
+  --ink-accent: color-mix(in oklch, var(--accent) 70%, #f4f4ff 30%);
+  --ink-album-accent: color-mix(in oklch, var(--album-accent, var(--accent)) 70%, #f4f4ff 30%);
   --line: rgba(244, 244, 255, 0.06);
   --line-strong: rgba(244, 244, 255, 0.16);
   --rail-w: 420px;
@@ -63,6 +72,222 @@ body {
   min-height: 100dvh;
   display: grid;
   grid-template-rows: var(--topbar-h) 1fr var(--transport-h);
+}
+
+/* Sleep timer countdown chip — floats above the transport bar when an
+   active sleep timer is set. Tap to cancel. Pulses red under 60s so the
+   user has a visual heads-up before the fade-out fires. */
+.sleep-chip {
+  position: fixed;
+  right: 18px;
+  bottom: calc(var(--transport-h) + 18px);
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 14%, rgba(6, 6, 16, 0.94)) 0%,
+    rgba(6, 6, 16, 0.96) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow:
+    0 10px 28px -10px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition:
+    transform 200ms ease,
+    background 200ms ease,
+    border-color 200ms ease;
+}
+.sleep-chip:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 22%, rgba(6, 6, 16, 0.92)) 0%,
+    rgba(6, 6, 16, 0.94) 100%
+  );
+}
+.sleep-chip[hidden] { display: none; }
+.sleep-chip__label {
+  font-variant-numeric: tabular-nums;
+}
+.sleep-chip.is-warning {
+  border-color: color-mix(in srgb, #ff5081 65%, transparent);
+  color: #ffd0d8;
+  animation: sleep-chip-pulse 1.4s ease-in-out infinite;
+}
+@keyframes sleep-chip-pulse {
+  0%, 100% { box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 80, 129, 0.4), 0 0 0 0 rgba(255, 80, 129, 0); }
+  50%      { box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 80, 129, 0.7), 0 0 24px 0 rgba(255, 80, 129, 0.35); }
+}
+@media (max-width: 520px) {
+  .sleep-chip {
+    right: 12px;
+    bottom: calc(var(--transport-h) + 12px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sleep-chip { transition: none; }
+  .sleep-chip.is-warning { animation: none; }
+}
+
+/* Gentle newsletter prompt — surfaces after the user's 3rd distinct
+   track play, once per visitor. Bottom-right toast on desktop, full-
+   width sheet on mobile. Auto-dismisses at 25s if untouched. */
+.bz-newsletter-nudge {
+  position: fixed;
+  right: 16px;
+  bottom: calc(var(--transport-h) + 16px);
+  z-index: 999;
+  max-width: 360px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 18%, rgba(6, 6, 16, 0.94)) 0%,
+    rgba(6, 6, 16, 0.96) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, transparent);
+  color: var(--ink);
+  box-shadow:
+    0 18px 48px -16px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  opacity: 0;
+  transform: translateY(20px) scale(0.96);
+  transition:
+    opacity 240ms ease,
+    transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.bz-newsletter-nudge.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.bz-newsletter-nudge__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bz-newsletter-nudge__copy strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.bz-newsletter-nudge__copy span {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+.bz-newsletter-nudge__form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.bz-newsletter-nudge__form input[type='email'] {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(244, 244, 255, 0.06);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+}
+.bz-newsletter-nudge__form input[type='email']:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.bz-newsletter-nudge__form button[type='submit'] {
+  appearance: none;
+  background: var(--accent);
+  color: #060610;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.bz-newsletter-nudge__form button[type='submit']:hover {
+  filter: brightness(1.08);
+}
+.bz-newsletter-nudge__close {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--ink-mute);
+  font-size: 1rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.bz-newsletter-nudge__close:hover {
+  background: rgba(244, 244, 255, 0.06);
+  color: var(--ink);
+}
+.bz-newsletter-nudge__done {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  color: var(--ink-accent);
+  text-align: center;
+  padding: 8px 0;
+}
+@media (max-width: 520px) {
+  .bz-newsletter-nudge {
+    right: 12px;
+    left: 12px;
+    bottom: calc(var(--transport-h) + 8px);
+    max-width: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bz-newsletter-nudge {
+    transition: opacity 120ms ease;
+    transform: none;
+  }
+  .bz-newsletter-nudge.is-open { transform: none; }
+}
+
+/* WCAG 2.4.1 skip-link. Visually hidden until keyboard-focused; then
+   slides into the top-left corner so the screen-reader announcement
+   reads "Skip to player" and routes the user past the topbar. */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 12px;
+  z-index: 10000;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: #060610;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  box-shadow: 0 8px 22px -6px rgba(0, 229, 255, 0.5);
+  transition: top 160ms ease;
+}
+.skip-link:focus-visible {
+  top: 12px;
+  outline: 3px solid #fff;
+  outline-offset: 3px;
 }
 
 ::selection {
@@ -245,7 +470,7 @@ html.is-playing .brand__text {
   color: var(--ink-mute);
 }
 .topbar__title-text {
-  color: var(--accent);
+  color: var(--ink-accent);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -280,7 +505,7 @@ html.is-playing .brand__text {
 }
 .topbar__nav a:hover,
 .topbar__nav a:focus-visible {
-  color: var(--accent);
+  color: var(--ink-accent);
   outline: none;
 }
 .topbar__nav a:hover::after,
@@ -363,7 +588,7 @@ html.is-playing .brand__text {
 }
 .albums__back:hover,
 .albums__back:focus-visible {
-  color: var(--accent);
+  color: var(--ink-accent);
   border-color: color-mix(in srgb, var(--accent) 50%, transparent);
   background: color-mix(in srgb, var(--accent) 8%, transparent);
   outline: none;
@@ -460,15 +685,20 @@ html.is-playing .brand__text {
   font-size: clamp(1.4rem, 2.1vw, 1.85rem);
   line-height: 1.02;
   letter-spacing: -0.025em;
+  /* Resting state — white. Album title only takes its accent color
+     when the user has clicked into one of that album's tracks (handled
+     by the :has() rule below). This keeps every album header visually
+     equal at rest and ONLY highlights the one you're listening to. */
   color: var(--ink);
   text-transform: uppercase;
   text-wrap: balance;
+  transition: color 240ms ease;
 }
-[data-album='canon'] .album__title {
-  color: #f5c24a;
-}
-[data-album='desiiignare'] .album__title {
-  color: var(--accent);
+/* Clicked-state: when any track inside this album is currently playing,
+   light up the album title with that album's accent color. Replaces the
+   hardcoded per-album rules so every album responds the same way. */
+.album:has(.trackrow.is-current) .album__title {
+  color: var(--ink-album-accent, var(--ink-accent));
 }
 .album__count {
   margin: 0;
@@ -477,6 +707,57 @@ html.is-playing .brand__text {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--ink-mute);
+}
+
+/* "Listen on" platform link strip — surfaces all configured distribution
+   URLs (Spotify, Apple Music, YouTube Music, Tidal, Amazon Music,
+   Bandcamp, SoundCloud) + an optional DistroKid pre-save chip. Only
+   rendered when at least one link is set. */
+.album__platforms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.album__platform {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(244, 244, 255, 0.04);
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 22%, var(--line));
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: -0.005em;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 140ms ease;
+}
+.album__platform:hover {
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 14%, transparent);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 50%, transparent);
+  color: var(--ink-album-accent, var(--ink-accent));
+  transform: translateY(-1px);
+}
+.album__platform:focus-visible {
+  outline: 2px solid var(--album-accent, var(--accent));
+  outline-offset: 2px;
+}
+.album__platform--presave {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 28%, rgba(6, 6, 16, 0.7)) 0%,
+    color-mix(in srgb, var(--violet) 22%, rgba(6, 6, 16, 0.7)) 100%
+  );
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .album__tracks {
@@ -527,7 +808,9 @@ html.is-playing .brand__text {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--album-accent, var(--accent)) 72%, var(--text));
+  /* --text doesn't exist as a token; fall back to --ink so this line
+     stays readable instead of mixing accent with `currentColor` / inherit. */
+  color: color-mix(in srgb, var(--album-accent, var(--accent)) 72%, var(--ink));
   white-space: nowrap;
 }
 .album__subscribe-line {
@@ -537,7 +820,7 @@ html.is-playing .brand__text {
 .album__subscribe-line em {
   font-style: normal;
   font-weight: 700;
-  color: var(--album-accent, var(--accent));
+  color: var(--ink-album-accent, var(--ink-accent));
   margin-left: 4px;
 }
 body[data-subscribed='1'] .album__subscribe {
@@ -585,7 +868,7 @@ body[data-subscribed='1'] .album__subscribe {
   border-left-color: var(--album-accent, var(--accent));
 }
 .trackrow.is-current .trackrow__title {
-  color: var(--album-accent, var(--accent));
+  color: var(--ink-album-accent, var(--ink-accent));
 }
 
 .trackrow__num {
@@ -660,7 +943,7 @@ body[data-subscribed='1'] .album__subscribe {
 }
 .trackrow:hover .trackrow__plays,
 .trackrow.is-current .trackrow__plays {
-  color: var(--album-accent, var(--accent));
+  color: var(--ink-album-accent, var(--ink-accent));
   border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 35%, transparent);
 }
 /* ---------- viz stage (right) — Web Audio API on display ---------- */
@@ -690,7 +973,7 @@ body[data-subscribed='1'] .album__subscribe {
   font-size: 0.74rem;
   letter-spacing: 0.4em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-accent);
   text-shadow: 0 2px 12px rgba(0, 229, 255, 0.6);
   margin-bottom: 8px;
 }
@@ -785,13 +1068,18 @@ html.is-playing .ai-playlist {
   gap: 12px;
   flex-wrap: wrap;
 }
+/* Aeon's Choice — title now reads as a real header (1.05rem, sentence
+   case, white) rather than a mono-eyebrow whisper. White text keeps it
+   readable across every album palette while still sitting under the
+   accent text-shadow so it never feels flat. */
 .ai-playlist__eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: var(--accent);
-  text-shadow: 0 2px 10px rgba(0, 229, 255, 0.5);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  text-transform: none;
+  color: #ffffff;
+  text-shadow: 0 2px 14px color-mix(in srgb, var(--album-accent, var(--accent)) 35%, transparent);
 }
 .ai-playlist__tag {
   font-family: var(--font-mono);
@@ -844,24 +1132,35 @@ html.is-playing .ai-playlist {
 .ai-pick:hover,
 .ai-pick:focus-visible {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--album-accent, var(--accent));
   transform: translateY(-2px);
-  box-shadow: 0 14px 30px -18px rgba(0, 229, 255, 0.6);
-  background: linear-gradient(135deg, rgba(0, 229, 255, 0.12), rgba(124, 58, 237, 0.12));
+  box-shadow: 0 14px 30px -18px color-mix(in srgb, var(--album-accent, var(--accent)) 60%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 12%, transparent),
+    color-mix(in srgb, var(--violet) 12%, transparent)
+  );
 }
 .ai-pick:hover::after,
 .ai-pick:focus-visible::after {
   opacity: 1;
 }
 .ai-pick.is-current {
-  border-color: var(--accent);
-  background: linear-gradient(135deg, rgba(0, 229, 255, 0.18), rgba(124, 58, 237, 0.16));
+  border-color: var(--album-accent, var(--accent));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 18%, transparent),
+    color-mix(in srgb, var(--violet) 16%, transparent)
+  );
+}
+.ai-pick.is-current .ai-pick__title {
+  color: var(--ink-album-accent, var(--ink-accent));
 }
 .ai-pick__rank {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--ink-album-accent, var(--ink-accent));
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
@@ -995,9 +1294,16 @@ html.is-playing .ai-playlist--rail {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.72rem;
-  color: var(--accent);
+  /* --ink-accent stays readable even when --accent is overridden to a
+     palette-extracted dark hue (some album covers produce navy/wine/
+     forest accents). Mixes 30% white in OKLCH so the HUD numbers never
+     drop below a ~4.5:1 contrast ratio on the #060610 backdrop. */
+  color: var(--ink-accent);
   font-variant-numeric: tabular-nums;
   text-align: right;
+  /* Text-shadow gives a thin dark halo so the digits stay readable even
+     when they fly over a bright region of the visualizer. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
 .hud__v--time {
   letter-spacing: 0.01em;
@@ -1268,7 +1574,7 @@ html.is-playing .ai-playlist--rail {
 }
 .viz-picker__cycle:has(input:checked) {
   border-color: rgba(0, 229, 255, 0.55);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.08);
 }
 .viz-picker__cycle:has(input:checked) .viz-picker__cycle-dot {
@@ -1279,7 +1585,7 @@ html.is-playing .ai-playlist--rail {
 }
 .viz-picker__cycle:hover {
   border-color: rgba(0, 229, 255, 0.55);
-  color: var(--accent);
+  color: var(--ink-accent);
 }
 .viz-picker__close {
   display: inline-grid;
@@ -1299,7 +1605,7 @@ html.is-playing .ai-playlist--rail {
 .viz-picker__close:hover,
 .viz-picker__close:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.1);
   outline: none;
 }
@@ -1383,7 +1689,7 @@ html.is-playing .ai-playlist--rail {
   font-size: 0.7rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-accent);
 }
 .viz-picker__group-tag {
   font-family: var(--font-mono);
@@ -1481,7 +1787,7 @@ html.is-playing .ai-playlist--rail {
   border: 1px solid var(--line);
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.05);
-  color: var(--accent);
+  color: var(--ink-accent);
   font-family: var(--font-mono);
   font-size: 0.6rem;
   letter-spacing: 0;
@@ -1586,7 +1892,7 @@ html.is-playing .ai-playlist--rail {
   font-size: 0.6rem;
   font-weight: 500;
   letter-spacing: 0.22em;
-  color: var(--accent);
+  color: var(--ink-accent);
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
@@ -1638,7 +1944,7 @@ html.is-playing .ai-playlist--rail {
   transform: translateX(-50%);
   background: rgba(6, 6, 16, 0.96);
   border: 1px solid var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   font-family: var(--font-mono);
   font-size: 0.68rem;
   padding: 3px 7px;
@@ -1699,7 +2005,7 @@ html.is-playing .ai-playlist--rail {
 .round:hover,
 .round:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   outline: none;
 }
 .round:active {
@@ -1724,7 +2030,7 @@ html.is-playing .ai-playlist--rail {
 }
 .transport__shuffle.is-on {
   opacity: 1;
-  color: var(--accent);
+  color: var(--ink-accent);
   border-color: var(--accent);
 }
 .transport__shuffle:hover {
@@ -2024,7 +2330,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 .link-btn:hover,
 .link-btn:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.06);
   outline: none;
 }
@@ -2094,7 +2400,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
   }
 }
 .transport__cast.is-active {
-  color: var(--accent);
+  color: var(--ink-accent);
   border-color: rgba(0, 229, 255, 0.7);
   background: rgba(0, 229, 255, 0.08);
   box-shadow: 0 0 18px rgba(0, 229, 255, 0.32);
@@ -2157,7 +2463,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 .share-chip:hover,
 .share-chip:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.1);
   outline: none;
 }
@@ -2643,7 +2949,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 .share__close:hover,
 .share__close:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   outline: none;
 }
 
@@ -2681,7 +2987,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 .share__act {
   border: 1px solid var(--line-strong);
   background: linear-gradient(180deg, rgba(0, 229, 255, 0.18), rgba(0, 229, 255, 0.08));
-  color: var(--accent);
+  color: var(--ink-accent);
   border-radius: 10px;
   padding: 8px 14px;
   font-family: var(--font-mono);
@@ -2728,7 +3034,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 .share__chip:hover,
 .share__chip:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.08);
   outline: none;
 }
@@ -2756,12 +3062,12 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 .share__size:hover,
 .share__size:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   outline: none;
 }
 .share__size.is-active {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.14);
 }
 .share__embed-code {
@@ -2814,7 +3120,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 .embed-fallback__link {
   display: inline-block;
   margin-top: 10px;
-  color: var(--accent);
+  color: var(--ink-accent);
   text-decoration: none;
 }
 .embed {
@@ -2856,7 +3162,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
   font-size: 0.55rem;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-accent);
 }
 .embed__title {
   margin: 0;
@@ -2902,7 +3208,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 .embed__btn:hover,
 .embed__btn:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.1);
   outline: none;
 }
@@ -2910,7 +3216,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
   width: 36px;
   height: 36px;
   background: linear-gradient(180deg, rgba(0, 229, 255, 0.22), rgba(0, 229, 255, 0.08));
-  color: var(--accent);
+  color: var(--ink-accent);
 }
 .embed__bar {
   height: 6px;
@@ -2949,7 +3255,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 }
 .embed__deep:hover,
 .embed__deep:focus-visible {
-  color: var(--accent);
+  color: var(--ink-accent);
 }
 
 /* ---------- appeal (Ashton modal — keeps audio alive) ---------- */
@@ -3013,7 +3319,7 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 .appeal__close:hover,
 .appeal__close:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   outline: none;
 }
 .appeal__frame {
@@ -3085,7 +3391,7 @@ html.is-appeal-open {
   font-size: 0.6rem;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-accent);
 }
 .autoplay__title {
   margin: 0 0 4px;
@@ -3228,15 +3534,40 @@ html.is-appeal-open {
   }
   .zune {
     grid-template-columns: 1fr;
-    grid-template-rows: 1fr 40dvh;
+    /* Exact 50/50 split between viz (top) and playlist (bottom). Both halves
+       sit between the topbar and transport, so the user always sees both
+       layers without scrolling. The rail's own .albums element handles
+       internal scrolling. */
+    grid-template-rows: 1fr 1fr;
   }
   .viz {
     order: 1;
+    /* Hide the now-playing chip on the bottom of viz on mobile — duplicates
+       what the transport bar already shows; mobile viz half is precious. */
+    overflow: hidden;
   }
   .rail {
     order: 2;
     border-right: 0;
-    border-top: 1px solid var(--line);
+    border-top: 1px solid var(--line-strong);
+    /* Solid base on mobile so the visualizer never bleeds through behind the
+       playlist (the desktop blur was distracting + cost GPU fillrate). */
+    background: linear-gradient(
+      180deg,
+      rgba(6, 6, 16, 0.96) 0%,
+      rgba(6, 6, 16, 1) 100%
+    );
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: 0 -12px 32px -12px rgba(0, 0, 0, 0.55);
+  }
+  /* Constrain the fullscreen #bg canvas to the top half on mobile so the
+     bottom half is pure UI surface — saves ~50% of pixel-fill cost and stops
+     the GPU compositor from blending viz layers under opaque chrome. */
+  #bg {
+    inset: var(--topbar-h) 0 auto 0;
+    height: calc((100dvh - var(--topbar-h) - var(--transport-h)) / 2);
+    width: 100vw;
   }
   .album__head {
     grid-template-columns: 68px 1fr;
@@ -3290,8 +3621,8 @@ html.is-appeal-open {
     gap: 8px;
   }
   .ai-playlist__eyebrow {
-    font-size: 0.62rem;
-    letter-spacing: 0.26em;
+    font-size: 0.95rem;
+    letter-spacing: -0.005em;
   }
   .ai-playlist__tag {
     display: none;
@@ -3462,7 +3793,7 @@ html.is-appeal-open {
 .topbar__search:hover,
 .topbar__search:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.06);
   outline: none;
 }
@@ -3493,13 +3824,13 @@ html.is-appeal-open {
 .topbar__lyrics:hover,
 .topbar__lyrics:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.07);
   outline: none;
 }
 .topbar__lyrics[aria-pressed='true'] {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.12);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
 }
@@ -3605,7 +3936,7 @@ html.is-appeal-open {
 }
 .karaoke__close:hover,
 .karaoke__close:focus-visible {
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(255, 255, 255, 0.06);
   outline: none;
 }
@@ -3844,7 +4175,7 @@ html.is-appeal-open {
   font-size: 0.55rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-accent);
   border: 1px solid rgba(0, 229, 255, 0.25);
   padding: 2px 6px;
   border-radius: 999px;
@@ -3869,7 +4200,7 @@ html.is-appeal-open {
 }
 .cmdk__item--active .cmdk__item-plays,
 .cmdk__item:hover .cmdk__item-plays {
-  color: var(--accent);
+  color: var(--ink-accent);
   border-color: color-mix(in srgb, var(--accent) 35%, transparent);
 }
 .cmdk__item-plays svg {
@@ -3954,7 +4285,7 @@ html.is-appeal-open {
 .np-panel__close:hover,
 .np-panel__close:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.06);
   outline: none;
 }
@@ -3981,7 +4312,7 @@ html.is-appeal-open {
   font-size: 0.6rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-accent);
   margin: 0 0 4px;
 }
 .np-panel__title {
@@ -4048,7 +4379,7 @@ html.is-appeal-open {
 .np-panel__eq-val {
   font-family: var(--font-mono);
   font-size: 0.64rem;
-  color: var(--accent);
+  color: var(--ink-accent);
   font-variant-numeric: tabular-nums;
 }
 .np-panel__reverb {
@@ -4077,7 +4408,7 @@ html.is-appeal-open {
 .np-panel__reverb-btn:hover,
 .np-panel__reverb-btn:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   outline: none;
 }
 .np-panel__reverb-btn:active {
@@ -4085,7 +4416,7 @@ html.is-appeal-open {
 }
 .np-panel__reverb-btn.is-active {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   background: rgba(0, 229, 255, 0.14);
 }
 
@@ -4187,7 +4518,7 @@ button:not(:disabled):active {
   position: relative;
 }
 .transport__loop.is-on {
-  color: var(--accent);
+  color: var(--ink-accent);
   border-color: color-mix(in srgb, var(--accent) 50%, transparent);
 }
 .transport__loop.is-loop-one .transport__loop-badge {
@@ -4298,7 +4629,7 @@ button:not(:disabled):active {
   cursor: not-allowed;
 }
 .more-menu__item--push.is-active svg {
-  color: var(--accent);
+  color: var(--ink-accent);
   stroke: var(--accent);
   fill: none;
 }
@@ -4346,7 +4677,7 @@ button:not(:disabled):active {
   color: var(--ink-mute);
 }
 .more-menu__group span {
-  color: var(--accent);
+  color: var(--ink-accent);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -4381,7 +4712,7 @@ button:not(:disabled):active {
 }
 .more-menu__chip.is-on {
   background: color-mix(in srgb, var(--accent) 22%, transparent);
-  color: var(--accent);
+  color: var(--ink-accent);
   border-color: var(--accent);
 }
 #btnMore.has-sleep::after {
@@ -4894,7 +5225,7 @@ button:not(:disabled):active {
   white-space: nowrap;
 }
 .queue-row.is-current .queue-row__title {
-  color: var(--accent);
+  color: var(--ink-accent);
 }
 .queue-row__sub {
   color: var(--ink-mute);
@@ -4908,7 +5239,7 @@ button:not(:disabled):active {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.06em;
-  color: var(--accent);
+  color: var(--ink-accent);
   background: color-mix(in srgb, var(--accent) 14%, transparent);
   padding: 3px 7px;
   border-radius: 999px;
@@ -5277,7 +5608,7 @@ html.is-playing .transport__np-cover {
   font-size: 0.66rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-accent);
 }
 .cast-sheet__pill-dot {
   width: 7px;
@@ -5322,7 +5653,7 @@ html.is-playing .transport__np-cover {
 .cast-sheet__close:hover,
 .cast-sheet__close:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   outline: none;
   transform: rotate(90deg);
 }
@@ -5337,7 +5668,7 @@ html.is-playing .transport__np-cover {
   padding: 0 4px;
 }
 .cast-sheet__device-icon {
-  color: var(--accent);
+  color: var(--ink-accent);
   flex: 0 0 auto;
 }
 .cast-sheet__device-label {
@@ -5420,7 +5751,7 @@ html.is-playing .transport__np-cover {
   font-size: 0.62rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--ink-accent);
   opacity: 0.92;
 }
 .cast-sheet__title {
@@ -5538,7 +5869,7 @@ html.is-playing .transport__np-cover {
 .cast-sheet__btn:hover,
 .cast-sheet__btn:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   outline: none;
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(0, 229, 255, 0.22);
@@ -5577,7 +5908,7 @@ html.is-playing .transport__np-cover {
   height: 36px;
 }
 .cast-sheet__btn--sm.is-muted {
-  color: var(--accent);
+  color: var(--ink-accent);
   border-color: rgba(0, 229, 255, 0.6);
 }
 
@@ -5667,7 +5998,7 @@ html.is-playing .transport__np-cover {
   border-radius: 999px;
   background: rgba(0, 229, 255, 0.15);
   border: 1px solid rgba(0, 229, 255, 0.5);
-  color: var(--accent);
+  color: var(--ink-accent);
   font-family: var(--font-mono);
   font-size: 0.58rem;
   letter-spacing: 0.16em;
@@ -6418,7 +6749,7 @@ body.cast-tv-open .transport {
 .notify__close:hover,
 .notify__close:focus-visible {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--ink-accent);
   outline: none;
 }
 .notify__head {
@@ -6500,7 +6831,7 @@ body.cast-tv-open .transport {
   width: 100%;
   border: 1px solid var(--accent);
   background: linear-gradient(180deg, rgba(0, 229, 255, 0.28), rgba(0, 229, 255, 0.12));
-  color: var(--accent);
+  color: var(--ink-accent);
   border-radius: 12px;
   padding: 12px 16px;
   font-family: var(--font-mono);
@@ -6611,7 +6942,10 @@ body.cast-tv-open .transport {
     transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 240ms ease,
     opacity 200ms ease;
-  animation: aichat-fab-breathe 4.4s ease-in-out infinite;
+  /* Breathing animation lives on the SVG child (see `.aichat__fab > svg` below)
+     so the button's own bounding box stays static — keyboard nav + Playwright
+     stability + accidental-tap forgiveness all benefit. The decorative `::before`
+     ring still spins; the audio-driven `::after` ring still pulses on --aichat-amp. */
 }
 .aichat__fab::before {
   content: '';
@@ -6641,6 +6975,8 @@ body.cast-tv-open .transport {
   position: relative;
   z-index: 1;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+  animation: aichat-fab-breathe 4.4s ease-in-out infinite;
+  transform-origin: center;
 }
 .aichat__fab:hover {
   transform: translateY(-3px) scale(1.06);
@@ -6719,7 +7055,8 @@ body.cast-tv-open .transport {
 }
 @media (prefers-reduced-motion: reduce) {
   .aichat__fab,
-  .aichat__fab::before {
+  .aichat__fab::before,
+  .aichat__fab > svg {
     animation: none;
   }
 }
@@ -6734,8 +7071,16 @@ body.cast-tv-open .transport {
   background: linear-gradient(180deg, rgba(8, 8, 22, 0.84) 0%, rgba(4, 4, 12, 0.92) 100%);
   border-left: 1px solid color-mix(in srgb, var(--aichat-accent) 18%, rgba(255, 255, 255, 0.05));
   color: var(--ink);
+  /* Named grid areas — each track owns its job, so adding new elements never
+     pushes the composer / context tighter against the panel edges. Implicit
+     rows (drawers, dialogs, overlays) opt out via `position: absolute`. */
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
+    "head"
+    "context"
+    "body"
+    "compose";
   pointer-events: auto;
   transform: translateX(102%);
   opacity: 0;
@@ -6750,6 +7095,18 @@ body.cast-tv-open .transport {
   overflow: hidden;
   isolation: isolate;
 }
+.aichat__head { grid-area: head; }
+.aichat__context { grid-area: context; }
+.aichat__body { grid-area: body; }
+.aichat__compose-stack { grid-area: compose; }
+/* Overlay surfaces — drawers, dialogs, mention popovers — escape the grid
+   so they never disturb the header / body / composer balance. */
+.aichat__drawer,
+.aichat__cheatsheet,
+.aichat__sheet,
+.aichat__resize,
+.aichat__spectro,
+.aichat__mention { grid-area: unset; }
 /* Aurora gradient layer behind everything */
 .aichat__panel::before {
   content: '';
@@ -6870,6 +7227,129 @@ body.cast-tv-open .transport {
   border-radius: 999px;
   background: rgba(6, 6, 16, 0.4);
 }
+
+/* Persona pill — quick voice switcher in the chat header. Always visible
+   so the user can tell which voice is replying and hop between them in
+   one click. */
+.aichat__persona-pill {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px 4px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--aichat-accent) 22%, rgba(255, 255, 255, 0.08));
+  background: color-mix(in srgb, var(--aichat-accent) 6%, rgba(6, 6, 16, 0.5));
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  letter-spacing: -0.005em;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 140ms ease;
+}
+.aichat__persona-pill:hover {
+  background: color-mix(in srgb, var(--aichat-accent) 14%, rgba(6, 6, 16, 0.5));
+  border-color: color-mix(in srgb, var(--aichat-accent) 40%, transparent);
+}
+.aichat__persona-pill:focus-visible {
+  outline: 2px solid var(--aichat-accent);
+  outline-offset: 2px;
+}
+.aichat__persona-pill[aria-expanded='true'] {
+  background: color-mix(in srgb, var(--aichat-accent) 18%, rgba(6, 6, 16, 0.5));
+  border-color: color-mix(in srgb, var(--aichat-accent) 50%, transparent);
+}
+.aichat__persona-pill-emoji {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.aichat__persona-pill-label {
+  font-weight: 600;
+}
+.aichat__persona-pill svg {
+  opacity: 0.65;
+  transition: transform 200ms ease, opacity 160ms ease;
+}
+.aichat__persona-pill[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+/* Popover listbox of all available voices. Anchored beneath the header
+   via absolute positioning so it never disturbs the grid. */
+.aichat__persona-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: var(--aichat-pad);
+  z-index: 4;
+  min-width: 180px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--aichat-accent) 24%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(180deg, rgba(8, 8, 22, 0.95) 0%, rgba(4, 4, 12, 0.98) 100%);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow:
+    0 22px 50px -16px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  animation: aichat-pop-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.aichat__persona-menu[hidden] {
+  display: none;
+}
+.aichat__persona-menu button {
+  appearance: none;
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+.aichat__persona-menu button:hover {
+  background: color-mix(in srgb, var(--aichat-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--aichat-accent) 28%, transparent);
+}
+.aichat__persona-menu button.is-active {
+  background: color-mix(in srgb, var(--aichat-accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--aichat-accent) 36%, transparent);
+  color: var(--aichat-accent);
+}
+.aichat__persona-menu-emoji {
+  font-size: 1rem;
+  line-height: 1;
+}
+.aichat__persona-menu-check {
+  font-weight: 700;
+  color: var(--aichat-accent);
+}
+@keyframes aichat-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 .aichat__panel.is-streaming .aichat__status {
   color: var(--aichat-accent);
   border-color: color-mix(in srgb, var(--aichat-accent) 45%, transparent);
@@ -6921,22 +7401,42 @@ body.cast-tv-open .transport {
   border-color: color-mix(in srgb, var(--aichat-accent) 35%, transparent);
 }
 
+/* ---------- Context rail (now-playing + pins + msearch) ---------- */
+/* Wraps the small "what am I looking at right now?" surfaces between the head
+   and the body. Defines its own padding + gap so the now-playing card never
+   pins to the header bar and the pins/msearch never crowd the body edge. */
+.aichat__context {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px var(--aichat-pad) 10px;
+}
+.aichat__context:empty {
+  padding: 0;
+}
+/* When ALL children are hidden, collapse the rail entirely. */
+.aichat__context:has(> .aichat__now[hidden]):has(> .aichat__pins[hidden]):has(> .aichat__msearch[hidden]) {
+  padding: 0;
+  gap: 0;
+}
+
 /* ---------- Now-playing widget below header ---------- */
 .aichat__now {
   display: grid;
-  grid-template-columns: 44px 1fr auto;
+  grid-template-columns: 52px 1fr auto;
   align-items: center;
-  gap: 10px;
-  margin: 10px var(--aichat-pad) 4px;
-  padding: 10px 12px;
-  min-height: 76px;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 14px;
+  min-height: 80px;
+  max-height: 96px;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--aichat-accent) 14%, rgba(6, 6, 16, 0.7)) 0%,
-    color-mix(in srgb, var(--violet) 12%, rgba(6, 6, 16, 0.7)) 100%
+    color-mix(in srgb, var(--aichat-accent) 16%, rgba(6, 6, 16, 0.78)) 0%,
+    color-mix(in srgb, var(--violet) 14%, rgba(6, 6, 16, 0.78)) 100%
   );
-  border: 1px solid color-mix(in srgb, var(--aichat-accent) 28%, transparent);
-  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--aichat-accent) 30%, transparent);
+  border-radius: 18px;
   cursor: pointer;
   transition:
     transform 140ms ease,
@@ -7455,6 +7955,21 @@ body.cast-tv-open .transport {
   letter-spacing: 0;
   font-size: 0.78rem;
 }
+
+/* Description under each settings label — explains what the setting does
+   so non-power-users aren't guessing. Sits tucked under the label, dimmer
+   + smaller, with the same left margin so it visually groups with the
+   control above. */
+.aichat__field-desc {
+  margin: -4px 0 12px;
+  padding: 0 4px;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--ink-mute) 80%, transparent);
+  text-transform: none;
+  letter-spacing: 0;
+}
 .aichat__field select,
 .aichat__field textarea,
 .aichat__field input[type='number'],
@@ -7716,11 +8231,22 @@ body.cast-tv-open .transport {
   overflow: hidden;
 }
 .aichat__welcome {
-  padding: 28px var(--aichat-pad) 16px;
+  padding: 32px var(--aichat-pad) 20px;
   display: grid;
-  gap: 14px;
-  align-content: start;
+  gap: 16px;
+  align-content: center;
   overflow-y: auto;
+  /* Soft eyebrow before the H3 so the welcome screen never feels stranded
+     at the top of an empty body. */
+  text-align: left;
+}
+.aichat__welcome::before {
+  content: "Cinematic AI · always listening";
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--aichat-accent) 70%, var(--ink-mute));
 }
 .aichat__welcome[hidden] {
   display: none;
@@ -7764,32 +8290,107 @@ body.cast-tv-open .transport {
 .aichat__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 8px;
 }
 .aichat__chips button {
   appearance: none;
-  background: rgba(244, 244, 255, 0.04);
-  border: 1px solid color-mix(in srgb, var(--aichat-accent) 12%, var(--line));
-  color: var(--ink-soft);
-  padding: 8px 12px;
+  background: rgba(244, 244, 255, 0.05);
+  border: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, var(--line));
+  color: var(--ink);
+  padding: 10px 14px;
   border-radius: 999px;
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  font-family: var(--font-display);
+  letter-spacing: -0.005em;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   transition:
-    background 140ms ease,
-    color 140ms ease,
-    border-color 140ms ease,
-    transform 120ms ease;
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 200ms ease,
+    transform 140ms ease;
 }
 .aichat__chips button:hover {
-  background: color-mix(in srgb, var(--aichat-accent) 14%, transparent);
+  background: color-mix(in srgb, var(--aichat-accent) 18%, transparent);
   color: var(--aichat-accent);
-  border-color: color-mix(in srgb, var(--aichat-accent) 40%, transparent);
-  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--aichat-accent) 50%, transparent);
+  box-shadow:
+    0 6px 18px -10px color-mix(in srgb, var(--aichat-accent) 60%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
 }
 .aichat__chips button:active {
   transform: translateY(0);
+}
+
+/* ── Suggested follow-up chips (after every assistant turn) ───────────── */
+/* Three contextual one-tap prompts rendered below assistant replies — the
+   conversation depth multiplier. Slightly less prominent than the welcome
+   chips so they support the response rather than competing with it. */
+.aichat__followups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 2px;
+  padding-top: 8px;
+  border-top: 1px dashed color-mix(in srgb, var(--aichat-accent) 12%, transparent);
+  animation: aichat-followups-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: 100ms;
+}
+.aichat__followups::before {
+  content: 'Try next →';
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--aichat-accent) 60%, var(--ink-mute));
+  align-self: center;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.aichat__followup {
+  appearance: none;
+  background: rgba(244, 244, 255, 0.04);
+  border: 1px solid color-mix(in srgb, var(--aichat-accent) 18%, var(--line));
+  color: var(--ink-soft);
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
+  line-height: 1.2;
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 140ms ease;
+}
+.aichat__followup:hover {
+  background: color-mix(in srgb, var(--aichat-accent) 14%, transparent);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--aichat-accent) 40%, transparent);
+  transform: translateY(-1px);
+}
+.aichat__followup:active {
+  transform: translateY(0);
+}
+.aichat__followup:focus-visible {
+  outline: 2px solid var(--aichat-accent);
+  outline-offset: 2px;
+}
+@keyframes aichat-followups-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aichat__followups { animation: none; }
 }
 
 .aichat__messages {
@@ -8856,12 +9457,38 @@ a.aichat__widget:hover {
   border-radius: 2px;
 }
 
+/* ---------- Compose stack ---------- */
+/* Wraps quickbar + snipbar + continue banner + composer in a single floating
+   card. Solves the "everything binds to the bottom edge" problem — instead
+   of N separate sticky strips, the bottom is one cohesive lifted glass card
+   with shadow, breathable gaps, and rounded corners. */
+.aichat__compose-stack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px var(--aichat-pad) calc(var(--aichat-pad) + 4px);
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, rgba(255, 255, 255, 0.07));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--aichat-accent) 6%, rgba(6, 6, 16, 0.72)) 0%,
+    rgba(6, 6, 16, 0.86) 100%
+  );
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  box-shadow:
+    0 -10px 32px -20px color-mix(in srgb, var(--aichat-accent) 35%, transparent),
+    0 18px 48px -24px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
 /* ---------- Composer ---------- */
 .aichat__composer {
   position: relative;
-  border-top: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, rgba(255, 255, 255, 0.05));
-  padding: 10px var(--aichat-pad) 14px;
-  background: linear-gradient(180deg, rgba(6, 6, 16, 0.4) 0%, rgba(6, 6, 16, 0.8) 100%);
+  padding: 8px 8px 6px;
+  background: transparent;
 }
 .aichat__attach:not([hidden]) {
   display: flex;
@@ -8893,7 +9520,7 @@ a.aichat__widget:hover {
 .aichat__row {
   display: flex;
   align-items: flex-end;
-  gap: 8px;
+  gap: 10px;
 }
 .aichat__sr {
   flex: 1;
@@ -8909,28 +9536,33 @@ a.aichat__widget:hover {
   display: block;
   width: 100%;
   resize: none;
-  height: 44px;
-  min-height: 44px;
-  max-height: 200px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: rgba(244, 244, 255, 0.05);
-  border: 1px solid color-mix(in srgb, var(--aichat-accent) 12%, var(--line));
+  height: 48px;
+  min-height: 48px;
+  max-height: 220px;
+  padding: 13px 16px;
+  border-radius: 14px;
+  background: rgba(244, 244, 255, 0.04);
+  border: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, var(--line));
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 0.94rem;
+  font-size: 0.96rem;
   line-height: 1.45;
   box-sizing: border-box;
   transition:
-    border-color 160ms ease,
-    background 160ms ease,
-    box-shadow 160ms ease;
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 240ms ease;
+}
+.aichat__composer textarea::placeholder {
+  color: color-mix(in srgb, var(--ink-mute) 80%, transparent);
 }
 .aichat__composer textarea:focus {
   outline: none;
-  border-color: var(--aichat-accent);
+  border-color: color-mix(in srgb, var(--aichat-accent) 70%, transparent);
   background: rgba(244, 244, 255, 0.07);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--aichat-accent) 18%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--aichat-accent) 22%, transparent),
+    0 0 24px -6px color-mix(in srgb, var(--aichat-accent) 35%, transparent);
 }
 .aichat__composer.is-dropping textarea {
   border-color: var(--aichat-accent);
@@ -8938,25 +9570,40 @@ a.aichat__widget:hover {
 }
 .aichat__send,
 .aichat__stop {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   flex-shrink: 0;
-  background: var(--aichat-accent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--aichat-accent) 100%, transparent) 0%,
+    color-mix(in srgb, var(--aichat-accent) 70%, var(--violet) 30%) 100%
+  );
   color: #00131a;
   border: 0;
   cursor: pointer;
   display: grid;
   place-items: center;
   box-sizing: border-box;
+  position: relative;
+  isolation: isolate;
+  box-shadow:
+    0 4px 14px -4px color-mix(in srgb, var(--aichat-accent) 50%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
   transition:
-    background 140ms ease,
     transform 140ms ease,
-    box-shadow 200ms ease;
+    box-shadow 200ms ease,
+    filter 160ms ease;
 }
 .aichat__send:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--aichat-accent) 85%, #fff 15%);
-  box-shadow: 0 8px 18px -6px color-mix(in srgb, var(--aichat-accent) 50%, transparent);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 22px -6px color-mix(in srgb, var(--aichat-accent) 60%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.aichat__send:active:not(:disabled) {
+  transform: translateY(0);
 }
 .aichat__send:disabled {
   background: rgba(244, 244, 255, 0.1);
@@ -8972,11 +9619,24 @@ a.aichat__widget:hover {
   background: #ff7099;
 }
 .aichat__voice {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
-  border-radius: 12px;
+  border-radius: 14px;
   box-sizing: border-box;
+  background: rgba(244, 244, 255, 0.04);
+  border: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, var(--line));
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 140ms ease;
+}
+.aichat__voice:hover {
+  background: color-mix(in srgb, var(--aichat-accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--aichat-accent) 36%, transparent);
+  color: var(--aichat-accent);
+  transform: translateY(-1px);
 }
 .aichat.is-listening .aichat__voice {
   color: #ff5081;
@@ -8988,12 +9648,17 @@ a.aichat__widget:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
+  margin: 8px 4px 0;
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   color: var(--ink-mute);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  opacity: 0.78;
+  transition: opacity 200ms ease;
+}
+.aichat__composer:focus-within .aichat__meter {
+  opacity: 1;
 }
 .aichat__meter [data-aichat='counter'] {
   transition: color 200ms ease;
@@ -9270,57 +9935,6 @@ a.aichat__widget:hover {
   outline-offset: 2px;
 }
 
-.aichat__ritual {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 4px var(--aichat-pad) 4px;
-  padding: 8px 10px;
-  min-height: 40px;
-  font-size: 0.78rem;
-  font-family: var(--font-display);
-  color: var(--ink);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--aichat-accent) 14%, rgba(6, 6, 16, 0.7)) 0%,
-    color-mix(in srgb, var(--violet) 12%, rgba(6, 6, 16, 0.7)) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--aichat-accent) 28%, transparent);
-  border-radius: 14px;
-  box-shadow:
-    0 12px 32px -18px color-mix(in srgb, var(--aichat-accent) 45%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-.aichat__ritual[hidden] {
-  display: none;
-}
-.aichat__ritual button {
-  background: var(--aichat-accent);
-  color: #061018;
-  border: 0;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.aichat__ritual button[data-aichat='ritualSkip'] {
-  background: transparent;
-  color: var(--ink-mute);
-  padding: 4px 8px;
-  font-size: 0.9rem;
-}
-.aichat__ritual button:focus-visible {
-  outline: 2px solid var(--aichat-accent);
-  outline-offset: 2px;
-}
-.aichat__ritual button:hover {
-  filter: brightness(1.08);
-}
-
 .aichat__cheatsheet {
   background: var(--bg-elev-1, #0b0b14);
   color: var(--ink);
@@ -9593,8 +10207,11 @@ a.aichat__widget:hover {
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding: 0 var(--aichat-pad) 8px;
+  padding: 2px 4px 4px;
   scrollbar-width: none;
+  /* Soft fade at the end so chips visibly continue off-screen — visual cue
+     that the row is horizontally scrollable. */
+  mask-image: linear-gradient(90deg, #000 0%, #000 92%, transparent 100%);
 }
 .aichat__quickbar::-webkit-scrollbar {
   display: none;
@@ -9604,10 +10221,10 @@ a.aichat__widget:hover {
 }
 .aichat__quickbar button {
   appearance: none;
-  background: rgba(244, 244, 255, 0.04);
-  border: 1px solid var(--line);
+  background: rgba(244, 244, 255, 0.05);
+  border: 1px solid color-mix(in srgb, var(--aichat-accent) 10%, var(--line));
   color: var(--ink-soft);
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
   cursor: pointer;
   flex-shrink: 0;
@@ -9618,12 +10235,17 @@ a.aichat__widget:hover {
   transition:
     background 140ms ease,
     color 140ms ease,
-    border-color 140ms ease;
+    border-color 140ms ease,
+    transform 140ms ease;
 }
 .aichat__quickbar button:hover {
-  background: color-mix(in srgb, var(--aichat-accent) 14%, transparent);
+  background: color-mix(in srgb, var(--aichat-accent) 16%, transparent);
   color: var(--aichat-accent);
-  border-color: color-mix(in srgb, var(--aichat-accent) 30%, transparent);
+  border-color: color-mix(in srgb, var(--aichat-accent) 36%, transparent);
+  transform: translateY(-1px);
+}
+.aichat__quickbar button:active {
+  transform: translateY(0);
 }
 
 /* Snippets quickpick row (below quickbar, only when snippets exist) */
@@ -9631,7 +10253,7 @@ a.aichat__widget:hover {
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding: 0 var(--aichat-pad) 8px;
+  padding: 0 4px 4px;
   scrollbar-width: none;
 }
 .aichat__snipbar::-webkit-scrollbar {
@@ -9720,7 +10342,7 @@ a.aichat__widget:hover {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin: 4px var(--aichat-pad) 0;
+  margin: 0 4px;
   padding: 8px 12px;
   background: linear-gradient(
     90deg,
@@ -9758,7 +10380,7 @@ a.aichat__widget:hover {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  margin: 0 4px;
   padding: 6px 10px;
   background: color-mix(in srgb, var(--aichat-accent) 8%, transparent);
   border: 1px dashed color-mix(in srgb, var(--aichat-accent) 32%, transparent);
@@ -10134,7 +10756,7 @@ a.aichat__widget:hover {
 }
 .route-seo-details > summary::before {
   content: '+ ';
-  color: var(--accent);
+  color: var(--ink-accent);
 }
 .route-seo-details[open] > summary::before {
   content: '− ';
@@ -10165,7 +10787,7 @@ a.aichat__widget:hover {
   font-style: italic;
 }
 .route-seo-prose a {
-  color: var(--accent);
+  color: var(--ink-accent);
   text-decoration: underline;
   text-underline-offset: 3px;
 }

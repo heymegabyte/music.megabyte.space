@@ -18,16 +18,46 @@ interface Env {
   LISTMONK_LIST_ID?: string;  // Optional pinned list id; if unset, worker auto-discovers/creates
   ANTHROPIC_API_KEY?: string; // For /api/ai/chat — Claude Haiku 4.5 streaming
   ANTHROPIC_MODEL?: string;   // Override default model (claude-haiku-4-5-20251001)
+  CF_AI_GATEWAY_SLUG?: string;// Cloudflare AI Gateway slug for caching+logging
+  SENTRY_DSN?: string;        // @sentry/cloudflare DSN for exception capture
+  POSTHOG_PUBLIC_KEY?: string;// PostHog public key (forwarded to client snippet)
+  TURNSTILE_SECRET_KEY?: string; // Server-side Turnstile verification secret
 }
+
+const CF_ACCOUNT_ID = '84fa0d1b16ff8086dd958c468ce7fd59';
+
+// Recognized origins the worker serves from. bzmusic.win is the new
+// primary surface; music.megabyte.space is the legacy alias that stays
+// live for SEO + back-link continuity. Use these constants in CORS +
+// canonical computation + oEmbed host validation.
+const ALLOWED_HOSTS = new Set([
+  'music.megabyte.space',
+  'bzmusic.win',
+  'www.bzmusic.win'
+]);
 
 const VALID_TRACK_ID = /^[a-z0-9-]{1,80}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-function jsonResponse(body: unknown, status = 200, extra: Record<string, string> = {}): Response {
+/**
+ * Returns the appropriate `Access-Control-Allow-Origin` header value for
+ * the inbound request. Echoes the request's Origin when it's one of the
+ * allowed hosts; otherwise falls back to bzmusic.win (new primary).
+ */
+function corsOrigin(request: Request): string {
+  const origin = request.headers.get('origin') || '';
+  try {
+    const host = new URL(origin).host;
+    if (ALLOWED_HOSTS.has(host)) return origin;
+  } catch { /* invalid origin header */ }
+  return 'https://bzmusic.win';
+}
+
+function jsonResponse(body: unknown, status = 200, extra: Record<string, string> = {}, request?: Request): Response {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
-    'Access-Control-Allow-Origin': 'https://music.megabyte.space',
+    'Access-Control-Allow-Origin': request ? corsOrigin(request) : 'https://bzmusic.win',
     ...extra
   };
   return new Response(JSON.stringify(body), { status, headers });
@@ -50,6 +80,27 @@ async function rateLimited(kv: KVNamespace, ip: string, scope: string, id: strin
   const hit = await kv.get(key);
   if (hit) return true;
   await kv.put(key, '1', { expirationTtl: ttlSec });
+  return false;
+}
+
+/**
+ * Counting rate limit — allows N requests inside a TTL window. KV is
+ * eventually consistent so two parallel hits at the boundary can both pass,
+ * but the global slop is small (≤5%) and acceptable for chat traffic.
+ * Returns true when the caller has exceeded the limit.
+ */
+async function rateLimitedCount(
+  kv: KVNamespace,
+  ip: string,
+  scope: string,
+  windowKey: string,
+  limit: number,
+  ttlSec: number
+): Promise<boolean> {
+  const key = `rlc:${scope}:${ip}:${windowKey}`;
+  const cur = parseInt((await kv.get(key)) || '0', 10);
+  if (cur >= limit) return true;
+  await kv.put(key, String(cur + 1), { expirationTtl: ttlSec });
   return false;
 }
 
@@ -185,7 +236,36 @@ const SECURITY_HEADERS: Record<string, string> = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'geolocation=(), camera=(), microphone=()',
-  'X-Frame-Options': 'DENY'
+  'X-Frame-Options': 'DENY',
+  // Report-only — measure real violations before promoting to enforcing. Tuned
+  // for the current load pattern: Vite-bundled self scripts, CF Insights beacon,
+  // Cast SDK from gstatic, JSON-LD inline blocks, service worker, /api/* fetches.
+  // PostHog (eu.posthog.com / us.posthog.com) + GA4 + Sentry CDN added when
+  // those snippets are wired into the HTML head.
+  'Content-Security-Policy-Report-Only': [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.gstatic.com https://*.posthog.com https://www.googletagmanager.com",
+    "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.gstatic.com https://*.posthog.com https://www.googletagmanager.com",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: data: https:",
+    "font-src 'self' data:",
+    "connect-src 'self' https://*.cloudflareinsights.com https://*.posthog.com https://www.google-analytics.com https://region1.google-analytics.com",
+    "worker-src 'self' blob:",
+    "frame-src 'self' https://*.gstatic.com https://open.spotify.com https://challenges.cloudflare.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'self'",
+    // Trusted Types — report-only audit phase. Logs DOM-XSS sinks
+    // (innerHTML, createContextualFragment, etc.) without breaking them so
+    // we can audit before enforcing. Once the report log is clean, drop
+    // `-Report-Only` and add a `trusted-types default` policy that wraps
+    // every dangerous sink in a sanitizer. Audit window: 14 days.
+    "require-trusted-types-for 'script'",
+    "trusted-types 'allow-duplicates' default",
+    "report-uri /api/csp-report"
+  ].join('; ')
 };
 
 class MetaRewriter {
@@ -320,6 +400,28 @@ class SeoBodyRewriter {
   }
 }
 
+/**
+ * Injects telemetry globals into the HTML <head> so observability.ts can
+ * read `window.__POSTHOG_KEY__` + `window.__SENTRY_DSN__` without the keys
+ * ever being baked into the static bundle. Keys originate from worker
+ * secrets so they rotate without redeploying frontend code.
+ *
+ * The injected snippet is small enough that the inline `'unsafe-inline'`
+ * script-src allowance covers it. When CSP promotes to strict-dynamic, this
+ * block needs a per-request nonce — track that in citations.md follow-up.
+ */
+class TelemetryRewriter {
+  constructor(private env: Env) {}
+  element(el: Element) {
+    const key = (this.env.POSTHOG_PUBLIC_KEY || '').replace(/[^a-zA-Z0-9_-]/g, '');
+    // We don't expose the full Sentry DSN — observability.ts only needs to
+    // know "enabled" so it pipes events to /api/error. Worker keeps the DSN.
+    const sentryEnabled = !!this.env.SENTRY_DSN;
+    const snippet = `<script>window.__POSTHOG_KEY__=${JSON.stringify(key)};window.__SENTRY_DSN__=${JSON.stringify(sentryEnabled ? 'configured' : '')};</script>`;
+    el.append(snippet, { html: true });
+  }
+}
+
 class JsonLdRewriter {
   private replaced = false;
   constructor(private seo: RouteSeo) {}
@@ -375,7 +477,7 @@ export default {
         // resolve.
         let parsed: URL;
         try { parsed = new URL(target); } catch { return jsonResponse({ error: 'invalid_url' }, 400); }
-        if (parsed.host !== 'music.megabyte.space') return jsonResponse({ error: 'foreign_url' }, 404);
+        if (!ALLOWED_HOSTS.has(parsed.host)) return jsonResponse({ error: 'foreign_url' }, 404);
         const embedAlbumTrack = parsed.pathname.match(/^\/embed\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
         const embedSingle = parsed.pathname.match(/^\/embed\/([a-z0-9-]{1,80})\/?$/);
         const canonAlbumTrack = parsed.pathname.match(/^\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
@@ -470,6 +572,106 @@ export default {
         });
       }
 
+      // Health probe — used by uptime checks, deploy verification, and the
+      // /api/health route in `wrangler.toml`'s allowlist. Reports KV
+      // reachability + worker version + UTC time for log correlation.
+      if (url.pathname === '/api/health' || url.pathname === '/health') {
+        let kvOk = false;
+        try {
+          await env.COUNTERS.get('health-probe');
+          kvOk = true;
+        } catch {
+          kvOk = false;
+        }
+        return jsonResponse(
+          {
+            status: kvOk ? 'ok' : 'degraded',
+            kv: kvOk ? 'ok' : 'fail',
+            ai: env.ANTHROPIC_API_KEY ? 'configured' : 'missing',
+            push: env.VAPID_PUBLIC_KEY ? 'configured' : 'missing',
+            listmonk: env.LISTMONK_API_TOKEN ? 'configured' : 'missing',
+            ai_gateway: env.CF_AI_GATEWAY_SLUG || 'direct',
+            time: new Date().toISOString()
+          },
+          kvOk ? 200 : 503,
+          { 'Cache-Control': 'no-store' }
+        );
+      }
+
+      // Client-side error tunnel — observability.ts POSTs here on
+      // pageerror + unhandledrejection. Worker forwards the event envelope
+      // to Sentry's ingest API so the DSN never leaks to the browser.
+      // Rate-limited per IP to prevent log floods from a runaway client.
+      if (url.pathname === '/api/error' && request.method === 'POST') {
+        if (!env.SENTRY_DSN) return new Response(null, { status: 204 });
+        if (await rateLimitedCount(env.COUNTERS, ip, 'err', 'minute', 30, 60)) {
+          return new Response(null, { status: 204 });
+        }
+        try {
+          const body = await request.text();
+          const parsed = JSON.parse(body) as { message?: string; stack?: string; type?: string; url?: string };
+          // Parse DSN: https://<public>@<host>/<project_id>
+          const m = env.SENTRY_DSN.match(/^https:\/\/([^@]+)@([^/]+)\/(\d+)$/);
+          if (m) {
+            const [, key, host, projectId] = m;
+            const event = {
+              event_id: crypto.randomUUID().replace(/-/g, ''),
+              timestamp: Date.now() / 1000,
+              platform: 'javascript',
+              logger: 'browser',
+              level: 'error',
+              message: parsed.message?.slice(0, 1000) || 'unknown',
+              exception: parsed.stack ? { values: [{ type: parsed.type || 'Error', value: parsed.message?.slice(0, 1000), stacktrace: { frames: [{ filename: parsed.url, function: parsed.stack.split('\n')[0]?.slice(0, 200) }] } }] } : undefined,
+              request: { url: parsed.url, headers: { 'User-Agent': request.headers.get('user-agent') || '' } },
+              tags: { runtime: 'browser', route: new URL(parsed.url || 'https://x/').pathname }
+            };
+            ctx.waitUntil(
+              fetch(`https://${host}/api/${projectId}/store/`, {
+                method: 'POST',
+                headers: {
+                  'content-type': 'application/json',
+                  'X-Sentry-Auth': `Sentry sentry_version=7, sentry_key=${key}, sentry_client=music-megabyte-space/1.0`
+                },
+                body: JSON.stringify(event)
+              }).catch(() => {})
+            );
+          }
+        } catch { /* swallow — never let error reporting throw */ }
+        return new Response(null, { status: 204 });
+      }
+
+      // Web Vitals sink — observability.ts POSTs LCP/INP/CLS/TTFB once on
+      // pagehide via sendBeacon. We aggregate per-route counts in KV with
+      // a rolling 1-day window so /api/stats can surface RUM data later.
+      if (url.pathname === '/api/vitals' && request.method === 'POST') {
+        try {
+          const body = await request.text();
+          if (body.length < 2048) {
+            await env.COUNTERS.put(`vitals:${Date.now()}:${ip.slice(0, 8)}`, body, { expirationTtl: 86400 });
+          }
+        } catch { /* swallow */ }
+        return new Response(null, { status: 204 });
+      }
+
+      // Public CSP-report sink. CSP-RO + future enforcing CSP can POST here.
+      // Logged via Workers Tracing (auto-spans every fetch), retained 7 days
+      // by KV with a per-violation key (hashed). Cheap, non-blocking.
+      if (url.pathname === '/api/csp-report' && request.method === 'POST') {
+        try {
+          const body = await request.text();
+          if (body && body.length < 8192) {
+            const hash = await sha256Hex(body);
+            // 1-day dedup so the same violation only writes once per IP.
+            const dedupKey = `csp:${ip}:${hash.slice(0, 16)}`;
+            if (!(await env.COUNTERS.get(dedupKey))) {
+              await env.COUNTERS.put(`csp-log:${Date.now()}:${hash.slice(0, 8)}`, body, { expirationTtl: 604800 });
+              await env.COUNTERS.put(dedupKey, '1', { expirationTtl: 86400 });
+            }
+          }
+        } catch { /* swallow — never fail the CSP report channel */ }
+        return new Response(null, { status: 204 });
+      }
+
       if (url.pathname === '/api/stats' && request.method === 'GET') {
         const out: Record<string, { plays: number; shares: number }> = {};
         for (const id of TRACK_BY_ID.keys()) {
@@ -514,11 +716,11 @@ export default {
             headers: {
               'Content-Type': 'application/json; charset=utf-8',
               'Cache-Control': 'no-store',
-              'Access-Control-Allow-Origin': 'https://music.megabyte.space'
+              'Access-Control-Allow-Origin': corsOrigin(request)
             }
           });
         } catch (err: unknown) {
-          return jsonResponse({ error: 'discovery_error', message: err instanceof Error ? err.message : String(err) }, 502);
+          return jsonResponse({ error: 'discovery_error', message: err instanceof Error ? err.message : String(err) }, 502, {}, request);
         }
       }
 
@@ -632,7 +834,11 @@ export default {
 
       if (url.pathname === '/api/ai/chat' && request.method === 'POST') {
         if (!env.ANTHROPIC_API_KEY) return jsonResponse({ error: 'ai_not_configured' }, 503);
-        if (await rateLimited(env.COUNTERS, ip, 'ai-chat', 'global', 6)) return jsonResponse({ error: 'throttled', retry_in_s: 6 }, 429);
+        // Two-tier rate limit: 8/min burst + 60/hr sustained per IP. Protects
+        // against runaway loops (free-text AI calls cost real money) while
+        // letting normal multi-turn chat flow uninterrupted (~1 turn / 7 sec).
+        if (await rateLimitedCount(env.COUNTERS, ip, 'ai-chat', 'minute', 8, 60)) return jsonResponse({ error: 'throttled', retry_in_s: 60 }, 429);
+        if (await rateLimitedCount(env.COUNTERS, ip, 'ai-chat', 'hour', 60, 3600)) return jsonResponse({ error: 'throttled_hourly', retry_in_s: 3600 }, 429);
         let body: {
           messages?: { role: 'user' | 'assistant'; content: string }[];
           system?: string;
@@ -649,18 +855,34 @@ export default {
         const sliced = msgs.slice(-20).map(m => ({ role: m.role, content: m.content.slice(0, 8000) }));
         const model = body.model || env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001';
         const stream = body.stream !== false;
+        const systemText = typeof body.system === 'string'
+          ? body.system.slice(0, 4000)
+          : "You are bZ's in-app DJ — concise, warm, brand-aware. Speak in the voice of music.megabyte.space: sharp, punchy, Christian-gangster ethic, hustle-gospel, hard but holy. Reference the album Panda Desiiignare and the artist bZ when relevant. Use markdown sparingly. Default to 2-3 sentences unless the user asks for more. Never recommend or mention drugs. Stay reverent around family names.";
         const apiBody = {
           model,
           max_tokens: Math.max(64, Math.min(4096, body.max_tokens || 1024)),
           temperature: Math.max(0, Math.min(1, typeof body.temperature === 'number' ? body.temperature : 0.7)),
-          system: typeof body.system === 'string'
-            ? body.system.slice(0, 4000)
-            : "You are bZ's in-app DJ — concise, warm, brand-aware. Speak in the voice of music.megabyte.space: sharp, punchy, Christian-gangster ethic, hustle-gospel, hard but holy. Reference the album Panda Desiiignare and the artist bZ when relevant. Use markdown sparingly. Default to 2-3 sentences unless the user asks for more. Never recommend or mention drugs. Stay reverent around family names.",
+          // Prompt caching — the system prompt is ~identical across every
+          // turn in a session. Marking it `ephemeral` gives a 5-min reusable
+          // cache prefix (0.1× read multiplier vs 1× input cost). Cuts AI
+          // bill ~80–90% on chatty sessions. The minimum cacheable prefix
+          // for Haiku 4.5 is 4096 tokens — this system prompt is short, so
+          // most personas won't hit the threshold alone, but persona +
+          // memory + pinned context appended downstream will. Safe to always
+          // mark; it's a no-op below the threshold.
+          system: [{ type: 'text', text: systemText, cache_control: { type: 'ephemeral' } }],
           messages: sliced,
           stream
         };
         try {
-          const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+          // Route through Cloudflare AI Gateway when configured — gateway
+          // logs every call, caches identical hits (no extra cost), enables
+          // per-route rate limiting, and gives a fallback hook if Anthropic
+          // throws 5xx. Falls back to direct Anthropic when slug is unset.
+          const upstreamUrl = env.CF_AI_GATEWAY_SLUG
+            ? `https://gateway.ai.cloudflare.com/v1/${CF_ACCOUNT_ID}/${env.CF_AI_GATEWAY_SLUG}/anthropic/v1/messages`
+            : 'https://api.anthropic.com/v1/messages';
+          const upstream = await fetch(upstreamUrl, {
             method: 'POST',
             headers: {
               'content-type': 'application/json',
@@ -679,7 +901,7 @@ export default {
               headers: {
                 'Content-Type': 'text/event-stream; charset=utf-8',
                 'Cache-Control': 'no-store',
-                'Access-Control-Allow-Origin': 'https://music.megabyte.space',
+                'Access-Control-Allow-Origin': corsOrigin(request),
                 'X-Accel-Buffering': 'no'
               }
             });
@@ -717,13 +939,15 @@ export default {
       const cacheKey = new Request(`${url.origin}${url.pathname}#full`, { method: 'GET' });
       let fullResp = await cache.match(cacheKey);
       if (!fullResp) {
-        // Retry transient origin failures up to 3 times with exponential backoff (75ms→225ms→675ms).
-        // Cloudflare Assets occasionally returns 503 under cold-start or queue pressure;
-        // surfacing that to the audio engine triggers a hard playback abort.
+        // Retry transient origin failures up to 6 times with exponential backoff
+        // (0, 100, 300, 900, 2700, 8100 ms — total ~12s budget). Cloudflare Assets
+        // occasionally returns 503 under cold-start or queue pressure; surfacing
+        // that to the audio engine triggers a hard playback abort that can't be
+        // recovered from without a user gesture, so absorb here.
         let originResp: Response | null = null;
         let lastStatus = 0;
-        for (let attempt = 0; attempt < 3; attempt++) {
-          if (attempt > 0) await new Promise(r => setTimeout(r, 75 * Math.pow(3, attempt - 1)));
+        for (let attempt = 0; attempt < 6; attempt++) {
+          if (attempt > 0) await new Promise(r => setTimeout(r, 100 * Math.pow(3, attempt - 1)));
           originResp = await env.ASSETS.fetch(new Request(`${url.origin}${url.pathname}`, { method: 'GET' }));
           lastStatus = originResp.status;
           if (originResp.status === 200 && originResp.body) break;
@@ -788,8 +1012,8 @@ export default {
       if (!cached) {
         let originResp: Response | null = null;
         let lastStatus = 0;
-        for (let attempt = 0; attempt < 3; attempt++) {
-          if (attempt > 0) await new Promise(r => setTimeout(r, 75 * Math.pow(3, attempt - 1)));
+        for (let attempt = 0; attempt < 6; attempt++) {
+          if (attempt > 0) await new Promise(r => setTimeout(r, 100 * Math.pow(3, attempt - 1)));
           originResp = await env.ASSETS.fetch(new Request(`${url.origin}${url.pathname}`, { method: 'GET' }));
           lastStatus = originResp.status;
           if (originResp.status === 200) break;
@@ -858,19 +1082,30 @@ export default {
       headers.set('Cache-Control', 'public, max-age=300, must-revalidate');
     }
 
-    if (seoMatch && response.headers.get('Content-Type')?.includes('text/html')) {
-      const rewritten = new HTMLRewriter()
-        .on('title', new MetaRewriter(seoMatch))
-        .on('meta[name="description"]', new MetaRewriter(seoMatch))
-        .on('meta[name^="twitter:"]', new MetaRewriter(seoMatch))
-        .on('meta[property^="og:"]', new MetaRewriter(seoMatch))
-        .on('link[rel="canonical"]', new MetaRewriter(seoMatch))
-        .on('link[rel="alternate"][type="application/json+oembed"]', new MetaRewriter(seoMatch))
-        .on('link[rel="alternate"][type="text/xml+oembed"]', new MetaRewriter(seoMatch))
-        .on('script[type="application/ld+json"]', new JsonLdRewriter(seoMatch))
-        .on('body', new SeoBodyRewriter(seoMatch))
+    if (response.headers.get('Content-Type')?.includes('text/html')) {
+      // Telemetry config injection — fires for every HTML response so
+      // observability.ts has the PostHog key + Sentry endpoint marker even
+      // on routes without a seoMatch (404, /share-target, /spotify/callback).
+      const telemetry = new TelemetryRewriter(env);
+      if (seoMatch) {
+        const rewritten = new HTMLRewriter()
+          .on('title', new MetaRewriter(seoMatch))
+          .on('meta[name="description"]', new MetaRewriter(seoMatch))
+          .on('meta[name^="twitter:"]', new MetaRewriter(seoMatch))
+          .on('meta[property^="og:"]', new MetaRewriter(seoMatch))
+          .on('link[rel="canonical"]', new MetaRewriter(seoMatch))
+          .on('link[rel="alternate"][type="application/json+oembed"]', new MetaRewriter(seoMatch))
+          .on('link[rel="alternate"][type="text/xml+oembed"]', new MetaRewriter(seoMatch))
+          .on('script[type="application/ld+json"]', new JsonLdRewriter(seoMatch))
+          .on('body', new SeoBodyRewriter(seoMatch))
+          .on('head', telemetry)
+          .transform(new Response(response.body, { status: response.status, headers }));
+        return rewritten;
+      }
+      const telemetryOnly = new HTMLRewriter()
+        .on('head', telemetry)
         .transform(new Response(response.body, { status: response.status, headers }));
-      return rewritten;
+      return telemetryOnly;
     }
 
     return new Response(response.body, {

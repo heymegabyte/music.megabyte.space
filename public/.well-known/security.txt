@@ -1,0 +1,6 @@
+Contact: mailto:security@megabyte.space
+Contact: https://github.com/megabytespace/music.megabyte.space/security/advisories/new
+Expires: 2027-05-21T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://music.megabyte.space/.well-known/security.txt
+Policy: https://music.megabyte.space/.well-known/security.txt

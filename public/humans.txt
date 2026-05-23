@@ -1,0 +1,19 @@
+/* TEAM */
+Artist + producer + builder: bZ (Brian Zalewski)
+Site: https://music.megabyte.space
+Contact: hey [at] megabyte.space
+Location: Newark, NJ — USA
+
+/* SITE */
+Last update: 2026-05-21
+Doctype: HTML5 / vanilla TypeScript / Vite + Cloudflare Workers
+Components: Web Audio API, WebGL/Canvas2D visualizer, Cast custom receiver,
+  Hue BLE/CLIP gradient, Spotify Connect handoff, AI DJ (Claude Haiku 4.5
+  streaming via Cloudflare AI Gateway).
+Brand: dark-first #060610, neon cyan #00E5FF, Sora + Space Grotesk + JetBrains Mono.
+
+/* GOSPEL */
+Hard but holy. Christian-gangster ethic. Hustle-gospel. Cyan flag up.
+
+/* THANKS */
+Suno · the Holy Spirit · every listener who pressed play

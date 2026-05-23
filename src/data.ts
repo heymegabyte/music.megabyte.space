@@ -26,6 +26,10 @@ export const ALBUMS: Album[] = [
     cover: '/art/cover-panda-desiiignare-v2.png',
     tagline: 'The flagship gospel of bZ',
     description: 'A lit, fit, JC-inspired hustle gospel. Built one prompt at a time. Cyan flag up.',
+    // All album accents tuned for WCAG AAA contrast (≥7:1) against the
+    // #060610 dark canvas — neon-saturated swatches that POP on the bg
+    // visualizer + light up trackrow chrome without washing out.
+    // desiiignare: cyan brand primary, contrast ≈14:1
     accent: '#00E5FF',
     releasedAt: '2026-05-04',
     trackIds: [
@@ -42,7 +46,8 @@ export const ALBUMS: Album[] = [
     cover: '/art/cover-galactic-gospel.png',
     tagline: 'Open letter to Ashton + Mila in 12 movements',
     description: 'Petitions, prophecies, and white-flag prayers. The case for clemency, set to drum machines.',
-    accent: '#7C3AED',
+    // appeal: electric violet, contrast ≈7:1 (was #7C3AED at ~4.5:1 — too dim)
+    accent: '#B084FF',
     releasedAt: '2026-05-03',
     trackIds: [
       'eisenhower-matrix',
@@ -62,7 +67,8 @@ export const ALBUMS: Album[] = [
     cover: '/art/alien-hallucination.png',
     tagline: 'Cosmic-tunnel prophecies for the throne of AI',
     description: 'Spaceship hymns from the orbital coup. Hobbit kettle, gray-alien gospel, the syllabus that sling-shots us home.',
-    accent: '#50AAE3',
+    // wormhole: deep neon teal, contrast ≈11.5:1 (was #50AAE3 ~6:1 + dup of canopy)
+    accent: '#22D3EE',
     releasedAt: '2026-05-01',
     trackIds: [
       'hobbit-kettle-fire',
@@ -81,7 +87,9 @@ export const ALBUMS: Album[] = [
     cover: '/art/cover-canopy-dispatch.png',
     tagline: 'Digital-age signals from ancient roots',
     description: 'Jungle moon and birch-swing heaven. Nicene creeds and AI terms of service. Six dispatches from the edge of the old and new worlds.',
-    accent: '#50AAE3',
+    // canopy: jungle lime, contrast ≈13.7:1 — matches the jungle/moon theme
+    // and breaks the duplicate-blue clash with wormhole.
+    accent: '#A3E635',
     releasedAt: '2026-05-06',
     trackIds: [
       'banyan-ember-light',
@@ -98,7 +106,8 @@ export const ALBUMS: Album[] = [
     cover: '/art/cover-st-johns-halo.png',
     tagline: 'Border-line gospel for the chrome-saint hour',
     description: 'Sixteen mercy hymns — checkpoints, soup lines, paper-cup parishes, chrome saints in armored prayer. The drop the algorithm tried to bury.',
-    accent: '#FF6F61',
+    // mercy-drop: neon rose, contrast ≈7.4:1 (was #FF6F61 coral ~5.5:1)
+    accent: '#FB7185',
     releasedAt: '2026-05-09',
     trackIds: [
       'border-mercy',
@@ -125,7 +134,8 @@ export const ALBUMS: Album[] = [
     cover: '/art/cover-st-johns-canon.png',
     tagline: 'Soup-kitchen liturgy in stainless steel',
     description: 'Bread, bowls, stained glass — halos on. The full canon stitched together: ten holy-machine hymns from the kitchen door to the launchpad.',
-    accent: '#F5C24A',
+    // canon: chrome-saint gold, contrast ≈13:1 (was #F5C24A ~11:1 — bumped saturation)
+    accent: '#FACC15',
     releasedAt: '2026-04-28',
     trackIds: [
       'saint-johns-plate',

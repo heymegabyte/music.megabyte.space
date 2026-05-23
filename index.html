@@ -39,19 +39,58 @@
     <meta name="twitter:image" content="https://music.megabyte.space/og/album-desiiignare.jpg" />
     <meta name="twitter:image:alt" content="Panda Desiiignare — branded album card by bZ" />
 
-    <meta property="og:audio" content="" />
-    <meta property="og:audio:secure_url" content="" />
+    <!-- og:audio + twitter:player wired to the flagship single. Discord and
+         Slack autoplay these on link preview; X plays via the iframe embed
+         pointing at the standalone /embed/desiiignare/chef-lu-stew widget. -->
+    <meta property="og:audio" content="https://music.megabyte.space/audio/Chef_Lu_Stew.mp3" />
+    <meta property="og:audio:secure_url" content="https://music.megabyte.space/audio/Chef_Lu_Stew.mp3" />
     <meta property="og:audio:type" content="audio/mpeg" />
-    <meta name="twitter:player" content="" />
+    <meta name="twitter:player" content="https://music.megabyte.space/embed/desiiignare/chef-lu-stew" />
     <meta name="twitter:player:width" content="480" />
     <meta name="twitter:player:height" content="160" />
-    <meta name="twitter:player:stream" content="" />
+    <meta name="twitter:player:stream" content="https://music.megabyte.space/audio/Chef_Lu_Stew.mp3" />
     <meta name="twitter:player:stream:content_type" content="audio/mpeg" />
     <link rel="alternate" type="application/json+oembed" href="https://music.megabyte.space/api/oembed?url=https%3A%2F%2Fmusic.megabyte.space%2F&format=json" title="bZ — oEmbed JSON" />
     <link rel="alternate" type="text/xml+oembed" href="https://music.megabyte.space/api/oembed?url=https%3A%2F%2Fmusic.megabyte.space%2F&format=xml" title="bZ — oEmbed XML" />
 
     <link rel="dns-prefetch" href="https://www.gstatic.com" />
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+
+    <!-- Font preconnect — Google Fonts CSS is on fonts.googleapis.com; the
+         actual woff2 binaries are on fonts.gstatic.com. Both preconnected
+         so the font handshake overlaps with HTML parse. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+
+    <!-- Observability DNS prefetch — observability.ts loads on idle so the
+         actual fetches happen well after FCP, but the DNS round-trip can
+         start earlier on the network thread for free. -->
+    <link rel="dns-prefetch" href="https://us.i.posthog.com" />
+    <link rel="dns-prefetch" href="https://us-assets.i.posthog.com" />
+    <link rel="dns-prefetch" href="https://sentry.io" />
+
+    <!-- LCP image preload — the hero album cover. fetchpriority=high pushes
+         the image up the network queue so the first painted frame already
+         carries the visualizer-art crossfade target. -->
+    <link
+      rel="preload"
+      as="image"
+      href="/art/cover-panda-desiiignare-v2.png"
+      fetchpriority="high"
+    />
+
+    <!-- Speculation Rules — prerender same-origin nav targets on hover/focus.
+         `moderate` eagerness keeps bandwidth sane while delivering instant
+         in-site navigation on click. Chrome 121+ ships; other browsers ignore. -->
+    <script type="speculationrules">
+      {
+        "prerender": [
+          { "source": "document", "where": { "href_matches": "/*" }, "eagerness": "moderate" }
+        ]
+      }
+    </script>
 
     <script type="application/ld+json">
       {
@@ -64,9 +103,129 @@
         "description": "Hustle-gospel music album by bZ. Christian-gangster ethic. Hard but holy."
       }
     </script>
+
+    <!-- Person + MusicGroup with sameAs — EEAT signal that boosts authority
+         in core updates and gives LLMs a verified-identity anchor for "who
+         is bZ?" queries. sameAs covers every public distribution channel. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "MusicGroup",
+        "name": "bZ",
+        "alternateName": ["Brian Zalewski", "Megabyte"],
+        "url": "https://music.megabyte.space/",
+        "logo": "https://music.megabyte.space/art/cover-panda-desiiignare.png",
+        "image": "https://music.megabyte.space/art/cover-panda-desiiignare.png",
+        "description": "Hustle-gospel artist. Christian-gangster ethic. Built with Suno + handwritten lyric direction.",
+        "genre": ["Hustle gospel", "Christian rap", "Electronic gospel"],
+        "sameAs": [
+          "https://open.spotify.com/artist/0Iiv5ohOcyXBKBWBC8E1eP",
+          "https://music.apple.com/us/artist/bz",
+          "https://music.youtube.com/channel/UC-bZ-music",
+          "https://bz.bandcamp.com",
+          "https://soundcloud.com/bz-music",
+          "https://www.instagram.com/heymegabyte",
+          "https://twitter.com/heymegabyte",
+          "https://www.tiktok.com/@heymegabyte",
+          "https://github.com/HeyMegabyte"
+        ]
+      }
+    </script>
+
+    <!-- WebSite + SearchAction so Google + AI-search engines surface a
+         site-wide search box and understand the URL grammar for tracks. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "music.megabyte.space",
+        "url": "https://music.megabyte.space/",
+        "publisher": { "@type": "MusicGroup", "name": "bZ", "url": "https://music.megabyte.space/" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://music.megabyte.space/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+
+    <!-- FAQPage — highest AI-citation rate of any schema across
+         ChatGPT / Perplexity / Google AI Overviews. Mirrored by visible
+         body text so direct-read crawlers (Claude / ChatGPT browsing
+         tools) see the answers in plain HTML too — JSON-LD-only FAQ
+         entries don't ship in retrieval contexts. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Who is bZ?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "bZ is the artist name for Brian Zalewski, a Newark, NJ-based hustle-gospel producer. Christian-gangster ethic. Hard but holy. Albums are built one prompt at a time using Suno + handwritten lyric direction."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is Panda Desiiignare?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Panda Desiiignare is bZ's flagship 2026 album — a JC-inspired hustle gospel built one prompt at a time. The album cover is a cyan-flag panda; the visualizer color signature is brand cyan #00E5FF."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I listen?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Open https://music.megabyte.space and click anywhere on the screen — every region of the screen plays a different track. Also available on Spotify, Apple Music, YouTube Music, and Tidal via DistroKid distribution."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does music.megabyte.space work offline?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Install the PWA (Chrome/Edge: install icon in the URL bar; iOS Safari: Share → Add to Home Screen). Tracks you have played are cached by the service worker and stay playable offline."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I cast bZ to a TV?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes — tap the Cast button in the top bar to send playback + the live visualizer to any Chromecast on your network. AirPlay is also supported in Safari on macOS and iOS."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What does the AI DJ do?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Press Cmd+I (or click the floating chat button) to open the AI DJ. It's a Claude Haiku 4.5 chat with 8 personas (DJ, Coach, Theologian, Producer, Friend, Brand, Historian, Critic) that knows the full bZ catalog, the current track, and slash commands like /lyric, /critique, /setlist, /mood."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is there a podcast or newsletter?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes — newsletter signup is on the homepage. Subscribers get first listen on every drop, plus the production notes behind each track. Powered by Listmonk; we never sell or share email addresses."
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
+    <!-- WCAG skip-link — keyboard users land here first; tab once → focus
+         transport play button so the screen-reader announcement reads "Skip
+         to player" and routes the listener straight into the audio surface. -->
+    <a href="#app" class="skip-link">Skip to player</a>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/observability.ts"></script>
   </body>
 </html>

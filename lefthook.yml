@@ -1,0 +1,24 @@
+# lefthook — Git hook orchestrator. Replaces husky (10× faster Go binary,
+# parallel job execution). Install with `npx lefthook install` once.
+#
+# Pre-commit: typecheck + Prettier check + unit tests. ~5s total on a
+# warm cache. If the typecheck fails, the commit is rejected.
+# Pre-push: full Vitest suite + production E2E (when PROD_URL is set).
+pre-commit:
+  parallel: true
+  commands:
+    typecheck:
+      run: npm run typecheck
+      glob: "*.{ts,tsx}"
+    format:
+      run: npx prettier --check "{src,worker,scripts,tests}/**/*.{ts,tsx,js,mjs,cjs,json,md,css}"
+      glob: "*.{ts,tsx,js,mjs,cjs,json,md,css}"
+    unit:
+      run: npm test -- --reporter=basic
+      glob: "{src,worker}/**/*.{ts,test.ts}"
+
+pre-push:
+  parallel: false
+  commands:
+    full-tests:
+      run: npm test

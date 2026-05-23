@@ -14,6 +14,13 @@ export default defineConfig({
         ashtonLetter: resolve(__dirname, 'ashton-letter/index.html'),
         embed: resolve(__dirname, 'embed.html'),
         castReceiver: resolve(__dirname, 'cast-receiver/index.html')
+      },
+      output: {
+        // Split observability into a separate async chunk so the LCP-critical
+        // main bundle never blocks on telemetry boot.
+        manualChunks(id) {
+          if (id.includes('src/observability')) return 'observability';
+        }
       }
     }
   }

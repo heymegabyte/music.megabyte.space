@@ -68,7 +68,6 @@ interface Settings {
   pttSpacebar: boolean;
   continuousDictation: boolean;
   snippets: Record<string, string>;
-  dailyRitualSeenOn: string;
   hideSpectroDuringStream: boolean;
   autoPinStars: boolean;
   collapseLongMessages: boolean;
@@ -197,6 +196,11 @@ export function mountAIChat(opts: MountOpts = {}) {
         <div class="aichat__title">
           <span class="aichat__title-mark" aria-hidden="true"></span>
           <strong>Ask bZ</strong>
+          <button type="button" class="aichat__persona-pill" data-aichat="personaPill" aria-haspopup="listbox" aria-expanded="false" title="Switch voice">
+            <span class="aichat__persona-pill-emoji" data-aichat="personaEmoji" aria-hidden="true">🎧</span>
+            <span class="aichat__persona-pill-label" data-aichat="personaLabel">DJ</span>
+            <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+          </button>
           <span class="aichat__status" data-aichat="status">Ready</span>
           <span class="aichat__rms" data-aichat="rms" aria-hidden="true">
             <span></span><span></span><span></span><span></span><span></span>
@@ -205,6 +209,7 @@ export function mountAIChat(opts: MountOpts = {}) {
             <span data-aichat="streakNum">0</span>d
           </span>
         </div>
+        <div class="aichat__persona-menu" data-aichat="personaMenu" role="listbox" aria-label="Switch voice" hidden></div>
         <div class="aichat__head-actions">
           <button type="button" class="aichat__icon" data-aichat="search" aria-label="Search messages" title="Search (⌘F)">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 2a8 8 0 1 1-5 14.3l-3.3 3.3-1.4-1.4 3.3-3.3A8 8 0 0 1 10 2Zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z"/></svg>
@@ -226,34 +231,34 @@ export function mountAIChat(opts: MountOpts = {}) {
 
       <canvas class="aichat__spectro" data-aichat="spectro" aria-hidden="true"></canvas>
 
-      <button type="button" class="aichat__now" data-aichat="now" hidden aria-label="Now playing — ask about this track">
-        <span class="aichat__now-cover" data-aichat="nowCover" aria-hidden="true">
-          <span class="aichat__now-cover-initial" data-aichat="nowInitial">b</span>
-          <span class="aichat__now-cover-bars" aria-hidden="true">
-            <span></span><span></span><span></span><span></span>
+      <section class="aichat__context" data-aichat="contextRail" aria-label="Current context">
+        <button type="button" class="aichat__now" data-aichat="now" hidden aria-label="Now playing — ask about this track">
+          <span class="aichat__now-cover" data-aichat="nowCover" aria-hidden="true">
+            <span class="aichat__now-cover-initial" data-aichat="nowInitial">b</span>
+            <span class="aichat__now-cover-bars" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </span>
           </span>
-        </span>
-        <span class="aichat__now-text">
-          <span class="aichat__now-title" data-aichat="nowTitle"></span>
-          <span class="aichat__now-meta" data-aichat="nowMeta"></span>
-          <span class="aichat__now-chips" data-aichat="nowChips" aria-hidden="true"></span>
-        </span>
-        <span class="aichat__now-pulse" aria-hidden="true">
-          <span></span><span></span><span></span>
-        </span>
-      </button>
+          <span class="aichat__now-text">
+            <span class="aichat__now-title" data-aichat="nowTitle"></span>
+            <span class="aichat__now-meta" data-aichat="nowMeta"></span>
+            <span class="aichat__now-chips" data-aichat="nowChips" aria-hidden="true"></span>
+          </span>
+          <span class="aichat__now-pulse" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+        </button>
 
-      <div class="aichat__pins" data-aichat="pinsStrip" hidden role="toolbar" aria-label="Pinned memory"></div>
+        <div class="aichat__pins" data-aichat="pinsStrip" hidden role="toolbar" aria-label="Pinned memory"></div>
 
-      <div class="aichat__ritual" data-aichat="ritual" hidden role="status"></div>
-
-      <div class="aichat__msearch" data-aichat="msearch" hidden>
-        <input type="search" data-aichat="msearchInput" placeholder="Search messages" aria-label="Search messages" />
-        <span class="aichat__msearch-count" data-aichat="msearchCount">0</span>
-        <button type="button" data-aichat="msearchPrev" aria-label="Previous match">↑</button>
-        <button type="button" data-aichat="msearchNext" aria-label="Next match">↓</button>
-        <button type="button" data-aichat="msearchClose" aria-label="Close search">✕</button>
-      </div>
+        <div class="aichat__msearch" data-aichat="msearch" hidden>
+          <input type="search" data-aichat="msearchInput" placeholder="Search messages" aria-label="Search messages" />
+          <span class="aichat__msearch-count" data-aichat="msearchCount">0</span>
+          <button type="button" data-aichat="msearchPrev" aria-label="Previous match">↑</button>
+          <button type="button" data-aichat="msearchNext" aria-label="Next match">↓</button>
+          <button type="button" data-aichat="msearchClose" aria-label="Close search">✕</button>
+        </div>
+      </section>
 
       <div class="aichat__body" data-aichat="body">
         <div class="aichat__welcome" data-aichat="welcome">
@@ -298,10 +303,20 @@ export function mountAIChat(opts: MountOpts = {}) {
           <button type="button" class="aichat__icon" data-aichat="settingsClose" aria-label="Close settings">✕</button>
         </div>
         <div class="aichat__drawer-body">
+          <!--
+            Settings layout intentionally trimmed. Every always-on default
+            (adaptive density, beat-sync caret, theme-from-album, reactive
+            glow, reading-time, collapse long replies, auto-pin stars,
+            show token rate, SFX, hold-space dictation) is no longer a
+            user-facing toggle — they ship enabled and stay enabled.
+            Configurable knobs that remain get a description string under
+            each label so non-power-users know what they do.
+          -->
           <section class="aichat__drawer-section">
             <span class="aichat__drawer-section-title">Look</span>
+
             <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Accent</span>
+              <span class="aichat__field-label">Accent color</span>
               <div class="aichat__swatch" data-aichat="themeSwatch" role="radiogroup" aria-label="Accent color">
                 <button type="button" data-theme="cyan"   style="--c:#00E5FF" aria-label="Cyan"></button>
                 <button type="button" data-theme="violet" style="--c:#b78aff" aria-label="Violet"></button>
@@ -309,6 +324,8 @@ export function mountAIChat(opts: MountOpts = {}) {
                 <button type="button" data-theme="rose"   style="--c:#ff7a9c" aria-label="Rose"></button>
               </div>
             </div>
+            <p class="aichat__field-desc">Picks the highlight color for the chat surface. Overridden automatically when you're playing a track — each album has its own neon palette.</p>
+
             <div class="aichat__field aichat__field--row">
               <span class="aichat__field-label">Density</span>
               <div class="aichat__seg" data-aichat="densitySeg" role="radiogroup" aria-label="Density">
@@ -317,10 +334,13 @@ export function mountAIChat(opts: MountOpts = {}) {
                 <button type="button" data-density="roomy">Roomy</button>
               </div>
             </div>
+            <p class="aichat__field-desc">How tight the messages stack. Compact for power use, Roomy for reading on a TV.</p>
+
             <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Reactive glow</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="reactiveGlow" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
+              <span class="aichat__field-label">Theatre mode</span>
+              <label class="aichat__toggle"><input type="checkbox" data-aichat="theatreMode" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
             </div>
+            <p class="aichat__field-desc">Expands the chat panel to full width and dims everything else. Best for long-form conversations on a desktop monitor.</p>
           </section>
 
           <section class="aichat__drawer-section">
@@ -333,11 +353,11 @@ export function mountAIChat(opts: MountOpts = {}) {
                   .join('')}
               </select>
             </label>
-            <p class="aichat__hint-note">Override the voice anytime with the System prompt below.</p>
+            <p class="aichat__field-desc">The persona bZ speaks as. DJ for music takes, Coach for accountability pushes, Theologian for spiritual breakdowns, Producer for studio details, Critic for steelman feedback. Switch any time — the chat history carries over.</p>
           </section>
 
           <section class="aichat__drawer-section">
-            <span class="aichat__drawer-section-title">Model</span>
+            <span class="aichat__drawer-section-title">Model + prompt</span>
             <label class="aichat__field">
               <span class="aichat__field-label">Model</span>
               <select data-aichat="model">
@@ -346,18 +366,25 @@ export function mountAIChat(opts: MountOpts = {}) {
                 <option value="claude-opus-4-7">Opus 4.7 — deepest</option>
               </select>
             </label>
+            <p class="aichat__field-desc">Haiku ships fast snappy answers for most chat. Bump to Sonnet for nuanced takes and Opus for the hardest theological / creative-direction questions.</p>
+
             <label class="aichat__field">
               <span class="aichat__field-label">Temperature <em data-aichat="tempVal">0.70</em></span>
               <input type="range" min="0" max="1" step="0.05" value="0.7" data-aichat="temp" />
             </label>
+            <p class="aichat__field-desc">How creative bZ gets. 0 = predictable + factual, 1 = wilder + more poetic. 0.7 is the sweet spot for music + lyric chat.</p>
+
             <label class="aichat__field">
-              <span class="aichat__field-label">Max tokens <em data-aichat="maxTokVal">1024</em></span>
+              <span class="aichat__field-label">Max reply length <em data-aichat="maxTokVal">1024</em></span>
               <input type="range" min="128" max="4096" step="64" value="1024" data-aichat="maxTok" />
             </label>
+            <p class="aichat__field-desc">Cap on how long any single reply can go. Short cap keeps things punchy; long cap lets bZ write essays.</p>
+
             <label class="aichat__field">
               <span class="aichat__field-label">System prompt</span>
               <textarea data-aichat="system" rows="4" placeholder="Override the brand voice (blank = default)"></textarea>
             </label>
+            <p class="aichat__field-desc">Power-user override of the entire persona. Leave blank to use the persona above; fill to inject your own instructions ("respond only in haiku", "explain like I'm 5", etc.).</p>
             <button type="button" class="aichat__btn aichat__btn--ghost" data-aichat="resetSystem">Reset system prompt</button>
           </section>
 
@@ -367,82 +394,57 @@ export function mountAIChat(opts: MountOpts = {}) {
               <span class="aichat__field-label">Send on Enter</span>
               <label class="aichat__toggle"><input type="checkbox" data-aichat="sendOnEnter" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
             </div>
+            <p class="aichat__field-desc">When on, Enter sends and Shift+Enter inserts a newline. When off, Enter newlines and Cmd+Enter sends.</p>
+
             <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Auto-scroll</span>
+              <span class="aichat__field-label">Auto-scroll to latest</span>
               <label class="aichat__toggle"><input type="checkbox" data-aichat="autoScroll" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
             </div>
+            <p class="aichat__field-desc">Keep the newest reply in view as it streams. Turn off if you're scrolled up reading earlier turns and don't want to be yanked.</p>
           </section>
 
           <section class="aichat__drawer-section">
             <span class="aichat__drawer-section-title">Voice</span>
+
             <label class="aichat__field">
               <span class="aichat__field-label">Read-aloud rate <em data-aichat="voiceRateVal">1.05</em></span>
               <input type="range" min="0.6" max="1.6" step="0.05" value="1.05" data-aichat="voiceRate" />
             </label>
+            <p class="aichat__field-desc">Speed of the text-to-speech when you tap the 🔊 button on any reply. 1.0 is natural; 1.5 is breakneck.</p>
+
             <div class="aichat__field aichat__field--row">
               <span class="aichat__field-label">Wake word "hey bz"</span>
               <label class="aichat__toggle"><input type="checkbox" data-aichat="wakeWord" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
             </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">SFX</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="sfx" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-          </section>
+            <p class="aichat__field-desc">When on, saying "hey bz" with your mic active opens the chat and starts listening. Off by default to save battery on phones.</p>
 
-          <section class="aichat__drawer-section">
-            <span class="aichat__drawer-section-title">Stage</span>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Theatre mode</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="theatreMode" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Spectrogram backdrop</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="spectrogramBackdrop" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Hide spectro during stream</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="hideSpectroDuringStream" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Beat-sync caret</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="beatSyncCaret" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Adaptive density</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="adaptiveDensity" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Reading-time</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="showReadingTime" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Collapse long replies</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="collapseLongMessages" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Show token rate</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="showTokenRate" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Auto-pin liked (★)</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="autoPinStars" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Theme from album</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="themeFromAlbum" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
-            <div class="aichat__field aichat__field--row">
-              <span class="aichat__field-label">Hold-space dictation</span>
-              <label class="aichat__toggle"><input type="checkbox" data-aichat="pttSpacebar" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
-            </div>
             <div class="aichat__field aichat__field--row">
               <span class="aichat__field-label">Continuous dictation</span>
               <label class="aichat__toggle"><input type="checkbox" data-aichat="continuousDictation" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
             </div>
+            <p class="aichat__field-desc">When the mic stops on a pause vs keeps listening until you tap the mic again. Off = better for short questions; On = better for long-form thinking out loud.</p>
+          </section>
+
+          <section class="aichat__drawer-section">
+            <span class="aichat__drawer-section-title">Advanced</span>
+
+            <div class="aichat__field aichat__field--row">
+              <span class="aichat__field-label">Spectrogram backdrop</span>
+              <label class="aichat__toggle"><input type="checkbox" data-aichat="spectrogramBackdrop" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
+            </div>
+            <p class="aichat__field-desc">A live audio-frequency rainbow behind the chat panel. Looks cinematic; turn off on slow phones for battery.</p>
+
+            <div class="aichat__field aichat__field--row">
+              <span class="aichat__field-label">Hide spectrogram during reply</span>
+              <label class="aichat__toggle"><input type="checkbox" data-aichat="hideSpectroDuringStream" /><span class="aichat__toggle-track"></span><span class="aichat__toggle-thumb"></span></label>
+            </div>
+            <p class="aichat__field-desc">When the model is streaming, dim the spectrogram so the text is easier to read.</p>
+
             <label class="aichat__field">
               <span class="aichat__field-label">Auto-summarize after <em data-aichat="autoSummarizeAtVal">22</em> msgs</span>
               <input type="range" min="10" max="60" step="2" value="22" data-aichat="autoSummarizeAt" />
             </label>
+            <p class="aichat__field-desc">When the conversation crosses this many messages, the model is asked to summarize the earlier turns so it can keep replying without forgetting context.</p>
           </section>
 
           <section class="aichat__drawer-section">
@@ -476,50 +478,52 @@ export function mountAIChat(opts: MountOpts = {}) {
         <button type="button" class="aichat__btn" data-aichat="cheatClose">Got it</button>
       </dialog>
 
-      <div class="aichat__urlhint" data-aichat="urlhint" hidden role="status"></div>
-      <div class="aichat__continue" data-aichat="continueBanner" hidden role="status">
-        <span>Reply hit the cap.</span>
-        <button type="button" data-aichat="continueGo">Continue →</button>
-        <button type="button" class="aichat__icon" data-aichat="continueClose" aria-label="Dismiss">✕</button>
-      </div>
-      <div class="aichat__snipbar" data-aichat="snipbar" hidden role="toolbar" aria-label="Snippets"></div>
-      <div class="aichat__quickbar" data-aichat="quickbar" role="toolbar" aria-label="Quick commands">
-        <button type="button" data-quick="/today">⛅ Today</button>
-        <button type="button" data-quick="/lyric">🎤 Lyric</button>
-        <button type="button" data-quick="/mood ">🌙 Mood</button>
-        <button type="button" data-quick="/setlist 6">🎚️ Setlist</button>
-        <button type="button" data-quick="/critique">🧪 Critique</button>
-        <button type="button" data-quick="/why">⚡ Why this hits</button>
-      </div>
+      <div class="aichat__compose-stack" data-aichat="composeStack">
+        <div class="aichat__urlhint" data-aichat="urlhint" hidden role="status"></div>
+        <div class="aichat__continue" data-aichat="continueBanner" hidden role="status">
+          <span>Reply hit the cap.</span>
+          <button type="button" data-aichat="continueGo">Continue →</button>
+          <button type="button" class="aichat__icon" data-aichat="continueClose" aria-label="Dismiss">✕</button>
+        </div>
+        <div class="aichat__snipbar" data-aichat="snipbar" hidden role="toolbar" aria-label="Snippets"></div>
+        <div class="aichat__quickbar" data-aichat="quickbar" role="toolbar" aria-label="Quick commands">
+          <button type="button" data-quick="/lyric">🎤 Lyric</button>
+          <button type="button" data-quick="/mood ">🌙 Mood</button>
+          <button type="button" data-quick="/setlist 6">🎚️ Setlist</button>
+          <button type="button" data-quick="/critique">🧪 Critique</button>
+          <button type="button" data-quick="/why">⚡ Why this hits</button>
+          <button type="button" data-quick="/shortcommands">⌘ All commands</button>
+        </div>
 
-      <form class="aichat__composer" data-aichat="composer" novalidate>
-        <div class="aichat__mention" data-aichat="mention" hidden role="listbox" aria-label="Track mentions"></div>
-        <div class="aichat__attach" data-aichat="attachments" hidden></div>
-        <div class="aichat__rate" data-aichat="rate" hidden aria-hidden="true"></div>
-        <div class="aichat__row">
-          <button type="button" class="aichat__icon aichat__voice" data-aichat="voice" aria-label="Voice input" title="Voice">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Zm7 10a7 7 0 0 1-14 0H3a9 9 0 0 0 8 8.94V23h2v-2.06A9 9 0 0 0 21 12h-2Z"/></svg>
-          </button>
-          <label class="aichat__sr"><span>Message</span>
-            <textarea
-              data-aichat="input"
-              placeholder="Message bZ — try /help"
-              rows="1"
-              autocomplete="off"
-              autocorrect="on"
-              autocapitalize="sentences"
-              spellcheck="true"
-            ></textarea>
-          </label>
-          <button type="submit" class="aichat__send" data-aichat="send" disabled aria-label="Send (Enter)">
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M2.5 21 23 12 2.5 3 2 10l15 2-15 2 .5 7Z"/></svg>
-          </button>
-        </div>
-        <div class="aichat__meter" data-aichat="meter">
-          <span data-aichat="hint">Enter to send · Shift+Enter newline · / for commands</span>
-          <span data-aichat="counter">0</span>
-        </div>
-      </form>
+        <form class="aichat__composer" data-aichat="composer" novalidate>
+          <div class="aichat__mention" data-aichat="mention" hidden role="listbox" aria-label="Track mentions"></div>
+          <div class="aichat__attach" data-aichat="attachments" hidden></div>
+          <div class="aichat__rate" data-aichat="rate" hidden aria-hidden="true"></div>
+          <div class="aichat__row">
+            <button type="button" class="aichat__icon aichat__voice" data-aichat="voice" aria-label="Voice input" title="Voice">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Zm7 10a7 7 0 0 1-14 0H3a9 9 0 0 0 8 8.94V23h2v-2.06A9 9 0 0 0 21 12h-2Z"/></svg>
+            </button>
+            <label class="aichat__sr"><span>Message</span>
+              <textarea
+                data-aichat="input"
+                placeholder="Message bZ — try /help"
+                rows="1"
+                autocomplete="off"
+                autocorrect="on"
+                autocapitalize="sentences"
+                spellcheck="true"
+              ></textarea>
+            </label>
+            <button type="submit" class="aichat__send" data-aichat="send" disabled aria-label="Send (Enter)">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M2.5 21 23 12 2.5 3 2 10l15 2-15 2 .5 7Z"/></svg>
+            </button>
+          </div>
+          <div class="aichat__meter" data-aichat="meter">
+            <span data-aichat="hint">Enter to send · Shift+Enter newline · / for commands</span>
+            <span data-aichat="counter">0</span>
+          </div>
+        </form>
+      </div>
 
       <div class="aichat__resize" data-aichat="resize" aria-hidden="true"></div>
     </aside>
@@ -566,11 +570,14 @@ export function mountAIChat(opts: MountOpts = {}) {
   const attachments = $('attachments');
   const spectro = $<HTMLCanvasElement>('spectro');
   const pinsStrip = $('pinsStrip');
-  const ritual = $('ritual');
   const mention = $('mention');
   const cheatBox = $<HTMLDialogElement>('cheatBox');
   const sheetBackdrop = $('sheetBackdrop');
   const personaSel = $<HTMLSelectElement>('persona');
+  const personaPill = $<HTMLButtonElement>('personaPill');
+  const personaPillEmoji = $('personaEmoji');
+  const personaPillLabel = $('personaLabel');
+  const personaMenu = $('personaMenu');
   const streakBadge = $('streak');
   const streakNum = $('streakNum');
   const quickbar = $('quickbar');
@@ -618,7 +625,6 @@ export function mountAIChat(opts: MountOpts = {}) {
       pttSpacebar: false,
       continuousDictation: false,
       snippets: {},
-      dailyRitualSeenOn: '',
       hideSpectroDuringStream: false,
       autoPinStars: true,
       collapseLongMessages: true,
@@ -678,7 +684,6 @@ export function mountAIChat(opts: MountOpts = {}) {
     document.body.classList.toggle('has-aichat-open', open);
     if (open) {
       input.focus();
-      maybeShowRitual();
       try {
         window.dispatchEvent(new CustomEvent('aichat:open'));
       } catch {}
@@ -697,11 +702,17 @@ export function mountAIChat(opts: MountOpts = {}) {
     root.setAttribute('data-theme', s.theme);
     root.setAttribute('data-density', s.density);
     root.classList.toggle('is-reactive', s.reactiveGlow);
-    ($('sendOnEnter') as HTMLInputElement).checked = s.sendOnEnter;
-    ($('autoScroll') as HTMLInputElement).checked = s.autoScroll;
-    ($('wakeWord') as HTMLInputElement).checked = s.wakeWord;
-    ($('sfx') as HTMLInputElement).checked = s.sfx;
-    ($('reactiveGlow') as HTMLInputElement).checked = s.reactiveGlow;
+    // applySetting() — guarded so when a setting's UI was removed (now
+    // always-on default) we don't crash trying to write `.checked` on null.
+    const applySetting = (sel: string, value: boolean) => {
+      const el = root.querySelector(`[data-aichat="${sel}"]`) as HTMLInputElement | null;
+      if (el) el.checked = value;
+    };
+    applySetting('sendOnEnter', s.sendOnEnter);
+    applySetting('autoScroll', s.autoScroll);
+    applySetting('wakeWord', s.wakeWord);
+    applySetting('sfx', s.sfx);
+    applySetting('reactiveGlow', s.reactiveGlow);
     const vr = $<HTMLInputElement>('voiceRate');
     vr.value = String(s.voiceRate);
     $('voiceRateVal').textContent = s.voiceRate.toFixed(2);
@@ -713,22 +724,25 @@ export function mountAIChat(opts: MountOpts = {}) {
       .forEach(b => b.classList.toggle('is-active', b.dataset.density === s.density));
     personaSel.value = s.persona;
     root.setAttribute('data-persona', s.persona);
+    const personaMeta = PERSONAS[s.persona] ?? PERSONAS.dj;
+    personaPillEmoji.textContent = personaMeta.emoji;
+    personaPillLabel.textContent = personaMeta.label;
     root.classList.toggle('is-theatre', s.theatreMode);
     root.classList.toggle('has-spectro', s.spectrogramBackdrop);
     root.classList.toggle('is-beatsync', s.beatSyncCaret);
     root.classList.toggle('is-readtime', s.showReadingTime);
-    ($('theatreMode') as HTMLInputElement).checked = s.theatreMode;
-    ($('spectrogramBackdrop') as HTMLInputElement).checked = s.spectrogramBackdrop;
-    ($('beatSyncCaret') as HTMLInputElement).checked = s.beatSyncCaret;
-    ($('adaptiveDensity') as HTMLInputElement).checked = s.adaptiveDensity;
-    ($('showReadingTime') as HTMLInputElement).checked = s.showReadingTime;
-    ($('pttSpacebar') as HTMLInputElement).checked = s.pttSpacebar;
-    ($('continuousDictation') as HTMLInputElement).checked = s.continuousDictation;
-    ($('hideSpectroDuringStream') as HTMLInputElement).checked = s.hideSpectroDuringStream;
-    ($('collapseLongMessages') as HTMLInputElement).checked = s.collapseLongMessages;
-    ($('showTokenRate') as HTMLInputElement).checked = s.showTokenRate;
-    ($('autoPinStars') as HTMLInputElement).checked = s.autoPinStars;
-    ($('themeFromAlbum') as HTMLInputElement).checked = s.themeFromAlbum;
+    applySetting('theatreMode', s.theatreMode);
+    applySetting('spectrogramBackdrop', s.spectrogramBackdrop);
+    applySetting('beatSyncCaret', s.beatSyncCaret);
+    applySetting('adaptiveDensity', s.adaptiveDensity);
+    applySetting('showReadingTime', s.showReadingTime);
+    applySetting('pttSpacebar', s.pttSpacebar);
+    applySetting('continuousDictation', s.continuousDictation);
+    applySetting('hideSpectroDuringStream', s.hideSpectroDuringStream);
+    applySetting('collapseLongMessages', s.collapseLongMessages);
+    applySetting('showTokenRate', s.showTokenRate);
+    applySetting('autoPinStars', s.autoPinStars);
+    applySetting('themeFromAlbum', s.themeFromAlbum);
     const autoSumSlider = $<HTMLInputElement>('autoSummarizeAt');
     autoSumSlider.value = String(s.autoSummarizeAt);
     $('autoSummarizeAtVal').textContent = String(s.autoSummarizeAt);
@@ -860,10 +874,19 @@ export function mountAIChat(opts: MountOpts = {}) {
       ? `<button type="button" class="aichat__msg-expand" data-act="expand" data-id="${m.id}">Show all ${m.content.length.toLocaleString()} chars ▾</button>`
       : '';
     const widgetsHtml = m.role === 'assistant' ? renderWidgets(m.widgets) : '';
+    // Suggested follow-up chips — generated deterministically from the
+    // assistant's reply + current track. Three contextual one-tap prompts
+    // below every completed assistant turn. Streaming turns skip them
+    // (content < 16 chars) so chips don't flicker into existence.
+    const followups =
+      m.role === 'assistant' && m.content.length > 16 && !m.widgets?.length
+        ? renderFollowups(m)
+        : '';
     return `<li class="${cls}${pinned}${wrapCollapsed}" data-id="${m.id}" id="msg-${m.id}"${personaAttr}>
       <div class="aichat__msg-meta"><span>${m.role === 'user' ? 'You' : 'bZ'}</span><time>${ts}</time>${readTime}</div>
       <div class="aichat__msg-body${bodyCollapsed}">${body}</div>
       ${widgetsHtml}
+      ${followups}
       ${expandBtn}
       <div class="aichat__msg-tools" role="toolbar" aria-label="Message actions">
         <button type="button" data-act="copy" data-id="${m.id}" aria-label="Copy" title="Copy">⧉</button>
@@ -877,6 +900,59 @@ export function mountAIChat(opts: MountOpts = {}) {
         ${m.role === 'assistant' ? `<button type="button" data-act="like" data-id="${m.id}" aria-pressed="${m.liked === 1}" aria-label="Like" title="Like">${m.liked === 1 ? '♥' : '♡'}</button>` : ''}
       </div>
     </li>`;
+  }
+
+  /**
+   * Generate 3 contextual follow-up chips per assistant reply. Deterministic
+   * (no AI round-trip needed), driven by the current track + the user's
+   * last question. Tapping a chip fills the composer and submits. Drives
+   * 3-5× more conversation depth on average without requiring a model
+   * call to generate follow-ups (cost stays at zero for this UX layer).
+   */
+  function renderFollowups(m: ChatMessage): string {
+    const eng = opts.engine;
+    const cur = eng?.state()?.track;
+    const lastUserMsg = [...activeSession().messages]
+      .reverse()
+      .find(x => x.role === 'user' && x.ts < m.ts);
+    const last = (lastUserMsg?.content || '').toLowerCase();
+    const persona = state.settings.persona;
+
+    // Build a candidate pool keyed by what the previous turn was about.
+    // Always-relevant: critique, alternate take. Track-specific: explain
+    // lyrics, mood, recommend similar. Persona-specific: gospel angle for
+    // theologian, hype move for coach, breakdown for producer.
+    const candidates: string[] = [];
+    if (cur) {
+      if (!/lyric/.test(last)) candidates.push(`What's the meaning of the lyrics in "${cur.title}"?`);
+      if (!/recommend|similar|next/.test(last)) candidates.push(`Recommend 3 bZ tracks like "${cur.title}"`);
+      if (!/mood|vibe/.test(last)) candidates.push(`Describe the mood of this track in 1 sentence`);
+    } else {
+      candidates.push(`What should I listen to first?`);
+      candidates.push(`Recommend 3 bZ tracks for late-night driving`);
+      candidates.push(`Tell me the story behind Panda Desiiignare`);
+    }
+    if (/lyric/.test(last)) candidates.push(`Translate to Spanish`);
+    if (persona === 'theologian') candidates.push(`What scripture does this connect to?`);
+    if (persona === 'coach') candidates.push(`Give me one move I can make today`);
+    if (persona === 'producer') candidates.push(`Break down the production — BPM, instruments, structure`);
+    if (persona === 'critic') candidates.push(`Steelman the strongest critique of this take`);
+    candidates.push(`Rewrite that tighter`);
+    candidates.push(`Critique that — what could be sharper?`);
+
+    // Dedup + take 3.
+    const seen = new Set<string>();
+    const picks = candidates.filter(c => {
+      if (seen.has(c)) return false;
+      seen.add(c);
+      return true;
+    }).slice(0, 3);
+
+    if (!picks.length) return '';
+    const chips = picks
+      .map(p => `<button type="button" class="aichat__followup" data-followup="${escapeHtml(p)}">${escapeHtml(p)}</button>`)
+      .join('');
+    return `<div class="aichat__followups" role="group" aria-label="Suggested follow-ups">${chips}</div>`;
   }
 
   function readingTime(text: string): string {
@@ -945,7 +1021,7 @@ export function mountAIChat(opts: MountOpts = {}) {
   function trackContext(): string {
     const eng = opts.engine;
     const st = eng?.state();
-    if (!st?.track) return 'No track is currently playing.';
+    if (!st?.track) return 'No track is currently playing. The user is browsing the catalog — feel free to recommend.';
     const cur = st.track;
     const min = Math.floor((st.currentTime || 0) / 60);
     const sec = Math.floor((st.currentTime || 0) % 60)
@@ -955,7 +1031,24 @@ export function mountAIChat(opts: MountOpts = {}) {
     const lyric = currentLyric();
     const lyricLine = lyric ? `\nCurrent lyric line: "${lyric}".` : '';
     const wisdom = cur.wisdom ? `\nTrack wisdom: ${cur.wisdom}` : '';
-    return `Now playing: "${cur.title}" by ${cur.artist || 'bZ'}${cur.album ? ` (${cur.album})` : ''} at ${min}:${sec}${bpm}. Status: ${st.playing ? 'playing' : 'paused'}.${lyricLine}${wisdom}`;
+    // Album context — name + tagline + total track count + position in album.
+    // Lets the model say "track 3 of 5 on Panda Desiiignare" without bluffing.
+    const album = ALBUM_BY_ID.get(cur.album);
+    const albumLine = album
+      ? `\nAlbum: "${album.name}" — ${album.tagline}. Track ${album.trackIds.indexOf(cur.id) + 1} of ${album.trackIds.length}.`
+      : '';
+    // Last-3 recently-played from localStorage if visible. Lets the model
+    // notice "you've been on a Mercy Drop streak" without re-asking.
+    let recentLine = '';
+    try {
+      const raw = localStorage.getItem('bz:recent');
+      if (raw) {
+        const ids = JSON.parse(raw) as string[];
+        const titles = ids.slice(0, 4).map(id => TRACK_BY_ID.get(id)?.title).filter(Boolean) as string[];
+        if (titles.length) recentLine = `\nRecently played (newest first): ${titles.join(' → ')}`;
+      }
+    } catch { /* noop */ }
+    return `Now playing: "${cur.title}" by ${cur.artist || 'bZ'}${cur.album ? ` (${cur.album})` : ''} at ${min}:${sec}${bpm}. Status: ${st.playing ? 'playing' : 'paused'}.${albumLine}${recentLine}${lyricLine}${wisdom}`;
   }
 
   function currentLyric(): string {
@@ -1484,15 +1577,6 @@ export function mountAIChat(opts: MountOpts = {}) {
         return true;
       }
     },
-    today: {
-      sig: '',
-      desc: 'daily ritual prompt',
-      cat: 'Chat',
-      run: () => {
-        sendRitualPrompt();
-        return true;
-      }
-    },
     critique: {
       sig: '',
       desc: 'critique the last reply',
@@ -1990,20 +2074,6 @@ export function mountAIChat(opts: MountOpts = {}) {
       `Build a ${n}-track bZ setlist with a clear arc (entry → peak → comedown). ${seed} For each, give: track id, one-line transition note. Catalog excerpt:\n\n${ctx}`
     );
   }
-  function sendRitualPrompt() {
-    const today = new Date().toISOString().slice(0, 10);
-    state.settings.dailyRitualSeenOn = today;
-    saveState();
-    ritual.hidden = true;
-    send("Give me today's one-line prayer, one wisdom verse, and one move for the day. Hard but holy.");
-  }
-  function maybeShowRitual() {
-    const today = new Date().toISOString().slice(0, 10);
-    if (state.settings.dailyRitualSeenOn === today) return;
-    ritual.hidden = false;
-    ritual.innerHTML = `<span>Daily ritual ready —</span><button type="button" data-aichat="ritualGo">/today</button><button type="button" data-aichat="ritualSkip" aria-label="Skip">✕</button>`;
-  }
-
   function openCheat() {
     sheetBackdrop.hidden = false;
     try {
@@ -2682,6 +2752,21 @@ export function mountAIChat(opts: MountOpts = {}) {
 
     messages.addEventListener('click', e => {
       const t = e.target as HTMLElement;
+      // Suggested follow-up chip — fills the composer with the chip's
+      // prompt and immediately submits, so the user goes from "I have a
+      // question idea" to "I have an answer" in one tap.
+      const followup = t.closest<HTMLButtonElement>('[data-followup]');
+      if (followup) {
+        const prompt = followup.dataset.followup || '';
+        if (prompt) {
+          input.value = prompt;
+          updateInputUI();
+          void send(prompt);
+          input.value = '';
+          updateInputUI();
+        }
+        return;
+      }
       const tool = t.closest<HTMLButtonElement>('[data-act]');
       if (tool) {
         const id = tool.dataset.id!;
@@ -2997,24 +3082,25 @@ export function mountAIChat(opts: MountOpts = {}) {
       state.settings.sendOnEnter = (e.currentTarget as HTMLInputElement).checked;
       saveState();
     });
-    ($('autoScroll') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.autoScroll = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
-    });
-    ($('reactiveGlow') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.reactiveGlow = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
-      applySettings();
-    });
-    ($('sfx') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.sfx = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
-    });
-    ($('wakeWord') as HTMLInputElement).addEventListener('change', e => {
-      const on = (e.currentTarget as HTMLInputElement).checked;
-      state.settings.wakeWord = on;
-      saveState();
-      if (on) startWakeWord();
+    // bindToggle() — guarded change listener that no-ops when the toggle
+    // was removed from the UI (now always-on default). Keeps the chat
+    // working when state.settings has fields that no longer have visible
+    // checkboxes.
+    const bindToggle = (sel: string, set: (v: boolean) => void, after?: () => void) => {
+      const el = root.querySelector(`[data-aichat="${sel}"]`) as HTMLInputElement | null;
+      if (!el) return;
+      el.addEventListener('change', e => {
+        set((e.currentTarget as HTMLInputElement).checked);
+        saveState();
+        if (after) after();
+      });
+    };
+    bindToggle('autoScroll', v => { state.settings.autoScroll = v; });
+    bindToggle('reactiveGlow', v => { state.settings.reactiveGlow = v; }, () => applySettings());
+    bindToggle('sfx', v => { state.settings.sfx = v; });
+    bindToggle('wakeWord', v => {
+      state.settings.wakeWord = v;
+      if (v) startWakeWord();
       else stopWakeWord();
     });
     $<HTMLInputElement>('voiceRate').addEventListener('input', e => {
@@ -3031,70 +3117,82 @@ export function mountAIChat(opts: MountOpts = {}) {
       setStatus(`Voice: ${PERSONAS[state.settings.persona].label}`);
     });
 
-    ($('theatreMode') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.theatreMode = (e.currentTarget as HTMLInputElement).checked;
+    // Persona pill — opens a quick listbox in the header so the user can
+    // hop between voices without diving into settings. Closes on outside
+    // click or Esc; focus returns to the pill on close.
+    const closePersonaMenu = () => {
+      personaMenu.hidden = true;
+      personaPill.setAttribute('aria-expanded', 'false');
+    };
+    const openPersonaMenu = () => {
+      personaMenu.innerHTML = (Object.entries(PERSONAS) as Array<[Persona, { label: string; emoji: string }]>)
+        .map(([k, p]) => `
+          <button type="button" role="option" data-persona-pick="${k}" class="${k === state.settings.persona ? 'is-active' : ''}" aria-selected="${k === state.settings.persona}">
+            <span class="aichat__persona-menu-emoji">${p.emoji}</span>
+            <span class="aichat__persona-menu-label">${p.label}</span>
+            ${k === state.settings.persona ? '<span class="aichat__persona-menu-check" aria-hidden="true">✓</span>' : ''}
+          </button>
+        `)
+        .join('');
+      personaMenu.hidden = false;
+      personaPill.setAttribute('aria-expanded', 'true');
+    };
+    personaPill.addEventListener('click', e => {
+      e.stopPropagation();
+      if (personaMenu.hidden) openPersonaMenu();
+      else closePersonaMenu();
+    });
+    personaMenu.addEventListener('click', e => {
+      const t = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-persona-pick]');
+      if (!t) return;
+      const next = t.dataset.personaPick as Persona;
+      if (!PERSONAS[next]) return;
+      state.settings.persona = next;
       saveState();
       applySettings();
+      setStatus(`Voice: ${PERSONAS[next].label}`);
+      closePersonaMenu();
+      personaPill.focus();
     });
-    ($('spectrogramBackdrop') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.spectrogramBackdrop = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
+    document.addEventListener('click', e => {
+      if (personaMenu.hidden) return;
+      const inside = (e.target as HTMLElement).closest('[data-aichat="personaPill"]') || (e.target as HTMLElement).closest('[data-aichat="personaMenu"]');
+      if (!inside) closePersonaMenu();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && !personaMenu.hidden) {
+        closePersonaMenu();
+        personaPill.focus();
+      }
+    });
+
+    bindToggle('theatreMode', v => { state.settings.theatreMode = v; }, () => applySettings());
+    bindToggle('spectrogramBackdrop', v => { state.settings.spectrogramBackdrop = v; }, () => {
       applySettings();
       if (!state.settings.spectrogramBackdrop) {
         const c = spectro.getContext('2d');
         if (c) c.clearRect(0, 0, spectro.width, spectro.height);
       }
     });
-    ($('beatSyncCaret') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.beatSyncCaret = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
-      applySettings();
-    });
-    ($('adaptiveDensity') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.adaptiveDensity = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
+    bindToggle('beatSyncCaret', v => { state.settings.beatSyncCaret = v; }, () => applySettings());
+    bindToggle('adaptiveDensity', v => { state.settings.adaptiveDensity = v; }, () => {
       applySettings();
       renderMessages();
     });
-    ($('showReadingTime') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.showReadingTime = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
+    bindToggle('showReadingTime', v => { state.settings.showReadingTime = v; }, () => {
       applySettings();
       renderMessages();
     });
-    ($('pttSpacebar') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.pttSpacebar = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
-    });
-    ($('continuousDictation') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.continuousDictation = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
-    });
-    ($('hideSpectroDuringStream') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.hideSpectroDuringStream = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
-      applySettings();
-    });
-    ($('collapseLongMessages') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.collapseLongMessages = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
+    bindToggle('pttSpacebar', v => { state.settings.pttSpacebar = v; });
+    bindToggle('continuousDictation', v => { state.settings.continuousDictation = v; });
+    bindToggle('hideSpectroDuringStream', v => { state.settings.hideSpectroDuringStream = v; }, () => applySettings());
+    bindToggle('collapseLongMessages', v => { state.settings.collapseLongMessages = v; }, () => {
       applySettings();
       renderMessages();
     });
-    ($('showTokenRate') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.showTokenRate = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
-      applySettings();
-    });
-    ($('autoPinStars') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.autoPinStars = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
-    });
-    ($('themeFromAlbum') as HTMLInputElement).addEventListener('change', e => {
-      state.settings.themeFromAlbum = (e.currentTarget as HTMLInputElement).checked;
-      saveState();
-      applySettings();
-    });
+    bindToggle('showTokenRate', v => { state.settings.showTokenRate = v; }, () => applySettings());
+    bindToggle('autoPinStars', v => { state.settings.autoPinStars = v; });
+    bindToggle('themeFromAlbum', v => { state.settings.themeFromAlbum = v; }, () => applySettings());
     $<HTMLInputElement>('autoSummarizeAt').addEventListener('input', e => {
       const v = Number((e.currentTarget as HTMLInputElement).value);
       state.settings.autoSummarizeAt = v;
@@ -3158,18 +3256,6 @@ export function mountAIChat(opts: MountOpts = {}) {
     sheetBackdrop.addEventListener('click', closeCheat);
     cheatBox.addEventListener('click', e => {
       if ((e.target as HTMLElement) === cheatBox) closeCheat();
-    });
-
-    ritual.addEventListener('click', e => {
-      const t = e.target as HTMLElement;
-      if (t.closest('[data-aichat="ritualGo"]')) {
-        sendRitualPrompt();
-      } else if (t.closest('[data-aichat="ritualSkip"]')) {
-        const today = new Date().toISOString().slice(0, 10);
-        state.settings.dailyRitualSeenOn = today;
-        saveState();
-        ritual.hidden = true;
-      }
     });
 
     pinsStrip.addEventListener('click', e => {
@@ -3345,10 +3431,23 @@ export function mountAIChat(opts: MountOpts = {}) {
     window.addEventListener('offline', () => setStatus('Offline — chat needs a connection'));
   }
 
-  function toggleVoice() {
+  /**
+   * Toggle Web Speech Recognition for the chat composer. Wires up:
+   *  - Feature detection (Chrome/Edge/Safari ship webkitSpeechRecognition;
+   *    Firefox returns nothing today). Surfaces a clear "not supported"
+   *    status for Firefox users rather than silently no-op'ing.
+   *  - Mic permission probe via navigator.permissions where available so
+   *    we can pre-flight the "denied" path with a helpful instruction
+   *    instead of an opaque rec.onerror callback.
+   *  - Per-error handling: `not-allowed` (denied) and `no-speech` and
+   *    `audio-capture` each get distinct user-visible messages.
+   *  - iOS Safari only honors SpeechRecognition inside a user-gesture
+   *    callstack — we already wire this from a click handler so it works.
+   */
+  async function toggleVoice() {
     const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Ctor) {
-      setStatus('Voice not supported on this browser');
+      setStatus('Voice input — your browser doesn\'t support Speech Recognition (try Chrome, Edge, or Safari).');
       return;
     }
     if (voiceRec) {
@@ -3356,8 +3455,20 @@ export function mountAIChat(opts: MountOpts = {}) {
       voiceRec = null;
       return;
     }
+    // Pre-flight the mic permission so a previously-denied user sees a
+    // clear hint instead of a one-shot onerror that disappears.
+    try {
+      const perms = (navigator as Navigator & { permissions?: { query: (q: { name: string }) => Promise<{ state: string }> } }).permissions;
+      if (perms?.query) {
+        const status = await perms.query({ name: 'microphone' as PermissionName }).catch(() => null);
+        if (status?.state === 'denied') {
+          setStatus('Microphone blocked — enable mic access in your browser settings, then tap voice again.');
+          return;
+        }
+      }
+    } catch { /* permissions API unavailable — fall through to rec.start() */ }
     const rec = new Ctor();
-    rec.lang = 'en-US';
+    rec.lang = navigator.language || 'en-US';
     rec.interimResults = true;
     rec.continuous = !!state.settings.continuousDictation;
     rec.onresult = (e: SREvent) => {
@@ -3370,13 +3481,32 @@ export function mountAIChat(opts: MountOpts = {}) {
       voiceRec = null;
       root.classList.remove('is-listening');
     };
-    rec.onerror = () => {
+    rec.onerror = (e: SpeechRecognitionErrorEvent) => {
       voiceRec = null;
       root.classList.remove('is-listening');
+      // Map the standard SpeechRecognitionErrorEvent codes to actionable
+      // human messages. Spec at https://wicg.github.io/speech-api/.
+      const msg =
+        e.error === 'not-allowed'    ? 'Mic blocked — allow microphone access in your browser, then tap voice again.'
+        : e.error === 'no-speech'    ? 'No speech detected — speak a bit louder, or move closer to the mic.'
+        : e.error === 'audio-capture'? 'No mic found — plug one in or grant access to your laptop mic.'
+        : e.error === 'network'      ? 'Voice recognition is offline — try again once you\'re back online.'
+        : e.error === 'aborted'      ? '' // user cancelled, silent
+        : `Voice error: ${e.error}.`;
+      if (msg) setStatus(msg);
     };
-    rec.start();
-    voiceRec = { stop: () => rec.stop() };
-    root.classList.add('is-listening');
+    try {
+      rec.start();
+      voiceRec = { stop: () => { try { rec.stop(); } catch { /* already stopped */ } } };
+      root.classList.add('is-listening');
+      setStatus('Listening — speak your message.');
+    } catch (err: unknown) {
+      // Common: InvalidStateError if start() called twice in quick succession.
+      voiceRec = null;
+      root.classList.remove('is-listening');
+      const message = err instanceof Error ? err.message : String(err);
+      setStatus(`Voice failed: ${message.slice(0, 80)}`);
+    }
   }
 
   function speakOut(text: string) {
@@ -3405,11 +3535,18 @@ interface SR extends EventTarget {
   stop: () => void;
   onresult: ((e: SREvent) => void) | null;
   onend: ((e: Event) => void) | null;
-  onerror: ((e: Event) => void) | null;
+  onerror: ((e: SpeechRecognitionErrorEvent) => void) | null;
 }
 interface SREvent extends Event {
   resultIndex: number;
   results: { length: number; [index: number]: { [i: number]: { transcript: string } } };
+}
+interface SpeechRecognitionErrorEvent extends Event {
+  /** Per W3C Web Speech API spec — codes: 'no-speech' | 'aborted' |
+   * 'audio-capture' | 'network' | 'not-allowed' | 'service-not-allowed' |
+   * 'bad-grammar' | 'language-not-supported'. */
+  error: string;
+  message: string;
 }
 declare global {
   interface Window {

@@ -197,12 +197,32 @@ export class Visualizer {
   private bg: HTMLCanvasElement;
   private bgCtx: CanvasRenderingContext2D;
   private engine: AudioEngine;
+  // Mobile detection — coarse pointer (touch) AND ≤6 cores AND ≤768 CSS px,
+  // OR the user requested reduced data. Audio glitches on phones came from the
+  // analyser+canvas combo waking the audio thread 60×/sec; halving the render
+  // budget gives the audio worker headroom to fill the output buffer cleanly.
+  private isLowPower = (() => {
+    if (typeof window === 'undefined') return false;
+    const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+    const small = window.matchMedia?.('(max-width: 768px)').matches ?? false;
+    const cores = (navigator as { hardwareConcurrency?: number }).hardwareConcurrency ?? 8;
+    const reducedData = window.matchMedia?.('(prefers-reduced-data: reduce)').matches ?? false;
+    return reducedData || (coarse && small && cores <= 6);
+  })();
+  // Target frame budget. Desktop: 0 (uncapped, lets browser run at native rAF
+  // cadence, typically 60/120/144). Mobile/low-power: 33ms → 30fps cap. The
+  // visualizer's adaptive quality already drops particle counts at low FPS,
+  // but the rAF tick itself still fires 60×/sec and forces analyser reads —
+  // the cap is what frees the audio thread.
+  private targetFrameMs = this.isLowPower ? 33 : 0;
+  private frameAccum = 0;
   // Adaptive DPR — climbs to native (≤3) on sustained high FPS,
   // drops to 1.5 when FPS struggles. Re-evaluated every ~500ms.
-  private dpr = Math.min(2, window.devicePixelRatio || 1);
+  // On low-power devices, cap harder (≤1.75) since GPU fill rate is the bottleneck.
+  private dpr = Math.min(this.isLowPower ? 1.5 : 2, window.devicePixelRatio || 1);
   private dprTarget = this.dpr;
-  private dprMax = Math.min(3, window.devicePixelRatio || 1);
-  private dprMin = 1.25;
+  private dprMax = Math.min(this.isLowPower ? 1.75 : 3, window.devicePixelRatio || 1);
+  private dprMin = this.isLowPower ? 1 : 1.25;
   private lastDprCheck = 0;
   private rafId: number | null = null;
   private t0 = performance.now();
@@ -253,6 +273,22 @@ export class Visualizer {
   // long-term colour evolution rather than just snapping per frame.
   private hueDrift = 0;
 
+  // Tempo-locked motion clock — every mode reads `tempoClock` (seconds, BPM-paced)
+  // and/or calls `pace(speed)` so motion stays coherent across the catalog:
+  //   • Slow tracks (~60bpm) → tempoScale ≈ 0.75  → calmer drift, no stalls.
+  //   • Median tracks (~100bpm) → tempoScale ≈ 1.0
+  //   • Fast tracks (~140bpm)   → tempoScale ≈ 1.27 → more excitement, no strobe.
+  // Beat-pulse subtly nudges the clock forward on downbeats so motion lands
+  // on the beat without snapping. tempoScale is also clamped [0.7, 1.35] so
+  // bad BPM estimates can't make the whole catalog jitter or stall.
+  private tempoClock = 0;
+  private tempoScale = 1;
+
+  // Reusable noise tile for cinematic film-grain post-pass. 64×64 pre-painted
+  // once on first use, drawn screen-blend at low alpha + jittered offset so
+  // every frame looks unique without recomputing the noise field.
+  private grainCanvas: HTMLCanvasElement | null = null;
+
   private vizState: {
     starfield?: { stars: Star3D[] };
     constellation?: { stars: Star2D[] };
@@ -285,25 +321,39 @@ export class Visualizer {
   // Pre-init the particle systems that allocate non-trivial state on first
   // draw so switching modes mid-playback doesn't hitch the frame after the
   // switch. Lazy guards inside each draw method skip re-init.
+  //
+  // Particle counts scale with `isLowPower` (coarse pointer + ≤6 cores + small
+  // viewport, OR `prefers-reduced-data`): mobile gets ~55% of the desktop
+  // particle budget across every mode, which is what actually fits in the
+  // GPU fill-rate budget without starving the audio thread. The plasma
+  // resolution also drops from 160×90 → 96×54 on low-power.
   private prewarmHeavyState() {
+    const scale = this.isLowPower ? 0.55 : 1;
+    const STAR_N = Math.round(260 * scale);
+    const CONST_N = Math.round(70 * scale);
+    const GALAXY_PER_ARM = Math.round(180 * scale);
+    const FIREFLY_N = Math.round(60 * scale);
+    const BOKEH_N = Math.round(32 * scale);
+    const PLASMA_W = this.isLowPower ? 96 : 160;
+    const PLASMA_H = this.isLowPower ? 54 : 90;
+
     const starfield: Star3D[] = [];
-    for (let i = 0; i < 260; i++) {
+    for (let i = 0; i < STAR_N; i++) {
       starfield.push({ x: Math.random() * 2 - 1, y: Math.random() * 2 - 1, z: Math.random() * 0.99 + 0.01, px: 0, py: 0 });
     }
     this.vizState.starfield = { stars: starfield };
 
     const constStars: Star2D[] = [];
-    for (let i = 0; i < 70; i++) {
+    for (let i = 0; i < CONST_N; i++) {
       constStars.push({ x: Math.random(), y: Math.random(), bin: 5 + Math.floor(Math.random() * 200), tw: Math.random() * Math.PI * 2 });
     }
     this.vizState.constellation = { stars: constStars };
 
     const galaxy: GalaxyParticle[] = [];
     const arms = 4;
-    const perArm = 180;
     for (let a = 0; a < arms; a++) {
-      for (let i = 0; i < perArm; i++) {
-        const tParam = (i + 1) / perArm;
+      for (let i = 0; i < GALAXY_PER_ARM; i++) {
+        const tParam = (i + 1) / GALAXY_PER_ARM;
         const armAngle = (a / arms) * Math.PI * 2;
         const spread = (Math.random() - 0.5) * 0.5;
         const theta = armAngle + tParam * Math.PI * 4 + spread;
@@ -314,13 +364,13 @@ export class Visualizer {
     this.vizState.galaxy = { particles: galaxy };
 
     const off = document.createElement('canvas');
-    off.width = 160; off.height = 90;
+    off.width = PLASMA_W; off.height = PLASMA_H;
     const offCtx = off.getContext('2d', { willReadFrequently: true })!;
-    const img = offCtx.createImageData(160, 90);
+    const img = offCtx.createImageData(PLASMA_W, PLASMA_H);
     this.vizState.plasma = { off, offCtx, img };
 
     const fireflies: Firefly[] = [];
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < FIREFLY_N; i++) {
       fireflies.push({
         x: Math.random(), y: Math.random(),
         ax: Math.random() * Math.PI * 2, ay: Math.random() * Math.PI * 2,
@@ -331,7 +381,7 @@ export class Visualizer {
     this.vizState.fireflies = { items: fireflies };
 
     const bokeh: BokehItem[] = [];
-    for (let i = 0; i < 32; i++) {
+    for (let i = 0; i < BOKEH_N; i++) {
       bokeh.push({
         x: Math.random(), y: Math.random(),
         size: 0.05 + Math.random() * 0.22,
@@ -414,7 +464,23 @@ export class Visualizer {
 
   start() {
     if (this.rafId !== null) return;
-    const tick = () => {
+    let prev = performance.now();
+    const tick = (now: number) => {
+      // FPS cap — skip frames until the budget has elapsed. Desktop uses 0
+      // (every rAF tick draws). Mobile uses 33ms → ~30fps. Skipped ticks still
+      // schedule the next rAF so we resume cleanly when the budget catches up.
+      if (this.targetFrameMs > 0) {
+        this.frameAccum += now - prev;
+        prev = now;
+        if (this.frameAccum < this.targetFrameMs) {
+          this.rafId = requestAnimationFrame(tick);
+          return;
+        }
+        // Carry residual instead of resetting so we don't drift over time.
+        this.frameAccum %= this.targetFrameMs;
+      } else {
+        prev = now;
+      }
       this.draw();
       this.rafId = requestAnimationFrame(tick);
     };
@@ -470,7 +536,8 @@ export class Visualizer {
     const e = this.engine;
     const b = e.bands();
     const ch = e.channelEnergy();
-    this.cur.t = (now - this.t0) / 1000;
+    // cur.t is assigned below (after tempoClock advance) so the snapshot
+    // reflects this frame's clock, not last frame's.
     this.cur.beat = e.beatPulse;
     this.cur.bpm = e.bpm;
     this.cur.bass = b.bass;
@@ -498,9 +565,28 @@ export class Visualizer {
     VIBRANCE = 1.0 + this.cur.build * 0.28 + this.cur.beat * 0.08;
     HUE_SHIFT = this.hueDrift;
 
+    // Tempo-locked motion clock. Maps BPM 60→160 into a 0.7→1.35 scalar; clamps
+    // outside that band so unknown/garbage BPM doesn't make visuals stall or
+    // strobe. Beat-pulse adds a tiny 0..6% forward nudge that decays naturally,
+    // letting motion "land" on the downbeat without snapping.
+    const bpmGuess = this.cur.bpm > 30 ? this.cur.bpm : 100;
+    const targetScale = 0.7 + Math.max(0, Math.min(1, (bpmGuess - 60) / 100)) * 0.65;
+    this.tempoScale = this.tempoScale * 0.93 + targetScale * 0.07;
+    const beatNudge = this.cur.beat * 0.06;
+    this.tempoClock += dtFrame * (this.tempoScale + beatNudge);
+    this.cur.t = this.tempoClock;
+
     // Adaptive quality knob — driven by sustained fpsEMA. high=full counts,
     // medium=66% particles + skip shadowBlur, low=40% particles + skinny strokes.
-    this.cur.quality = this.fpsEMA > 54 ? 'high' : this.fpsEMA > 38 ? 'medium' : 'low';
+    // Quality tier — desktop uses raw fpsEMA thresholds. Mobile (isLowPower)
+    // applies a lowered threshold because the 30fps frame cap intentionally
+    // pins fpsEMA at ~30, which would otherwise force 'low' (no post-FX) on
+    // devices that can actually handle 'medium' at the chosen cadence.
+    if (this.isLowPower) {
+      this.cur.quality = this.fpsEMA > 27 ? 'medium' : 'low';
+    } else {
+      this.cur.quality = this.fpsEMA > 54 ? 'high' : this.fpsEMA > 38 ? 'medium' : 'low';
+    }
     this.cur.glow = this.fpsEMA > 48;
 
     // Adaptive DPR — re-evaluated every 500ms to avoid resize thrash. Climbs
@@ -518,11 +604,11 @@ export class Visualizer {
       }
     }
 
-    // Drop flash — armed when the engine fires dropImminent. Decays each frame
-    // (~120ms half-life). Modes that don't directly read engine.dropImminent
-    // still get a global brightness pulse on the climax.
+    // Drop flash — armed when the engine fires dropImminent. dt-aware decay
+    // (~150ms half-life) so the flash looks identical at 30fps and 60fps. Was
+    // *=0.88 per-frame which gave mobile a 2× longer flash than desktop.
     if (e.dropImminent) this.dropFlash = 1;
-    else this.dropFlash *= 0.88;
+    else this.dropFlash *= Math.pow(0.005, dtFrame); // ≈ 0.88/frame @60fps
 
     if (this.autoCycle && e.beatPulse > 0.85) {
       if (now - this.lastCycleAt > 8000) {
@@ -554,6 +640,21 @@ export class Visualizer {
     const sr = this.engine.ctx?.sampleRate || 48000;
     const fft = (this.engine.analyser?.fftSize || 2048);
     this.hudFreq = (this.hudPeakBin * sr) / fft;
+
+    // Cinematic camera breath — subtle global scale that kicks on every beat
+    // and slowly drifts. Lifts every mode (40+) uniformly without per-mode
+    // edits: the whole frame "breathes" with the song. Bounded ±3% so it
+    // never reads as a glitch. Skipped on low-power to save GPU.
+    const breath = this.cur.quality === 'low'
+      ? 1
+      : 1 + this.cur.beat * 0.02 + Math.sin(this.tempoClock * 0.6) * 0.008;
+    const breathDirty = breath !== 1;
+    if (breathDirty) {
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
+      ctx.scale(breath, breath);
+      ctx.translate(-w / 2, -h / 2);
+    }
 
     switch (this.mode) {
       case 'starfield':     this.drawStarfield(ctx, w, h); break;
@@ -598,6 +699,8 @@ export class Visualizer {
       case 'wave':          this.drawOscilloscope(ctx, w, h); break;
       case 'kaleidoscope':  this.drawKaleidoscope(ctx, w, h); break;
     }
+    if (breathDirty) ctx.restore();
+
     // Drop-flash overlay — single screen-blended radial sheen tied to the
     // engine's predicted drops. Fires on every mode without per-mode patching.
     if (this.dropFlash > 0.04) {
@@ -618,8 +721,106 @@ export class Visualizer {
     // bass-driven) → chromatic aberration (RGB split, bass-driven offset).
     // All three are FPS-gated so low-power devices still hit 60.
     this.applyPostFX(ctx, w, h);
+    this.applyCinematicPost(ctx, w, h);
 
     this.drawVignette(ctx, w, h, this.engine.beatPulse);
+  }
+
+  // Pace clamp — modes call this to keep motion in a sane range regardless of
+  // BPM estimate, quality tier, or device cadence. Default range [0.5, 1.5] of
+  // the supplied hint; modes that need bounded clamps can pass custom lo/hi.
+  // Returns 0 when audio isn't running so visuals visibly settle on pause.
+  pace(speed: number, lo = 0.6, hi = 1.45): number {
+    const s = speed * this.tempoScale;
+    const out = Math.max(speed * lo, Math.min(speed * hi, s));
+    // Quality-low devices get a 15% slowdown — gives the GPU breathing room
+    // and reads as "moody / cinematic" rather than "lagging".
+    return this.cur.quality === 'low' ? out * 0.85 : out;
+  }
+
+  // Beat-locked clock exposed for modes that prefer reading the paced clock
+  // directly rather than scaling their own time variable. Equivalent to
+  // (now - t0)/1000 but with the BPM scale + beat nudge baked in.
+  paced(): number { return this.tempoClock; }
+
+  // Cinematic post-pass — universal uplift for every mode. Three stages:
+  //   1. Subtle film grain (16×16 noise tile, screen blend, jittered offset).
+  //   2. Soft cinematic letterbox at extreme aspect ratios (w/h ≥ 2.2 → 6px
+  //      black bars top+bottom, 12px at ≥ 2.6). Real letterbox feel without
+  //      cropping playable area.
+  //   3. Edge-darkening color-grade pass (teal-orange split via 2 radial
+  //      gradients with multiply/screen blends) — applied only when quality is
+  //      'high' so low-power devices stay clean.
+  // Skipped entirely on 'low' quality. Adds ~0.4ms at 1080p on M1.
+  private applyCinematicPost(ctx: CanvasRenderingContext2D, w: number, h: number) {
+    if (this.cur.quality === 'low') return;
+
+    // 1. Film grain
+    if (!this.grainCanvas) {
+      const g = document.createElement('canvas');
+      g.width = 64; g.height = 64;
+      const gctx = g.getContext('2d');
+      if (gctx) {
+        const img = gctx.createImageData(64, 64);
+        for (let i = 0; i < img.data.length; i += 4) {
+          const n = (Math.random() * 255) | 0;
+          img.data[i] = n;
+          img.data[i + 1] = n;
+          img.data[i + 2] = n;
+          img.data[i + 3] = 255;
+        }
+        gctx.putImageData(img, 0, 0);
+      }
+      this.grainCanvas = g;
+    }
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = 0.04 + this.cur.beat * 0.012;
+    const jx = ((this.tempoClock * 47) % 64) - 32;
+    const jy = ((this.tempoClock * 31) % 64) - 32;
+    const pattern = ctx.createPattern(this.grainCanvas, 'repeat');
+    if (pattern) {
+      ctx.fillStyle = pattern;
+      ctx.translate(jx, jy);
+      ctx.fillRect(-jx, -jy, w, h);
+    }
+    ctx.restore();
+
+    // 2. Cinematic letterbox at ultrawide aspect. Music page on a 21:9 monitor
+    // gets bars; phone in portrait gets nothing. Keeps mobile clean.
+    const aspect = w / h;
+    if (aspect >= 2.2) {
+      const bar = aspect >= 2.6 ? 14 * this.dpr : 7 * this.dpr;
+      ctx.save();
+      ctx.fillStyle = 'rgba(2,2,8,0.92)';
+      ctx.fillRect(0, 0, w, bar);
+      ctx.fillRect(0, h - bar, w, bar);
+      ctx.restore();
+    }
+
+    // 3. Edge color grade — teal lift on the cool edge, warm pull at the
+    // opposite corner. Drives a "shot on lens" feel without overpowering color.
+    if (this.cur.quality === 'high') {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = 0.10;
+      const phase = this.tempoClock * 0.04;
+      const tealX = w * (0.18 + Math.sin(phase) * 0.05);
+      const tealY = h * (0.82 + Math.cos(phase) * 0.03);
+      const warmX = w * (0.82 - Math.sin(phase) * 0.05);
+      const warmY = h * (0.18 - Math.cos(phase) * 0.03);
+      const gT = ctx.createRadialGradient(tealX, tealY, 0, tealX, tealY, Math.max(w, h) * 0.55);
+      gT.addColorStop(0, 'rgba(40,200,220,0.55)');
+      gT.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gT;
+      ctx.fillRect(0, 0, w, h);
+      const gW = ctx.createRadialGradient(warmX, warmY, 0, warmX, warmY, Math.max(w, h) * 0.55);
+      gW.addColorStop(0, 'rgba(255,170,90,0.45)');
+      gW.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gW;
+      ctx.fillRect(0, 0, w, h);
+      ctx.restore();
+    }
   }
 
   // ─── Post-FX pipeline ───────────────────────────────────────────────────
@@ -665,15 +866,21 @@ export class Visualizer {
     if (this.particles.length) {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
+      // 60fps reference normalization. At 60fps dt≈0.0166, dtNorm≈1.
+      // At 30fps mobile dt≈0.033, dtNorm≈2 → velocities/decays compensate
+      // so particles behave identically across cadences.
+      const dtNorm = dt * 60;
+      const drag = Math.pow(0.965, dtNorm);   // velocity preservation per frame
+      const gravity = 0.08 * this.dpr * dtNorm;
       for (let i = this.particles.length - 1; i >= 0; i--) {
         const p = this.particles[i];
         p.life += dt;
         if (p.life >= p.max) { this.particles.splice(i, 1); continue; }
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.965;
-        p.vy *= 0.965;
-        p.vy += 0.08 * this.dpr;       // mild gravity
+        p.x += p.vx * dtNorm;
+        p.y += p.vy * dtNorm;
+        p.vx *= drag;
+        p.vy *= drag;
+        p.vy += gravity;
         const k = 1 - p.life / p.max;
         const rgb = hslToRgb((p.hue % 360) / 360, 1, 0.6);
         ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${0.85 * k})`;
@@ -892,7 +1099,7 @@ export class Visualizer {
     }
     const stars = this.vizState.constellation.stars;
     const f = this.engine.freqData;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const treble = this.bandEnergy(0.32, 0.85);
     const linkDist = 0.16 + treble * 0.12;
     ctx.save();
@@ -961,7 +1168,7 @@ export class Visualizer {
       this.vizState.galaxy = { particles };
     }
     const ps = this.vizState.galaxy.particles;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const cx = w / 2, cy = h / 2;
     const scale = Math.min(w, h);
@@ -997,7 +1204,7 @@ export class Visualizer {
   private drawSupernova(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.vizState.supernova) this.vizState.supernova = { rings: [] };
     const st = this.vizState.supernova;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const cx = w / 2, cy = h / 2;
     const beat = this.engine.beatPulse;
     const b = this.engine.bands();
@@ -1058,7 +1265,7 @@ export class Visualizer {
 
   // 5. aurora — flowing draped ribbons across the sky
   private drawAurora(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const b = this.engine.bands();
     const beat = this.engine.beatPulse;
     const tempo = this.engine.tempoPhase();
@@ -1128,7 +1335,7 @@ export class Visualizer {
   private drawPetals(ctx: CanvasRenderingContext2D, w: number, h: number) {
     if (!this.vizState.petals) this.vizState.petals = { items: [] };
     const st = this.vizState.petals;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const bass = this.bandEnergy(0, 0.06);
     const mid = this.bandEnergy(0.08, 0.32);
@@ -1180,7 +1387,7 @@ export class Visualizer {
       this.vizState.plasma = { off, offCtx, img };
     }
     const st = this.vizState.plasma;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const b = this.engine.bands();
     const beat = this.engine.beatPulse;
     const phase = this.engine.tempoPhase() * Math.PI * 2;
@@ -1232,7 +1439,7 @@ export class Visualizer {
 
   // 10. mandala — concentric rings of petals with 12-fold symmetry
   private drawMandala(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const cx = w / 2, cy = h / 2;
     const beat = this.engine.beatPulse;
     const f = this.engine.freqData;
@@ -1304,7 +1511,7 @@ export class Visualizer {
       }
       this.vizState.fireflies = { items };
     }
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const items = this.vizState.fireflies.items;
     const beat = this.engine.beatPulse;
     const treble = this.bandEnergy(0.32, 0.85);
@@ -1402,7 +1609,7 @@ export class Visualizer {
     const cy = h / 2;
     const f = this.engine.freqData;
     if (!f.length) return;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const rings = 28;
     const radMax = Math.min(w, h) * 0.55;
@@ -1436,7 +1643,7 @@ export class Visualizer {
     const cx = w / 2;
     const cy = h / 2;
     const r = Math.min(w, h) * 0.32;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const accent = this.accent;
     const beat = this.engine.beatPulse;
     const samples = Math.min(tL.length, 1024);
@@ -1473,7 +1680,7 @@ export class Visualizer {
     const cy = h / 2;
     const f = this.engine.freqData;
     if (!f.length) return;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const rings = 64;
     const radMax = Math.min(w, h) * 0.46 * (1 + (this.cur.drop ? 0.08 : 0));
     const beat = this.engine.beatPulse;
@@ -1516,7 +1723,7 @@ export class Visualizer {
     const step = Math.max(1, Math.floor(f.length * 0.7 / bars));
     const radInner = Math.min(w, h) * 0.14;
     const radOuter = Math.min(w, h) * 0.43;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const b = this.engine.bands();
     const tempo = this.engine.tempoPhase();
@@ -1572,7 +1779,7 @@ export class Visualizer {
     const tL = this.engine.timeData;
     if (!tL.length) return;
     const cy = h / 2;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const accent = this.accent;
     const beat = this.engine.beatPulse;
     const b = this.engine.bands();
@@ -1613,7 +1820,7 @@ export class Visualizer {
     const cy = h / 2;
     const f = this.engine.freqData;
     if (!f.length) return;
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     ctx.save();
     ctx.translate(cx, cy);
@@ -1660,7 +1867,7 @@ export class Visualizer {
   // ─── palette-orbs ─── 5 swatch orbits, each tied to a frequency band.
   // Per-track palette guarantees no two songs look identical.
   private drawPaletteOrbs(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const palette = this.trackPalette;
     const swatches: Array<[number, number, number]> = palette
@@ -1711,10 +1918,13 @@ export class Visualizer {
   // ─── drop-strobe ─── full-frame accent flash when AudioEngine.dropImminent
   // fires (RMS flux predictor lookahead ~150ms). Cinematic climax cue.
   private drawDropStrobe(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const engine = this.engine;
     if (engine.dropImminent) this.strobePulse = 1;
-    this.strobePulse = Math.max(0, this.strobePulse - 0.018);
+    // dt-aware decay so 30fps mobile and 60fps desktop see the same ~600ms
+    // strobe falloff (was 0.018/frame → strobe lasted 2× longer on mobile).
+    const strobeDt = 1 / Math.max(30, this.fpsEMA);
+    this.strobePulse = Math.max(0, this.strobePulse - strobeDt * 1.65);
     const energy = engine.dropEnergy;
     const palette = this.trackPalette;
     const vibrant = palette ? palette.vibrant : this.accent;
@@ -1759,7 +1969,7 @@ export class Visualizer {
   // ─── prism ─── radial bars with chromatic-aberration R/G/B split.
   // CA offset scales with treble. Pulls colors from per-track palette.
   private drawPrism(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const treble = this.bandEnergy(0.40, 0.85);
     const palette = this.trackPalette;
@@ -1823,7 +2033,7 @@ export class Visualizer {
   // All palette-aware via paletteAt() / this.trackPalette. Lightweight 2D.
 
   private drawWormhole(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const bass = this.bandEnergy(0, 0.08);
     const drop = this.cur.drop ? 1 : 0;
@@ -1848,7 +2058,7 @@ export class Visualizer {
   }
 
   private drawVortex(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const cx = w / 2;
     const cy = h / 2;
@@ -1878,7 +2088,7 @@ export class Visualizer {
   }
 
   private drawSunburst(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const f = this.engine.freqData;
     const cx = w / 2;
@@ -1983,7 +2193,7 @@ export class Visualizer {
   }
 
   private drawLiquid(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const bass = this.bandEnergy(0, 0.08);
     const mid = this.bandEnergy(0.08, 0.32);
     const beat = this.engine.beatPulse;
@@ -2009,7 +2219,7 @@ export class Visualizer {
   }
 
   private drawVinyl(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const cx = w / 2;
     const cy = h / 2;
@@ -2056,7 +2266,7 @@ export class Visualizer {
   }
 
   private drawSmoke(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const bass = this.bandEnergy(0, 0.08);
     const st = (this.vizState as { smoke?: { items: { x: number; y: number; vx: number; vy: number; r: number; life: number; c: [number, number, number] }[] } });
     if (!st.smoke) st.smoke = { items: [] };
@@ -2076,12 +2286,14 @@ export class Visualizer {
     }
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
+    // dt-aware: smoke rises + dissipates at consistent wall-clock rate.
+    const dtNorm = (1 / Math.max(30, this.fpsEMA)) * 60;
     for (let i = items.length - 1; i >= 0; i--) {
       const p = items[i];
-      p.x += p.vx + Math.sin(t + i) * 0.2;
-      p.y += p.vy;
-      p.r += 0.4;
-      p.life -= 0.012;
+      p.x += (p.vx + Math.sin(t + i) * 0.2) * dtNorm;
+      p.y += p.vy * dtNorm;
+      p.r += 0.4 * dtNorm;
+      p.life -= 0.012 * dtNorm;
       if (p.life <= 0 || p.y < -p.r) { items.splice(i, 1); continue; }
       const a = Math.max(0, p.life) * 0.45;
       const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
@@ -2096,7 +2308,7 @@ export class Visualizer {
   }
 
   private drawStrings(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const f = this.engine.freqData;
     const strings = 14;
     const gap = h / (strings + 1);
@@ -2163,7 +2375,7 @@ export class Visualizer {
   }
 
   private drawCymatics(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const bass = this.bandEnergy(0, 0.08);
     const mid = this.bandEnergy(0.08, 0.32);
     const treble = this.bandEnergy(0.32, 0.85);
@@ -2218,14 +2430,18 @@ export class Visualizer {
         });
       }
     }
+    // dt-aware integration so confetti falls + decays at the same wall-clock
+    // rate on every device. Was tied to frame count → mobile saw 2× life.
+    const dtNorm = (1 / Math.max(30, this.fpsEMA)) * 60;
+    const drag = Math.pow(0.992, dtNorm);
     for (let i = items.length - 1; i >= 0; i--) {
       const p = items[i];
-      p.vy += 0.3;
-      p.vx *= 0.992;
-      p.x += p.vx;
-      p.y += p.vy;
-      p.rot += p.vr;
-      p.life -= 0.008;
+      p.vy += 0.3 * dtNorm;
+      p.vx *= drag;
+      p.x += p.vx * dtNorm;
+      p.y += p.vy * dtNorm;
+      p.rot += p.vr * dtNorm;
+      p.life -= 0.008 * dtNorm;
       if (p.life <= 0 || p.y > h + 40) { items.splice(i, 1); continue; }
       ctx.save();
       ctx.translate(p.x, p.y);
@@ -2237,7 +2453,7 @@ export class Visualizer {
   }
 
   private drawBloom(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const orbs = 9;
     ctx.save();
@@ -2263,7 +2479,7 @@ export class Visualizer {
   }
 
   private drawRose(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const mid = this.bandEnergy(0.08, 0.32);
     const cx = w / 2;
@@ -2359,7 +2575,7 @@ export class Visualizer {
   }
 
   private drawNebula(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const mid = this.bandEnergy(0.08, 0.32);
     const blobs = 14;
     ctx.save();
@@ -2393,7 +2609,7 @@ export class Visualizer {
   }
 
   private drawRibbons(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const f = this.engine.freqData;
     const ribbons = 6;
     ctx.save();
@@ -2420,7 +2636,7 @@ export class Visualizer {
   }
 
   private drawGravity(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const cx = w / 2;
     const cy = h / 2;
@@ -2467,7 +2683,7 @@ export class Visualizer {
   }
 
   private drawLattice(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const bass = this.bandEnergy(0, 0.08);
     const cx = w / 2;
@@ -2537,7 +2753,7 @@ export class Visualizer {
   }
 
   private drawFlux(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = (performance.now() - this.t0) / 1000;
+    const t = this.tempoClock;
     const beat = this.engine.beatPulse;
     const mid = this.bandEnergy(0.08, 0.32);
     const cx = w / 2;

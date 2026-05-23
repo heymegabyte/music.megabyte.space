@@ -24,8 +24,10 @@ import {
 import { nativeShareSupported, shareWithFallback } from './web-share';
 import { pushSupported, pushState, subscribePush, unsubscribePush } from './web-push';
 import { createPipController, type PipController } from './pip';
-import { mountSpotifyConnect, handleAuthCallback as handleSpotifyCallback } from './spotify-connect';
-import { mountAIChat } from './ai-chat';
+// ai-chat (~132KB) and spotify-connect (~14KB) are dynamic-imported below so
+// the LCP-critical main bundle ships ~145KB lighter. ai-chat loads on idle +
+// first Cmd+I/Cmd+K intent; spotify-connect loads only when the OAuth callback
+// route or the more-menu pair button triggers it.
 
 const $ = <T extends HTMLElement>(sel: string, root: Document | HTMLElement = document) =>
   root.querySelector(sel) as T | null;
@@ -37,6 +39,9 @@ interface LyricsBundle { words?: WhisperWord[]; lines: WhisperLine[]; duration?:
 
 const engine = new AudioEngine();
 let visualizer: Visualizer;
+// Wake Lock helpers come from media-integrations.ts (which also handles
+// the visibilitychange re-acquire). We just wire them to audio play/pause
+// below so the screen stays lit while listening.
 let currentTrackId: string | null = null;
 let pipController: PipController | null = null;
 let hudRaf: number | null = null;
@@ -171,6 +176,62 @@ function recordPlayStart(trackId: string) {
   stat.lastPlayAt = Date.now();
   lastPlayedAt = { id: trackId, startedAt: Date.now(), lastTime: 0, counted: false };
   persistListenStats();
+  // Gentle newsletter prompt — after the user's 3rd distinct track play
+  // and only ONCE per visitor (localStorage gate). Drives email signups
+  // without nagging. Skips if they already dismissed/subscribed.
+  maybeOfferNewsletter();
+}
+
+function maybeOfferNewsletter(): void {
+  try {
+    if (localStorage.getItem('bz:newsletter:seen')) return;
+    const distinctPlays = listenStats.size;
+    if (distinctPlays < 3) return;
+    localStorage.setItem('bz:newsletter:seen', String(Date.now()));
+    const root = document.body;
+    if (!root) return;
+    const el = document.createElement('div');
+    el.className = 'bz-newsletter-nudge';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    el.innerHTML = `
+      <div class="bz-newsletter-nudge__inner">
+        <div class="bz-newsletter-nudge__copy">
+          <strong>Drops only — never spam.</strong>
+          <span>First listen on every new bZ release. One email per drop.</span>
+        </div>
+        <form class="bz-newsletter-nudge__form" novalidate>
+          <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required aria-label="Email" />
+          <button type="submit">Get drops</button>
+          <button type="button" class="bz-newsletter-nudge__close" aria-label="Dismiss">✕</button>
+        </form>
+      </div>
+    `;
+    root.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('is-open'));
+    const dismiss = () => {
+      el.classList.remove('is-open');
+      setTimeout(() => el.remove(), 220);
+    };
+    el.querySelector('.bz-newsletter-nudge__close')?.addEventListener('click', dismiss);
+    el.querySelector('form')?.addEventListener('submit', e => {
+      e.preventDefault();
+      const email = (el.querySelector('input[name="email"]') as HTMLInputElement | null)?.value?.trim();
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return;
+      void fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email })
+      }).then(r => {
+        if (r.ok) {
+          el.innerHTML = '<div class="bz-newsletter-nudge__done">Locked in. First listen guaranteed.</div>';
+          setTimeout(dismiss, 2200);
+        }
+      }).catch(() => {/* swallow — user can retry from the in-app modal */});
+    });
+    // Auto-dismiss after 25s if untouched.
+    setTimeout(() => { if (el.isConnected) dismiss(); }, 25000);
+  } catch { /* localStorage disabled / DOM not ready — skip silently */ }
 }
 
 function recordListenProgress(currentTime: number) {
@@ -328,7 +389,12 @@ function refreshAiPlaylist() {
     const album = ALBUM_BY_ID.get(t.album);
     const isCurrent = pick.trackId === currentTrackId;
     const pct = Math.round(pick.score * 100);
-    return `<button type="button" class="ai-pick${isCurrent ? ' is-current' : ''}" data-ai-pick="${pick.trackId}" style="--ai-pick-score:${pick.score.toFixed(3)}" aria-label="Play ${t.title} from ${album?.name ?? 'bZ'} — AI pick #${idx + 1}, score ${pct}">
+    // Inline --album-accent per pick so each chip pulls its OWN track's
+    // album palette (cyan/violet/teal/lime/rose/gold) instead of the
+    // global --accent fallback. Without this every pick rendered cyan
+    // regardless of which album it came from.
+    const tint = album?.accent ?? '#00E5FF';
+    return `<button type="button" class="ai-pick${isCurrent ? ' is-current' : ''}" data-ai-pick="${pick.trackId}" style="--ai-pick-score:${pick.score.toFixed(3)}; --album-accent:${tint}" aria-label="Play ${t.title} from ${album?.name ?? 'bZ'} — Aeon's pick #${idx + 1}, score ${pct}">
       <span class="ai-pick__rank" aria-hidden="true">${idx + 1}</span>
       <img class="ai-pick__cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="38" height="38" loading="lazy" />
       <span class="ai-pick__meta">
@@ -1445,6 +1511,34 @@ function mandalaSVG(): string {
   `;
 }
 
+/**
+ * "Listen on" link row — every platform URL set on album.links gets a chip.
+ * Renders nothing when no links are defined so existing albums stay clean.
+ * External links open in a new tab with `noopener noreferrer` per always.md.
+ */
+function renderListenOn(album: Album): string {
+  const l = album.links;
+  if (!l) return '';
+  const entries: Array<[string, string | undefined, string]> = [
+    ['Spotify', l.spotify, 'spotify'],
+    ['Apple Music', l.appleMusic, 'apple'],
+    ['YouTube Music', l.youtubeMusic, 'youtube'],
+    ['Tidal', l.tidal, 'tidal'],
+    ['Amazon Music', l.amazonMusic, 'amazon'],
+    ['Bandcamp', l.bandcamp, 'bandcamp'],
+    ['SoundCloud', l.soundcloud, 'soundcloud']
+  ];
+  const present = entries.filter((entry): entry is [string, string, string] => Boolean(entry[1]));
+  if (!present.length && !l.preSave) return '';
+  const preSaveChip = l.preSave
+    ? `<a class="album__platform album__platform--presave" href="${l.preSave}" target="_blank" rel="noopener noreferrer">★ Pre-save</a>`
+    : '';
+  const chips = present
+    .map(([label, href, key]) => `<a class="album__platform album__platform--${key}" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="Listen on ${label}">${label}</a>`)
+    .join('');
+  return `<div class="album__platforms" aria-label="Listen on">${preSaveChip}${chips}</div>`;
+}
+
 function renderAlbums(host: HTMLElement) {
   const savedTop = host.scrollTop;
   const isFeatured = Boolean(currentAlbumFilter);
@@ -1455,9 +1549,9 @@ function renderAlbums(host: HTMLElement) {
     ? `<a class="albums__back" data-albums-back href="/" aria-label="Back to all albums"><svg class="albums__back-arrow" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg><span>all albums</span></a>`
     : '';
   const aiPlaylistModule = currentAlbumFilter ? '' : `
-    <aside class="ai-playlist ai-playlist--rail" aria-label="AI's Choice — top picks for you" id="aiPlaylistWrap">
+    <aside class="ai-playlist ai-playlist--rail" aria-label="Aeon's Choice — pre-cast picks tuned for now" id="aiPlaylistWrap">
       <header class="ai-playlist__head">
-        <span class="ai-playlist__eyebrow">AI's Choice</span>
+        <span class="ai-playlist__eyebrow">Aeon's Choice</span>
       </header>
       <div class="ai-playlist__list" id="aiPlaylist" role="list"></div>
     </aside>`;
@@ -1487,6 +1581,7 @@ function renderAlbums(host: HTMLElement) {
             <h3 class="album__title">${album.name}</h3>
             <p class="album__tagline">${album.tagline}</p>
             <p class="album__count">${tracks.length} tracks · bZ</p>
+            ${renderListenOn(album)}
           </div>
         </header>
         ${isFeatured ? spotifyEmbed : ''}
@@ -2050,19 +2145,25 @@ function capitalizeLyricLine(s: string): string {
 async function play(track: Track) {
   pushTrackUrl(track);
   recordPlayStart(track.id);
-  const doUpdate = () => {
-    currentTrackId = track.id;
-    renderAlbums($('#albums')!);
-    renderNowPlaying(track);
-    refreshShareLabel();
-    refreshAiPlaylist();
-  };
-  const doc = document as Document & { startViewTransition?: (fn: () => void) => unknown };
-  if (doc.startViewTransition) {
-    doc.startViewTransition(doUpdate);
-  } else {
-    doUpdate();
-  }
+  currentTrackId = track.id;
+  // Class-swap instead of full innerHTML rebuild — preserves the user's scroll
+  // position in `.albums` (innerHTML reset forces scrollTop to 0 mid-frame,
+  // which View Transitions then snapshot as the "after" state, causing a jump)
+  // and keeps mobile off the GC churn of re-creating ~70 <li> nodes per click.
+  document
+    .querySelectorAll<HTMLAnchorElement>('.trackrow.is-current')
+    .forEach(el => el.classList.remove('is-current'));
+  document
+    .querySelector<HTMLAnchorElement>(`.trackrow[data-track="${track.id}"]`)
+    ?.classList.add('is-current');
+  document
+    .querySelectorAll<HTMLButtonElement>('.ai-pick.is-current')
+    .forEach(el => el.classList.remove('is-current'));
+  document
+    .querySelector<HTMLButtonElement>(`.ai-pick[data-ai-pick="${track.id}"]`)
+    ?.classList.add('is-current');
+  renderNowPlaying(track);
+  refreshShareLabel();
   if (cast.active) {
     if (cast.customChannelOpen) {
       // Receiver owns the queue; just tell it which track to play. Falls back
@@ -2147,8 +2248,15 @@ function bindMediaSession() {
     engine.audio.currentTime = d.seekTime;
     if (cast.active) cast.seek(d.seekTime);
   });
-  engine.audio.addEventListener('play', () => setMediaSessionPlaybackState(true));
-  engine.audio.addEventListener('pause', () => setMediaSessionPlaybackState(false));
+  engine.audio.addEventListener('play', () => {
+    setMediaSessionPlaybackState(true);
+    void acquireWakeLock();
+  });
+  engine.audio.addEventListener('pause', () => {
+    setMediaSessionPlaybackState(false);
+    void releaseWakeLock();
+  });
+  engine.audio.addEventListener('ended', () => { void releaseWakeLock(); });
   engine.audio.addEventListener('loadedmetadata', () => setMediaSessionPosition(engine.audio));
   engine.audio.addEventListener('seeked', () => setMediaSessionPosition(engine.audio));
   engine.audio.addEventListener('ratechange', () => setMediaSessionPosition(engine.audio));
@@ -4052,7 +4160,9 @@ function bindUi() {
     moreMenu.style.bottom = `${window.innerHeight - r.top + 10}px`;
     moreMenu.hidden = false;
     moreBtn.setAttribute('aria-expanded', 'true');
-    mountSpotifyConnect(moreMenu);
+    // Lazy-load the Spotify Connect surface — only the small fraction of
+    // users who open the more-menu ever need this bundle (~14KB gzipped).
+    void import('./spotify-connect').then(m => m.mountSpotifyConnect(moreMenu));
   };
   moreBtn?.addEventListener('click', e => {
     e.stopPropagation();
@@ -4504,13 +4614,32 @@ function setActiveSleepChip(value: string | null) {
   });
 }
 
+function ensureSleepChip(): HTMLButtonElement {
+  const existing = document.getElementById('sleepChip') as HTMLButtonElement | null;
+  if (existing) return existing;
+  const chip = document.createElement('button');
+  chip.id = 'sleepChip';
+  chip.type = 'button';
+  chip.className = 'sleep-chip';
+  chip.setAttribute('aria-label', 'Sleep timer — tap to cancel');
+  chip.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg><span class="sleep-chip__label">--:--</span>`;
+  chip.addEventListener('click', () => setSleepTimer(0));
+  chip.hidden = true;
+  document.body.appendChild(chip);
+  return chip;
+}
+
 function setSleepTimer(mins: number | 'track') {
   if (sleepTimerHandle) { clearTimeout(sleepTimerHandle); sleepTimerHandle = null; }
   if (sleepTickHandle) { clearInterval(sleepTickHandle); sleepTickHandle = null; }
   sleepTimerEndAt = 0;
   const label = $('#sleepLabel');
   const moreBtn = $('#btnMore');
+  const chip = ensureSleepChip();
+  const chipLabel = chip.querySelector('.sleep-chip__label') as HTMLElement | null;
   moreBtn?.classList.remove('has-sleep');
+  chip.hidden = true;
+  chip.classList.remove('is-warning');
   if (label) label.textContent = 'off';
   if (mins === 0) { setActiveSleepChip('0'); return; }
   if (mins === 'track') {
@@ -4519,11 +4648,14 @@ function setSleepTimer(mins: number | 'track') {
       fadeOutAndPause();
       moreBtn?.classList.remove('has-sleep');
       if (label) label.textContent = 'off';
+      chip.hidden = true;
       setActiveSleepChip('0');
     };
     engine.audio.addEventListener('ended', onEnd, { once: true });
     moreBtn?.classList.add('has-sleep');
     if (label) label.textContent = 'end of track';
+    if (chipLabel) chipLabel.textContent = 'end of track';
+    chip.hidden = false;
     setActiveSleepChip('track');
     return;
   }
@@ -4531,12 +4663,17 @@ function setSleepTimer(mins: number | 'track') {
   sleepTimerHandle = setTimeout(() => fadeOutAndPause(), mins * 60_000);
   moreBtn?.classList.add('has-sleep');
   setActiveSleepChip(String(mins));
+  chip.hidden = false;
   const tickLabel = () => {
-    if (!sleepTimerEndAt || !label) return;
+    if (!sleepTimerEndAt) return;
     const remaining = Math.max(0, sleepTimerEndAt - Date.now());
     const m = Math.floor(remaining / 60000);
     const s = Math.floor((remaining % 60000) / 1000);
-    label.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    const txt = `${m}:${s.toString().padStart(2, '0')}`;
+    if (label) label.textContent = txt;
+    if (chipLabel) chipLabel.textContent = txt;
+    // Pulse the chip under 60s so the user has a visual heads-up.
+    chip.classList.toggle('is-warning', remaining > 0 && remaining < 60_000);
   };
   tickLabel();
   sleepTickHandle = setInterval(tickLabel, 1000);
@@ -5119,15 +5256,21 @@ window.addEventListener('DOMContentLoaded', () => {
   refreshLoopBtn();
   refreshShuffleBtn();
   bindInstallPrompt();
-  void handleSpotifyCallback();
+  // Only load the Spotify OAuth callback handler when the URL actually
+  // matches the callback route — saves ~14KB on every other route.
+  if (location.pathname.startsWith('/spotify/callback')) {
+    void import('./spotify-connect').then(m => m.handleAuthCallback());
+  }
   bootstrapInitialRoute();
   registerServiceWorker();
   void refreshNotifyToggle();
   bindAiPlaylist();
   refreshAiPlaylist();
-  mountAIChat({
-    engine,
-    onCommand: (cmd, args) => {
+
+  // Lazy-mount the AI chat (~132KB gzipped) on idle. Pre-warmed by the first
+  // user interaction so the FAB renders within a few hundred ms of any tap
+  // or keypress — invisible to the user, ~145KB lighter LCP-critical bundle.
+  const aiChatOnCommand = (cmd: string, args: string[]): boolean | void => {
       const lc = cmd.toLowerCase();
       const parseTime = (s: string) => {
         if (!s) return NaN;
@@ -5269,8 +5412,26 @@ window.addEventListener('DOMContentLoaded', () => {
         return true;
       }
       return false;
-    }
-  });
+  };
+  let aiChatMounted = false;
+  const mountAIChatLazy = async () => {
+    if (aiChatMounted) return;
+    aiChatMounted = true;
+    const { mountAIChat } = await import('./ai-chat');
+    mountAIChat({ engine, onCommand: aiChatOnCommand });
+  };
+  // Pre-warm on first user interaction so the bundle is ready by the time
+  // the user actually hits Cmd+I / Cmd+K / clicks the FAB area.
+  const warm = () => { void mountAIChatLazy(); };
+  ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+    window.addEventListener(ev, warm, { once: true, passive: true } as AddEventListenerOptions)
+  );
+  // Idle fallback — mount within 2s of paint even if the user never interacts,
+  // so the FAB always shows up. rIC where supported, setTimeout otherwise.
+  const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+  if (idle) idle(warm, { timeout: 2000 });
+  else setTimeout(warm, 1500);
+
   loadGlobalStats().then(() => refreshAiPlaylist());
   engine.audio.addEventListener('timeupdate', () => {
     if (!currentTrackId) return;
