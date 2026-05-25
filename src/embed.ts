@@ -18,6 +18,7 @@
 // music.megabyte.space proper — clicking the cover / deep-link opens the
 // canonical route in a new tab.
 import './style.css';
+// Default Trusted Types policy installed by inline <head> script in embed.html.
 import { AudioEngine } from './audio';
 import { ALBUM_BY_ID, TRACK_BY_ID } from './data';
 import type { Track, Album } from './types';
@@ -129,19 +130,23 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
     : `${albumName} · bZ`;
   const deepHref = isAlbum ? `${SITE_ORIGIN}/${album.id}` : `${SITE_ORIGIN}/${album.id}/${target.track.id}`;
 
+  const multi = playlist.length > 1;
+  const navAttr = multi ? '' : 'hidden';
+
   host.innerHTML = `
     <div class="embed" style="--accent: ${album.accent};">
       <a class="embed__cover" id="embedCover" href="${escapeHtml(deepHref)}" target="_blank" rel="noopener" aria-label="Open on music.megabyte.space">
         <img src="${albumCover}" alt="${albumName} cover" />
       </a>
       <div class="embed__body">
+        <canvas class="embed__viz" id="embedViz" aria-hidden="true"></canvas>
         <p class="embed__eyebrow">${eyebrow}</p>
         <h2 class="embed__title" id="embedTitle">${titleCopy}</h2>
         <p class="embed__sub" id="embedSub">${escapeHtml(subline)}</p>
         <div class="embed__transport">
-          <button class="embed__btn" id="embedPrev" type="button" aria-label="Previous track" ${playlist.length < 2 ? 'hidden' : ''}>‹</button>
+          <button class="embed__btn embed__btn--nav" id="embedPrev" type="button" aria-label="Previous track" ${navAttr}>‹</button>
           <button class="embed__btn embed__btn--play" id="embedPlay" type="button" aria-label="Play / Pause"><span id="embedPlayIcon">▶</span></button>
-          <button class="embed__btn" id="embedNext" type="button" aria-label="Next track" ${playlist.length < 2 ? 'hidden' : ''}>›</button>
+          <button class="embed__btn embed__btn--nav" id="embedNext" type="button" aria-label="Next track" ${navAttr}>›</button>
           <div class="embed__bar" id="embedBar" role="slider" aria-label="Seek" tabindex="0"><div class="embed__fill" id="embedFill"></div></div>
           <span class="embed__time" id="embedTime">0:00 / 0:00</span>
         </div>
@@ -286,8 +291,12 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
     if (engine.audio.paused) void engine.play(playlist[idx]);
     else engine.audio.pause();
   });
-  document.getElementById('embedPrev')?.addEventListener('click', () => void load(idx - 1, true));
-  document.getElementById('embedNext')?.addEventListener('click', () => void load(idx + 1, true));
+  document.getElementById('embedPrev')?.addEventListener('click', () => {
+    void load(idx - 1, !engine.audio.paused);
+  });
+  document.getElementById('embedNext')?.addEventListener('click', () => {
+    void load(idx + 1, !engine.audio.paused);
+  });
 
   bar.addEventListener('click', e => {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -330,4 +339,121 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
 
   void load(0, false);
   refreshTitle();
+  setupVisualizer(engine, album.accent);
+}
+
+/** Web Audio FFT visualizer for the embed surface.
+ *
+ *  Renders log-scaled frequency bars across the bottom of the embed card,
+ *  tinted with the album accent. The rAF loop only runs while audio is
+ *  playing — pausing tears down the loop to spare battery on
+ *  background tabs. Canvas is HiDPI-aware (devicePixelRatio scale) and
+ *  resizes itself on viewport changes via ResizeObserver. */
+function setupVisualizer(engine: AudioEngine, accent: string) {
+  const canvas = document.getElementById('embedViz') as HTMLCanvasElement | null;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d', { alpha: true });
+  if (!ctx) return;
+
+  let rafId = 0;
+  let running = false;
+  const accentRgba = (alpha: number) => `${hexToRgba(accent, alpha)}`;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = canvas!.clientWidth || canvas!.parentElement?.clientWidth || 320;
+    const h = canvas!.clientHeight || 64;
+    canvas!.width = Math.round(w * dpr);
+    canvas!.height = Math.round(h * dpr);
+    ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  // ResizeObserver isn't in Safari < 13.1 — fall back to resize event.
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(resize).observe(canvas);
+  } else {
+    window.addEventListener('resize', resize);
+  }
+
+  function draw() {
+    if (!running) return;
+    engine.sample();
+    const w = canvas!.clientWidth || 320;
+    const h = canvas!.clientHeight || 64;
+    ctx!.clearRect(0, 0, w, h);
+
+    const data = engine.freqData;
+    if (data.length === 0) {
+      rafId = requestAnimationFrame(draw);
+      return;
+    }
+
+    // 48 log-spaced bars across the visible audible range.
+    const bars = 48;
+    const gap = 2;
+    const barW = Math.max(1, (w - gap * (bars - 1)) / bars);
+    // Use ~70% of the FFT bins (drop the top 30% — mostly silence above
+    // ~15kHz on most tracks). Log-distribute so bass bins don't dominate.
+    const usable = Math.floor(data.length * 0.72);
+
+    for (let i = 0; i < bars; i++) {
+      const t0 = i / bars;
+      const t1 = (i + 1) / bars;
+      // Log curve makes the lower bins occupy more horizontal space —
+      // matches how we hear pitch.
+      const lo = Math.floor(Math.pow(t0, 2.2) * usable);
+      const hi = Math.max(lo + 1, Math.floor(Math.pow(t1, 2.2) * usable));
+      let sum = 0;
+      for (let j = lo; j < hi; j++) sum += data[j];
+      const avg = sum / (hi - lo) / 255;
+      // Slight emphasis curve so quiet sections still show movement.
+      const v = Math.pow(avg, 0.85);
+      const barH = Math.max(1.5, v * h);
+      const x = i * (barW + gap);
+      const y = h - barH;
+      const grad = ctx!.createLinearGradient(0, y, 0, h);
+      grad.addColorStop(0, accentRgba(0.92));
+      grad.addColorStop(0.5, accentRgba(0.55));
+      grad.addColorStop(1, accentRgba(0.18));
+      ctx!.fillStyle = grad;
+      ctx!.fillRect(x, y, barW, barH);
+    }
+    rafId = requestAnimationFrame(draw);
+  }
+
+  function start() {
+    if (running) return;
+    running = true;
+    rafId = requestAnimationFrame(draw);
+  }
+  function stop() {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = 0;
+  }
+
+  engine.audio.addEventListener('play', start);
+  engine.audio.addEventListener('pause', stop);
+  engine.audio.addEventListener('ended', stop);
+  // Tab hidden → cancel rAF (browsers throttle to 1Hz anyway, but explicit
+  // stop frees the GPU compositor layer).
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop();
+    else if (!engine.audio.paused) start();
+  });
+}
+
+/** Convert #RRGGBB / #RGB hex to rgba() string with given alpha. Falls back
+ *  to plain accent string if parsing fails (e.g. an OKLCH or named color
+ *  somehow slipped through the data layer). */
+function hexToRgba(hex: string, alpha: number): string {
+  let h = hex.trim();
+  if (h.startsWith('#')) h = h.slice(1);
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  if (h.length !== 6) return `rgba(0, 229, 255, ${alpha})`;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  if ([r, g, b].some(n => Number.isNaN(n))) return `rgba(0, 229, 255, ${alpha})`;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }

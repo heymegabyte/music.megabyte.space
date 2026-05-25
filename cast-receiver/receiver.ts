@@ -3,6 +3,8 @@
 // Lifecycle:
 //   1. /cast-receiver/index.html loads cast_receiver_framework.js (gstatic).
 //   2. UA sniff (`CrKey/` marker) decides REAL vs STANDALONE preview.
+
+// Default Trusted Types policy installed by inline <head> script in cast-receiver/index.html.
 //      • REAL Chromecast → wire `CastReceiverContext.getPlayerManager()`,
 //        open the custom namespace `urn:x-cast:com.megabyte.music`, then
 //        `ctx.start()` with our tuned `PlaybackConfig`.

@@ -73,8 +73,6 @@ interface Settings {
   collapseLongMessages: boolean;
   themeFromAlbum: boolean;
   showTokenRate: boolean;
-  streakDays: number;
-  streakLastOn: string;
   autoSummarizeAt: number;
 }
 
@@ -194,20 +192,12 @@ export function mountAIChat(opts: MountOpts = {}) {
     <aside class="aichat__panel" data-aichat="panel" aria-hidden="true" tabindex="-1">
       <header class="aichat__head">
         <div class="aichat__title">
-          <span class="aichat__title-mark" aria-hidden="true"></span>
-          <strong>Ask bZ</strong>
           <button type="button" class="aichat__persona-pill" data-aichat="personaPill" aria-haspopup="listbox" aria-expanded="false" title="Switch voice">
             <span class="aichat__persona-pill-emoji" data-aichat="personaEmoji" aria-hidden="true">🎧</span>
             <span class="aichat__persona-pill-label" data-aichat="personaLabel">DJ</span>
             <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
           </button>
           <span class="aichat__status" data-aichat="status">Ready</span>
-          <span class="aichat__rms" data-aichat="rms" aria-hidden="true">
-            <span></span><span></span><span></span><span></span><span></span>
-          </span>
-          <span class="aichat__streak" data-aichat="streak" hidden aria-label="Daily streak">
-            <span data-aichat="streakNum">0</span>d
-          </span>
         </div>
         <div class="aichat__persona-menu" data-aichat="personaMenu" role="listbox" aria-label="Switch voice" hidden></div>
         <div class="aichat__head-actions">
@@ -262,8 +252,8 @@ export function mountAIChat(opts: MountOpts = {}) {
 
       <div class="aichat__body" data-aichat="body">
         <div class="aichat__welcome" data-aichat="welcome">
-          <h3>Ask bZ anything.</h3>
-          <p class="aichat__welcome-sub">Tracks, lyrics, gear, prayer, anything. Hard but holy.</p>
+          <h3>What's on your mind?</h3>
+          <p class="aichat__welcome-sub">Tracks, lyrics, gear, prayer — hard but holy.</p>
           <div class="aichat__welcome-rotating" data-aichat="welcomeRotating" aria-live="polite"></div>
           <div class="aichat__chips" data-aichat="chips">
             <button type="button" data-prompt="What's playing right now?">What's playing?</button>
@@ -479,6 +469,21 @@ export function mountAIChat(opts: MountOpts = {}) {
       </dialog>
 
       <div class="aichat__compose-stack" data-aichat="composeStack">
+        <!-- Inline newsletter capture — shows ONCE per session above the
+             composer after the assistant has sent ≥3 replies. Reuses the
+             site-wide .nl-inline widget (same submit + push flow) so
+             there's a single subscribe surface across the whole app. -->
+        <div class="aichat__newsletter" data-aichat="newsletter" hidden>
+          <span class="aichat__newsletter-copy">First listen on every drop —</span>
+          <form class="nl-inline nl-inline--compact" data-nl-source="ai-chat" novalidate>
+            <input type="email" class="nl-inline__input" name="email" placeholder="email" autocomplete="email" required aria-label="Email for bZ drops" inputmode="email" spellcheck="false" autocapitalize="off" />
+            <button type="submit" class="nl-inline__submit" aria-label="Subscribe">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </button>
+            <span class="nl-inline__status" data-nl-status hidden></span>
+          </form>
+          <button type="button" class="aichat__newsletter-close" data-aichat="newsletterClose" aria-label="Dismiss newsletter prompt">✕</button>
+        </div>
         <div class="aichat__urlhint" data-aichat="urlhint" hidden role="status"></div>
         <div class="aichat__continue" data-aichat="continueBanner" hidden role="status">
           <span>Reply hit the cap.</span>
@@ -486,14 +491,6 @@ export function mountAIChat(opts: MountOpts = {}) {
           <button type="button" class="aichat__icon" data-aichat="continueClose" aria-label="Dismiss">✕</button>
         </div>
         <div class="aichat__snipbar" data-aichat="snipbar" hidden role="toolbar" aria-label="Snippets"></div>
-        <div class="aichat__quickbar" data-aichat="quickbar" role="toolbar" aria-label="Quick commands">
-          <button type="button" data-quick="/lyric">🎤 Lyric</button>
-          <button type="button" data-quick="/mood ">🌙 Mood</button>
-          <button type="button" data-quick="/setlist 6">🎚️ Setlist</button>
-          <button type="button" data-quick="/critique">🧪 Critique</button>
-          <button type="button" data-quick="/why">⚡ Why this hits</button>
-          <button type="button" data-quick="/shortcommands">⌘ All commands</button>
-        </div>
 
         <form class="aichat__composer" data-aichat="composer" novalidate>
           <div class="aichat__mention" data-aichat="mention" hidden role="listbox" aria-label="Track mentions"></div>
@@ -578,9 +575,7 @@ export function mountAIChat(opts: MountOpts = {}) {
   const personaPillEmoji = $('personaEmoji');
   const personaPillLabel = $('personaLabel');
   const personaMenu = $('personaMenu');
-  const streakBadge = $('streak');
-  const streakNum = $('streakNum');
-  const quickbar = $('quickbar');
+  // quickbar removed — slash commands live in the composer (/help, /lyric, etc.).
   const snipbar = $('snipbar');
   const urlhint = $('urlhint');
   const continueBanner = $('continueBanner');
@@ -630,8 +625,6 @@ export function mountAIChat(opts: MountOpts = {}) {
       collapseLongMessages: true,
       themeFromAlbum: false,
       showTokenRate: true,
-      streakDays: 0,
-      streakLastOn: '',
       autoSummarizeAt: 22
     };
     try {
@@ -749,12 +742,6 @@ export function mountAIChat(opts: MountOpts = {}) {
     root.classList.toggle('is-collapse-long', s.collapseLongMessages);
     root.classList.toggle('is-hide-spectro-stream', s.hideSpectroDuringStream);
     root.classList.toggle('is-show-rate', s.showTokenRate);
-    if (s.streakDays > 1 && streakBadge) {
-      streakBadge.hidden = false;
-      streakNum.textContent = String(s.streakDays);
-    } else if (streakBadge) {
-      streakBadge.hidden = true;
-    }
   }
 
   function renderSessions(filter = '') {
@@ -829,7 +816,26 @@ export function mountAIChat(opts: MountOpts = {}) {
       root.setAttribute('data-density', eff);
     }
     renderPins();
+    maybeShowChatNewsletter(sess.messages.length);
     if (state.settings.autoScroll && !autoScrollLocked) requestAnimationFrame(() => scrollToBottom());
+  }
+
+  /** Show the inline newsletter strip above the composer once per visitor
+   *  after the assistant has sent ≥3 messages — peak engagement window. */
+  function maybeShowChatNewsletter(messageCount: number) {
+    const strip = root.querySelector<HTMLElement>('[data-aichat="newsletter"]');
+    if (!strip) return;
+    // Already-subscribed? — body[data-subscribed='1'] is the global signal
+    // refreshed by main.ts (setupInlineNewsletter / refreshNotifyToggle).
+    if (document.body.dataset.subscribed === '1') { strip.hidden = true; return; }
+    // Dismissed this session?
+    try {
+      if (sessionStorage.getItem('bz:aichat:nl-dismissed') === '1') { strip.hidden = true; return; }
+    } catch { /* private mode */ }
+    const assistantMsgs = messageCount; // close enough — user+assistant interleaved
+    if (assistantMsgs >= 4 && strip.hidden) {
+      strip.hidden = false;
+    }
   }
 
   function renderPins() {
@@ -895,7 +901,9 @@ export function mountAIChat(opts: MountOpts = {}) {
         ${m.role === 'assistant' ? `<button type="button" data-act="retry" data-id="${m.id}" aria-label="Regenerate" title="Regenerate">↺</button>` : ''}
         ${m.role === 'assistant' ? `<button type="button" data-act="critique" data-id="${m.id}" aria-label="Critique" title="Self-critique pass">🧪</button>` : ''}
         ${m.role === 'assistant' ? `<button type="button" data-act="rewrite" data-id="${m.id}" aria-label="Rewrite tighter" title="Rewrite tighter">✂︎</button>` : ''}
+        ${m.role === 'assistant' ? `<button type="button" data-act="eli10" data-id="${m.id}" aria-label="Explain like I'm 10" title="Explain like I'm 10">🐣</button>` : ''}
         ${m.role === 'assistant' ? `<button type="button" data-act="branch" data-id="${m.id}" aria-label="Branch" title="Branch conversation">⎇</button>` : ''}
+        ${m.role === 'assistant' ? `<button type="button" data-act="playlist" data-id="${m.id}" aria-label="Make a playlist from this chat" title="Make a playlist from this chat">▶︎▶︎</button>` : ''}
         <button type="button" data-act="pin" data-id="${m.id}" aria-pressed="${m.pinned ? 'true' : 'false'}" aria-label="Pin" title="Pin">${m.pinned ? '📌' : '📍'}</button>
         ${m.role === 'assistant' ? `<button type="button" data-act="like" data-id="${m.id}" aria-pressed="${m.liked === 1}" aria-label="Like" title="Like">${m.liked === 1 ? '♥' : '♡'}</button>` : ''}
       </div>
@@ -1202,7 +1210,6 @@ export function mountAIChat(opts: MountOpts = {}) {
     const pins = pinNotes.length ? `\n\nUser-pinned memory:\n- ${pinNotes.join('\n- ')}` : '';
     const fullSystem = `${systemBase}\n\nLive context: ${ctxLine}${summary}${pins}${WIDGET_HINT}`;
 
-    bumpStreak();
     if (continueBanner) continueBanner.hidden = true;
 
     abortCtrl = new AbortController();
@@ -1295,20 +1302,6 @@ export function mountAIChat(opts: MountOpts = {}) {
       saveState();
       renderSessions();
       if (state.settings.sfx) playChime();
-    }
-  }
-
-  function bumpStreak() {
-    const today = new Date().toISOString().slice(0, 10);
-    const last = state.settings.streakLastOn || '';
-    if (last === today) return;
-    const y = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    state.settings.streakDays = last === y ? (state.settings.streakDays || 0) + 1 : 1;
-    state.settings.streakLastOn = today;
-    saveState();
-    if (streakBadge && state.settings.streakDays > 1) {
-      streakBadge.hidden = false;
-      streakNum.textContent = String(state.settings.streakDays);
     }
   }
 
@@ -2111,7 +2104,7 @@ export function mountAIChat(opts: MountOpts = {}) {
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = '#00E5FF';
     ctx.font = 'bold 56px "Space Grotesk", system-ui';
-    ctx.fillText('Ask bZ', 64, 120);
+    ctx.fillText('bzmusic', 64, 120);
     ctx.fillStyle = '#fff';
     ctx.font = '600 36px "Space Grotesk", system-ui';
     wrapLine(ctx, sess.title, 64, 180, W - 128, 44);
@@ -2801,6 +2794,16 @@ export function mountAIChat(opts: MountOpts = {}) {
           );
         } else if (act === 'rewrite' && m.role === 'assistant') {
           send(`Rewrite your prior reply in a tighter style. Original:\n\n${m.content}`);
+        } else if (act === 'eli10' && m.role === 'assistant') {
+          // "Explain like I'm 10" — reframe to elementary-grade reading
+          // level. Single ask, no setup, no preamble.
+          send(`Explain your prior reply like I'm 10 years old. Short sentences. Plain words. No jargon. Original:\n\n${m.content}`);
+        } else if (act === 'playlist' && m.role === 'assistant') {
+          // Build a playlist suggestion from the whole conversation so far.
+          // Asks the model to pick 5 tracks from the catalog that fit the
+          // chat's mood, returns them as a track-card widget set.
+          const convo = sess.messages.slice(Math.max(0, idx - 6), idx + 1).map(x => `${x.role}: ${x.content.slice(0, 240)}`).join('\n');
+          send(`Based on this conversation:\n\n${convo}\n\nPick 5 bZ tracks (from the catalog you know) that match this mood. Return them as a "playlist" track-card widget set. One sentence on why this set fits.`);
         } else if (act === 'branch' && m.role === 'assistant') {
           const fork = makeSession();
           fork.title = sess.title + ' (branch)';
@@ -3028,6 +3031,116 @@ export function mountAIChat(opts: MountOpts = {}) {
       }
     });
 
+    // ── Page-wide drag-drop ────────────────────────────────────────────────
+    // ANYTHING dropped on the page (files from Finder, dragged images from
+    // other tabs, dragged URLs, dragged text selections) gets routed into
+    // the next chat message's attachment list. The chat panel auto-opens
+    // so the user sees the chip(s) land before composing their prompt.
+    const dropOverlay = document.createElement('div');
+    dropOverlay.className = 'aichat__page-drop';
+    dropOverlay.setAttribute('aria-hidden', 'true');
+    dropOverlay.innerHTML = `
+      <div class="aichat__page-drop-card">
+        <svg viewBox="0 0 24 24" width="40" height="40" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <strong>Drop to attach</strong>
+        <span>Files, images, links — routed to your next chat</span>
+      </div>
+    `;
+    document.body.appendChild(dropOverlay);
+
+    let dragCounter = 0;
+    const isInternalDrag = (e: DragEvent) => {
+      // Skip drags originating from form fields where users do text
+      // selection. Their drop targets should be the field, not the chat.
+      const t = e.target as Element | null;
+      // Document / window / text nodes don't have .closest(); only catch
+      // real Element targets so we don't crash on document-level events.
+      if (!t || typeof (t as Element).closest !== 'function') return false;
+      return !!t.closest('input, textarea, select, [contenteditable="true"]');
+    };
+    const hasPayload = (dt: DataTransfer | null) => {
+      if (!dt) return false;
+      if (dt.types && dt.types.length > 0) {
+        for (const ty of Array.from(dt.types)) {
+          if (ty === 'Files' || ty === 'text/uri-list' || ty === 'text/plain' ||
+              ty === 'text/html' || ty.startsWith('image/')) return true;
+        }
+      }
+      return false;
+    };
+
+    document.addEventListener('dragenter', e => {
+      if (isInternalDrag(e)) return;
+      if (!hasPayload(e.dataTransfer)) return;
+      dragCounter++;
+      if (dragCounter === 1) dropOverlay.classList.add('is-active');
+    });
+    document.addEventListener('dragover', e => {
+      if (isInternalDrag(e)) return;
+      if (!hasPayload(e.dataTransfer)) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+    });
+    document.addEventListener('dragleave', e => {
+      if (isInternalDrag(e)) return;
+      // dragleave fires when the cursor crosses any child boundary. Counting
+      // up/down avoids flicker as the overlay tracks the OUTERMOST enter/leave.
+      dragCounter = Math.max(0, dragCounter - 1);
+      if (dragCounter === 0) dropOverlay.classList.remove('is-active');
+      // Edge case: drag-leaving the document via the window edge — the
+      // related target is null. Force clear.
+      if (!(e as DragEvent).relatedTarget) {
+        dragCounter = 0;
+        dropOverlay.classList.remove('is-active');
+      }
+    });
+    document.addEventListener('drop', e => {
+      // Always reset overlay state even if we don't accept the drop.
+      dragCounter = 0;
+      dropOverlay.classList.remove('is-active');
+      if (isInternalDrag(e)) return;
+      const dt = e.dataTransfer;
+      if (!dt) return;
+      e.preventDefault();
+
+      // 1. Real File objects (desktop drag, images from other origins).
+      const files = Array.from(dt.files || []);
+      if (files.length) attachedFiles.push(...files);
+
+      // 2. URL drag (text/uri-list — browser tab drop, image drag from
+      //    web pages). Synthesize a tiny .url file so the model sees it
+      //    in the attachment list as a link reference.
+      const uri = dt.getData('text/uri-list') || dt.getData('text/x-moz-url');
+      if (uri && !files.length) {
+        const firstUrl = uri.split(/\r?\n/).find(line => line && !line.startsWith('#'));
+        if (firstUrl) {
+          const safe = firstUrl.replace(/[^a-z0-9.-]/gi, '_').slice(0, 40) || 'link';
+          attachedFiles.push(new File([firstUrl], `${safe}.url`, { type: 'text/uri-list' }));
+        }
+      }
+
+      // 3. Plain dragged text (selection drag). Synthesize a .txt File
+      //    rather than concatenating into the composer so the existing
+      //    [attached: ...] context list pattern stays consistent.
+      if (!files.length && !uri) {
+        const text = dt.getData('text/plain');
+        if (text && text.length > 0) {
+          const safe = text.slice(0, 24).replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '') || 'snippet';
+          attachedFiles.push(new File([text], `${safe}.txt`, { type: 'text/plain' }));
+        }
+      }
+
+      if (attachedFiles.length) {
+        renderAttachments();
+        setOpen(true);
+        try { input.focus({ preventScroll: true }); } catch { /* noop */ }
+      }
+    });
+
     welcome.querySelectorAll<HTMLButtonElement>('[data-prompt]').forEach(b => {
       b.addEventListener('click', () => {
         input.value = b.dataset.prompt!;
@@ -3200,16 +3313,17 @@ export function mountAIChat(opts: MountOpts = {}) {
       saveState();
     });
 
-    if (quickbar) {
-      quickbar.addEventListener('click', e => {
-        const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-quick]');
-        if (!btn) return;
-        const prompt = btn.dataset.quick || btn.textContent || '';
-        if (!prompt) return;
-        input.value = prompt;
-        updateInputUI();
-        input.focus();
-        send(prompt);
+    // quickbar removed entirely — no listener needed.
+    // Newsletter dismiss in chat — sessionStorage flag so it doesn't
+    // re-show this visit, but reappears next session if still not subscribed.
+    const nlStrip = root.querySelector<HTMLElement>('[data-aichat="newsletter"]');
+    if (nlStrip) {
+      nlStrip.addEventListener('click', e => {
+        const close = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-aichat="newsletterClose"]');
+        if (close) {
+          nlStrip.hidden = true;
+          try { sessionStorage.setItem('bz:aichat:nl-dismissed', '1'); } catch { /* private mode */ }
+        }
       });
     }
     if (continueBanner) {
@@ -3471,15 +3585,73 @@ export function mountAIChat(opts: MountOpts = {}) {
     rec.lang = navigator.language || 'en-US';
     rec.interimResults = true;
     rec.continuous = !!state.settings.continuousDictation;
-    rec.onresult = (e: SREvent) => {
-      let text = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) text += e.results[i][0].transcript;
-      input.value = text;
+
+    // ── Composer transcript bookkeeping ─────────────────────────────────
+    // Three slots:
+    //   `baseline` — whatever was in the composer when the user pressed
+    //     the mic. Preserved so dictation APPENDS instead of overwriting.
+    //   `finalText` — accumulated transcript from results marked isFinal.
+    //     These stick around even after subsequent onresult events fire.
+    //   `interim`  — tentative transcript while the user is still mid-word.
+    //     Refreshed on every onresult; not persisted.
+    // The composer always shows: baseline + finalText + interim.
+    // Without this, the previous handler reset to `text = ''` every event
+    // and only captured results from `e.resultIndex`, which silently
+    // dropped earlier dictation segments — most users typed "hello world"
+    // and saw only "world" land in the box.
+    const baseline = input.value;
+    const trailingSpace = baseline && !/\s$/.test(baseline) ? ' ' : '';
+    let finalText = '';
+    const writeComposer = (interim: string) => {
+      input.value = baseline + trailingSpace + finalText + interim;
       updateInputUI();
+      // Keep the caret pinned to the end so the textarea scrolls with the
+      // dictation flow rather than the user having to manually scroll down.
+      try {
+        input.selectionStart = input.value.length;
+        input.selectionEnd = input.value.length;
+        input.scrollTop = input.scrollHeight;
+      } catch { /* readonly / non-textarea — ignore */ }
     };
+
+    rec.onresult = (e: SREvent) => {
+      let interim = '';
+      // Iterate ALL results, not just the changed slice, then split into
+      // final-vs-interim. Finals get appended to finalText so they survive
+      // across events; interims get appended to the live composer view but
+      // discarded on the next event.
+      for (let i = 0; i < e.results.length; i++) {
+        const result = e.results[i];
+        const chunk = result[0]?.transcript ?? '';
+        if (result.isFinal) {
+          // Avoid double-appending finals across events. Track which result
+          // indices we've already committed via `finalResults` cursor.
+          if (i >= finalCursor) {
+            finalText += chunk;
+            finalCursor = i + 1;
+          }
+        } else {
+          interim += chunk;
+        }
+      }
+      writeComposer(interim);
+    };
+
+    // Cursor that tracks the LAST result index we've already committed to
+    // finalText. Prevents re-appending the same final segment when the
+    // browser re-emits the cumulative results array.
+    let finalCursor = 0;
+
     rec.onend = () => {
       voiceRec = null;
       root.classList.remove('is-listening');
+      // Strip any lingering trailing interim segment from the composer and
+      // commit the final transcript. updateInputUI() also re-enables the
+      // send button when text is present.
+      input.value = baseline + trailingSpace + finalText;
+      updateInputUI();
+      input.focus();
+      setStatus(finalText.trim() ? 'Mic stopped — review and send.' : 'Mic stopped — no speech captured.');
     };
     rec.onerror = (e: SpeechRecognitionErrorEvent) => {
       voiceRec = null;
@@ -3537,9 +3709,16 @@ interface SR extends EventTarget {
   onend: ((e: Event) => void) | null;
   onerror: ((e: SpeechRecognitionErrorEvent) => void) | null;
 }
+interface SRResult {
+  /** True once the recognition engine has committed this segment. False
+   * while the engine is still hearing the user mid-word (interim). */
+  isFinal: boolean;
+  length: number;
+  [i: number]: { transcript: string; confidence?: number };
+}
 interface SREvent extends Event {
   resultIndex: number;
-  results: { length: number; [index: number]: { [i: number]: { transcript: string } } };
+  results: { length: number; [index: number]: SRResult };
 }
 interface SpeechRecognitionErrorEvent extends Event {
   /** Per W3C Web Speech API spec — codes: 'no-speech' | 'aborted' |

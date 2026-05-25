@@ -16,6 +16,13 @@ interface Env {
   LISTMONK_API_TOKEN?: string;// API token (secret)
   LISTMONK_LIST_NAME?: string;// Display name for the list (default: "music.megabyte.space")
   LISTMONK_LIST_ID?: string;  // Optional pinned list id; if unset, worker auto-discovers/creates
+  // Listmonk transactional template IDs for Foundation flows. See
+  // worker/listmonk-templates/README.md for upload + secret-set steps.
+  LISTMONK_TPL_WELCOME?: string;
+  LISTMONK_TPL_FIRST_MONTH_D3?: string;
+  LISTMONK_TPL_FIRST_MONTH_D10?: string;
+  LISTMONK_TPL_FIRST_MONTH_D21?: string;
+  LISTMONK_TPL_WINBACK?: string;
   ANTHROPIC_API_KEY?: string; // For /api/ai/chat — Claude Haiku 4.5 streaming
   ANTHROPIC_MODEL?: string;   // Override default model (claude-haiku-4-5-20251001)
   CF_AI_GATEWAY_SLUG?: string;// Cloudflare AI Gateway slug for caching+logging
@@ -171,6 +178,136 @@ async function resolveListmonkListId(env: Env, kv: KVNamespace): Promise<number 
   return null;
 }
 
+/** Fire a Listmonk transactional email by template ID. The transactional
+ *  endpoint expects { subscriber_email, template_id, data?, content_type? }.
+ *  Failures swallowed at call site — never block subscribe success on a
+ *  template send. Returns the listmonk response status for diagnostics. */
+async function sendListmonkTransactional(
+  env: Env,
+  templateId: string | undefined,
+  email: string,
+  data: Record<string, unknown> = {}
+): Promise<{ ok: boolean; status: number; message?: string }> {
+  if (!listmonkConfigured(env) || !templateId) return { ok: false, status: 0, message: 'not_configured' };
+  const base = (env.LISTMONK_URL || '').replace(/\/+$/, '');
+  try {
+    const res = await fetch(`${base}/api/tx`, {
+      method: 'POST',
+      headers: listmonkAuthHeaders(env),
+      body: JSON.stringify({
+        subscriber_email: email,
+        template_id: Number(templateId),
+        data,
+        content_type: 'html'
+      })
+    });
+    if (res.ok) return { ok: true, status: res.status };
+    const txt = await res.text();
+    return { ok: false, status: res.status, message: txt.slice(0, 200) };
+  } catch (err) {
+    return { ok: false, status: 0, message: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Daily Foundation-flow cron: hit Listmonk subscribers list, identify
+ *  which subscribers fall in the day-3/day-10/day-21 first-month windows
+ *  + the 90-day winback window, and trigger the matching transactional
+ *  template. Idempotent — uses a KV-backed "fired:<template>:<email>"
+ *  flag to prevent double-sends across cron runs.
+ *
+ *  Triggered by the cron in wrangler.toml ('0 9 * * *' = 09:00 UTC daily)
+ *  or manually via /api/listmonk/foundation-cron?token=<PUSH_ADMIN_TOKEN>. */
+async function runFoundationFlowsCron(env: Env, kv: KVNamespace): Promise<{
+  ok: boolean;
+  scanned: number;
+  fired: Record<string, number>;
+  errors: string[];
+}> {
+  const fired: Record<string, number> = { day3: 0, day10: 0, day21: 0, winback: 0 };
+  const errors: string[] = [];
+  if (!listmonkConfigured(env)) {
+    return { ok: false, scanned: 0, fired, errors: ['listmonk_not_configured'] };
+  }
+  const base = (env.LISTMONK_URL || '').replace(/\/+$/, '');
+  const now = Date.now();
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  // Inclusive window of ±12h around the target day so daily cron always
+  // catches each subscriber exactly once per stage.
+  const inWindow = (createdAtMs: number, days: number) => {
+    const target = now - days * DAY_MS;
+    return Math.abs(createdAtMs - target) <= 12 * 60 * 60 * 1000;
+  };
+  let scanned = 0;
+  // Paginate up to 50 pages × 100 = 5000 subscribers. Beyond that, Listmonk
+  // Pro's segmentation is the right tool; this is a starter implementation.
+  for (let page = 1; page <= 50; page++) {
+    let data: { data?: { results?: Array<{ email: string; created_at: string; last_active_at?: string }>; total?: number } };
+    try {
+      const res = await fetch(`${base}/api/subscribers?per_page=100&page=${page}`, {
+        headers: listmonkAuthHeaders(env)
+      });
+      if (!res.ok) {
+        errors.push(`listmonk_subscribers ${res.status} page=${page}`);
+        break;
+      }
+      data = await res.json() as typeof data;
+    } catch (err) {
+      errors.push(`listmonk_fetch ${err instanceof Error ? err.message : String(err)}`);
+      break;
+    }
+    const results = data?.data?.results || [];
+    if (!results.length) break;
+    for (const sub of results) {
+      scanned++;
+      const created = Date.parse(sub.created_at || '');
+      const lastActive = sub.last_active_at ? Date.parse(sub.last_active_at) : created;
+      if (!Number.isFinite(created)) continue;
+      // First-month flow stages
+      const stages: Array<{ days: number; key: keyof typeof fired; tpl: string | undefined }> = [
+        { days: 3, key: 'day3', tpl: env.LISTMONK_TPL_FIRST_MONTH_D3 },
+        { days: 10, key: 'day10', tpl: env.LISTMONK_TPL_FIRST_MONTH_D10 },
+        { days: 21, key: 'day21', tpl: env.LISTMONK_TPL_FIRST_MONTH_D21 }
+      ];
+      for (const stage of stages) {
+        if (!stage.tpl) continue;
+        if (!inWindow(created, stage.days)) continue;
+        const dedupeKey = `fired:${stage.key}:${sub.email}`;
+        if (await kv.get(dedupeKey)) continue;
+        const r = await sendListmonkTransactional(env, stage.tpl, sub.email);
+        if (r.ok) {
+          fired[stage.key]++;
+          // 60-day dedupe TTL — well past the stage window so we never re-fire.
+          await kv.put(dedupeKey, String(now), { expirationTtl: 60 * 24 * 60 * 60 });
+        } else if (r.status) {
+          errors.push(`${stage.key}:${sub.email} status=${r.status} ${r.message || ''}`);
+        }
+      }
+      // Winback: ≥90 days since last open AND created ≥90 days ago.
+      const ninetyDaysAgo = now - 90 * DAY_MS;
+      if (
+        env.LISTMONK_TPL_WINBACK &&
+        Number.isFinite(lastActive) &&
+        lastActive < ninetyDaysAgo &&
+        created < ninetyDaysAgo
+      ) {
+        const dedupeKey = `fired:winback:${sub.email}`;
+        if (!(await kv.get(dedupeKey))) {
+          const r = await sendListmonkTransactional(env, env.LISTMONK_TPL_WINBACK, sub.email);
+          if (r.ok) {
+            fired.winback++;
+            // 180-day TTL so we don't winback the same person again within 6 months.
+            await kv.put(dedupeKey, String(now), { expirationTtl: 180 * 24 * 60 * 60 });
+          } else if (r.status) {
+            errors.push(`winback:${sub.email} status=${r.status} ${r.message || ''}`);
+          }
+        }
+      }
+    }
+    if (results.length < 100) break;
+  }
+  return { ok: true, scanned, fired, errors };
+}
+
 async function subscribeToListmonk(
   env: Env,
   kv: KVNamespace,
@@ -246,10 +383,15 @@ const SECURITY_HEADERS: Record<string, string> = {
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.gstatic.com https://*.posthog.com https://www.googletagmanager.com",
     "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.gstatic.com https://*.posthog.com https://www.googletagmanager.com",
-    "style-src 'self' 'unsafe-inline'",
+    // Google Fonts stylesheet must be allowed for the Sora + Space Grotesk
+    // + JetBrains Mono + display fonts loaded from index.html.
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    // QR codes load from api.qrserver.com — already covered by `https:` here.
     "img-src 'self' data: blob: https:",
     "media-src 'self' blob: data: https:",
-    "font-src 'self' data:",
+    // Google Fonts woff2 files are served from fonts.gstatic.com.
+    "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self' https://*.cloudflareinsights.com https://*.posthog.com https://www.google-analytics.com https://region1.google-analytics.com",
     "worker-src 'self' blob:",
     "frame-src 'self' https://*.gstatic.com https://open.spotify.com https://challenges.cloudflare.com",
@@ -257,13 +399,15 @@ const SECURITY_HEADERS: Record<string, string> = {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'self'",
-    // Trusted Types — report-only audit phase. Logs DOM-XSS sinks
-    // (innerHTML, createContextualFragment, etc.) without breaking them so
-    // we can audit before enforcing. Once the report log is clean, drop
-    // `-Report-Only` and add a `trusted-types default` policy that wraps
-    // every dangerous sink in a sanitizer. Audit window: 14 days.
+    // Trusted Types — report-only audit phase. `default` is the app's
+    // passthrough policy installed at boot (see src/trusted-types.ts).
+    // `goog#html` is Google Cast SDK's internal policy — required when
+    // the user starts a cast session. `allow-duplicates` covers per-tab
+    // re-installs during HMR + iframe boots. Browser-extension policies
+    // (LanguageTool_Executor_Policy, etc.) are NOT listed here — they
+    // run in extension origins, not ours.
     "require-trusted-types-for 'script'",
-    "trusted-types 'allow-duplicates' default",
+    "trusted-types 'allow-duplicates' default goog#html",
     "report-uri /api/csp-report"
   ].join('; ')
 };
@@ -740,6 +884,20 @@ export default {
         }
         const source = (body.source || 'site').toString().slice(0, 64);
         const listmonk = await subscribeToListmonk(env, env.COUNTERS, email, source);
+        // Foundation flow #1: auto-fire welcome email on FRESH subscribes only
+        // (status='subscribed', not 'already'). Async — never block the
+        // /api/subscribe response on a transactional send. Idempotency via
+        // KV flag in case Listmonk retries the request.
+        if (listmonk.ok && listmonk.status === 'subscribed' && env.LISTMONK_TPL_WELCOME) {
+          ctx.waitUntil((async () => {
+            const dedupeKey = `fired:welcome:${email}`;
+            if (await env.COUNTERS.get(dedupeKey)) return;
+            const r = await sendListmonkTransactional(env, env.LISTMONK_TPL_WELCOME, email, { source });
+            if (r.ok) {
+              await env.COUNTERS.put(dedupeKey, String(Date.now()), { expirationTtl: 365 * 24 * 60 * 60 });
+            }
+          })());
+        }
         let pushResult: 'subscribed' | 'invalid' | 'skipped' = 'skipped';
         const sub = body.pushSubscription;
         if (sub && sub.endpoint && sub.keys?.p256dh && sub.keys?.auth && /^https:\/\//.test(sub.endpoint)) {
@@ -794,6 +952,19 @@ export default {
         const id = await sha256Hex(body.endpoint);
         await env.COUNTERS.delete(`push:${id}`);
         return jsonResponse({ ok: true });
+      }
+
+      // Manual trigger for the Foundation flow cron — useful for testing
+      // OR for backfilling subscribers between cron runs. Auth-gated by
+      // PUSH_ADMIN_TOKEN (reusing the same admin secret).
+      if (url.pathname === '/api/listmonk/foundation-cron') {
+        const auth = request.headers.get('Authorization') || '';
+        const queryToken = url.searchParams.get('token') || '';
+        if (!env.PUSH_ADMIN_TOKEN || (auth !== `Bearer ${env.PUSH_ADMIN_TOKEN}` && queryToken !== env.PUSH_ADMIN_TOKEN)) {
+          return jsonResponse({ error: 'unauthorized' }, 401);
+        }
+        const result = await runFoundationFlowsCron(env, env.COUNTERS);
+        return jsonResponse(result, result.ok ? 200 : 503);
       }
 
       if (url.pathname === '/api/push/send' && request.method === 'POST') {
@@ -1113,5 +1284,25 @@ export default {
       statusText: response.statusText,
       headers
     });
+  },
+
+  // Scheduled handler — fires on the cron(s) declared in wrangler.toml
+  // [triggers]. Currently: '0 9 * * *' (09:00 UTC daily) for the
+  // Foundation flow orchestrator (first-month day-3/10/21 + 90-day winback).
+  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil((async () => {
+      try {
+        const result = await runFoundationFlowsCron(env, env.COUNTERS);
+        // Single structured log line — readable in `wrangler tail` + queryable
+        // in Workers Tracing once OTel export is wired.
+        console.log(JSON.stringify({
+          source: 'cron.foundation_flows',
+          cron: controller.cron,
+          ...result
+        }));
+      } catch (err) {
+        console.error('cron.foundation_flows failed', err instanceof Error ? err.message : err);
+      }
+    })());
   }
 } satisfies ExportedHandler<Env>;

@@ -49,3 +49,10 @@ id = "2a9973599d5c453c984cdb69758f9bde"
 
 [observability]
 enabled = true
+
+# Daily 09:00 UTC trigger for the Listmonk Foundation flows orchestrator
+# (worker/index.ts → runFoundationFlowsCron). Scans subscribers + fires
+# first-month day-3/10/21 + 90-day winback transactional emails. Manual
+# backfill available at GET /api/listmonk/foundation-cron?token=<admin>.
+[triggers]
+crons = ["0 9 * * *"]

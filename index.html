@@ -2,6 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <script>
+      // Trusted Types default passthrough policy — MUST be the first script
+      // in <head> so Cloudflare's bot-management challenge inject (which
+      // assigns script.innerHTML / script.src before any module loads) flows
+      // through this default policy instead of logging TT violations. Every
+      // HTML/script source in this app is built from internal data, never
+      // from user input, so passthrough is correct. See src/trusted-types.ts.
+      try { window.trustedTypes && window.trustedTypes.createPolicy('default', { createHTML: function(s){return s;}, createScript: function(s){return s;}, createScriptURL: function(s){return s;} }); } catch (e) {}
+    </script>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
     <title>Panda Desiiignare — bZ presents the cyan flag album</title>
@@ -9,16 +18,18 @@
     <link rel="canonical" href="https://music.megabyte.space/" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
     <meta name="theme-color" content="#060610" />
-    <meta name="application-name" content="Panda Desiiignare" />
-    <meta name="apple-mobile-web-app-title" content="Panda" />
+    <meta name="application-name" content="bzmusic" />
+    <meta name="apple-mobile-web-app-title" content="bzmusic" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/art/bzmusic-icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/art/bzmusic-icon-16.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/art/bzmusic-icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/art/bzmusic-icon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/art/bzmusic-apple-touch.png" />
 
     <meta property="og:type" content="music.album" />
     <meta property="og:title" content="Panda Desiiignare — bZ" />
@@ -114,7 +125,7 @@
         "name": "bZ",
         "alternateName": ["Brian Zalewski", "Megabyte"],
         "url": "https://music.megabyte.space/",
-        "logo": "https://music.megabyte.space/art/cover-panda-desiiignare.png",
+        "logo": "https://music.megabyte.space/art/bzmusic-icon-512.png",
         "image": "https://music.megabyte.space/art/cover-panda-desiiignare.png",
         "description": "Hustle-gospel artist. Christian-gangster ethic. Built with Suno + handwritten lyric direction.",
         "genre": ["Hustle gospel", "Christian rap", "Electronic gospel"],

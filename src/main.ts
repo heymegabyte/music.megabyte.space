@@ -1,9 +1,15 @@
 import './style.css';
+// Trusted Types default policy is installed by the inline <script> at the
+// top of index.html (BEFORE Vite's main bundle loads + before CF's
+// bot-management injects its iframe). Duplicating the createPolicy('default')
+// call here logs a `'allow-duplicates'` CSP warning even though our CSP
+// permits it — Chrome report-only mode is noisy. Keep this entry point lean.
 import { AudioEngine } from './audio';
 import type { ReverbPreset } from './audio';
 import { Visualizer } from './visualizer';
 import type { VizMode } from './visualizer';
 import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID, SPOTIFY_ARTIST_ID } from './data';
+import { SUNO_META } from './suno-meta';
 import { TRACK_TAGS, getTrackTags } from './tags';
 import type { Track, Album } from './types';
 import { cast } from './cast';
@@ -176,62 +182,9 @@ function recordPlayStart(trackId: string) {
   stat.lastPlayAt = Date.now();
   lastPlayedAt = { id: trackId, startedAt: Date.now(), lastTime: 0, counted: false };
   persistListenStats();
-  // Gentle newsletter prompt — after the user's 3rd distinct track play
-  // and only ONCE per visitor (localStorage gate). Drives email signups
-  // without nagging. Skips if they already dismissed/subscribed.
-  maybeOfferNewsletter();
-}
-
-function maybeOfferNewsletter(): void {
-  try {
-    if (localStorage.getItem('bz:newsletter:seen')) return;
-    const distinctPlays = listenStats.size;
-    if (distinctPlays < 3) return;
-    localStorage.setItem('bz:newsletter:seen', String(Date.now()));
-    const root = document.body;
-    if (!root) return;
-    const el = document.createElement('div');
-    el.className = 'bz-newsletter-nudge';
-    el.setAttribute('role', 'status');
-    el.setAttribute('aria-live', 'polite');
-    el.innerHTML = `
-      <div class="bz-newsletter-nudge__inner">
-        <div class="bz-newsletter-nudge__copy">
-          <strong>Drops only — never spam.</strong>
-          <span>First listen on every new bZ release. One email per drop.</span>
-        </div>
-        <form class="bz-newsletter-nudge__form" novalidate>
-          <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required aria-label="Email" />
-          <button type="submit">Get drops</button>
-          <button type="button" class="bz-newsletter-nudge__close" aria-label="Dismiss">✕</button>
-        </form>
-      </div>
-    `;
-    root.appendChild(el);
-    requestAnimationFrame(() => el.classList.add('is-open'));
-    const dismiss = () => {
-      el.classList.remove('is-open');
-      setTimeout(() => el.remove(), 220);
-    };
-    el.querySelector('.bz-newsletter-nudge__close')?.addEventListener('click', dismiss);
-    el.querySelector('form')?.addEventListener('submit', e => {
-      e.preventDefault();
-      const email = (el.querySelector('input[name="email"]') as HTMLInputElement | null)?.value?.trim();
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return;
-      void fetch('/api/subscribe', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email })
-      }).then(r => {
-        if (r.ok) {
-          el.innerHTML = '<div class="bz-newsletter-nudge__done">Locked in. First listen guaranteed.</div>';
-          setTimeout(dismiss, 2200);
-        }
-      }).catch(() => {/* swallow — user can retry from the in-app modal */});
-    });
-    // Auto-dismiss after 25s if untouched.
-    setTimeout(() => { if (el.isConnected) dismiss(); }, 25000);
-  } catch { /* localStorage disabled / DOM not ready — skip silently */ }
+  // Toast-style newsletter nudge removed. Subscribe UI now lives inline
+  // at every album footer + in the more-menu via `.nl-inline` widgets,
+  // so no popup is needed to capture the signup intent.
 }
 
 function recordListenProgress(currentTime: number) {
@@ -550,6 +503,33 @@ function fmtClock(s: number): string {
 }
 
 function trackPath(track: Track) { return `/${track.album}/${track.id}`; }
+
+/**
+ * Inline newsletter widget — drop-in replacement for the legacy
+ * #notifyDialog modal. Renders a single horizontal row: email input +
+ * submit arrow + push-bell toggle. Submission posts to /api/subscribe
+ * (handled by the global delegated submit handler in setupInlineNewsletter).
+ * Push toggle uses the existing pushSupported/subscribePush flow inline —
+ * no modal, no separate dialog, no flow break.
+ *
+ * `source` is a string slug ('album-desiiignare', 'more-menu', 'footer')
+ * recorded with each subscribe so we can A/B which placements convert
+ * via the /api/stats endpoint.
+ */
+function renderInlineNewsletter(source: string): string {
+  const safeSource = source.replace(/[^a-z0-9-]/gi, '').slice(0, 32);
+  return `
+    <form class="nl-inline" data-nl-source="${safeSource}" novalidate>
+      <input type="email" class="nl-inline__input" name="email" placeholder="email — first listen, every drop" autocomplete="email" required aria-label="Email for bZ drops" inputmode="email" spellcheck="false" autocapitalize="off" />
+      <button type="submit" class="nl-inline__submit" aria-label="Subscribe">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+      <button type="button" class="nl-inline__push" aria-label="Also enable push notifications" aria-pressed="false" title="Also push to my lock screen">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <span class="nl-inline__status" data-nl-status hidden></span>
+    </form>`;
+}
 function albumPath(albumId: string) { return `/${albumId}`; }
 
 type RouteMatch =
@@ -754,6 +734,128 @@ function embedSnippet(target: ShareTarget, size: EmbedSize): string {
   return `<iframe src="${src}" ${widthAttr} height="${h}" frameborder="0" allow="autoplay; clipboard-write; encrypted-media" loading="lazy" title="bZ — ${target.title}"${styleExtra}></iframe>`;
 }
 
+/** Lazy QR rendering. Avoids a bundle-bloat QR-encoder dep by drawing
+ *  the goqr.me PNG (160×160) onto the canvas via Image + drawImage —
+ *  zero added JS payload, zero round-trip until the user clicks the
+ *  QR chip. Falls back to a copy-link affordance if the fetch fails. */
+async function drawQrCanvas(canvas: HTMLCanvasElement, url: string): Promise<void> {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(url)}&color=060610&bgcolor=ffffff&margin=8`;
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  await new Promise<void>((resolve) => {
+    img.onload = () => {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve();
+    };
+    img.onerror = () => {
+      // Network blocked — paint a "scan failed" placeholder.
+      ctx.fillStyle = '#0a0a18';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#FF7AB8';
+      ctx.font = '12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('qr unavailable', canvas.width / 2, canvas.height / 2);
+      resolve();
+    };
+    img.src = qrUrl;
+  });
+}
+
+/** Generate a 1080×1080 quote-card PNG with cover + title + album +
+ *  accent halo + bZ branding, trigger browser download. Pure Canvas2D
+ *  — no external deps, no network round-trip beyond loading the cover
+ *  image. Designed for Instagram/Stories sharing. */
+async function downloadQuoteCardImage(t: ShareTarget): Promise<void> {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1080;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  // Dark background gradient — matches site canvas.
+  const bg = ctx.createRadialGradient(540, 540, 0, 540, 540, 760);
+  bg.addColorStop(0, '#0d0d22');
+  bg.addColorStop(1, '#060610');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 1080, 1080);
+  // Resolve album-accent from current site context (CSS var).
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00FFFF';
+  // Load cover image
+  await new Promise<void>((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      // 720×720 cover, top-aligned, accent halo behind it.
+      ctx.save();
+      // Halo
+      const halo = ctx.createRadialGradient(540, 380, 100, 540, 380, 460);
+      halo.addColorStop(0, accent + '66');
+      halo.addColorStop(1, accent + '00');
+      ctx.fillStyle = halo;
+      ctx.fillRect(0, 0, 1080, 1080);
+      // Cover (rounded rect via path)
+      const x = 180, y = 80, size = 720, r = 24;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + size, y, x + size, y + size, r);
+      ctx.arcTo(x + size, y + size, x, y + size, r);
+      ctx.arcTo(x, y + size, x, y, r);
+      ctx.arcTo(x, y, x + size, y, r);
+      ctx.closePath();
+      ctx.save();
+      ctx.clip();
+      ctx.drawImage(img, x, y, size, size);
+      ctx.restore();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = accent + 'AA';
+      ctx.stroke();
+      ctx.restore();
+      resolve();
+    };
+    img.onerror = () => resolve();
+    img.src = t.cover.startsWith('http') ? t.cover : `${SITE_ORIGIN}${t.cover}`;
+  });
+  // Title + subline + branding
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 64px "Sora", system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  // Auto-shrink title to fit 920px max width
+  let titleSize = 64;
+  while (ctx.measureText(t.title).width > 920 && titleSize > 36) {
+    titleSize -= 4;
+    ctx.font = `800 ${titleSize}px "Sora", system-ui, sans-serif`;
+  }
+  ctx.fillText(t.title, 540, 880);
+  // Subline (album · vibe)
+  ctx.fillStyle = accent;
+  ctx.font = '500 22px "JetBrains Mono", monospace';
+  ctx.fillText(t.sub.toUpperCase().slice(0, 60), 540, 925);
+  // Branding line
+  ctx.fillStyle = 'rgba(244,244,255,0.6)';
+  ctx.font = '600 18px "JetBrains Mono", monospace';
+  ctx.fillText('▶  MUSIC.MEGABYTE.SPACE', 540, 985);
+  // Trigger download
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bz-${t.kind}-${t.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, 'image/png');
+}
+
+/** Lazy QR rendering. Avoids a bundle-bloat QR-encoder dep by drawing
+ *  the goqr.me PNG (160×160) onto the canvas via Image + drawImage —
+ *  zero added JS payload, zero round-trip until the user clicks the
+ *  QR chip. Falls back to a copy-link affordance if the fetch fails. */
 function refreshShareDialog() {
   if (!shareCurrent) return;
   const t = shareCurrent;
@@ -767,21 +869,74 @@ function refreshShareDialog() {
   if (eyebrow) eyebrow.textContent = t.kind === 'track' ? 'share song' : 'share album';
   const link = $('#shareLink') as HTMLInputElement | null;
   if (link) link.value = t.shareUrl;
-  const tweet = $('#shareTweet') as HTMLAnchorElement | null;
-  if (tweet) {
-    const text = `${t.title} — bZ`;
-    tweet.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(t.shareUrl)}`;
-  }
-  const mail = $('#shareEmail') as HTMLAnchorElement | null;
-  if (mail) {
-    mail.href = `mailto:?subject=${encodeURIComponent(`bZ — ${t.title}`)}&body=${encodeURIComponent(`${t.title} — listen here:\n${t.shareUrl}`)}`;
-  }
+
+  // Pre-compose share text — used across every social network so the
+  // post copy stays consistent. Per-network referral tracking via
+  // `?ref=share-<network>` so we can see in /api/stats which platforms
+  // actually drive traffic vs which just collect impressions.
+  const baseUrl = t.shareUrl;
+  const refUrl = (network: string) => {
+    const sep = baseUrl.includes('?') ? '&' : '?';
+    return `${baseUrl}${sep}ref=share-${network}`;
+  };
+  const text = `${t.title} — bZ`;
+  const longTextFor = (network: string) => `${t.title} — bZ. Listen: ${refUrl(network)}`;
+  const coverUrl = t.cover.startsWith('http') ? t.cover : `${SITE_ORIGIN}${t.cover}`;
+  const textEnc = encodeURIComponent(text);
+
+  // Wire each network's share-intent URL with per-network referral tag.
+  const setHref = (id: string, href: string) => {
+    const el = $('#' + id) as HTMLAnchorElement | null;
+    if (el) el.href = href;
+  };
+  setHref('shareXTwitter', `https://twitter.com/intent/tweet?text=${textEnc}&url=${encodeURIComponent(refUrl('x'))}`);
+  setHref('shareThreads', `https://www.threads.net/intent/post?text=${encodeURIComponent(longTextFor('threads'))}`);
+  setHref('shareBluesky', `https://bsky.app/intent/compose?text=${encodeURIComponent(longTextFor('bluesky'))}`);
+  // Mastodon "share via toot" routes to the user's home instance via toot.kytta.dev
+  // (canonical share-router that prompts for the user's instance, then forwards).
+  setHref('shareMastodon', `https://toot.kytta.dev/?text=${encodeURIComponent(longTextFor('mastodon'))}`);
+  setHref('shareFacebook', `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(refUrl('facebook'))}`);
+  setHref('shareLinkedIn', `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(refUrl('linkedin'))}`);
+  setHref('shareReddit', `https://www.reddit.com/submit?url=${encodeURIComponent(refUrl('reddit'))}&title=${textEnc}`);
+  setHref('shareHN', `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(refUrl('hn'))}&t=${textEnc}`);
+  setHref('shareTelegram', `https://t.me/share/url?url=${encodeURIComponent(refUrl('telegram'))}&text=${textEnc}`);
+  setHref('shareWhatsApp', `https://wa.me/?text=${encodeURIComponent(longTextFor('whatsapp'))}`);
+  setHref('shareSignal', `https://signal.me/#${encodeURIComponent(refUrl('signal'))}`);
+  setHref('shareSMS', `sms:?&body=${encodeURIComponent(longTextFor('sms'))}`);
+  setHref('shareEmail', `mailto:?subject=${encodeURIComponent(`bZ — ${t.title}`)}&body=${encodeURIComponent(`${t.title} — listen here:\n${refUrl('email')}`)}`);
+  // 3 new networks (best recs): Pinterest (highly visual, music-friendly),
+  // Tumblr (cult-followings + reblogs), Pocket (read-later that converts).
+  setHref('sharePinterest', `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(refUrl('pinterest'))}&media=${encodeURIComponent(coverUrl)}&description=${textEnc}`);
+  setHref('shareTumblr', `https://www.tumblr.com/widgets/share/tool?canonicalUrl=${encodeURIComponent(refUrl('tumblr'))}&title=${textEnc}&caption=${encodeURIComponent(longTextFor('tumblr'))}`);
+  setHref('sharePocket', `https://getpocket.com/edit?url=${encodeURIComponent(refUrl('pocket'))}&title=${textEnc}`);
+
+  // Embed iframe code + inline live preview
   const code = $('#shareEmbedCode') as HTMLTextAreaElement | null;
   if (code) code.value = embedSnippet(t, shareEmbedSize);
-  const preview = $('#shareEmbedPreview') as HTMLAnchorElement | null;
-  if (preview) preview.href = `${SITE_ORIGIN}${t.embedPath}`;
+  const preview = $('#sharePreview') as HTMLIFrameElement | null;
+  if (preview) {
+    const newSrc = `${SITE_ORIGIN}${t.embedPath}`;
+    if (preview.src !== newSrc) preview.src = newSrc;
+  }
+  const previewFrame = $('#sharePreviewFrame') as HTMLElement | null;
+  const previewHint = $('#sharePreviewHint');
+  if (previewFrame && previewHint) {
+    const sizes: Record<string, { w: string; h: string; label: string }> = {
+      small:  { w: '320px', h: '180px', label: '320 × 180' },
+      medium: { w: '480px', h: '220px', label: '480 × 220' },
+      wide:   { w: '100%',  h: '220px', label: '100% × 220' }
+    };
+    const s = sizes[shareEmbedSize] || sizes.small;
+    previewFrame.style.setProperty('--share-preview-w', s.w);
+    previewFrame.style.setProperty('--share-preview-h', s.h);
+    previewHint.textContent = s.label;
+  }
   const native = $('#shareNative') as HTMLButtonElement | null;
   if (native) native.hidden = !nativeShareSupported();
+  // Reset QR panel when target changes — user has to opt-in by clicking
+  // the QR chip each session (lazy canvas paint).
+  const qrBox = $('#shareQRBox');
+  if (qrBox) qrBox.hidden = true;
 }
 
 function openShare(kind: 'track' | 'album', id: string) {
@@ -834,9 +989,10 @@ function setupShell(root: HTMLElement) {
           <span>Search</span>
           <kbd>⌘K</kbd>
         </button>
-        <button id="btnLyricsOverlay" class="topbar__lyrics" type="button" aria-label="Toggle live lyrics overlay" aria-pressed="false" title="Live lyrics overlay (Shift+L)">
+        <button id="btnLyricsOverlay" class="topbar__lyrics" type="button" aria-label="Toggle live lyrics overlay (⇧L)" aria-pressed="false" title="Live lyrics overlay (Shift+L)">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
           <span>Lyrics</span>
+          <kbd>⇧L</kbd>
         </button>
         <a id="lnkAppeal" href="/ashton/">appeal</a>
         <a href="https://mission.megabyte.space" target="_blank" rel="noopener noreferrer">mission</a>
@@ -922,6 +1078,7 @@ function setupShell(root: HTMLElement) {
           <span class="transport__np-album" id="transportNpAlbum">bZ</span>
           <span class="transport__np-title" id="transportNpTitle">Press play</span>
           <span class="transport__np-sub" id="transportNpSub">bZ</span>
+          <span class="transport__np-suno" id="transportNpSuno" aria-hidden="true"></span>
         </div>
       </div>
       <div class="transport__controls">
@@ -966,9 +1123,10 @@ function setupShell(root: HTMLElement) {
       </div>
       <div class="transport__actions">
         <span class="transport__cast-wrap" style="position:relative;display:inline-flex;">
-          <button id="btnCast" class="link-btn link-btn--icon transport__cast" type="button" aria-label="Cast to device" title="Cast to TV / speaker (Chromecast)">
-            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16v-2a8 8 0 0 1 8 8H8"/><path d="M2 12V9a11 11 0 0 1 11 11h-3"/><path d="M2 8V5a14 14 0 0 1 14 14h-3"/><line x1="2" y1="20" x2="2" y2="20"/><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
-            <span id="btnCastLabel" hidden></span>
+          <button id="btnCast" class="link-btn transport__cast" type="button" aria-label="Cast to device" title="Cast to TV / speaker (Chromecast)">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M2 14v3a3 3 0 0 0 3 3"/><path d="M2 10v3a7 7 0 0 1 7 7"/><path d="M2 7v3a10 10 0 0 1 10 10"/></svg>
+            <span class="transport__cast-text">Cast</span>
+            <span id="btnCastLabel" class="transport__cast-device" hidden></span>
           </button>
           <google-cast-launcher id="castLauncher" aria-hidden="true" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;cursor:pointer;"></google-cast-launcher>
         </span>
@@ -986,25 +1144,9 @@ function setupShell(root: HTMLElement) {
       </div>
     </footer>
 
-    <dialog class="notify" id="notifyDialog" aria-labelledby="notifyTitle">
-      <form class="notify__card" id="notifyForm" method="dialog" novalidate>
-        <button class="notify__close" type="button" id="notifyCloseBtn" aria-label="Close">✕</button>
-        <header class="notify__head">
-          <p class="notify__eyebrow">bZ · drops</p>
-          <h3 class="notify__title" id="notifyTitle">First listen, every drop.</h3>
-          <p class="notify__sub">No ads. No spam. One email when a song lands.</p>
-        </header>
-        <label class="notify__label" for="notifyEmail">Email</label>
-        <input class="notify__input" id="notifyEmail" name="email" type="email" autocomplete="email" required placeholder="you@domain.com" inputmode="email" spellcheck="false" autocapitalize="off" />
-        <p class="notify__error" id="notifyError" role="alert" hidden></p>
-        <label class="notify__check" id="notifyPushRow" hidden>
-          <input class="notify__checkbox" id="notifyPushOpt" type="checkbox" />
-          <span>Also push to my lock screen <em class="notify__hint" id="notifyPushHint"></em></span>
-        </label>
-        <button class="notify__submit" id="notifySubmit" type="submit">Subscribe</button>
-        <p class="notify__legal">Unsubscribe anytime. Stored on listmonk.megabyte.space.</p>
-      </form>
-    </dialog>
+    <!-- Newsletter modal removed in favor of inline .nl-inline widgets
+         placed directly where the CTA lives (album footers, more-menu).
+         See renderInlineNewsletter() in this file. -->
 
     <dialog class="appeal" id="appeal" aria-labelledby="appealTitle">
       <button class="appeal__close" id="appealClose" type="button" aria-label="Close appeal — return to album">✕</button>
@@ -1015,8 +1157,8 @@ function setupShell(root: HTMLElement) {
     <dialog class="share" id="share" aria-labelledby="shareTitle">
       <div class="share__card">
         <header class="share__head">
-          <img class="share__cover" id="shareCover" src="" alt="" width="64" height="64" />
-          <div>
+          <img class="share__cover" id="shareCover" src="" alt="" width="72" height="72" />
+          <div class="share__head-text">
             <p class="share__eyebrow" id="shareEyebrow">share</p>
             <h3 class="share__title" id="shareTitle">—</h3>
             <p class="share__sub" id="shareSub">—</p>
@@ -1024,22 +1166,96 @@ function setupShell(root: HTMLElement) {
           <button class="share__close" id="shareClose" type="button" aria-label="Close share">✕</button>
         </header>
 
+        <!-- Inline live preview of what gets embedded — shows the real
+             embeddable player so the user sees exactly what gets pasted
+             instead of guessing at the preview button. -->
+        <section class="share__section share__section--preview">
+          <div class="share__preview-label">
+            <span class="share__label">Live preview</span>
+            <span class="share__preview-hint" id="sharePreviewHint">320 × 180</span>
+          </div>
+          <div class="share__preview-frame" id="sharePreviewFrame">
+            <iframe class="share__preview" id="sharePreview" title="Share preview" loading="lazy"></iframe>
+          </div>
+        </section>
+
         <section class="share__section">
           <label class="share__label" for="shareLink">Direct link</label>
           <div class="share__row">
             <input class="share__input" id="shareLink" type="url" readonly />
             <button class="share__act" id="shareCopyLink" type="button">Copy</button>
           </div>
-          <div class="share__btn-row">
-            <button class="share__chip" id="shareNative" type="button" hidden>
-              <span aria-hidden="true">↗</span> Share via…
+        </section>
+
+        <section class="share__section">
+          <label class="share__label">Share to</label>
+          <!-- 14-network grid + Web Share API as the first option when
+               supported. One-tap-share to every major surface. -->
+          <div class="share__networks" id="shareNetworks">
+            <button class="share__chip share__chip--native" id="shareNative" type="button" hidden>
+              <span class="share__chip-ico" aria-hidden="true">↗</span><span>Share via…</span>
             </button>
-            <a class="share__chip" id="shareTweet" target="_blank" rel="noopener">
-              <span aria-hidden="true">𝕏</span> Post
+            <a class="share__chip" id="shareXTwitter" target="_blank" rel="noopener" data-network="x">
+              <span class="share__chip-ico" aria-hidden="true">𝕏</span><span>Post on X</span>
             </a>
-            <a class="share__chip" id="shareEmail" target="_blank" rel="noopener">
-              <span aria-hidden="true">✉</span> Email
+            <a class="share__chip" id="shareThreads" target="_blank" rel="noopener" data-network="threads">
+              <span class="share__chip-ico" aria-hidden="true">@</span><span>Threads</span>
             </a>
+            <a class="share__chip" id="shareBluesky" target="_blank" rel="noopener" data-network="bluesky">
+              <span class="share__chip-ico" aria-hidden="true">⛅</span><span>Bluesky</span>
+            </a>
+            <a class="share__chip" id="shareMastodon" target="_blank" rel="noopener" data-network="mastodon">
+              <span class="share__chip-ico" aria-hidden="true">🐘</span><span>Mastodon</span>
+            </a>
+            <a class="share__chip" id="shareFacebook" target="_blank" rel="noopener" data-network="facebook">
+              <span class="share__chip-ico" aria-hidden="true">f</span><span>Facebook</span>
+            </a>
+            <a class="share__chip" id="shareLinkedIn" target="_blank" rel="noopener" data-network="linkedin">
+              <span class="share__chip-ico" aria-hidden="true">in</span><span>LinkedIn</span>
+            </a>
+            <a class="share__chip" id="shareReddit" target="_blank" rel="noopener" data-network="reddit">
+              <span class="share__chip-ico" aria-hidden="true">↑</span><span>Reddit</span>
+            </a>
+            <a class="share__chip" id="shareHN" target="_blank" rel="noopener" data-network="hn">
+              <span class="share__chip-ico" aria-hidden="true">Y</span><span>Hacker News</span>
+            </a>
+            <a class="share__chip" id="shareTelegram" target="_blank" rel="noopener" data-network="telegram">
+              <span class="share__chip-ico" aria-hidden="true">✈</span><span>Telegram</span>
+            </a>
+            <a class="share__chip" id="shareWhatsApp" target="_blank" rel="noopener" data-network="whatsapp">
+              <span class="share__chip-ico" aria-hidden="true">W</span><span>WhatsApp</span>
+            </a>
+            <a class="share__chip" id="shareSignal" target="_blank" rel="noopener" data-network="signal">
+              <span class="share__chip-ico" aria-hidden="true">✦</span><span>Signal</span>
+            </a>
+            <a class="share__chip" id="shareSMS" data-network="sms">
+              <span class="share__chip-ico" aria-hidden="true">💬</span><span>SMS</span>
+            </a>
+            <a class="share__chip" id="shareEmail" target="_blank" rel="noopener" data-network="email">
+              <span class="share__chip-ico" aria-hidden="true">✉</span><span>Email</span>
+            </a>
+            <a class="share__chip" id="sharePinterest" target="_blank" rel="noopener" data-network="pinterest">
+              <span class="share__chip-ico" aria-hidden="true">P</span><span>Pinterest</span>
+            </a>
+            <a class="share__chip" id="shareTumblr" target="_blank" rel="noopener" data-network="tumblr">
+              <span class="share__chip-ico" aria-hidden="true">t</span><span>Tumblr</span>
+            </a>
+            <a class="share__chip" id="sharePocket" target="_blank" rel="noopener" data-network="pocket">
+              <span class="share__chip-ico" aria-hidden="true">P</span><span>Pocket</span>
+            </a>
+            <button class="share__chip" id="shareQR" type="button" data-network="qr">
+              <span class="share__chip-ico" aria-hidden="true">▦</span><span>QR code</span>
+            </button>
+            <button class="share__chip" id="shareCopyMd" type="button" data-network="markdown">
+              <span class="share__chip-ico" aria-hidden="true">M↓</span><span>Copy as MD</span>
+            </button>
+            <button class="share__chip" id="shareQuoteCard" type="button" data-network="quote-card">
+              <span class="share__chip-ico" aria-hidden="true">🖼</span><span>Quote card PNG</span>
+            </button>
+          </div>
+          <div class="share__qr" id="shareQRBox" hidden>
+            <canvas id="shareQRCanvas" width="160" height="160" aria-label="QR code"></canvas>
+            <p class="share__qr-hint">Scan to open · or screenshot to share</p>
           </div>
         </section>
 
@@ -1052,8 +1268,7 @@ function setupShell(root: HTMLElement) {
           </div>
           <textarea class="share__embed-code" id="shareEmbedCode" readonly rows="3" aria-label="Embed iframe HTML"></textarea>
           <div class="share__row">
-            <a class="share__chip" id="shareEmbedPreview" target="_blank" rel="noopener">Preview</a>
-            <button class="share__act" id="shareCopyEmbed" type="button">Copy embed</button>
+            <button class="share__act" id="shareCopyEmbed" type="button">Copy embed code</button>
           </div>
         </section>
       </div>
@@ -1165,11 +1380,9 @@ function setupShell(root: HTMLElement) {
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         <span>Smart link · all platforms</span>
       </button>
-      <button class="more-menu__item more-menu__item--push" id="notifyToggle" data-action="notify" type="button" role="menuitem" aria-pressed="false">
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span id="notifyLabel">Notify me on new drops</span>
-        <span class="more-menu__dot" id="notifyDot" aria-hidden="true"></span>
-      </button>
+      <div class="more-menu__item more-menu__item--newsletter" role="menuitem" aria-label="Subscribe to bZ drops">
+        ${renderInlineNewsletter('more-menu')}
+      </div>
       ${SPOTIFY_ARTIST_ID ? `<a class="more-menu__item more-menu__item--link" data-action="spotify" href="https://open.spotify.com/artist/${SPOTIFY_ARTIST_ID}" target="_blank" rel="noopener" role="menuitem">
         <svg role="img" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
         <span>Open on Spotify</span>
@@ -1608,13 +1821,21 @@ function renderAlbums(host: HTMLElement) {
           `;
           }).join('')}
         </ol>
-        <button class="album__subscribe" type="button" data-action="notify" aria-label="Get notified when bZ drops a new track">
-          <span class="album__subscribe-eyebrow">bZ · drops</span>
-          <span class="album__subscribe-line">First listen, every drop. <em>Subscribe →</em></span>
-        </button>
       </section>
     `;
   }).join('');
+  // Single newsletter widget at the END of the album list (or end of the
+  // single album when filtered). Per Brian: remove per-album widgets,
+  // keep just one. Source key includes album-or-all so we can attribute
+  // conversions by surface.
+  const nlSource = currentAlbumFilter ? `end-of-album-${currentAlbumFilter}` : 'end-of-all-albums';
+  host.innerHTML += `
+    <section class="album-list-end">
+      <div class="album-list-end__eyebrow">bZ · drops</div>
+      <div class="album-list-end__copy">First listen, every drop. One email when a track lands.</div>
+      ${renderInlineNewsletter(nlSource)}
+    </section>
+  `;
   host.scrollTop = savedTop;
   if (!currentAlbumFilter) {
     bindAiPlaylist();
@@ -1673,6 +1894,23 @@ function renderNowPlaying(track: Track | null) {
   if (npAlbum) npAlbum.textContent = album?.name ?? 'bZ';
   if (npTitle) npTitle.textContent = track?.title ?? 'Press play';
   if (npSub) npSub.textContent = track ? (track.vibe ?? 'bZ') : 'bZ';
+  // Render BPM / key in the now-playing chrome — only visible when a track
+  // is actually playing, so empty-state stays clean. Inline span layout
+  // keeps the playbar height unchanged.
+  const npSuno = $('#transportNpSuno');
+  if (npSuno) {
+    const meta = track ? SUNO_META[track.id] : null;
+    if (meta?.sunoBpm || meta?.sunoKey) {
+      const bpm = meta.sunoBpm ? `<span class="transport__np-suno__bpm">${Math.round(meta.sunoBpm)} BPM</span>` : '';
+      const key = meta.sunoKey ? `<span class="transport__np-suno__key">${meta.sunoKey}</span>` : '';
+      const sep = bpm && key ? '<span class="transport__np-suno__sep">·</span>' : '';
+      npSuno.innerHTML = `${bpm}${sep}${key}`;
+      npSuno.hidden = false;
+    } else {
+      npSuno.innerHTML = '';
+      npSuno.hidden = true;
+    }
+  }
   if (track && album) {
     document.documentElement.style.setProperty('--accent', album.accent);
     visualizer?.setAccent(album.accent);
@@ -1805,6 +2043,56 @@ function fitLyricsLines() {
   }));
 }
 
+/**
+ * Last-start-passed word lookup with end-of-line catch-all.
+ * Returns the index of the word the time pointer is sitting on, or the
+ * latest word whose start has passed if we're in a between-word gap.
+ * Returns -1 only when t is before the first word's start.
+ */
+function findWordIdx(t: number, words: WhisperWord[]): number {
+  if (!words.length) return -1;
+  if (t < words[0].s) return -1;
+  for (let i = words.length - 1; i >= 0; i--) {
+    if (t >= words[i].s) return i;
+  }
+  return -1;
+}
+
+/**
+ * Reset all per-frame lyric trackers AND brute-force restore every line to
+ * its plain bundle text so the next RAF tick re-discovers the correct line
+ * + word from scratch with zero stale word-spans or active-class leakage.
+ *
+ * Why brute-force? Natural playback transitions clean only the previous
+ * line via `restoreLyricsLine(prev)`. But across a seek, rapid line changes
+ * (e.g. scrubbing the timeline) can leave several "previously activated"
+ * lines holding stale `.lyrics-fs__w--active` spans — those are never
+ * cleaned because the tracker only remembers ONE prior line. Iterating
+ * every line on seek is O(n=30-40) per song and guarantees a clean slate.
+ */
+function forceLyricsResync() {
+  if (lyricsLineEls.length && lyricsRenderedBundle) {
+    const lines = lyricsRenderedBundle.lines;
+    for (let i = 0; i < lyricsLineEls.length; i++) {
+      const el = lyricsLineEls[i];
+      // textContent assignment removes all child elements, killing leftover
+      // .lyrics-fs__w spans + their --active class. Cheap one-shot reset.
+      el.textContent = lines[i]?.text ?? '';
+      el.classList.remove('lyrics-fs__line--past', 'lyrics-fs__line--active');
+      el.classList.add('lyrics-fs__line--future');
+    }
+  }
+  lyricsCurLineWords = [];
+  lyricsCurWordSpans = [];
+  lyricsLastLineIdx = -2;
+  lyricsLastWordIdx = -2;
+  lyricsLastScrollIdx = -2;
+  karaokeLastIdx = -2;
+  karaokeOverlayWordIdx = -2;
+  karaokeOverlayWords = [];
+  karaokeOverlayWordSpans = [];
+}
+
 function activateLyricsLine(idx: number, bundle: LyricsBundle) {
   const el = lyricsLineEls[idx];
   if (!el) return;
@@ -1877,11 +2165,17 @@ function startKaraoke() {
 
     const t = engine.audio.currentTime;
     const lines = activeLyrics.lines;
+    // Last-start-passed semantics: more robust than start-and-end checks because
+    // adjacent lines often have e < next.s (gaps), and seek-jumps land in those
+    // gaps. We pick the line whose start <= t, and "before line 0" stays on 0
+    // as a future-line preview rather than collapsing to -1.
     let idx = 0;
-    for (let i = 0; i < lines.length; i++) {
-      if (t >= lines[i].s && t < lines[i].e) { idx = i; break; }
-      if (t < lines[i].s) { idx = Math.max(0, i - 1); break; }
-      idx = i;
+    if (t < lines[0].s) {
+      idx = 0;
+    } else {
+      for (let i = lines.length - 1; i >= 0; i--) {
+        if (t >= lines[i].s) { idx = i; break; }
+      }
     }
 
     if (idx !== lyricsLastLineIdx) {
@@ -1907,13 +2201,7 @@ function startKaraoke() {
     }
 
     if (lyricsCurWordSpans.length && lyricsCurLineWords.length) {
-      let active = -1;
-      for (let i = 0; i < lyricsCurLineWords.length; i++) {
-        const w = lyricsCurLineWords[i];
-        if (t >= w.s && t < w.e) { active = i; break; }
-        if (t < w.s) { active = i - 1; break; }
-      }
-      if (active === -1 && t >= lyricsCurLineWords[lyricsCurLineWords.length - 1].e) active = lyricsCurLineWords.length - 1;
+      const active = findWordIdx(t, lyricsCurLineWords);
       if (active !== lyricsLastWordIdx) {
         for (let i = 0; i < lyricsCurWordSpans.length; i++) {
           lyricsCurWordSpans[i].classList.toggle('lyrics-fs__w--past', i < active);
@@ -1924,13 +2212,7 @@ function startKaraoke() {
     }
 
     if (karaokeOverlayOn && karaokeOverlayWordSpans.length && karaokeOverlayWords.length) {
-      let oa = -1;
-      for (let i = 0; i < karaokeOverlayWords.length; i++) {
-        const w = karaokeOverlayWords[i];
-        if (t >= w.s && t < w.e) { oa = i; break; }
-        if (t < w.s) { oa = i - 1; break; }
-      }
-      if (oa === -1 && t >= karaokeOverlayWords[karaokeOverlayWords.length - 1].e) oa = karaokeOverlayWords.length - 1;
+      const oa = findWordIdx(t, karaokeOverlayWords);
       if (oa !== karaokeOverlayWordIdx) {
         for (let i = 0; i < karaokeOverlayWordSpans.length; i++) {
           karaokeOverlayWordSpans[i].classList.toggle('karaoke__w--past', i < oa);
@@ -2072,6 +2354,10 @@ function bindKaraokeDrag() {
     host.style.right = 'auto';
     host.style.bottom = 'auto';
     host.style.transform = 'none';
+    // Once dragged, the karaokeIn enter animation must use opacity-only
+    // on subsequent opens — otherwise it slides from CSS-center, not
+    // from the dragged location.
+    host.classList.add('is-positioned');
     origLeft = rect.left;
     origTop = rect.top;
     startX = e.clientX;
@@ -2090,6 +2376,7 @@ function bindKaraokeDrag() {
     host.style.removeProperty('right');
     host.style.removeProperty('bottom');
     host.style.removeProperty('transform');
+    host.classList.remove('is-positioned');
     try { localStorage.removeItem('bz:karaoke:pos'); } catch { /* noop */ }
   });
 }
@@ -2099,8 +2386,36 @@ function bindKaraokeDrag() {
  */
 function setKaraokeOverlay(on: boolean) {
   karaokeOverlayOn = on;
+  // CSS hook: body[data-karaoke-open] auto-dims #bg canvas so lyric
+  // text reads against a calmer backdrop (CSS rule lives in style.css).
+  document.body.dataset.karaokeOpen = on ? '1' : '0';
   try { localStorage.setItem('bz:karaoke:overlay', on ? '1' : '0'); } catch { /* private mode */ }
   const host = $('#karaoke') as HTMLElement | null;
+  // Restore saved position BEFORE unhiding so the element never paints
+  // at its default CSS-center before snapping to the user's last drag
+  // location. Also toggle `is-positioned` so the CSS karaokeIn animation
+  // (which forces `transform: translate(-50%, -50%)`) is replaced with an
+  // opacity-only fade — otherwise the animation overrides our inline
+  // `transform: none` for 220ms and the panel slides from center to
+  // saved-coords, which is the flash Brian flagged.
+  if (host && on) {
+    let restored = false;
+    try {
+      const raw = localStorage.getItem('bz:karaoke:pos');
+      if (raw) {
+        const p = JSON.parse(raw) as { x: number; y: number };
+        if (Number.isFinite(p.x) && Number.isFinite(p.y)) {
+          host.style.left = `${p.x}px`;
+          host.style.top = `${p.y}px`;
+          host.style.right = 'auto';
+          host.style.bottom = 'auto';
+          host.style.transform = 'none';
+          restored = true;
+        }
+      }
+    } catch { /* private mode */ }
+    host.classList.toggle('is-positioned', restored);
+  }
   if (host) host.hidden = !on;
   const btn = $('#btnLyricsOverlay') as HTMLButtonElement | null;
   if (btn) btn.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -2146,6 +2461,11 @@ async function play(track: Track) {
   pushTrackUrl(track);
   recordPlayStart(track.id);
   currentTrackId = track.id;
+  // 260ms visualizer cross-fade hook — body[data-track-changing] is CSS-
+  // listened to dim the #bg canvas briefly so consecutive tracks feel
+  // like a single continuous experience instead of a jarring viz cut.
+  document.body.dataset.trackChanging = '1';
+  setTimeout(() => { document.body.dataset.trackChanging = '0'; }, 280);
   // Class-swap instead of full innerHTML rebuild — preserves the user's scroll
   // position in `.albums` (innerHTML reset forces scrollTop to 0 mid-frame,
   // which View Transitions then snapshot as the "after" state, causing a jump)
@@ -2219,6 +2539,19 @@ function updateMediaSession(track: Track) {
       type: 'image/png'
     }))
   });
+  seedTempoFromMeta(track);
+}
+
+/** Seed engine.bpm from authoritative SUNO_META so every visualizer that
+ *  reads tempoPhase() snaps to the correct musical clock immediately
+ *  instead of waiting ~20s for the adaptive beat detector to converge.
+ *  Audio-analysis-measured BPM (via aubio FFT beat tracker) outranks the
+ *  Suno-tag-parsed value upstream in build-suno-meta.mjs. */
+function seedTempoFromMeta(track: Track) {
+  const meta = SUNO_META[track.id];
+  if (!meta?.sunoBpm) return;
+  // Engine treats bpm as a smoothed observable; nudging it directly is safe.
+  engine.bpm = meta.sunoBpm;
 }
 
 function bindMediaSession() {
@@ -2257,8 +2590,15 @@ function bindMediaSession() {
     void releaseWakeLock();
   });
   engine.audio.addEventListener('ended', () => { void releaseWakeLock(); });
-  engine.audio.addEventListener('loadedmetadata', () => setMediaSessionPosition(engine.audio));
-  engine.audio.addEventListener('seeked', () => setMediaSessionPosition(engine.audio));
+  engine.audio.addEventListener('loadedmetadata', () => {
+    setMediaSessionPosition(engine.audio);
+    forceLyricsResync();
+  });
+  engine.audio.addEventListener('seeked', () => {
+    setMediaSessionPosition(engine.audio);
+    forceLyricsResync();
+  });
+  engine.audio.addEventListener('seeking', () => forceLyricsResync());
   engine.audio.addEventListener('ratechange', () => setMediaSessionPosition(engine.audio));
   let lastPosWrite = 0;
   engine.audio.addEventListener('timeupdate', () => {
@@ -2296,7 +2636,18 @@ function bindIntegrations() {
       if (!castBtn) return;
       castBtn.classList.toggle('is-active', e.active);
       castBtn.setAttribute('aria-pressed', e.active ? 'true' : 'false');
-      if (castLbl) castLbl.textContent = e.active ? (e.deviceName ? `→ ${e.deviceName}` : 'casting') : 'cast';
+      if (castLbl) {
+        // Device pill is the chip after the "Cast" wordmark — only visible
+        // mid-session. Empty + hidden between sessions so the button reads
+        // as the single-word "Cast" action.
+        if (e.active) {
+          castLbl.textContent = e.deviceName ?? 'Connected';
+          castLbl.hidden = false;
+        } else {
+          castLbl.textContent = '';
+          castLbl.hidden = true;
+        }
+      }
       castBtn.setAttribute('title', e.active ? `Casting to ${e.deviceName ?? 'device'} — click for remote` : 'Cast to TV / speaker (Chromecast)');
       document.body.classList.toggle('is-casting', e.active);
       if (e.active) {
@@ -3522,133 +3873,138 @@ function showToast(message: string): void {
 const NOTIFY_LOCAL_KEY = 'bz:notify:email';
 const CAST_MODE_KEY = 'bz:cast:receiver-mode';
 
+/** Reflect subscribed-state on `<body data-subscribed>` so CSS hooks
+ *  (e.g., hiding cold-call CTAs for already-subscribed users) can read
+ *  the state without JS. Replaces the legacy #notifyToggle refresh. */
 async function refreshNotifyToggle(): Promise<void> {
-  const btn = $('#notifyToggle') as HTMLButtonElement | null;
-  const label = $('#notifyLabel');
-  const dot = $('#notifyDot');
-  if (!btn || !label) return;
-  btn.hidden = false;
   const savedEmail = (() => { try { return localStorage.getItem(NOTIFY_LOCAL_KEY) || ''; } catch { return ''; } })();
   const pushOn = pushSupported() ? (await pushState()) === 'subscribed' : false;
-  const subscribed = Boolean(savedEmail) || pushOn;
-  btn.disabled = false;
-  btn.setAttribute('aria-pressed', subscribed ? 'true' : 'false');
-  btn.classList.toggle('is-active', subscribed);
-  label.textContent = subscribed
-    ? (pushOn ? 'On the list · push on' : 'On the list · manage')
-    : 'Notify me on new drops';
-  if (dot) dot.classList.toggle('is-on', subscribed);
-  document.body.dataset.subscribed = subscribed ? '1' : '0';
+  document.body.dataset.subscribed = (Boolean(savedEmail) || pushOn) ? '1' : '0';
 }
 
-function openNotifyDialog(): void {
-  const dlg = $('#notifyDialog') as HTMLDialogElement | null;
-  const input = $('#notifyEmail') as HTMLInputElement | null;
-  const err = $('#notifyError') as HTMLParagraphElement | null;
-  const pushRow = $('#notifyPushRow') as HTMLLabelElement | null;
-  const pushOpt = $('#notifyPushOpt') as HTMLInputElement | null;
-  const pushHint = $('#notifyPushHint') as HTMLElement | null;
-  if (!dlg || !input) return;
-  if (err) { err.hidden = true; err.textContent = ''; }
+/**
+ * Inline newsletter widget binding — delegates submit + push-toggle across
+ * every `.nl-inline` instance in the document. One handler, every widget.
+ * Replaces the legacy openNotifyDialog/closeNotifyDialog/submitNotifySubscribe
+ * modal flow with a single inline interaction surface.
+ */
+function setupInlineNewsletter(): void {
+  // Email submit — delegated so dynamically-rendered widgets (album rows,
+  // more-menu open) all flow through here.
+  document.addEventListener('submit', (e) => {
+    const form = e.target as HTMLElement | null;
+    if (!form || !(form instanceof HTMLFormElement) || !form.classList.contains('nl-inline')) return;
+    e.preventDefault();
+    void submitInlineNewsletter(form);
+  });
+  // Push-bell button — toggles browser push subscription inline.
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement | null)?.closest('.nl-inline__push');
+    if (!btn) return;
+    e.preventDefault();
+    void togglePushFromInline(btn as HTMLButtonElement);
+  });
+  // Restore last-used email across all visible widgets.
   try {
     const saved = localStorage.getItem(NOTIFY_LOCAL_KEY);
-    if (saved) input.value = saved;
-  } catch { /* ignore */ }
-  if (pushRow && pushOpt && pushHint) {
-    if (pushSupported()) {
-      pushRow.hidden = false;
-      void pushState().then(state => {
-        const denied = state === 'denied';
-        pushOpt.checked = state === 'subscribed';
-        pushOpt.disabled = denied;
-        pushHint.textContent = denied ? '· browser blocks push' : (state === 'subscribed' ? '· already on' : '');
-      });
-    } else {
-      pushRow.hidden = true;
+    if (saved) {
+      document.querySelectorAll<HTMLInputElement>('.nl-inline__input').forEach(i => { i.value = saved; });
     }
+  } catch { /* private mode */ }
+  // Reflect current push state on every push-bell button.
+  if (pushSupported()) {
+    void pushState().then(state => {
+      const on = state === 'subscribed';
+      document.querySelectorAll<HTMLButtonElement>('.nl-inline__push').forEach(b => {
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (state === 'denied') {
+          b.disabled = true;
+          b.title = 'Push blocked by browser settings';
+        }
+      });
+    });
+  } else {
+    // No PushAPI — hide every push bell so the widget collapses to 2 elements.
+    document.querySelectorAll<HTMLButtonElement>('.nl-inline__push').forEach(b => { b.hidden = true; });
   }
-  if (typeof dlg.showModal === 'function' && !dlg.open) dlg.showModal();
-  else if (!dlg.open) dlg.setAttribute('open', '');
-  setTimeout(() => input.focus({ preventScroll: true }), 30);
 }
 
-function closeNotifyDialog(): void {
-  const dlg = $('#notifyDialog') as HTMLDialogElement | null;
-  if (dlg?.open) dlg.close();
-}
-
-async function submitNotifySubscribe(): Promise<void> {
-  const input = $('#notifyEmail') as HTMLInputElement | null;
-  const err = $('#notifyError') as HTMLParagraphElement | null;
-  const submit = $('#notifySubmit') as HTMLButtonElement | null;
-  const pushOpt = $('#notifyPushOpt') as HTMLInputElement | null;
+async function submitInlineNewsletter(form: HTMLFormElement): Promise<void> {
+  const input = form.querySelector<HTMLInputElement>('.nl-inline__input');
+  const submit = form.querySelector<HTMLButtonElement>('.nl-inline__submit');
+  const pushBtn = form.querySelector<HTMLButtonElement>('.nl-inline__push');
+  const status = form.querySelector<HTMLElement>('[data-nl-status]');
   if (!input) return;
   const email = input.value.trim().toLowerCase();
-  const showError = (msg: string) => { if (err) { err.textContent = msg; err.hidden = false; } };
+  const showStatus = (msg: string, kind: 'ok' | 'err' = 'err') => {
+    if (!status) return;
+    status.textContent = msg;
+    status.dataset.kind = kind;
+    status.hidden = false;
+  };
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-    showError('Enter a valid email.');
+    showStatus('valid email please', 'err');
     input.focus();
     return;
   }
-  if (err) err.hidden = true;
-  if (submit) { submit.disabled = true; submit.textContent = 'Subscribing…'; }
+  if (submit) submit.disabled = true;
+  // Capture push if the bell is already pressed (user opted in pre-submit).
   let pushPayload: { endpoint: string; keys: { p256dh: string; auth: string } } | undefined;
-  if (pushOpt?.checked && pushSupported()) {
-    const res = await subscribePush();
-    if (res.ok) {
-      try {
-        const reg = await navigator.serviceWorker.ready;
-        const sub = await reg.pushManager.getSubscription();
-        if (sub) {
-          const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
-          if (json.endpoint && json.keys?.p256dh && json.keys?.auth) {
-            pushPayload = { endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } };
-          }
+  if (pushBtn?.getAttribute('aria-pressed') === 'true' && pushSupported()) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
+        if (json.endpoint && json.keys?.p256dh && json.keys?.auth) {
+          pushPayload = { endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } };
         }
-      } catch { /* push payload optional */ }
-    } else if (res.reason === 'denied') {
-      showToast('Push blocked by browser. Email sub still works.');
-    }
+      }
+    } catch { /* push payload optional */ }
   }
+  const source = `site:${form.dataset.nlSource || 'unknown'}`;
   try {
     const resp = await fetch('/api/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, source: 'site:more-menu', pushSubscription: pushPayload })
+      body: JSON.stringify({ email, source, pushSubscription: pushPayload })
     });
     const data = await resp.json().catch(() => ({})) as { ok?: boolean; error?: string; listmonk?: string };
     if (!resp.ok || !data.ok) {
-      showError(data?.error === 'throttled' ? 'Slow down — try again in a minute.' : 'Subscribe failed. Try again in a moment.');
-      if (submit) { submit.disabled = false; submit.textContent = 'Subscribe'; }
+      showStatus(data?.error === 'throttled' ? 'slow down' : 'try again', 'err');
+      if (submit) submit.disabled = false;
       return;
     }
     try { localStorage.setItem(NOTIFY_LOCAL_KEY, email); } catch { /* ignore */ }
-    closeNotifyDialog();
-    showToast(data.listmonk === 'already' ? 'Already on the list. Push synced.' : 'You’re in. New drops hit your inbox.');
-    await refreshNotifyToggle();
+    form.classList.add('is-done');
+    showStatus(data.listmonk === 'already' ? 'already in.' : "you're in.", 'ok');
+    // Collapse the form 1.6s after success — keeps the row sparse.
+    setTimeout(() => { form.classList.remove('is-done'); if (status) status.hidden = true; }, 3600);
   } catch {
-    showError('Network error. Try again.');
+    showStatus('network error', 'err');
   } finally {
-    if (submit) { submit.disabled = false; submit.textContent = 'Subscribe'; }
+    if (submit) submit.disabled = false;
   }
 }
 
-async function toggleNotifications(): Promise<void> {
-  let savedEmail = '';
-  try { savedEmail = localStorage.getItem(NOTIFY_LOCAL_KEY) || ''; } catch { /* ignore */ }
-  const pushOn = pushSupported() ? (await pushState()) === 'subscribed' : false;
-  if (savedEmail || pushOn) {
-    if (pushOn) {
-      await unsubscribePush();
-      showToast('Push off. You still get email drops.');
-    } else {
-      try { localStorage.removeItem(NOTIFY_LOCAL_KEY); } catch { /* ignore */ }
-      showToast('Local email cleared. Use the unsubscribe link in our emails to stop sends.');
-    }
-    await refreshNotifyToggle();
+async function togglePushFromInline(btn: HTMLButtonElement): Promise<void> {
+  if (!pushSupported()) return;
+  const isOn = btn.getAttribute('aria-pressed') === 'true';
+  if (isOn) {
+    await unsubscribePush();
+    document.querySelectorAll<HTMLButtonElement>('.nl-inline__push').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    showToast('push off');
     return;
   }
-  openNotifyDialog();
+  const res = await subscribePush();
+  if (res.ok) {
+    document.querySelectorAll<HTMLButtonElement>('.nl-inline__push').forEach(b => b.setAttribute('aria-pressed', 'true'));
+    showToast('push on');
+  } else if (res.reason === 'denied') {
+    btn.disabled = true;
+    btn.title = 'Push blocked by browser settings';
+    showToast('browser blocks push');
+  }
 }
 
 async function consumeShareTarget(): Promise<boolean> {
@@ -4037,13 +4393,6 @@ function bindUi() {
       openShare('track', shareTrackBtn.dataset.shareTrack!);
       return;
     }
-    const subscribeBtn = target.closest('.album__subscribe[data-action="notify"]') as HTMLButtonElement | null;
-    if (subscribeBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      void toggleNotifications();
-      return;
-    }
     const shareAlbumBtn = target.closest('[data-share-album]') as HTMLButtonElement | null;
     if (shareAlbumBtn) {
       e.preventDefault();
@@ -4100,6 +4449,44 @@ function bindUi() {
       { title: `${shareCurrent.title} — bZ`, text: `${shareCurrent.title} — bZ`, url: shareCurrent.shareUrl },
       () => { /* dialog already open */ }
     );
+    if (shareCurrent.kind === 'track') reportShare(shareCurrent.id);
+  });
+  // QR code generation — lazy, only when the user clicks the chip.
+  // Uses a 13-line bit-pattern QR encoder inlined to avoid the qrcode
+  // npm dep + the network round-trip for charts.googleapis.com.
+  $('#shareQR')?.addEventListener('click', () => {
+    if (!shareCurrent) return;
+    const box = $('#shareQRBox');
+    const canvas = $('#shareQRCanvas') as HTMLCanvasElement | null;
+    if (!box || !canvas) return;
+    if (!box.hidden) { box.hidden = true; return; }
+    void drawQrCanvas(canvas, shareCurrent.shareUrl);
+    box.hidden = false;
+  });
+  // Copy-as-Markdown — drops a ready-to-paste blockquote into Discord/Slack/
+  // Notion/Obsidian/etc. with cover, title, deep link. One of the most
+  // requested formats across creator-economy share patterns.
+  $('#shareCopyMd')?.addEventListener('click', async (e) => {
+    if (!shareCurrent) return;
+    const t = shareCurrent;
+    const md = `![${t.title} cover](${t.cover.startsWith('http') ? t.cover : SITE_ORIGIN + t.cover})\n\n**${t.title}** — bZ\n${t.sub}\n\n[▶ Listen on music.megabyte.space](${t.shareUrl}?ref=share-markdown)`;
+    await copyText(md, e.currentTarget as HTMLElement);
+    if (t.kind === 'track') reportShare(t.id);
+  });
+  // Quote-card PNG — generates a 1080×1080 social-card image with the
+  // track cover + title + accent halo + bZ branding, triggers a download.
+  // Visual viral hook — shareable as an image on Instagram/Stories.
+  $('#shareQuoteCard')?.addEventListener('click', async () => {
+    if (!shareCurrent) return;
+    await downloadQuoteCardImage(shareCurrent);
+    if (shareCurrent.kind === 'track') reportShare(shareCurrent.id);
+  });
+  // Network-chip share-tracking — every social click counts toward
+  // reportShare so we can see which networks convert.
+  document.querySelectorAll<HTMLElement>('#shareNetworks [data-network]').forEach(el => {
+    el.addEventListener('click', () => {
+      if (shareCurrent?.kind === 'track') reportShare(shareCurrent.id);
+    });
   });
   document.querySelectorAll<HTMLButtonElement>('.share__size').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -4109,8 +4496,8 @@ function bindUi() {
         b.classList.toggle('is-active', active);
         b.setAttribute('aria-checked', active ? 'true' : 'false');
       });
-      const code = $('#shareEmbedCode') as HTMLTextAreaElement | null;
-      if (code && shareCurrent) code.value = embedSnippet(shareCurrent, shareEmbedSize);
+      // Refresh the entire dialog so the live preview iframe re-sizes too.
+      refreshShareDialog();
     });
   });
 
@@ -4189,7 +4576,6 @@ function bindUi() {
         if (album) openSmartLink(`${SITE_ORIGIN}${trackPath(t)}`);
       }
     }
-    else if (action === 'notify') { void toggleNotifications(); return; }
     if (action !== 'spotify') closeMoreMenu();
   });
   document.addEventListener('click', e => {
@@ -4239,12 +4625,9 @@ function bindUi() {
   });
   $('#shortcuts')?.addEventListener('cancel', e => { e.preventDefault(); closeShortcuts(); });
 
-  $('#notifyCloseBtn')?.addEventListener('click', () => closeNotifyDialog());
-  $('#notifyDialog')?.addEventListener('click', e => {
-    if ((e.target as HTMLElement).id === 'notifyDialog') closeNotifyDialog();
-  });
-  $('#notifyDialog')?.addEventListener('cancel', e => { e.preventDefault(); closeNotifyDialog(); });
-  $('#notifyForm')?.addEventListener('submit', e => { e.preventDefault(); void submitNotifySubscribe(); });
+  // Modal newsletter dialog event wiring removed — inline `.nl-inline` widgets
+  // handle subscribe + push via setupInlineNewsletter() global delegation.
+  setupInlineNewsletter();
   ($('#vol') as HTMLInputElement)?.addEventListener('input', e => {
     const v = Number((e.target as HTMLInputElement).value);
     engine.setVolume(v);
@@ -4425,7 +4808,40 @@ function bindUi() {
       if (npPanelOpen) { closeNpPanel(); return; }
     }
     if (inField) return;
+    // Global `/` → focus AI chat composer (open chat first if closed).
+    // Mirrors GitHub/Slack/Linear `/` slash convention.
+    if (e.code === 'Slash' && !e.shiftKey) {
+      e.preventDefault();
+      const fab = document.querySelector<HTMLButtonElement>('[data-aichat="fab"]');
+      if (fab && document.body.dataset.aichatOpen !== '1') fab.click();
+      requestAnimationFrame(() => {
+        const input = document.querySelector<HTMLTextAreaElement>('[data-aichat="input"]');
+        input?.focus({ preventScroll: true });
+      });
+      return;
+    }
+    // `?` (Shift+Slash) → open AI chat composer pre-typed with /help to
+    // surface the slash-command palette.
+    if (e.code === 'Slash' && e.shiftKey) {
+      e.preventDefault();
+      const fab = document.querySelector<HTMLButtonElement>('[data-aichat="fab"]');
+      if (fab && document.body.dataset.aichatOpen !== '1') fab.click();
+      requestAnimationFrame(() => {
+        const input = document.querySelector<HTMLTextAreaElement>('[data-aichat="input"]');
+        if (input) { input.value = '/help'; input.focus({ preventScroll: true }); input.dispatchEvent(new Event('input', { bubbles: true })); }
+      });
+      return;
+    }
     if (e.code === 'Space') { e.preventDefault(); $('#btnPlay')?.click(); }
+    // Cmd+P / Ctrl+P → play a random track (great for "surprise me" mode).
+    else if ((e.metaKey || e.ctrlKey) && e.code === 'KeyP') {
+      e.preventDefault();
+      const pool = TRACKS;
+      if (pool.length) {
+        const next = pool[Math.floor(Math.random() * pool.length)];
+        if (next.id !== currentTrackId) void play(next);
+      }
+    }
     else if (e.code === 'ArrowRight' && !e.shiftKey) nextTrack(1);
     else if (e.code === 'ArrowLeft' && !e.shiftKey) nextTrack(-1);
     else if (e.code === 'ArrowUp') {
@@ -5086,17 +5502,18 @@ function renderSearchResults(tracks: Track[]) {
   searchActiveIdx = Math.min(searchActiveIdx, tracks.length - 1);
   results.innerHTML = tracks.map((t, i) => {
     const album = ALBUM_BY_ID.get(t.album);
-    const badge = t.id === currentTrackId ? '<span class="cmdk__item-badge">playing</span>' : '';
+    // Playing badge moved INLINE next to the title (was floating at the
+    // far-right of the row, visually orphaned from the track it labels).
+    const playingBadge = t.id === currentTrackId ? '<span class="cmdk__item-badge cmdk__item-badge--inline">playing</span>' : '';
     const plays = playCounts.get(t.id) ?? 0;
     const playsBadge = `<span class="cmdk__item-plays" data-plays="${t.id}" aria-label="${plays} plays"${plays === 0 ? ' hidden' : ''}><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span data-plays-num="${t.id}">${plays}</span></span>`;
     return `<div class="cmdk__item${i === searchActiveIdx ? ' cmdk__item--active' : ''}" data-idx="${i}" role="option" aria-selected="${i === searchActiveIdx ? 'true' : 'false'}" tabindex="-1">
       <img class="cmdk__item-cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="40" height="40" loading="lazy" />
       <div class="cmdk__item-body">
-        <div class="cmdk__item-title">${escapeHtml(t.title)}</div>
+        <div class="cmdk__item-title"><span class="cmdk__item-title-text">${escapeHtml(t.title)}</span>${playingBadge}</div>
         <div class="cmdk__item-sub">${escapeHtml(album?.name ?? 'bZ')} · ${escapeHtml(t.vibe)}</div>
       </div>
       ${playsBadge}
-      ${badge}
     </div>`;
   }).join('');
 }

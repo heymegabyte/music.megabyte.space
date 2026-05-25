@@ -6,6 +6,7 @@
 // unregistered or unreachable.
 
 import type { Track } from './types';
+import { asScriptURL } from './trusted-types';
 import {
   CAST_NAMESPACE, CAST_APP_ID, RECEIVER_FALLBACK, PROTOCOL_VERSION, SENDER_TICK_HZ, STALE_MS,
   packMsg, isCastMsg,
@@ -129,7 +130,10 @@ export class CastBridge {
       this.bindRemotePlayer();
     };
     const s = document.createElement('script');
-    s.src = CAST_FRAMEWORK_URL;
+    // Trusted Types: wrap the gstatic Cast SDK URL — the default policy
+    // installed at boot already permits this, but explicit wrap avoids
+    // the report-only TrustedScriptURL violation log.
+    s.src = asScriptURL(CAST_FRAMEWORK_URL);
     s.async = true;
     s.dataset.cast = '1';
     s.onerror = () => this.emit({ type: 'error', message: 'cast framework script failed to load' });

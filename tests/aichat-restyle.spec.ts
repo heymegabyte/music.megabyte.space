@@ -22,17 +22,20 @@ test.describe('AI chat — restyle invariants', () => {
     await expect(ritualClass).toHaveCount(0);
   });
 
-  test('compose stack wraps composer + quickbar + banners as one card', async ({ page }) => {
+  test('compose stack wraps composer + banners as one card', async ({ page }) => {
     await gotoHome(page);
     await page.locator('[data-aichat="fab"]').first().click();
     const stack = page.locator('[data-aichat="composeStack"]');
     await expect(stack).toBeVisible();
-    // Composer + quickbar + continueBanner + urlhint + snipbar must all be
-    // inside the stack (no longer scattered bottom-pinned strips).
+    // Composer + continueBanner + urlhint + snipbar must all be inside the
+    // stack (no longer scattered bottom-pinned strips). The quickbar was
+    // removed entirely — slash commands live in the composer only.
     await expect(stack.locator('[data-aichat="composer"]')).toBeVisible();
-    await expect(stack.locator('[data-aichat="quickbar"]')).toBeVisible();
     await expect(stack.locator('[data-aichat="continueBanner"]')).toHaveCount(1);
     await expect(stack.locator('[data-aichat="snipbar"]')).toHaveCount(1);
+    // Quickbar element must NOT exist anywhere in the panel.
+    await expect(page.locator('[data-aichat="quickbar"]')).toHaveCount(0);
+    await expect(page.locator('.aichat__quickbar')).toHaveCount(0);
   });
 
   test('persona pill is visible in the header and reveals a popover on click', async ({ page }) => {

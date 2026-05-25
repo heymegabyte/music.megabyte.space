@@ -17,21 +17,97 @@
   --bg: #060610;
   --bg-2: #0a0a18;
   --ink: #f4f4ff;
-  --ink-soft: rgba(244, 244, 255, 0.74);
-  --ink-mute: rgba(244, 244, 255, 0.46);
+  /* Bumped from 0.74 → 0.85 and 0.46 → 0.62 per Brian: "all text on black
+     background must be like white or like ultra-neon colors". Higher opacity
+     keeps the visual hierarchy (soft > mute) but pushes both well into the
+     "white" perceptual zone, so secondary copy never reads as washed-out
+     gray on the dark canvas. */
+  --ink-soft: rgba(244, 244, 255, 0.85);
+  --ink-mute: rgba(244, 244, 255, 0.62);
   --ink-faint: rgba(244, 244, 255, 0.18);
   --accent: #00e5ff;
   --accent-soft: rgba(0, 229, 255, 0.18);
   --violet: #7c3aed;
-  /* Readable-on-dark text color derived from --accent (and album-accent
-     fallback). Mixes 30% near-white into the accent in OKLCH so even
-     palette-extracted dark colors (any album cover can produce dark
-     navy / forest / wine accents) stay legible on the #060610 canvas.
-     Use --ink-accent / --ink-album-accent for any TEXT that takes an
-     accent color. Borders + backgrounds keep using --accent / --album-accent
-     raw — only foreground text gets the lift. WCAG-2.2 contrast safety net. */
+  /* Two tiers of readable accent for dark backgrounds:
+       --ink-accent       — moderate 70/30 lift, preserves brand feel.
+                            For inline copy, captions, tags, link text.
+       --ink-accent-neon  — FORCED neon. OKLCH relative-color syntax
+                            clamps lightness up to 0.78 and chroma up to
+                            0.22 so even a dull palette-extracted color
+                            (any cover can produce muted navy / olive /
+                            wine) becomes vivid against #060610.
+                            For HUD digits, status pills, badge counters,
+                            small overlay numerics where the value MUST
+                            pop and dullness reads as broken.
+     Both have an --ink-album-accent / --ink-album-accent-neon sibling
+     so per-track palette switching cascades through the same hue but
+     forced to the neon band. Borders + backgrounds keep using raw
+     --accent / --album-accent so brand-true tints land on chrome. */
   --ink-accent: color-mix(in oklch, var(--accent) 70%, #f4f4ff 30%);
   --ink-album-accent: color-mix(in oklch, var(--album-accent, var(--accent)) 70%, #f4f4ff 30%);
+  --ink-accent-neon: oklch(from var(--accent) max(l, 0.78) max(c, 0.22) h);
+  --ink-album-accent-neon: oklch(from var(--album-accent, var(--accent)) max(l, 0.78) max(c, 0.22) h);
+
+  /* Opposite-pole text backdrops — any floating text element (hero title
+     on canvas, lyric overlay, badge, tooltip, status pill) gets one of
+     these as background so the literal "text on opposite-color bg" rule
+     holds even when the canvas region beneath the text is bright. Dark
+     theme uses --text-bg-dark; a future light-theme would use light. */
+  --text-bg-dark: rgba(6, 6, 16, 0.82);
+  --text-bg-light: rgba(244, 244, 255, 0.88);
+
+  /* ── DESIGN TOKEN SCALE ─────────────────────────────────────────────
+     Snap every padding/margin/radius/shadow/transition in NEW code to
+     these tokens. Older inline values are gradually migrated through
+     selective hand-applies (transport bar, album cards, AI chat surface,
+     modals, buttons) — full sweep is a multi-day refactor; tokens here
+     give every future component a single source of truth. */
+
+  /* Spacing: 4-step modular scale (4, 8, 12, 16, 20, 28, 40). Snap to
+     these instead of inventing 7px / 11px / 13px one-offs that fragment
+     vertical rhythm across the app. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 28px;
+  --space-7: 40px;
+
+  /* Radius: 5 stops covering everything from icon buttons (sm) to
+     hero cards (xl) to pills (full). Old code uses 20+ distinct radii;
+     this collapses to a clean rhythm. */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  /* Elevation: 4 named shadows for cards/floating-cards/modals/popovers.
+     Each tied to a depth that matches the surface's stacking context. */
+  --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 18px 48px -16px rgba(0, 0, 0, 0.55);
+  --shadow-xl: 0 28px 80px -28px rgba(0, 0, 0, 0.7);
+  /* Inner highlight + ring for glass-like cards */
+  --shadow-ring: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --shadow-ring-accent: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+
+  /* Motion: 3 durations cover ~95% of cases. Snappy for buttons (120ms),
+     standard for cards/menus (200ms), expressive for modal/drawer slides
+     (320ms). All use the same ease for cohesion. */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-medium: 200ms;
+  --duration-slow: 320ms;
+
+  /* Focus ring — applied globally via :focus-visible to every interactive
+     element below. Pulls album-accent when present, falls back to
+     --accent. 2px outline + 2px offset is WCAG 2.4.11 compliant. */
+  --focus-ring-color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--accent)));
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
   --line: rgba(244, 244, 255, 0.06);
   --line-strong: rgba(244, 244, 255, 0.16);
   --rail-w: 420px;
@@ -140,129 +216,212 @@ body {
   .sleep-chip.is-warning { animation: none; }
 }
 
-/* Gentle newsletter prompt — surfaces after the user's 3rd distinct
-   track play, once per visitor. Bottom-right toast on desktop, full-
-   width sheet on mobile. Auto-dismisses at 25s if untouched. */
-.bz-newsletter-nudge {
-  position: fixed;
-  right: 16px;
-  bottom: calc(var(--transport-h) + 16px);
-  z-index: 999;
-  max-width: 360px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--accent) 18%, rgba(6, 6, 16, 0.94)) 0%,
-    rgba(6, 6, 16, 0.96) 100%
-  );
-  border: 1px solid color-mix(in srgb, var(--accent) 36%, transparent);
-  color: var(--ink);
-  box-shadow:
-    0 18px 48px -16px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  opacity: 0;
-  transform: translateY(20px) scale(0.96);
-  transition:
-    opacity 240ms ease,
-    transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+/* ─── INLINE NEWSLETTER WIDGET ───────────────────────────────────────
+   Single-row email input + arrow-submit + push-bell toggle. Drops in
+   wherever a subscribe CTA used to live (album footer, more-menu).
+   Compact 36px row height — never expands the parent layout. */
+.nl-inline {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
+  height: 36px;
+  max-width: 320px;
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 22%, rgba(244, 244, 255, 0.1));
+  border-radius: 999px;
+  padding: 3px;
+  background: rgba(6, 6, 16, 0.55);
+  transition: border-color 200ms ease, box-shadow 200ms ease, opacity 200ms ease;
 }
-.bz-newsletter-nudge.is-open {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+.nl-inline:focus-within {
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--album-accent, var(--accent)) 35%, transparent),
+              0 8px 24px -10px color-mix(in srgb, var(--album-accent, var(--accent)) 32%, transparent);
 }
-.bz-newsletter-nudge__inner {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.nl-inline.is-done {
+  opacity: 0.7;
+  pointer-events: none;
 }
-.bz-newsletter-nudge__copy strong {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 0.92rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-.bz-newsletter-nudge__copy span {
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-  line-height: 1.4;
-}
-.bz-newsletter-nudge__form {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.bz-newsletter-nudge__form input[type='email'] {
-  flex: 1;
+.nl-inline__input {
+  flex: 1 1 auto;
   min-width: 0;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: rgba(244, 244, 255, 0.06);
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: 0.84rem;
-}
-.bz-newsletter-nudge__form input[type='email']:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
-}
-.bz-newsletter-nudge__form button[type='submit'] {
-  appearance: none;
-  background: var(--accent);
-  color: #060610;
+  background: transparent;
   border: 0;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.82rem;
+  outline: 0;
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.nl-inline__input::placeholder {
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+}
+.nl-inline__submit,
+.nl-inline__push {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-soft);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+.nl-inline__submit {
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 88%, #ffffff);
+  color: #060610;
+}
+.nl-inline__submit:hover { transform: translateY(-1px) scale(1.04); }
+.nl-inline__submit:disabled { opacity: 0.55; cursor: progress; }
+.nl-inline__push {
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 22%, rgba(244, 244, 255, 0.14));
+}
+.nl-inline__push:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 42%, transparent);
+}
+.nl-inline__push[aria-pressed='true'] {
+  color: #060610;
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 70%, transparent);
+  border-color: transparent;
+}
+.nl-inline__push[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.nl-inline__status {
+  position: absolute;
+  margin-left: 6px;
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+  pointer-events: none;
+}
+.nl-inline__status[data-kind='ok'] {
+  color: color-mix(in srgb, var(--album-accent, var(--accent)) 70%, var(--ink));
+}
+.nl-inline__status[data-kind='err'] {
+  color: #FF7AB8;
+}
+.nl-inline__status[hidden] { display: none; }
+/* Compact variant for tight contexts (AI chat strip). */
+.nl-inline--compact {
+  height: 30px;
+  padding: 2px;
+}
+.nl-inline--compact .nl-inline__input { font-size: 0.7rem; padding: 0 8px; }
+.nl-inline--compact .nl-inline__submit,
+.nl-inline--compact .nl-inline__push {
+  width: 24px;
+  height: 24px;
+}
+
+/* AI chat inline newsletter strip — above the composer */
+.aichat__newsletter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 0 8px;
+  border-top: 1px solid color-mix(in srgb, var(--aichat-accent) 18%, rgba(255, 255, 255, 0.06));
+  border-bottom: 1px solid color-mix(in srgb, var(--aichat-accent) 12%, rgba(255, 255, 255, 0.04));
+  background: color-mix(in srgb, var(--aichat-accent) 6%, transparent);
+}
+.aichat__newsletter[hidden] { display: none; }
+.aichat__newsletter-copy {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
   white-space: nowrap;
+  flex: 0 0 auto;
 }
-.bz-newsletter-nudge__form button[type='submit']:hover {
-  filter: brightness(1.08);
+.aichat__newsletter .nl-inline {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 260px;
 }
-.bz-newsletter-nudge__close {
-  appearance: none;
+.aichat__newsletter-close {
+  flex: 0 0 auto;
   background: transparent;
   border: 0;
   color: var(--ink-mute);
-  font-size: 1rem;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  font-size: 0.85rem;
   cursor: pointer;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-.bz-newsletter-nudge__close:hover {
-  background: rgba(244, 244, 255, 0.06);
-  color: var(--ink);
+.aichat__newsletter-close:hover { background: rgba(255, 255, 255, 0.06); color: var(--ink); }
+@media (max-width: 480px) {
+  .aichat__newsletter-copy { display: none; }
 }
-.bz-newsletter-nudge__done {
-  font-family: var(--font-display);
-  font-size: 0.92rem;
-  color: var(--ink-accent);
-  text-align: center;
-  padding: 8px 0;
+
+/* ── UNIVERSAL FOCUS RING ───────────────────────────────────────────
+   Every interactive element gets the same 2px album-tinted focus ring
+   on keyboard navigation. Replaces the ~30+ ad-hoc focus styles
+   sprinkled through the file. Mouse clicks don't trigger :focus-visible
+   so the ring only shows when the user is keyboarding through — clean
+   for mouse users, mandatory for a11y. */
+:is(button, a, input, textarea, select, [tabindex='0']):focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: inherit;
 }
-@media (max-width: 520px) {
-  .bz-newsletter-nudge {
-    right: 12px;
-    left: 12px;
-    bottom: calc(var(--transport-h) + 8px);
-    max-width: none;
+
+/* ── UNIFIED BUTTON LIFT ────────────────────────────────────────────
+   Standardize hover/active micro-motion: 1px lift on hover, snap back
+   on active. Applied to every interactive surface that hasn't opted
+   out with `transform: none`. Single source of truth instead of 40+
+   per-component repetitions. Pairs with the existing `transition` on
+   each element; doesn't override custom transitions. */
+@media (prefers-reduced-motion: no-preference) {
+  :is(button, a.btn, .btn, [role='button']):not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+  :is(button, a.btn, .btn, [role='button']):not(:disabled):active {
+    transform: translateY(0);
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .bz-newsletter-nudge {
-    transition: opacity 120ms ease;
-    transform: none;
-  }
-  .bz-newsletter-nudge.is-open { transform: none; }
+
+/* Universal "text on opposite background" utility. Apply to any text
+   that floats over the visualizer canvas, video, generative imagery,
+   or any surface whose color the text element doesn't control. Wraps
+   each rendered line with an opaque dark scrim (clone box-decoration)
+   so multi-line strings get per-line backgrounds rather than one fat
+   rectangle around the bounding box. Pairs with text-shadow for the
+   thin halo around descenders. */
+.text-bg,
+[data-text-floating] {
+  /* inline-block + width:fit-content shrink-wraps the scrim to the text
+     content, so the dark background never spans the full container
+     width. For multi-line text the wrap stays inside one tight block;
+     to get per-line scrim wraps instead, swap to `display: inline +
+     box-decoration-break: clone`. */
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--text-bg-dark);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.text-bg--light,
+[data-text-floating='light'] {
+  background: var(--text-bg-light);
+  color: var(--bg);
 }
 
 /* WCAG 2.4.1 skip-link. Visually hidden until keyboard-focused; then
@@ -327,9 +486,9 @@ a {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 24px;
-  padding: 0 16px 0 16px;
-  border-bottom: 1px solid var(--line);
+  gap: var(--space-5);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 12%, var(--line));
   background: linear-gradient(180deg, rgba(6, 6, 16, 0.86), rgba(6, 6, 16, 0.4));
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -341,7 +500,16 @@ a {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), var(--violet), transparent);
+  /* Sweep uses album accent → violet → accent for per-track palette
+     continuity. Looks like the topbar IS the album when playing. */
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--album-accent, var(--accent)),
+    var(--violet),
+    var(--album-accent, var(--accent)),
+    transparent
+  );
   opacity: 0;
   transition: opacity 0.6s ease;
   pointer-events: none;
@@ -620,15 +788,18 @@ html.is-playing .brand__text {
   display: block;
   width: 76px;
   height: 76px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   position: relative;
+  /* Album cover shadow uses the album's neon accent for a soft glow
+     halo (lights up the rail per album). --shadow-ring keeps the inner
+     1px highlight for the glassy bevel. */
   box-shadow:
     0 18px 36px -18px color-mix(in srgb, var(--album-accent, var(--accent)) 60%, transparent),
-    0 0 0 1px rgba(255, 255, 255, 0.06);
+    var(--shadow-ring);
   transform: translateZ(0);
   transition:
-    transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform var(--duration-slow) var(--ease-out),
     box-shadow 0.3s ease;
 }
 .album__cover img {
@@ -769,69 +940,36 @@ html.is-playing .brand__text {
   margin: 0;
 }
 
-.album__subscribe {
-  appearance: none;
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  width: calc(100% - 24px);
-  margin: 14px 12px 4px;
-  padding: 12px 14px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--album-accent, var(--accent)) 9%, transparent),
-    transparent 70%
-  );
-  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 22%, var(--line));
-  border-radius: 10px;
-  color: var(--text);
-  text-align: left;
-  font: inherit;
-  cursor: pointer;
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    transform 160ms ease;
+/* Single end-of-album-list newsletter surface — replaces per-album
+   widgets. Lives at the bottom of #albums after all albums render. */
+.album-list-end {
+  margin: var(--space-7) var(--space-4) var(--space-6);
+  padding: var(--space-5) var(--space-5) var(--space-6);
+  border-top: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 22%, var(--line));
+  text-align: center;
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
 }
-.album__subscribe:hover,
-.album__subscribe:focus-visible {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--album-accent, var(--accent)) 16%, transparent),
-    transparent 75%
-  );
-  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 45%, var(--line));
-  transform: translateY(-1px);
-  outline: none;
-}
-.album__subscribe-eyebrow {
-  font-size: 11px;
-  letter-spacing: 0.18em;
+.album-list-end__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  /* --text doesn't exist as a token; fall back to --ink so this line
-     stays readable instead of mixing accent with `currentColor` / inherit. */
-  color: color-mix(in srgb, var(--album-accent, var(--accent)) 72%, var(--ink));
-  white-space: nowrap;
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
 }
-.album__subscribe-line {
-  font-size: 14px;
-  color: var(--text-soft, var(--text));
+.album-list-end__copy {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--ink);
+  max-width: 36ch;
 }
-.album__subscribe-line em {
-  font-style: normal;
-  font-weight: 700;
-  color: var(--ink-album-accent, var(--ink-accent));
-  margin-left: 4px;
+.album-list-end .nl-inline {
+  max-width: 360px;
+  width: 100%;
 }
-body[data-subscribed='1'] .album__subscribe {
+body[data-subscribed='1'] .album-list-end {
   display: none;
-}
-@media (max-width: 460px) {
-  .album__subscribe {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
 }
 
 .trackrow {
@@ -839,8 +977,8 @@ body[data-subscribed='1'] .album__subscribe {
   grid-template-columns: 28px 1fr auto;
   align-items: baseline;
   width: 100%;
-  gap: 10px;
-  padding: 6px 56px 6px 22px;
+  gap: var(--space-3);
+  padding: var(--space-2) 56px var(--space-2) var(--space-5);
   background: transparent;
   border: 0;
   border-left: 2px solid transparent;
@@ -849,9 +987,9 @@ body[data-subscribed='1'] .album__subscribe {
   color: var(--ink);
   text-decoration: none;
   transition:
-    background 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease;
+    background var(--duration-medium) var(--ease-out),
+    border-color var(--duration-medium) var(--ease-out),
+    color var(--duration-medium) var(--ease-out);
 }
 .trackrow:hover,
 .trackrow:focus-visible {
@@ -903,6 +1041,10 @@ body[data-subscribed='1'] .album__subscribe {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* BPM + key chips live exclusively in the now-playing playbar
+   (.transport__np-suno) — see CSS below + src/main.ts. Removed from
+   trackrow per Brian: "only keep it in the play bar". */
 
 .trackrow__stats {
   grid-column: 3 / 4;
@@ -963,43 +1105,98 @@ body[data-subscribed='1'] .album__subscribe {
   pointer-events: none;
   display: grid;
   align-content: end;
+  /* `justify-items: start` so the inline-block scrim children shrink-wrap
+     to their text content instead of filling the grid cell's full width.
+     Without this, grid stretches each child to the column track and the
+     `background: var(--text-bg-dark)` scrim spans the entire hero width. */
+  justify-items: start;
   padding: 0 56px 48px;
   mix-blend-mode: normal;
   overflow: hidden;
 }
+/* HERO TEXT — floats directly over the visualizer canvas (which can be
+   ANY color including bright cyan/lime/rose at any moment). Each child
+   gets an opaque opposite-pole scrim (--text-bg-dark) so the literal
+   contract "text on dark background" holds even when the canvas region
+   beneath the text is bright. `inline-block` + `box-decoration-break:
+   clone` so multi-line titles wrap the scrim around each wrapped line,
+   not the bounding rect. Padding generous enough to clear ascenders +
+   descenders without crushing the type. */
 .viz__hero-album {
-  display: block;
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
   font-family: var(--font-mono);
   font-size: 0.74rem;
   letter-spacing: 0.4em;
   text-transform: uppercase;
-  color: var(--ink-accent);
-  text-shadow: 0 2px 12px rgba(0, 229, 255, 0.6);
+  /* Ultra-neon album-accent eyebrow — uses the OKLCH-clamped neon token so
+     the text always pops at max chroma+lightness regardless of palette.
+     Halo shadow gives legibility over the visualizer canvas without an
+     opaque scrim (per Brian: "song title doesn't need background"). */
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
   margin-bottom: 8px;
+  padding: 0;
+  background: transparent;
+  text-shadow:
+    0 1px 8px rgba(6, 6, 16, 0.85),
+    0 0 24px color-mix(in srgb, var(--album-accent, var(--accent)) 35%, transparent);
 }
 .viz__hero-title {
-  margin: 0 -8px 10px -8px;
+  margin: 0 0 10px;
   font-family: var(--font-display);
   font-weight: 900;
   font-size: clamp(2rem, min(9vw, 14vh), 9rem);
   line-height: 0.86;
   letter-spacing: -0.04em;
   text-transform: uppercase;
-  color: var(--ink);
+  /* Pure white text — no scrim. Heavy halo + accent glow handles
+     legibility against any visualizer canvas, including bright frames.
+     Per Brian: big-title backgrounds should be transparent. */
+  color: #ffffff;
   text-wrap: balance;
+  background: transparent;
   text-shadow:
-    0 6px 28px rgba(6, 6, 16, 0.88),
-    0 1px 0 rgba(0, 0, 0, 0.4);
-  filter: drop-shadow(0 0 28px rgba(0, 229, 255, 0.18));
+    0 2px 12px rgba(6, 6, 16, 0.95),
+    0 4px 24px rgba(6, 6, 16, 0.7),
+    0 0 48px color-mix(in srgb, var(--album-accent, var(--accent)) 32%, transparent);
 }
 .viz__hero-vibe {
-  margin: 0;
+  margin: 14px 0 0;
   max-width: 56ch;
   font-family: var(--font-body);
   font-size: 1.02rem;
   line-height: 1.45;
-  color: var(--ink-soft);
-  text-shadow: 0 2px 10px rgba(6, 6, 16, 0.9);
+  /* Bumped from --ink-soft to --ink for full-white contrast on canvas.
+     Removed scrim — halo shadow carries legibility. */
+  color: var(--ink);
+  background: transparent;
+  text-shadow:
+    0 1px 8px rgba(6, 6, 16, 0.9),
+    0 0 18px rgba(6, 6, 16, 0.5);
+}
+/* viz__hero-ticker removed — lyrics now live only in the dedicated
+   karaoke overlay (toggled via the navbar "Lyrics" button) and the
+   fullscreen lyrics view. Keeps the visualizer hero clean. */
+
+/* Auto-dim the visualizer canvas when the karaoke overlay is open so
+   the lyric text reads against a calmer backdrop. body[data-karaoke-open]
+   is set by setKaraokeOverlay() in main.ts. */
+body[data-karaoke-open='1'] #bg {
+  opacity: 0.35;
+  transition: opacity 360ms ease;
+}
+body:not([data-karaoke-open='1']) #bg {
+  opacity: 1;
+  transition: opacity 360ms ease;
+}
+
+/* Track-change cross-fade — quick opacity ramp on the visualizer canvas
+   so consecutive tracks feel like a single continuous experience.
+   body[data-track-changing] is set briefly during play() in main.ts. */
+body[data-track-changing='1'] #bg {
+  opacity: 0.55;
+  transition: opacity 260ms ease;
 }
 .viz__hero-tags {
   display: flex;
@@ -1160,7 +1357,10 @@ html.is-playing .ai-playlist {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--ink-album-accent, var(--ink-accent));
+  /* Pick number = a numeric overlay just like HUD digits — use the
+     neon-clamped variant so the rank number pops on every album palette
+     including dull palette-extracted hues. */
+  color: var(--ink-album-accent-neon, var(--ink-album-accent, var(--ink-accent)));
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
@@ -1294,16 +1494,19 @@ html.is-playing .ai-playlist--rail {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.72rem;
-  /* --ink-accent stays readable even when --accent is overridden to a
-     palette-extracted dark hue (some album covers produce navy/wine/
-     forest accents). Mixes 30% white in OKLCH so the HUD numbers never
-     drop below a ~4.5:1 contrast ratio on the #060610 backdrop. */
-  color: var(--ink-accent);
+  /* HUD digits MUST read as neon, never dull. Uses the OKLCH-clamped
+     neon variant — guarantees lightness ≥ 0.78 + chroma ≥ 0.22 no matter
+     what color the cover-art palette extractor wrote into --accent.
+     Falls back to --ink-accent then --accent for browsers that don't
+     yet support `oklch(from ...)` relative-color syntax (Firefox < 113,
+     Safari < 16.4 — both well below their respective baselines now). */
+  color: var(--ink-accent-neon, var(--ink-accent, var(--accent)));
   font-variant-numeric: tabular-nums;
   text-align: right;
-  /* Text-shadow gives a thin dark halo so the digits stay readable even
-     when they fly over a bright region of the visualizer. */
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  /* Dark halo so digits stay readable when they fly over a bright
+     region of the visualizer. The neon-clamped fg + dark halo combo
+     gives ≥7:1 contrast against any visualizer frame. */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 .hud__v--time {
   letter-spacing: 0.01em;
@@ -1413,7 +1616,16 @@ html.is-playing .ai-playlist--rail {
   padding: 0 7px;
   border-radius: 999px;
   background: var(--accent);
+  /* Fallback for browsers without OKLCH relative-color (Safari < 16.4) —
+     hardcoded dark text works for the current neon accent palette. */
   color: #00131a;
+  /* Auto-contrast: pick black text on light accents (l > 0.5) and white
+     on dark accents. `oklch(from var(--accent) calc((0.5 - l) * 1000) 0 0)`
+     evaluates the perceptual lightness of the accent and saturates the
+     output L channel to 0 or 1 via the *1000 multiplier + auto-clamp.
+     Future palette-extracted accents (e.g., a dark navy from cover art)
+     will get white text automatically — WCAG-safe always. */
+  color: oklch(from var(--accent) calc((0.5 - l) * 1000) 0 0);
   font-weight: 700;
   font-size: 0.7rem;
   letter-spacing: 0.02em;
@@ -1473,14 +1685,17 @@ html.is-playing .ai-playlist--rail {
   right: 12px;
   margin: 0;
   border: 1px solid var(--line-strong);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   background: linear-gradient(165deg, rgba(12, 12, 28, 0.96), rgba(6, 6, 16, 0.96));
   backdrop-filter: blur(22px) saturate(1.25);
   -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  /* Popover elevation = modal-ish since it's full-overlay UI. Tints
+     glow with current album accent for visual continuity with the
+     album rail below. */
   box-shadow:
-    0 30px 80px -28px rgba(0, 229, 255, 0.45),
-    0 18px 46px -22px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    var(--shadow-xl),
+    0 0 60px -20px color-mix(in srgb, var(--album-accent, var(--accent)) 30%, transparent),
+    var(--shadow-ring);
   color: var(--ink, #f1f1f6);
   width: min(560px, calc(100vw - 24px));
   max-height: min(72vh, 640px);
@@ -1849,12 +2064,20 @@ html.is-playing .ai-playlist--rail {
   display: grid;
   grid-template-columns: minmax(180px, 240px) auto minmax(140px, 1fr) auto auto;
   align-items: center;
-  gap: 18px;
-  padding: 12px 24px max(12px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line);
-  background: linear-gradient(0deg, rgba(6, 6, 16, 0.98), rgba(6, 6, 16, 0.78));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5) max(var(--space-3), env(safe-area-inset-bottom));
+  /* Refined surface — linear-gradient + accent-tinted top border for
+     visual continuity with the rail (which has its own accent-tinted
+     top edge). Inner 1px highlight ring gives the bar a glassy lift
+     against the visualizer canvas above. */
+  border-top: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 18%, var(--line));
+  background:
+    linear-gradient(0deg, rgba(6, 6, 16, 0.98), rgba(6, 6, 16, 0.82));
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  box-shadow:
+    0 -24px 48px -32px color-mix(in srgb, var(--album-accent, var(--accent)) 30%, transparent),
+    var(--shadow-ring);
 }
 @media (max-width: 1100px) {
   .transport {
@@ -1876,11 +2099,14 @@ html.is-playing .ai-playlist--rail {
 .transport__np-cover {
   width: 68px;
   height: 68px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   object-fit: cover;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent);
-  transition: box-shadow 0.08s linear;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: var(--shadow-sm), var(--shadow-ring);
+  transition: box-shadow var(--duration-medium) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+}
+.transport__np-cover:hover {
+  box-shadow: 0 0 0 1px var(--album-accent, var(--accent)), var(--shadow-md);
 }
 .transport__np-meta {
   display: grid;
@@ -1917,6 +2143,30 @@ html.is-playing .ai-playlist--rail {
   overflow: hidden;
   text-overflow: ellipsis;
   text-transform: uppercase;
+}
+.transport__np-suno {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.transport__np-suno[hidden] {
+  display: none;
+}
+.transport__np-suno__bpm {
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
+}
+.transport__np-suno__key {
+  color: var(--ink-soft);
+}
+.transport__np-suno__sep {
+  color: var(--ink-mute);
+  opacity: 0.7;
 }
 .transport__progress {
   display: grid;
@@ -2367,17 +2617,113 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 .transport__airplay[hidden] {
   display: none;
 }
-.transport__cast svg,
 .transport__airplay svg {
   width: 16px;
   height: 16px;
 }
+/* Cast button — labeled "Cast" text + 18px Material-style glyph (TV
+   rectangle + 3 signal arcs) so the action surface reads as a recognizable
+   destination picker rather than an unlabeled chrome icon. */
+.transport__cast {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink-mute);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, rgba(255, 255, 255, 0.08));
+  background: rgba(6, 6, 16, 0.4);
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 220ms ease,
+    transform 140ms ease;
+}
+.transport__cast svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+.transport__cast:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, rgba(6, 6, 16, 0.55));
+}
+.transport__cast:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.transport__cast-text {
+  white-space: nowrap;
+}
+.transport__cast-device {
+  margin-left: 4px;
+  padding-left: 8px;
+  border-left: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--ink-accent, var(--accent));
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  max-width: 12ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Tight transport rails (≤ 720px wide phones) hide the label so the icon
+   stands alone — still 18px so it's tap-target-friendly even compact. */
+@media (max-width: 720px) {
+  .transport__cast {
+    padding: 6px 9px;
+  }
+  .transport__cast-text {
+    display: none;
+  }
+}
 .transport__cast.is-unavailable {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
 }
+.transport__cast.is-unavailable .transport__cast-text {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
+}
+/* Ready state — devices detected on the network. Lift the button into a
+   filled accent treatment so the user clearly sees "you can Cast right now". */
 .transport__cast.is-ready {
-  color: rgba(0, 229, 255, 0.9);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, rgba(6, 6, 16, 0.55));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.transport__cast.is-ready svg {
+  color: var(--ink-accent-neon, var(--accent));
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 55%, transparent));
+}
+.transport__cast.is-ready::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink-accent-neon, var(--accent));
+  box-shadow: 0 0 8px var(--ink-accent-neon, var(--accent));
+  animation: castReadyPulse 1.8s ease-in-out infinite;
+}
+@keyframes castReadyPulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.25); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .transport__cast.is-ready::before { animation: none; opacity: 0.85; }
 }
 .transport__cast.is-loading {
   opacity: 0.7;
@@ -2462,9 +2808,9 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 }
 .share-chip:hover,
 .share-chip:focus-visible {
-  border-color: var(--accent);
-  color: var(--ink-accent);
-  background: rgba(0, 229, 255, 0.1);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 60%, transparent);
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 10%, rgba(255, 255, 255, 0.02));
   outline: none;
 }
 .share-chip:active {
@@ -2493,15 +2839,27 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 }
 .share-chip--row {
   position: absolute;
+  /* Center via margin instead of transform: the global universal-hover-lift
+     rule rewrites `transform`, which would have overridden the -50%
+     centering and dropped the button ~15px down on hover. Margin-based
+     centering frees `transform` for the hover micro-lift. */
   top: 50%;
+  margin-top: -15px;
   right: 12px;
-  transform: translateY(-50%);
   width: 30px;
   height: 30px;
   padding: 0;
   opacity: 0;
   pointer-events: none;
   z-index: 2;
+}
+/* Opt out of the universal hover/active translate — the chip already
+   communicates state via border-color + background. Keeping the chip at
+   the same Y on hover matches sibling buttons in the row. */
+.trackrow-wrap .share-chip--row:hover,
+.trackrow-wrap .share-chip--row:active,
+.trackrow-wrap .share-chip--row:focus-visible {
+  transform: none;
 }
 .trackrow-wrap:hover .share-chip--row,
 .trackrow-wrap:focus-within .share-chip--row,
@@ -2878,17 +3236,25 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
   position: fixed;
   inset: 0;
   margin: auto;
-  width: min(560px, 92vw);
-  max-height: 86dvh;
-  border: 1px solid var(--line-strong);
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(20, 20, 46, 0.97), rgba(6, 6, 16, 0.98));
+  /* Wider per Brian: more room to host the 14-network grid + inline preview
+     without crowding. Sharper architectural 14px radius matching Library
+     panel. */
+  width: min(680px, 94vw);
+  max-height: 90dvh;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 38%, var(--line-strong));
+  border-radius: 14px;
+  background:
+    radial-gradient(120% 80% at 100% 0%, color-mix(in srgb, var(--album-accent, var(--accent)) 14%, transparent) 0%, transparent 65%),
+    linear-gradient(180deg, rgba(20, 20, 46, 0.97), rgba(6, 6, 16, 0.98));
   color: var(--ink);
   padding: 0;
   overflow: hidden;
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
   box-shadow:
-    0 32px 72px -28px rgba(0, 229, 255, 0.4),
-    0 0 0 1px rgba(0, 229, 255, 0.18) inset;
+    0 32px 80px -24px rgba(0, 0, 0, 0.92),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 0 64px -24px color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
 }
 .share::backdrop {
   background: rgba(4, 4, 12, 0.72);
@@ -3074,13 +3440,131 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
   width: 100%;
   background: rgba(6, 6, 16, 0.7);
   border: 1px solid var(--line-strong);
-  border-radius: 10px;
+  border-radius: 6px;
   color: var(--ink);
   padding: 10px 12px;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   resize: vertical;
   min-height: 64px;
+}
+/* ─── Expanded share dialog: 14-network grid + inline preview ─── */
+.share__head-text { min-width: 0; }
+.share__head-text .share__title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.share__section--preview {
+  background: rgba(6, 6, 16, 0.4);
+  padding: 12px 14px 14px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 18%, var(--line));
+}
+.share__preview-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.share__preview-hint {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.share__preview-frame {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  background: rgba(6, 6, 16, 0.65);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  overflow: auto;
+}
+.share__preview {
+  width: var(--share-preview-w, 320px);
+  height: var(--share-preview-h, 180px);
+  max-width: 100%;
+  border: 0;
+  border-radius: 4px;
+  background: #060610;
+  transition: width 220ms ease, height 220ms ease;
+}
+.share__networks {
+  display: grid;
+  /* Auto-fill responsive grid — fits 3 per row on mobile, up to 5 on
+     desktop. Every chip same size so the grid reads as a single
+     considered layout instead of a flex-wrap mess. */
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 6px;
+}
+.share__networks .share__chip {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 14%, var(--line));
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+.share__networks .share__chip:hover,
+.share__networks .share__chip:focus-visible {
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 10%, rgba(255, 255, 255, 0.02));
+  transform: translateY(-1px);
+  outline: none;
+}
+.share__chip-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 24%, rgba(255, 255, 255, 0.04));
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
+  flex: 0 0 22px;
+}
+.share__chip--native .share__chip-ico {
+  background: var(--album-accent, var(--accent));
+  color: oklch(from var(--album-accent, var(--accent)) calc((0.5 - l) * 1000) 0 0);
+}
+.share__qr {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px;
+  margin-top: 6px;
+  background: rgba(6, 6, 16, 0.55);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.share__qr-hint {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  text-align: center;
 }
 .share__embed-code:focus-visible {
   outline: 2px solid var(--accent);
@@ -3155,6 +3639,24 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
   display: grid;
   gap: 4px;
   min-width: 0;
+  position: relative;
+}
+.embed__body > * {
+  position: relative;
+  z-index: 1;
+}
+.embed__viz {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  opacity: 0.42;
+  pointer-events: none;
+  border-radius: 8px;
+  mix-blend-mode: screen;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 32%, #000 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 32%, #000 100%);
 }
 .embed__eyebrow {
   margin: 0;
@@ -3880,6 +4382,24 @@ html.is-appeal-open {
 .karaoke[hidden] {
   display: none;
 }
+/* When opened at a user-saved drag position, JS sets inline left/top/
+   transform: none. The default karaokeIn animation re-applies
+   translate(-50%, -50%) for 220ms, which would slide the panel from
+   the default CSS-center over to the saved coords — that's the visible
+   flash. Swap to an opacity-only enter so the panel materializes
+   exactly where JS placed it. */
+.karaoke.is-positioned {
+  animation: karaokeFadeIn 180ms ease-out;
+}
+@keyframes karaokeFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .karaoke.is-positioned {
+    animation: none;
+  }
+}
 .karaoke__handle {
   position: absolute;
   top: 6px;
@@ -3987,9 +4507,9 @@ html.is-appeal-open {
 .karaoke__w--active {
   color: #fff;
   text-shadow:
-    0 0 18px color-mix(in srgb, var(--accent) 88%, transparent),
-    0 0 6px color-mix(in srgb, var(--accent) 65%, transparent),
-    0 2px 4px rgba(0, 0, 0, 0.5);
+    0 0 22px color-mix(in srgb, var(--album-accent, var(--accent)) 92%, transparent),
+    0 0 8px color-mix(in srgb, var(--album-accent, var(--accent)) 70%, transparent),
+    0 2px 6px rgba(0, 0, 0, 0.65);
   transform: translateY(-1px) scale(1.06);
 }
 .karaoke.is-pulse .karaoke__now {
@@ -4037,7 +4557,8 @@ html.is-appeal-open {
     }
   }
 }
-.topbar__search kbd {
+.topbar__search kbd,
+.topbar__lyrics kbd {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--line-strong);
@@ -4070,10 +4591,13 @@ html.is-appeal-open {
   width: min(620px, 90vw);
   background: linear-gradient(180deg, rgba(20, 20, 46, 0.97), rgba(6, 6, 16, 0.98));
   border: 1px solid var(--line-strong);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
+  /* Modal elevation = highest in the system. Tinted glow uses the
+     current album accent (live-updates as tracks change). */
   box-shadow:
-    0 40px 80px -30px color-mix(in srgb, var(--accent) 45%, transparent),
-    0 0 0 1px rgba(0, 229, 255, 0.12) inset;
+    var(--shadow-xl),
+    0 0 0 1px color-mix(in srgb, var(--album-accent, var(--accent)) 14%, transparent) inset,
+    0 0 60px -20px color-mix(in srgb, var(--album-accent, var(--accent)) 35%, transparent);
   overflow: hidden;
 }
 .cmdk__head {
@@ -4082,10 +4606,27 @@ html.is-appeal-open {
   gap: 10px;
   padding: 14px 18px;
   border-bottom: 1px solid var(--line);
+  /* Soft focus state lives on the HEAD (not the input itself) so the
+     whole search bar glows subtly when the user is typing — feels like
+     the dialog is "listening". Echoes the dialog's outer accent ring at
+     a smaller radius for a layered, polished depth. */
+  transition:
+    border-bottom-color 220ms ease,
+    box-shadow 220ms ease;
+}
+.cmdk__head:focus-within {
+  border-bottom-color: color-mix(in srgb, var(--album-accent, var(--accent)) 38%, var(--line));
+  box-shadow:
+    inset 0 -1px 0 color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent),
+    0 6px 24px -10px color-mix(in srgb, var(--album-accent, var(--accent)) 22%, transparent);
 }
 .cmdk__icon {
   color: var(--ink-mute);
   flex: 0 0 auto;
+  transition: color 220ms ease;
+}
+.cmdk__head:focus-within .cmdk__icon {
+  color: color-mix(in srgb, var(--album-accent, var(--accent)) 70%, var(--ink-soft));
 }
 .cmdk__input {
   flex: 1;
@@ -4094,6 +4635,14 @@ html.is-appeal-open {
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 1rem;
+  outline: none;
+}
+/* Suppress the global 2px solid focus ring on the cmdk input — the
+   parent .cmdk__head:focus-within treatment is the canonical visual
+   focus indicator (a11y still satisfied: ring on the head + colored
+   icon + accent underline). */
+.cmdk__input:focus,
+.cmdk__input:focus-visible {
   outline: none;
 }
 .cmdk__input::placeholder {
@@ -4156,10 +4705,24 @@ html.is-appeal-open {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.9rem;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+/* Title text gets the truncation; the badge stays at full width
+   next to it. Ellipsis applies to the title-text span only. */
+.cmdk__item-title-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: var(--ink);
+  min-width: 0;
+}
+.cmdk__item-badge--inline {
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  padding: 1px 6px;
 }
 .cmdk__item-sub {
   font-family: var(--font-mono);
@@ -4594,6 +5157,18 @@ button:not(:disabled):active {
   flex: 1;
   min-width: 0;
 }
+/* The newsletter row inside the more-menu hosts an inline widget instead
+   of a button-with-icon — disable the hover background since the widget
+   handles its own focus/hover treatment. */
+.more-menu__item--newsletter {
+  padding: 8px 12px 10px;
+  background: transparent !important;
+  cursor: default;
+}
+.more-menu__item--newsletter .nl-inline {
+  max-width: none;
+  width: 100%;
+}
 .more-menu__item > span.more-menu__dot {
   flex: 0 0 8px;
   width: 8px;
@@ -4897,26 +5472,39 @@ button:not(:disabled):active {
 }
 .queue-panel__card {
   position: absolute;
-  right: 16px;
-  bottom: calc(var(--transport-h) + 12px);
-  width: min(420px, calc(100vw - 32px));
-  max-height: 70dvh;
+  right: 20px;
+  bottom: calc(var(--transport-h) + 14px);
+  /* More room per Brian: widened from 420→480 and capped at 80dvh so the
+     panel breathes properly and tabs/content never feel crammed. */
+  width: min(480px, calc(100vw - 40px));
+  max-height: 80dvh;
   background:
     radial-gradient(
-      120% 70% at 100% 0%,
-      color-mix(in srgb, var(--accent) 12%, transparent) 0%,
+      130% 80% at 100% 0%,
+      color-mix(in srgb, var(--album-accent, var(--accent)) 16%, transparent) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      80% 50% at 0% 100%,
+      color-mix(in srgb, var(--album-accent, var(--accent)) 10%, transparent) 0%,
       transparent 60%
     ),
     linear-gradient(180deg, rgba(14, 14, 28, 0.98), rgba(7, 7, 18, 0.98));
-  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line-strong));
-  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 38%, var(--line-strong));
+  /* Sharper architectural radii — matches the sharper 4-6px corners
+     used elsewhere in the app (AI chat redesign, embed surface). */
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
   box-shadow:
-    0 32px 80px -24px rgba(0, 0, 0, 0.9),
+    0 32px 90px -24px rgba(0, 0, 0, 0.92),
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-    0 1px 0 rgba(255, 255, 255, 0.08) inset;
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    /* Album-accent edge glow — pulses with the active track palette */
+    0 0 64px -28px color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
   transform: translateY(10px) scale(0.985);
   opacity: 0;
   pointer-events: none;
@@ -4932,8 +5520,11 @@ button:not(:disabled):active {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  opacity: 0.55;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 90%, transparent),
+    transparent);
+  opacity: 0.75;
   pointer-events: none;
 }
 .queue-panel.is-open .queue-panel__card {
@@ -4944,43 +5535,57 @@ button:not(:disabled):active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px 12px;
+  gap: 14px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 14%, rgba(255, 255, 255, 0.06));
 }
 .queue-panel__title {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
   flex: 1;
 }
 .queue-panel__title h3 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  /* White on dark + neon-accent gradient sweep for the heading character —
+     consistent with the rest of the app's display headlines. */
+  background: linear-gradient(95deg,
+    var(--ink) 0%,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 90%, var(--ink)) 60%,
+    var(--ink) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .queue-panel__title-eye {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  color: #00131a;
-  background: var(--accent);
-  border-radius: 6px;
-  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 60%, transparent);
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--album-accent, var(--accent));
+  /* Auto-contrast: WCAG-safe black-or-white text on any accent. */
+  color: oklch(from var(--album-accent, var(--accent)) calc((0.5 - l) * 1000) 0 0);
+  border-radius: 7px;
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--album-accent, var(--accent)) 60%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 .queue-panel__title-hint {
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-mute);
-  opacity: 0.85;
+  opacity: 0.92;
   margin-left: auto;
 }
 .queue-panel__close {
@@ -5012,9 +5617,9 @@ button:not(:disabled):active {
   flex: 0 0 auto;
   align-items: center;
   flex-wrap: wrap;
-  row-gap: 4px;
-  column-gap: 4px;
-  padding: 0 12px 8px;
+  row-gap: 6px;
+  column-gap: 6px;
+  padding: 12px 20px 14px;
   overflow: hidden;
 }
 .queue-panel__tabs::-webkit-scrollbar {
@@ -5029,19 +5634,20 @@ button:not(:disabled):active {
 .queue-panel__tab {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  height: 26px;
+  gap: 6px;
+  height: 30px;
   line-height: 1;
   flex: 0 0 auto;
   background: rgba(255, 255, 255, 0.025);
-  border: 1px solid var(--line);
-  color: var(--ink-mute);
-  padding: 0 9px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 14%, var(--line));
+  color: var(--ink-soft);
+  padding: 0 12px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 10.5px;
   font-family: var(--font-mono);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
   transition:
@@ -5052,17 +5658,19 @@ button:not(:disabled):active {
 }
 .queue-panel__tab:hover {
   color: var(--ink);
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 50%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 8%, rgba(255, 255, 255, 0.025));
 }
 .queue-panel__tab-ico {
   font-size: 11px;
-  opacity: 0.85;
+  opacity: 0.95;
 }
 .queue-panel__tab.is-active {
-  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 75%, #000));
-  color: #00131a;
+  background: var(--album-accent, var(--accent));
+  color: oklch(from var(--album-accent, var(--accent)) calc((0.5 - l) * 1000) 0 0);
   border-color: transparent;
-  box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--accent) 70%, transparent);
+  box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--album-accent, var(--accent)) 70%, transparent);
+  font-weight: 700;
 }
 .queue-panel__tab.is-active .queue-panel__tab-ico {
   opacity: 1;
@@ -5074,9 +5682,9 @@ button:not(:disabled):active {
 .queue-panel__body {
   flex: 1;
   overflow-y: auto;
-  padding: 6px 10px 12px;
+  padding: 10px 14px 18px;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--accent) 40%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--album-accent, var(--accent)) 40%, transparent) transparent;
 }
 .queue-panel__body::-webkit-scrollbar {
   width: 6px;
@@ -5097,10 +5705,10 @@ button:not(:disabled):active {
 .queue-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 4px 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 .queue-chips {
   display: flex;
@@ -5164,73 +5772,92 @@ button:not(:disabled):active {
 .queue-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   background: transparent;
   border: 1px solid transparent;
-  padding: 8px;
-  border-radius: 12px;
+  padding: 10px 12px;
+  /* Sharper architectural radius matching the panel itself. */
+  border-radius: 8px;
   color: var(--ink);
   text-align: left;
-  cursor: pointer;
+  cursor: grab;
   transition:
     background 0.18s ease,
     border-color 0.18s ease,
-    transform 0.18s ease;
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
   counter-increment: q-rank;
 }
 .queue-row[data-q-rank]::before {
   content: counter(q-rank, decimal-leading-zero);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
+  font-weight: 600;
   letter-spacing: 0.08em;
-  color: color-mix(in srgb, var(--accent) 85%, var(--ink));
-  width: 22px;
-  text-align: center;
+  color: color-mix(in srgb, var(--album-accent, var(--accent)) 75%, var(--ink-mute));
+  width: 24px;
+  text-align: right;
   flex-shrink: 0;
-  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
 }
 .queue-list {
   counter-reset: q-rank;
 }
 .queue-row:hover,
 .queue-row:focus-visible {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 10%, rgba(255, 255, 255, 0.02));
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 30%, transparent);
   transform: translateX(2px);
+  outline: none;
+}
+.queue-row:active,
+.queue-row.is-dragging {
+  cursor: grabbing;
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 18%, rgba(255, 255, 255, 0.02));
+  box-shadow:
+    inset 3px 0 0 var(--album-accent, var(--accent)),
+    0 8px 24px -10px color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
 }
 .queue-row.is-current {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-  box-shadow: inset 3px 0 0 var(--accent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 18%, transparent);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+  box-shadow:
+    inset 3px 0 0 var(--album-accent, var(--accent)),
+    0 6px 18px -10px color-mix(in srgb, var(--album-accent, var(--accent)) 45%, transparent);
 }
 .queue-row img {
-  border-radius: 7px;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
   flex-shrink: 0;
-  box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 .queue-row__body {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
   min-width: 0;
   flex: 1;
 }
 .queue-row__title {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.005em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--ink);
 }
 .queue-row.is-current .queue-row__title {
-  color: var(--ink-accent);
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
 }
 .queue-row__sub {
   color: var(--ink-mute);
   font-size: 11px;
   font-family: var(--font-mono);
+  letter-spacing: 0.04em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6705,175 +7332,6 @@ body.cast-tv-open .transport {
   }
 }
 
-.notify {
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  width: min(440px, 92vw);
-  max-height: 90dvh;
-  border: 1px solid var(--line-strong);
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(20, 20, 46, 0.97), rgba(6, 6, 16, 0.98));
-  color: var(--ink);
-  padding: 0;
-  overflow: hidden;
-  box-shadow:
-    0 32px 72px -28px rgba(0, 229, 255, 0.4),
-    0 0 0 1px rgba(0, 229, 255, 0.18) inset;
-}
-.notify::backdrop {
-  background: rgba(4, 4, 12, 0.72);
-  backdrop-filter: blur(8px);
-}
-.notify__card {
-  padding: 22px 22px 20px;
-  display: grid;
-  gap: 14px;
-}
-.notify__close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: transparent;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  width: 32px;
-  height: 32px;
-  color: var(--ink);
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition:
-    border-color 0.18s ease,
-    color 0.18s ease;
-}
-.notify__close:hover,
-.notify__close:focus-visible {
-  border-color: var(--accent);
-  color: var(--ink-accent);
-  outline: none;
-}
-.notify__head {
-  display: grid;
-  gap: 4px;
-  padding-right: 36px;
-}
-.notify__eyebrow {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-}
-.notify__title {
-  margin: 2px 0 0;
-  font-size: 1.18rem;
-  line-height: 1.2;
-}
-.notify__sub {
-  margin: 2px 0 6px;
-  font-size: 0.82rem;
-  color: var(--ink-mute);
-  line-height: 1.45;
-}
-.notify__label {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-}
-.notify__input {
-  width: 100%;
-  background: rgba(6, 6, 16, 0.65);
-  border: 1px solid var(--line-strong);
-  border-radius: 10px;
-  color: var(--ink);
-  padding: 11px 13px;
-  font-family: var(--font-mono);
-  font-size: 0.86rem;
-}
-.notify__input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-  border-color: var(--accent);
-}
-.notify__error {
-  margin: 0;
-  font-size: 0.74rem;
-  color: #ff6b8a;
-  font-family: var(--font-mono);
-}
-.notify__check {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.78rem;
-  color: var(--ink);
-  cursor: pointer;
-  user-select: none;
-  padding: 4px 0;
-}
-.notify__checkbox {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--accent);
-  cursor: pointer;
-  margin: 0;
-}
-.notify__hint {
-  color: var(--ink-mute);
-  font-style: normal;
-  font-size: 0.72rem;
-  margin-left: 4px;
-}
-.notify__submit {
-  width: 100%;
-  border: 1px solid var(--accent);
-  background: linear-gradient(180deg, rgba(0, 229, 255, 0.28), rgba(0, 229, 255, 0.12));
-  color: var(--ink-accent);
-  border-radius: 12px;
-  padding: 12px 16px;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    background 0.18s ease,
-    transform 0.12s ease,
-    color 0.18s ease;
-  margin-top: 4px;
-}
-.notify__submit:hover,
-.notify__submit:focus-visible {
-  background: rgba(0, 229, 255, 0.32);
-  color: #fff;
-  outline: none;
-}
-.notify__submit:active {
-  transform: translateY(1px);
-}
-.notify__submit:disabled {
-  opacity: 0.6;
-  cursor: progress;
-}
-.notify__legal {
-  margin: 0;
-  font-size: 0.68rem;
-  color: var(--ink-mute);
-  text-align: center;
-  font-family: var(--font-mono);
-  letter-spacing: 0.04em;
-}
-@media (max-width: 460px) {
-  .notify__card {
-    padding: 18px 16px 16px;
-  }
-  .notify__title {
-    font-size: 1.05rem;
-  }
-}
 
 /* ============================================================
    AI Chat — cinematic right-pane widget
@@ -6915,79 +7373,80 @@ body.cast-tv-open .transport {
   --aichat-pad: 20px;
 }
 
+/* AI Chat FAB — architectural squircle, matches the app's sharp-radius
+   + album-accent edge-rail aesthetic. Same visual language as the
+   Library panel + share modal + transport bar: 14px corners, single
+   neon edge glow that pulses with audio amp, no rainbow conic, no
+   spinning decorative ring. Cleaner. Sleeker. Reads as part of the
+   chrome, not a candy attraction button. */
 .aichat__fab {
   position: fixed;
-  right: 22px;
-  bottom: calc(var(--transport-h) + 22px);
-  width: 62px;
-  height: 62px;
-  border-radius: 50%;
+  right: 20px;
+  bottom: calc(var(--transport-h) + 20px);
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  /* Dark glass surface with album-accent inner glow on top edge */
   background:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 38%),
-    conic-gradient(from 0deg, var(--aichat-accent), var(--violet), #ff6ec7, var(--aichat-accent));
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+    radial-gradient(120% 80% at 50% 0%,
+      color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 22%, transparent) 0%,
+      transparent 60%),
+    linear-gradient(180deg, rgba(20, 20, 46, 0.88), rgba(6, 6, 16, 0.96));
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 38%, var(--line-strong));
   display: grid;
   place-items: center;
   cursor: pointer;
   pointer-events: auto;
   isolation: isolate;
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
   box-shadow:
-    0 22px 52px -18px color-mix(in srgb, var(--aichat-accent) 70%, transparent),
-    0 12px 28px -12px rgba(124, 58, 237, 0.55),
-    0 0 calc(10px + var(--aichat-amp) * 40px) color-mix(in srgb, var(--aichat-accent) 70%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -8px 18px rgba(0, 0, 0, 0.35);
+    /* Floor shadow */
+    0 18px 40px -16px rgba(0, 0, 0, 0.7),
+    /* Neon accent edge (album-aware, audio-amp responsive) */
+    0 0 calc(14px + var(--aichat-amp, 0) * 36px)
+      color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 55%, transparent),
+    /* Inner top highlight */
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition:
     transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 240ms ease,
     box-shadow 240ms ease,
     opacity 200ms ease;
-  /* Breathing animation lives on the SVG child (see `.aichat__fab > svg` below)
-     so the button's own bounding box stays static — keyboard nav + Playwright
-     stability + accidental-tap forgiveness all benefit. The decorative `::before`
-     ring still spins; the audio-driven `::after` ring still pulses on --aichat-amp. */
 }
 .aichat__fab::before {
+  /* Subtle audio-amp ring — much softer than the previous spinning rainbow */
   content: '';
   position: absolute;
-  inset: -2px;
-  border-radius: 50%;
+  inset: -3px;
+  border-radius: 16px;
   z-index: -1;
-  background: conic-gradient(from 0deg, var(--aichat-accent), var(--violet), #ff6ec7, var(--aichat-accent));
-  filter: blur(10px);
-  opacity: 0.65;
-  animation: aichat-fab-spin 6s linear infinite;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 35%, transparent);
+  opacity: calc(0.3 + var(--aichat-amp, 0) * 0.6);
+  transform: scale(calc(1 + var(--aichat-amp, 0) * 0.08));
+  transition: transform 100ms linear, opacity 100ms linear;
 }
-.aichat__fab::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  z-index: -2;
-  border: 1px solid color-mix(in srgb, var(--aichat-accent) 50%, transparent);
-  opacity: calc(0.35 + var(--aichat-amp) * 0.65);
-  transform: scale(calc(1 + var(--aichat-amp) * 0.18));
-  transition:
-    transform 100ms linear,
-    opacity 100ms linear;
-}
+.aichat__fab::after { display: none; }
 .aichat__fab > svg {
   position: relative;
   z-index: 1;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
-  animation: aichat-fab-breathe 4.4s ease-in-out infinite;
-  transform-origin: center;
+  width: 22px;
+  height: 22px;
+  /* OKLCH-clamped neon — matches active-track text color across app */
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 60%, transparent));
 }
 .aichat__fab:hover {
-  transform: translateY(-3px) scale(1.06);
-  animation-play-state: paused;
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 70%, transparent);
 }
 .aichat__fab:active {
-  transform: translateY(0) scale(0.96);
+  transform: translateY(0) scale(0.97);
 }
 .aichat__fab:focus-visible {
-  outline: 2px solid var(--aichat-accent);
-  outline-offset: 4px;
+  outline: 2px solid var(--album-accent, var(--aichat-accent));
+  outline-offset: 3px;
 }
 .aichat__fab.is-hidden {
   opacity: 0;
@@ -7085,12 +7544,12 @@ body.cast-tv-open .transport {
   transform: translateX(102%);
   opacity: 0;
   transition:
-    transform 320ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 220ms ease;
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-medium) var(--ease-out);
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   box-shadow:
-    -28px 0 80px -28px rgba(0, 0, 0, 0.7),
+    var(--shadow-xl),
     inset 1px 0 0 rgba(255, 255, 255, 0.04);
   overflow: hidden;
   isolation: isolate;
@@ -7169,53 +7628,19 @@ body.cast-tv-open .transport {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px var(--aichat-pad);
-  border-bottom: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, rgba(255, 255, 255, 0.06));
-  background: linear-gradient(180deg, rgba(6, 6, 16, 0.55) 0%, rgba(6, 6, 16, 0.2) 100%);
+  padding: 16px var(--aichat-pad) 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 18%, rgba(255, 255, 255, 0.06));
+  background: linear-gradient(180deg, rgba(6, 6, 16, 0.65) 0%, rgba(6, 6, 16, 0.2) 100%);
 }
 .aichat__title {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
   font-family: var(--font-display);
 }
-.aichat__title strong {
-  font-size: 1rem;
-  letter-spacing: -0.01em;
-  font-weight: 600;
-  background: linear-gradient(
-    135deg,
-    var(--ink) 30%,
-    color-mix(in srgb, var(--aichat-accent) 70%, var(--ink)) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.aichat__title-mark {
-  position: relative;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--aichat-accent);
-  box-shadow: var(--aichat-glow);
-  transition: box-shadow 160ms ease;
-}
-.aichat__title-mark::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--aichat-accent) 40%, transparent);
-  opacity: calc(0.3 + var(--aichat-amp) * 0.7);
-  transform: scale(calc(1 + var(--aichat-amp) * 0.5));
-  transition:
-    transform 80ms linear,
-    opacity 80ms linear;
-}
-.aichat__panel.is-streaming .aichat__title-mark {
-  animation: aichat-pulse 0.9s ease-in-out infinite;
-}
+/* Title-mark + Ask bZ strong removed — header now leads with the persona pill,
+   so the chrome is the action surface rather than a vestigial logotype. The
+   streaming pulse is already on .aichat__status (shimmer below). */
 .aichat__status {
   font-family: var(--font-mono);
   font-size: 0.62rem;
@@ -8254,12 +8679,16 @@ body.cast-tv-open .transport {
 .aichat__welcome h3 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  letter-spacing: -0.015em;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  /* Album-accent aware gradient — sweeps from white through accent for a
+     cinematic header that matches the rest of the app's display chrome. */
   background: linear-gradient(
-    135deg,
+    95deg,
     var(--ink) 0%,
-    color-mix(in srgb, var(--aichat-accent) 60%, var(--ink)) 100%
+    color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 75%, var(--ink)) 60%,
+    var(--ink) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -8267,15 +8696,16 @@ body.cast-tv-open .transport {
 }
 .aichat__welcome-sub {
   margin: 0;
-  color: var(--ink-mute);
+  color: var(--ink-soft);
   font-size: 0.92rem;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 .aichat__welcome-rotating {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--aichat-accent);
-  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--aichat-accent)));
   min-height: 1.4em;
   opacity: 0;
   transform: translateY(4px);
@@ -8295,18 +8725,19 @@ body.cast-tv-open .transport {
 }
 .aichat__chips button {
   appearance: none;
-  background: rgba(244, 244, 255, 0.05);
-  border: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, var(--line));
+  background: rgba(244, 244, 255, 0.04);
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 18%, var(--line));
   color: var(--ink);
-  padding: 10px 14px;
-  border-radius: 999px;
+  padding: 9px 13px;
+  /* Sharper 6px radius matches the chat's architectural rhythm
+     instead of pill-shaped chrome — same as transport/library tabs. */
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   line-height: 1.2;
   font-family: var(--font-display);
+  font-weight: 600;
   letter-spacing: -0.005em;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   transition:
     background 160ms ease,
     color 160ms ease,
@@ -8315,13 +8746,13 @@ body.cast-tv-open .transport {
     transform 140ms ease;
 }
 .aichat__chips button:hover {
-  background: color-mix(in srgb, var(--aichat-accent) 18%, transparent);
-  color: var(--aichat-accent);
-  border-color: color-mix(in srgb, var(--aichat-accent) 50%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 14%, transparent);
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
+  border-color: color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 55%, transparent);
   box-shadow:
-    0 6px 18px -10px color-mix(in srgb, var(--aichat-accent) 60%, transparent),
+    0 6px 18px -10px color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 60%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 .aichat__chips button:active {
   transform: translateY(0);
@@ -9466,10 +9897,15 @@ a.aichat__widget:hover {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 8px var(--aichat-pad) calc(var(--aichat-pad) + 4px);
-  padding: 10px;
-  border-radius: 18px;
+  /* Compaction pass: tighter rhythm so the composer card is a single
+     dense surface, not a wrapper with empty breathing room above the
+     textarea. Children (urlhint, continueBanner, snipbar, composer) now
+     hug each other at 4px gap; horizontal margin trimmed; vertical
+     padding cut so the textarea sits right against the card edge. */
+  gap: var(--space-1);
+  margin: var(--space-1) var(--aichat-pad) calc(var(--aichat-pad) - 2px);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, rgba(255, 255, 255, 0.07));
   background: linear-gradient(
     180deg,
@@ -9478,16 +9914,25 @@ a.aichat__widget:hover {
   );
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
+  /* Composer = floating card → md elevation, top-edge accent glow for
+     visual continuity with the chat-panel chrome above. */
   box-shadow:
     0 -10px 32px -20px color-mix(in srgb, var(--aichat-accent) 35%, transparent),
-    0 18px 48px -24px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    var(--shadow-md),
+    var(--shadow-ring);
 }
+/* Collapse hidden children so they don't contribute gap whitespace.
+   Without this, `.aichat__continue[hidden]` + `.aichat__snipbar[hidden]`
+   each ate 4px of vertical real estate via the flex gap algorithm. */
+.aichat__compose-stack > [hidden] { display: none; }
 
 /* ---------- Composer ---------- */
 .aichat__composer {
   position: relative;
-  padding: 8px 8px 6px;
+  /* Inline padding zeroed out — the parent compose-stack now owns the
+     visual padding so the composer can use the full width. Vertical 2px
+     keeps the row from clipping the textarea's focus halo. */
+  padding: 2px 0 0;
   background: transparent;
 }
 .aichat__attach:not([hidden]) {
@@ -9520,7 +9965,10 @@ a.aichat__widget:hover {
 .aichat__row {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
+  /* Tighter spacing in the compacted composer; was 10px which left a
+     visible gap between mic and send. 6px matches the parent card's
+     internal rhythm. */
+  gap: 6px;
 }
 .aichat__sr {
   flex: 1;
@@ -9536,11 +9984,15 @@ a.aichat__widget:hover {
   display: block;
   width: 100%;
   resize: none;
-  height: 48px;
-  min-height: 48px;
-  max-height: 220px;
-  padding: 13px 16px;
-  border-radius: 14px;
+  /* Compacted from 48px → 44px so the textarea sits flush in a denser
+     composer card. Padding trimmed vertically (10/14) — the previous
+     13/16 over-padded the single-line state. Max-height bumped to 280px
+     so multi-line drafts still have room to expand. */
+  height: 44px;
+  min-height: 44px;
+  max-height: 280px;
+  padding: 10px 14px;
+  border-radius: 12px;
   background: rgba(244, 244, 255, 0.04);
   border: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, var(--line));
   color: var(--ink);
@@ -9570,16 +10022,15 @@ a.aichat__widget:hover {
 }
 .aichat__send,
 .aichat__stop {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;  /* sharper architectural radius matching the rest */
   flex-shrink: 0;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--aichat-accent) 100%, transparent) 0%,
-    color-mix(in srgb, var(--aichat-accent) 70%, var(--violet) 30%) 100%
-  );
-  color: #00131a;
+  /* Single album-accent fill — drops the linear gradient + violet mix in
+     favor of a clean accent fill with auto-contrast text. Matches the
+     library widget active tab + share modal submit. */
+  background: var(--album-accent, var(--aichat-accent));
+  color: oklch(from var(--album-accent, var(--aichat-accent)) calc((0.5 - l) * 1000) 0 0);
   border: 0;
   cursor: pointer;
   display: grid;
@@ -9588,19 +10039,19 @@ a.aichat__widget:hover {
   position: relative;
   isolation: isolate;
   box-shadow:
-    0 4px 14px -4px color-mix(in srgb, var(--aichat-accent) 50%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    0 6px 18px -6px color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 55%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
   transition:
     transform 140ms ease,
     box-shadow 200ms ease,
     filter 160ms ease;
 }
 .aichat__send:hover:not(:disabled) {
-  filter: brightness(1.08);
+  filter: brightness(1.12);
   transform: translateY(-1px);
   box-shadow:
-    0 8px 22px -6px color-mix(in srgb, var(--aichat-accent) 60%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    0 10px 26px -6px color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 70%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 .aichat__send:active:not(:disabled) {
   transform: translateY(0);
@@ -9619,10 +10070,10 @@ a.aichat__widget:hover {
   background: #ff7099;
 }
 .aichat__voice {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
-  border-radius: 14px;
+  border-radius: 12px;
   box-sizing: border-box;
   background: rgba(244, 244, 255, 0.04);
   border: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, var(--line));
@@ -9648,13 +10099,17 @@ a.aichat__widget:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 8px 4px 0;
+  /* Tightened: the meter is the hint+counter row directly under the
+     textarea. Was 8px top + 0 bottom — gave a visible gap above the
+     bottom edge of the compose card. Now 4px top, 0 bottom, hugged to
+     the textarea like a typing-aid annotation. */
+  margin: 4px 4px 0;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   color: var(--ink-mute);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.78;
+  opacity: 0.7;
   transition: opacity 200ms ease;
 }
 .aichat__composer:focus-within .aichat__meter {
@@ -10136,119 +10591,75 @@ a.aichat__widget:hover {
    collapse, continue-button, recents, streak, theme-from-album, etc.
    ============================================================ */
 
-/* Header mini-RMS bar (next to status pill) */
-.aichat__rms {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 1.5px;
-  height: 14px;
-  padding: 0 4px;
-  vertical-align: middle;
+/* .aichat__rms + .aichat__streak removed — header chrome is leaner so the
+   persona pill + status pill are the only signal carriers in the title row. */
+
+/* Page-wide drag-drop overlay — appears when ANY file/image/link/text is
+   dragged over the document. Drop = attach to the next AI chat message. */
+.aichat__page-drop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  background: color-mix(in srgb, var(--bg, #060610) 70%, transparent);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  transition: opacity 140ms ease;
 }
-.aichat__rms span {
-  width: 2px;
-  background: var(--aichat-accent);
-  border-radius: 1px;
-  transform-origin: bottom;
-  transition: transform 80ms linear;
+.aichat__page-drop.is-active {
+  opacity: 1;
+  pointer-events: none; /* still none — drop fires on the document, not this */
 }
-.aichat__rms span:nth-child(1) {
-  height: 6px;
-  transform: scaleY(calc(0.3 + var(--aichat-amp) * 0.9));
+.aichat__page-drop-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 36px 56px;
+  border-radius: 16px;
+  border: 2px dashed color-mix(in srgb, var(--accent, #00e5ff) 55%, transparent);
+  background: color-mix(in srgb, var(--bg, #060610) 75%, rgba(0, 0, 0, 0.4));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent, #00e5ff) 18%, transparent),
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    0 0 60px color-mix(in srgb, var(--accent, #00e5ff) 22%, transparent);
+  color: var(--ink, #f4f4ff);
+  text-align: center;
+  transform: scale(0.96);
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.aichat__rms span:nth-child(2) {
-  height: 10px;
-  transform: scaleY(calc(0.4 + var(--aichat-amp) * 1));
+.aichat__page-drop.is-active .aichat__page-drop-card {
+  transform: scale(1);
 }
-.aichat__rms span:nth-child(3) {
-  height: 14px;
-  transform: scaleY(calc(0.5 + var(--aichat-amp) * 0.95));
+.aichat__page-drop-card svg {
+  color: var(--ink-accent-neon, var(--accent, #00e5ff));
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--accent, #00e5ff) 55%, transparent));
 }
-.aichat__rms span:nth-child(4) {
-  height: 9px;
-  transform: scaleY(calc(0.35 + var(--aichat-amp) * 0.85));
+.aichat__page-drop-card strong {
+  font-family: var(--font-display, "Sora", system-ui);
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+  font-weight: 800;
 }
-.aichat__rms span:nth-child(5) {
-  height: 7px;
-  transform: scaleY(calc(0.3 + var(--aichat-amp) * 0.7));
+.aichat__page-drop-card span {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-mute, color-mix(in srgb, var(--ink, #f4f4ff) 70%, transparent));
 }
 @media (prefers-reduced-motion: reduce) {
-  .aichat__rms span {
-    transform: scaleY(0.5) !important;
+  .aichat__page-drop,
+  .aichat__page-drop-card {
+    transition: none;
   }
 }
 
-/* Streak badge in welcome */
-.aichat__streak {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin: 6px auto 0;
-  padding: 5px 11px;
-  border-radius: 999px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--aichat-accent) 14%, transparent),
-    color-mix(in srgb, var(--violet) 12%, transparent)
-  );
-  border: 1px solid color-mix(in srgb, var(--aichat-accent) 28%, transparent);
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.08em;
-  color: color-mix(in srgb, var(--aichat-accent) 90%, #fff);
-  text-transform: uppercase;
-}
-.aichat__streak[hidden] {
-  display: none;
-}
-
-/* Slash quickbar (above composer) */
-.aichat__quickbar {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 2px 4px 4px;
-  scrollbar-width: none;
-  /* Soft fade at the end so chips visibly continue off-screen — visual cue
-     that the row is horizontally scrollable. */
-  mask-image: linear-gradient(90deg, #000 0%, #000 92%, transparent 100%);
-}
-.aichat__quickbar::-webkit-scrollbar {
-  display: none;
-}
-.aichat__quickbar[hidden] {
-  display: none;
-}
-.aichat__quickbar button {
-  appearance: none;
-  background: rgba(244, 244, 255, 0.05);
-  border: 1px solid color-mix(in srgb, var(--aichat-accent) 10%, var(--line));
-  color: var(--ink-soft);
-  padding: 6px 12px;
-  border-radius: 999px;
-  cursor: pointer;
-  flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  transition:
-    background 140ms ease,
-    color 140ms ease,
-    border-color 140ms ease,
-    transform 140ms ease;
-}
-.aichat__quickbar button:hover {
-  background: color-mix(in srgb, var(--aichat-accent) 16%, transparent);
-  color: var(--aichat-accent);
-  border-color: color-mix(in srgb, var(--aichat-accent) 36%, transparent);
-  transform: translateY(-1px);
-}
-.aichat__quickbar button:active {
-  transform: translateY(0);
-}
-
-/* Snippets quickpick row (below quickbar, only when snippets exist) */
+/* Snippets quickpick row (only when snippets exist) */
 .aichat__snipbar {
   display: flex;
   gap: 6px;
@@ -11326,4 +11737,149 @@ a.aichat__widget:hover {
   .aichat__widget--doc {
     transition: none;
   }
+}
+
+/* =========================================================================
+   AI CHAT REDESIGN — Brian followup
+   Goal: less rounded, more architectural, aligned with transport aesthetic.
+   Overlay block — wins by cascade order so we don't need to touch every
+   inline rule above. Sharper radii (4-6px) for surfaces, kept 999px for
+   buttons/pills, removed loud aurora gradients, added single neon hairline
+   along the panel edge to echo the transport bar's accent rail.
+   ========================================================================= */
+
+/* Panel: full-bleed sheet — no rounded corners on the panel itself (it
+   anchors to the viewport edge), but inner surfaces get architectural
+   4-6px corners that match the embed + trackrow visual language. */
+.aichat__panel {
+  border-radius: 0;
+  /* Album-accent aware edge — matches Library panel + share modal + FAB */
+  border-left: 1px solid color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 38%, rgba(255, 255, 255, 0.06));
+  box-shadow:
+    inset 1px 0 0 color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 52%, transparent),
+    0 0 80px -20px color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 45%, transparent),
+    var(--shadow-xl);
+  /* Override default panel background for sharper architectural feel
+     matching other surfaces */
+  background:
+    radial-gradient(140% 80% at 100% 0%,
+      color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 12%, transparent) 0%,
+      transparent 60%),
+    linear-gradient(180deg, rgba(14, 14, 28, 0.96), rgba(7, 7, 18, 0.98));
+}
+
+/* Drastically reduce the auroral blob layer — keep a hint of color
+   pulse, drop the chroma noise. */
+.aichat__panel::before {
+  opacity: 0.18;
+  filter: blur(48px) saturate(110%);
+}
+.aichat__panel::after {
+  opacity: 0.5;
+}
+
+/* Header: tighten + sharpen — matches transport bar density */
+.aichat__head {
+  border-radius: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, rgba(255, 255, 255, 0.06));
+  padding: 14px 18px 12px;
+}
+
+/* Composer + context strip — sharp top edges, soft 4px corners only on
+   the inner input shell so the composer feels architectural, not balloony. */
+.aichat__compose-stack {
+  border-top: 1px solid color-mix(in srgb, var(--aichat-accent) 14%, rgba(255, 255, 255, 0.06));
+  padding: 12px 14px 14px;
+}
+.aichat__context {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Override every chat-surface card from 10-18px → 4px sharp corners.
+   Keeps pills/circles untouched via the [class*='--pill'] / 50% rules. */
+.aichat__panel .aichat__msg,
+.aichat__panel .aichat__msg-body,
+.aichat__panel .aichat__compose,
+.aichat__panel .aichat__suggest,
+.aichat__panel .aichat__widget,
+.aichat__panel .aichat__widget--track-card,
+.aichat__panel .aichat__widget--album-card,
+.aichat__panel .aichat__widget--alert,
+.aichat__panel .aichat__widget--code,
+.aichat__panel .aichat__widget--checklist,
+.aichat__panel .aichat__widget--doc,
+.aichat__panel .aichat__widget--quote,
+.aichat__panel .aichat__widget--citation,
+.aichat__panel .aichat__cheatsheet,
+.aichat__panel .aichat__drawer,
+.aichat__panel .aichat__sheet,
+.aichat__panel .aichat__mention,
+.aichat__panel .aichat__spectro,
+.aichat__panel .aichat__suggest-list {
+  border-radius: 4px;
+}
+
+/* Slightly larger radius for primary message bubbles so they're still
+   visually distinct from utility chrome, but architectural (6px not 18px). */
+.aichat__panel .aichat__msg--user,
+.aichat__panel .aichat__msg--assistant {
+  border-radius: 6px;
+}
+
+/* Composer textarea + send button row */
+.aichat__panel .aichat__compose textarea,
+.aichat__panel .aichat__compose input[type='text'] {
+  border-radius: 4px;
+  border-color: color-mix(in srgb, var(--aichat-accent) 18%, rgba(255, 255, 255, 0.08));
+}
+.aichat__panel .aichat__compose textarea:focus,
+.aichat__panel .aichat__compose input[type='text']:focus {
+  border-color: var(--aichat-accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--aichat-accent) 40%, transparent);
+  outline: none;
+}
+
+/* Persona pill, status chip, suggest chips — keep pill shape but tighten
+   the border for sharper visual rhythm against the new sharp surfaces. */
+.aichat__panel .aichat__persona-pill,
+.aichat__panel .aichat__status,
+.aichat__panel .aichat__suggest-item {
+  border-color: color-mix(in srgb, var(--aichat-accent) 24%, rgba(255, 255, 255, 0.1));
+}
+
+/* Buttons in the chat: smaller radii, tighter hover */
+.aichat__panel button:not(.aichat__fab):not([class*='--pill']):not([class*='--round']) {
+  border-radius: 4px;
+}
+
+/* Resize handle — match panel sharpness */
+.aichat__resize {
+  border-radius: 0;
+}
+
+/* Code blocks — JetBrains Mono + sharper 3px corners feel architectural */
+.aichat__panel pre,
+.aichat__panel code,
+.aichat__panel .aichat__widget--code pre {
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+
+/* Density adjustments: keep the existing data-density behavior but
+   tighten the gap to feel more transport-bar-like. */
+.aichat__panel .aichat__body {
+  padding: 14px 16px;
+  gap: 10px;
+}
+
+/* Scrollbar: subtle accent rail instead of plain gray */
+.aichat__panel .aichat__body::-webkit-scrollbar {
+  width: 4px;
+}
+.aichat__panel .aichat__body::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--aichat-accent) 35%, transparent);
+  border-radius: 0;
+}
+.aichat__panel .aichat__body::-webkit-scrollbar-track {
+  background: transparent;
 }

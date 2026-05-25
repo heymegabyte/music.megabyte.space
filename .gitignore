@@ -24,3 +24,9 @@ tsconfig.tsbuildinfo
 # Stray verification screenshots — keep them out of the repo root.
 /verify-*.png
 /viz-picker-*.png
+
+# Suno extraction artifacts — regeneratable via scripts/fetch-suno-metadata.mjs
+# and contain ~3 MB of raw prompt/tag data that bloats the diff.
+/data/suno-feed.json
+/data/suno-matches.json
+/data/whisper-cache/

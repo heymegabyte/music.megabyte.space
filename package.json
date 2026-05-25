@@ -21,7 +21,13 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "prepare": "lefthook install || true"
+    "prepare": "lefthook install || true",
+    "sync-suno": "node scripts/fetch-suno-metadata.mjs --merge --realign && python3 scripts/analyze-audio.py && node scripts/build-suno-meta.mjs",
+    "sync-suno:cached": "node scripts/fetch-suno-metadata.mjs --cached --merge --realign && python3 scripts/analyze-audio.py && node scripts/build-suno-meta.mjs",
+    "analyze-audio": "python3 scripts/analyze-audio.py",
+    "sync-lyrics:whisper-cache": "node scripts/whisper-cache.mjs",
+    "sync-lyrics:align": "node scripts/align-whisper-lyrics.mjs",
+    "sync-lyrics:all": "npm run sync-lyrics:whisper-cache && npm run sync-lyrics:align"
   },
   "dependencies": {
     "lottie-web": "^5.12.2",

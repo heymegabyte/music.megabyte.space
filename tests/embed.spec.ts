@@ -1,8 +1,9 @@
 // Embedded player (/embed/<album>[/<track>]) — TDD E2E proving:
-//   1. album route lists every track (prev/next visible when playlist > 1)
+//   1. album route lists every track with prev/play/next buttons + scrub bar
 //   2. clicking play flips ▶ → ❚❚ and #embedFill advances
-//   3. next/prev cycle through the playlist title
-//   4. invalid slugs render the branded fallback card (never blank iframe)
+//   3. clicking next advances the playlist title (mod-wrapped)
+//   4. Web Audio visualizer canvas is mounted + sized
+//   5. invalid slugs render the branded fallback card (never blank iframe)
 // Runs against PROD_URL (default music.megabyte.space) — same harness as
 // journey/cast specs. Local: PROD_URL=http://127.0.0.1:5173 npx playwright test embed
 
@@ -11,20 +12,29 @@ import { test, expect } from '@playwright/test';
 const ALBUM_SLUG = 'desiiignare';
 
 test.describe('embed player — album view', () => {
-  test('renders playlist chrome with prev/next visible', async ({ page }) => {
+  test('renders playlist chrome — prev, play, next, title, seek, time, visualizer', async ({ page }) => {
     const errors: string[] = [];
     page.on('pageerror', e => errors.push(e.message));
 
     await page.goto(`/embed/${ALBUM_SLUG}`, { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('#embedPlay')).toBeVisible();
+    await expect(page.locator('#embedPrev')).toBeVisible();
+    await expect(page.locator('#embedNext')).toBeVisible();
     await expect(page.locator('#embedTitle')).toBeVisible();
     await expect(page.locator('#embedTitle')).not.toBeEmpty();
     await expect(page.locator('#embedSub')).toContainText(/\d+\/\d+\s*·/);
-    await expect(page.locator('#embedPrev')).toBeVisible();
-    await expect(page.locator('#embedNext')).toBeVisible();
     await expect(page.locator('#embedPlayIcon')).toHaveText('▶');
     await expect(page.locator('#embedTime')).toHaveText(/\d+:\d{2}\s*\/\s*\d+:\d{2}/);
+    // Visualizer canvas is mounted (rendering only kicks in on play, but the
+    // <canvas> element itself must exist + be sized at boot).
+    await expect(page.locator('#embedViz')).toHaveCount(1);
+    const vizSize = await page.locator('#embedViz').evaluate(el => {
+      const c = el as HTMLCanvasElement;
+      return { w: c.clientWidth, h: c.clientHeight };
+    });
+    expect(vizSize.w, 'canvas should have positive width').toBeGreaterThan(0);
+    expect(vizSize.h, 'canvas should have positive height').toBeGreaterThan(0);
 
     expect(errors, `pageerror(s): ${errors.join(' | ')}`).toEqual([]);
   });
@@ -45,26 +55,50 @@ test.describe('embed player — album view', () => {
       .toBeGreaterThan(initial);
   });
 
-  test('next button advances to the second track title', async ({ page }) => {
+  test('next button advances playlist title; prev wraps backwards', async ({ page }) => {
     await page.goto(`/embed/${ALBUM_SLUG}`, { waitUntil: 'domcontentloaded' });
+    const firstTitle = (await page.locator('#embedTitle').textContent())?.trim();
+    expect(firstTitle).toBeTruthy();
 
-    const firstTitle = await page.locator('#embedTitle').textContent();
     await page.locator('#embedNext').click();
-    await expect.poll(
-      async () => page.locator('#embedTitle').textContent(),
-      { timeout: 5_000, message: 'title should change after next click' }
-    ).not.toBe(firstTitle);
+    // Wait for refreshTitle() to swap the textContent — it runs synchronously
+    // inside load(), but the assertion waits for the DOM to flush.
+    await expect.poll(async () => (await page.locator('#embedTitle').textContent())?.trim())
+      .not.toBe(firstTitle);
+
+    const secondTitle = (await page.locator('#embedTitle').textContent())?.trim();
+    await page.locator('#embedPrev').click();
+    await expect.poll(async () => (await page.locator('#embedTitle').textContent())?.trim())
+      .toBe(firstTitle);
+    expect(secondTitle).not.toBe(firstTitle);
   });
 
-  test('prev button wraps from the first track to the last', async ({ page }) => {
-    await page.goto(`/embed/${ALBUM_SLUG}`, { waitUntil: 'domcontentloaded' });
+  test('visualizer canvas paints after play (non-empty pixel data)', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'Chromium-only autoplay-policy override is set in playwright.config');
+    test.setTimeout(30_000);
 
-    const firstTitle = await page.locator('#embedTitle').textContent();
-    await page.locator('#embedPrev').click();
-    await expect.poll(
-      async () => page.locator('#embedTitle').textContent(),
-      { timeout: 5_000 }
-    ).not.toBe(firstTitle);
+    await page.goto(`/embed/${ALBUM_SLUG}`, { waitUntil: 'domcontentloaded' });
+    await page.locator('#embedPlay').click();
+    await expect(page.locator('#embedPlayIcon')).toHaveText('❚❚', { timeout: 10_000 });
+
+    // Wait a few frames for the rAF loop to populate the canvas.
+    await page.waitForTimeout(1500);
+
+    const hasNonZeroPixel = await page.locator('#embedViz').evaluate(el => {
+      const c = el as HTMLCanvasElement;
+      const ctx = c.getContext('2d');
+      if (!ctx) return false;
+      const w = c.width;
+      const h = c.height;
+      if (!w || !h) return false;
+      // Sample the bottom strip where the bars render.
+      const strip = ctx.getImageData(0, Math.floor(h * 0.7), w, Math.floor(h * 0.3));
+      for (let i = 3; i < strip.data.length; i += 4) {
+        if (strip.data[i] > 0) return true; // any non-zero alpha = paint
+      }
+      return false;
+    });
+    expect(hasNonZeroPixel, 'visualizer canvas should have painted at least one bar').toBe(true);
   });
 });
 

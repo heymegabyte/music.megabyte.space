@@ -2059,25 +2059,38 @@ export class Visualizer {
 
   private drawVortex(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const t = this.tempoClock;
-    const beat = this.engine.beatPulse;
+    const beat = this.cur.beat;
+    const bass = this.cur.bass;
+    const treble = this.cur.treble;
+    const tempoPhase = this.cur.tempo;
+    const drop = this.cur.drop;
+    const dropE = this.cur.dropE;
     const cx = w / 2;
     const cy = h / 2;
     const maxR = Math.min(w, h) * 0.5;
     ctx.save();
     ctx.translate(cx, cy);
     ctx.globalCompositeOperation = 'lighter';
-    const arms = 5;
+    // Bass dictates arm count (3-8) — more bass = more spiral arms.
+    const arms = Math.max(3, Math.min(8, Math.round(3 + bass * 5)));
     const perArm = 220;
+    // Bar-locked spiral rotation: tempoPhase wraps every beat, so the entire
+    // vortex completes a quarter-turn per bar at any tempo.
+    const barAngle = tempoPhase * Math.PI * 0.5;
     for (let a = 0; a < arms; a++) {
-      const base = (a / arms) * Math.PI * 2;
+      const base = (a / arms) * Math.PI * 2 + barAngle;
       for (let i = 0; i < perArm; i++) {
         const u = i / perArm;
-        const r = u * maxR;
-        const swirl = base + u * (4 + beat * 2) + t * 0.6;
+        const r = u * maxR * (1 + dropE * 0.18);
+        const swirl = base + u * (4 + beat * 2 + bass * 1.5) + t * 0.6;
         const x = Math.cos(swirl) * r;
         const y = Math.sin(swirl) * r;
         const c = paletteAt(u + a * 0.18);
-        const size = this.dpr * (1.2 + (1 - u) * 2.2);
+        // Treble swells particle size on the outer rim; drop fires an
+        // outward burst by scaling every particle 1.6× for the predicted
+        // ~700ms drop window.
+        const dropBurst = drop ? 1.6 : 1;
+        const size = this.dpr * (1.2 + (1 - u) * 2.2 + treble * 1.4) * dropBurst;
         ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.25 + (1 - u) * 0.6})`;
         ctx.beginPath();
         ctx.arc(x, y, size, 0, Math.PI * 2);
@@ -2126,44 +2139,70 @@ export class Visualizer {
     const accent = this.accent;
     const p = this.trackPalette;
     const comp = p?.complementary ?? paletteAt(0.4);
-    const amp = Math.min(w, h) * 0.30;
-    ctx.lineWidth = this.dpr * 2.2;
+    const beat = this.cur.beat;
+    const bass = this.cur.bass;
+    const treble = this.cur.treble;
+    const drop = this.cur.drop;
+    // Beat pulse + bass swell drives horizontal-pair amplitude; quiet
+    // sections stay calm, big bass moments arch the waves dramatically.
+    const ampH = Math.min(w, h) * (0.30 + bass * 0.18 + beat * 0.08);
+    const ampV = Math.min(w, h) * (0.30 + treble * 0.18 + beat * 0.06);
+    // Drop window: blow the line weight to 3.6× + full alpha so the
+    // climax reads at-a-glance.
+    const dropBoost = drop ? 1.8 : 1;
+    ctx.lineWidth = this.dpr * 2.2 * dropBoost;
     ctx.lineCap = 'round';
-    // horizontal pair (top + bottom mirror)
+    // horizontal pair (top + bottom mirror) — bass-modulated thickness
     for (let pass = 0; pass < 2; pass++) {
       const dir = pass === 0 ? -1 : 1;
       ctx.beginPath();
       for (let i = 0; i < t.length; i++) {
         const u = i / (t.length - 1);
         const x = u * w;
-        const y = cy + dir * ((t[i] - 128) / 128) * amp;
+        const y = cy + dir * ((t[i] - 128) / 128) * ampH;
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       const c = pass === 0 ? accent : comp;
-      ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},0.85)`;
+      ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.85 * dropBoost})`;
       ctx.stroke();
     }
-    // vertical pair (left + right mirror)
+    // vertical pair (left + right mirror) — treble-modulated
     for (let pass = 0; pass < 2; pass++) {
       const dir = pass === 0 ? -1 : 1;
       ctx.beginPath();
       for (let i = 0; i < t.length; i++) {
         const u = i / (t.length - 1);
         const y = u * h;
-        const x = cx + dir * ((t[i] - 128) / 128) * amp;
+        const x = cx + dir * ((t[i] - 128) / 128) * ampV;
         if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
       }
       const c = paletteAt(0.7 + pass * 0.15);
-      ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},0.55)`;
+      ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.55 * dropBoost})`;
       ctx.stroke();
+    }
+    // Drop flash: brief full-canvas wash that decays via blend mode.
+    if (drop) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = `rgba(${accent[0]},${accent[1]},${accent[2]},0.18)`;
+      ctx.fillRect(0, 0, w, h);
+      ctx.restore();
     }
   }
 
   private drawHexGrid(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const f = this.engine.freqData;
+    const beat = this.cur.beat;
+    const tempoPhase = this.cur.tempo;
+    const drop = this.cur.drop;
+    const bass = this.cur.bass;
     const cell = Math.max(28, Math.min(w, h) / 22);
     const dx = cell * Math.sqrt(3);
     const dy = cell * 1.5;
+    // Bar-locked sweep: brightness wave traverses L→R every beat
+    // (tempoPhase ∈ 0..1). Cells within ±sweepBand get an alpha boost.
+    const sweepX = tempoPhase * w;
+    const sweepBand = w * 0.18;
     let bin = 0;
     for (let row = -1; row * dy < h + cell; row++) {
       const offx = (row & 1) ? dx / 2 : 0;
@@ -2173,8 +2212,21 @@ export class Visualizer {
         const b = Math.floor((bin * 7919) % f.length * 0.7);
         const v = (f[b] || 0) / 255;
         bin++;
-        if (v < 0.05) continue;
-        const c = paletteAt((bin % 100) / 100);
+        const sweepDist = Math.abs(x - sweepX);
+        const sweepBoost = sweepDist < sweepBand
+          ? Math.cos((sweepDist / sweepBand) * Math.PI * 0.5) * (0.35 + beat * 0.25)
+          : 0;
+        const intensity = v + sweepBoost;
+        if (intensity < 0.05) continue;
+        // Color cells by horizontal position so left = bass register,
+        // right = treble — the grid becomes a visible band-spectrum
+        // landscape that reacts to the actual freq content.
+        const palettePos = (x / w + bin * 0.003) % 1;
+        const c = paletteAt(palettePos);
+        const dropMul = drop ? 1.4 : 1;
+        const bassPump = 1 + bass * 0.3;
+        const alphaFill = Math.min(1, (0.15 + intensity * 0.75) * dropMul * bassPump);
+        const alphaStroke = Math.min(1, (0.3 + intensity * 0.5) * dropMul);
         ctx.beginPath();
         for (let k = 0; k < 6; k++) {
           const a = (k / 6) * Math.PI * 2 + Math.PI / 6;
@@ -2183,9 +2235,9 @@ export class Visualizer {
           if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
         }
         ctx.closePath();
-        ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.15 + v * 0.75})`;
+        ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${alphaFill})`;
         ctx.fill();
-        ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.3 + v * 0.5})`;
+        ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${alphaStroke})`;
         ctx.lineWidth = this.dpr;
         ctx.stroke();
       }
@@ -2219,25 +2271,39 @@ export class Visualizer {
   }
 
   private drawVinyl(ctx: CanvasRenderingContext2D, w: number, h: number) {
-    const t = this.tempoClock;
-    const beat = this.engine.beatPulse;
+    const beat = this.cur.beat;
+    const bass = this.cur.bass;
+    const drop = this.cur.drop;
+    const dropE = this.cur.dropE;
+    // BPM-locked rotation: a real 33⅓-RPM record turns 0.5236 rad/s
+    // (33.33 / 60 * 2π). We lock spin rate to the song's authoritative
+    // BPM so visualizer rotation = musical tempo, not arbitrary 1.2x clock.
+    // Default to 110 BPM if engine.bpm hasn't converged yet (first ~5s).
+    const bpm = this.engine.bpm > 30 ? this.engine.bpm : 110;
+    // Rotation = (BPM / 60) rad per second × dt accumulator. We use
+    // performance.now() so spin doesn't drift between frames.
+    const spin = ((performance.now() / 1000) * (bpm / 60) * Math.PI * 2) % (Math.PI * 2);
+    // Drop wobble: introduce a sinusoidal eccentricity when a drop hits
+    // (~50ms of 'scratch' jitter) — visual analog to a needle skip.
+    const wobble = drop ? Math.sin(performance.now() * 0.04) * 0.04 : 0;
     const cx = w / 2;
     const cy = h / 2;
-    const R = Math.min(w, h) * 0.42;
+    const R = Math.min(w, h) * 0.42 * (1 + dropE * 0.05);
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.rotate(t * 1.2);
+    ctx.rotate(spin + wobble);
     // body
     ctx.fillStyle = 'rgba(8,8,14,0.95)';
     ctx.beginPath();
     ctx.arc(0, 0, R, 0, Math.PI * 2);
     ctx.fill();
-    // grooves driven by freqData
+    // grooves driven by freqData + bass deformation (outer rim bulges
+    // on heavy bass for a tangible-feeling groove pump).
     const f = this.engine.freqData;
     const grooves = 60;
     for (let i = 0; i < grooves; i++) {
       const u = i / grooves;
-      const r = R * (0.35 + u * 0.6);
+      const r = R * (0.35 + u * 0.6) * (1 + (u > 0.7 ? bass * 0.08 : 0));
       const bin = Math.floor(u * f.length * 0.6);
       const v = (f[bin] || 0) / 255;
       const c = paletteAt(u);
@@ -2530,6 +2596,8 @@ export class Visualizer {
     // draw newest row at bottom
     const y = h - rowH;
     const cols = Math.min(f.length, Math.floor(w / Math.max(1, this.dpr)));
+    const beat = this.cur.beat;
+    const drop = this.cur.drop;
     for (let i = 0; i < cols; i++) {
       const x = (i / cols) * w;
       const v = f[Math.floor((i / cols) * f.length * 0.7)] / 255;
@@ -2538,14 +2606,35 @@ export class Visualizer {
       off.ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${a})`;
       off.ctx.fillRect(x, y, Math.max(1, w / cols + 1), rowH);
     }
+    // Beat pulse: brighten the newest row so beats become visible
+    // horizontal stripes in the scroll history (musical archaeology).
+    if (beat > 0.3) {
+      off.ctx.fillStyle = `rgba(255,255,255,${beat * 0.25})`;
+      off.ctx.fillRect(0, y, w, rowH);
+    }
+    // Drop band: paint a hot accent stripe so drops are unmistakably
+    // visible scrolling up through the waterfall.
+    if (drop) {
+      const ac = this.accent;
+      off.ctx.fillStyle = `rgba(${ac[0]},${ac[1]},${ac[2]},0.55)`;
+      off.ctx.fillRect(0, y, w, rowH);
+    }
     ctx.drawImage(off.off, 0, 0);
   }
 
   private drawMonolith(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const f = this.engine.freqData;
+    const beat = this.cur.beat;
+    const tempoPhase = this.cur.tempo;
+    const drop = this.cur.drop;
     const bars = 40;
     const step = Math.floor(f.length * 0.7 / bars);
     const bw = w / bars;
+    // Bar-locked light wave traveling across the skyline. Towers whose
+    // index is within ±sweepBand of the wave's current x get a flicker
+    // boost — visually "the wave rolls across the city".
+    const sweepIdx = tempoPhase * bars;
+    const sweepBand = bars * 0.15;
     for (let i = 0; i < bars; i++) {
       let sum = 0;
       for (let k = 0; k < step; k++) sum += f[i * step + k] || 0;
@@ -2560,14 +2649,22 @@ export class Visualizer {
       grad.addColorStop(1, `rgba(${Math.round(c[0] * 0.3)},${Math.round(c[1] * 0.3)},${Math.round(c[2] * 0.3)},0.85)`);
       ctx.fillStyle = grad;
       ctx.fillRect(x + bw * 0.08, y, bw * 0.84, bh);
-      // windows
+      // windows — flicker on beat + sweep + drop
+      const sweepDist = Math.min(Math.abs(i - sweepIdx), Math.abs(i - sweepIdx + bars), Math.abs(i - sweepIdx - bars));
+      const inSweep = sweepDist < sweepBand;
       const winRows = Math.floor(bh / (bw * 0.45));
       for (let r = 0; r < winRows; r++) {
         for (let cI = 0; cI < 3; cI++) {
           const wx = x + bw * 0.18 + cI * bw * 0.25;
           const wy = y + r * bw * 0.45 + bw * 0.1;
-          const lit = ((i * 31 + r * 17 + cI * 7) % 5) < 2;
-          ctx.fillStyle = lit ? `rgba(255,240,180,${0.45 + v * 0.4})` : 'rgba(40,40,60,0.5)';
+          // Lit pattern is pseudo-random but flickers on beat: every beat
+          // a different ~40% of windows light up extra-bright.
+          const hashBase = ((i * 31 + r * 17 + cI * 7) % 5) < 2;
+          const beatHash = beat > 0.5 && ((i * 13 + r * 23 + cI * 11 + Math.floor(performance.now() / 200)) % 7) < 3;
+          const sweepLit = inSweep || drop;
+          const lit = hashBase || beatHash || sweepLit;
+          const litAlpha = drop ? 0.95 : (sweepLit ? 0.85 : (0.45 + v * 0.4 + beat * 0.15));
+          ctx.fillStyle = lit ? `rgba(255,240,180,${litAlpha})` : 'rgba(40,40,60,0.5)';
           ctx.fillRect(wx, wy, bw * 0.16, bw * 0.22);
         }
       }
@@ -2577,17 +2674,26 @@ export class Visualizer {
   private drawNebula(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const t = this.tempoClock;
     const mid = this.bandEnergy(0.08, 0.32);
+    const bass = this.cur.bass;
+    const beat = this.cur.beat;
+    const drop = this.cur.drop;
+    const dropE = this.cur.dropE;
+    // Drop implode-then-explode: during the drop window, blobs collapse
+    // toward center then snap back outward. Smooth via dropE so the
+    // transition isn't a hard jump.
+    const orbitScale = 1 - (drop ? 0.4 : 0) + dropE * 0.15;
     const blobs = 14;
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     for (let i = 0; i < blobs; i++) {
       const ph = i * 1.7 + t * (0.06 + i * 0.01);
-      const cx = w / 2 + Math.cos(ph) * w * 0.4;
-      const cy = h / 2 + Math.sin(ph * 1.3) * h * 0.4;
-      const r = Math.min(w, h) * (0.18 + 0.04 * (i % 3) + mid * 0.05);
+      const cx = w / 2 + Math.cos(ph) * w * 0.4 * orbitScale;
+      const cy = h / 2 + Math.sin(ph * 1.3) * h * 0.4 * orbitScale;
+      // Bass swells blob radius — heavy 808s now visibly inflate the cloud.
+      const r = Math.min(w, h) * (0.18 + 0.04 * (i % 3) + mid * 0.05 + bass * 0.08);
       const c = paletteAt(i / blobs + t * 0.02);
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},0.35)`);
+      grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.35 + beat * 0.15})`);
       grad.addColorStop(0.5, `rgba(${c[0]},${c[1]},${c[2]},0.12)`);
       grad.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
       ctx.fillStyle = grad;
@@ -2595,14 +2701,15 @@ export class Visualizer {
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
     }
-    // glittering dust
+    // glittering dust — beat triggers a brief sparkle surge
+    const dustGain = 1 + beat * 0.6;
     for (let i = 0; i < 60; i++) {
       const x = (Math.sin(i * 9.31 + t) * 0.5 + 0.5) * w;
       const y = (Math.cos(i * 7.13 + t * 0.6) * 0.5 + 0.5) * h;
       const c = starPalette((i / 60));
-      ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.5 + Math.sin(t * 4 + i) * 0.4})`;
+      ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${(0.5 + Math.sin(t * 4 + i) * 0.4) * dustGain})`;
       ctx.beginPath();
-      ctx.arc(x, y, this.dpr * 1.2, 0, Math.PI * 2);
+      ctx.arc(x, y, this.dpr * 1.2 * dustGain, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.restore();

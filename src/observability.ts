@@ -11,6 +11,8 @@
  * core UX never blocks on telemetry.
  */
 
+import { asScriptURL } from './trusted-types';
+
 declare global {
   interface Window {
     __POSTHOG_KEY__?: string;
@@ -152,7 +154,8 @@ if (POSTHOG_KEY && /^phc_/.test(POSTHOG_KEY)) {
     }
     const s2 = o.createElement('script');
     s2.async = true;
-    s2.src = 'https://us-assets.i.posthog.com/static/array.js';
+    // Trusted Types: wrap the PostHog snippet URL.
+    s2.src = asScriptURL('https://us-assets.i.posthog.com/static/array.js');
     o.head.appendChild(s2);
     (p.posthog as any).__loaded = false;
     (p.posthog as any).__SV = 1;
