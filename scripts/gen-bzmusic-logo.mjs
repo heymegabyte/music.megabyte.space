@@ -14,17 +14,29 @@ if (!OPENAI_KEY || OPENAI_KEY.startsWith('The file')) {
   process.exit(1);
 }
 
-const PROMPT = `Logo for an indie music project called "bzmusic". Square 1:1.
-Aesthetic: dark obsidian background #060610, vivid neon-cyan accent #00E5FF,
-single-color flat vector silhouette, no text inside the mark, no characters.
-Subject: a stylized lowercase "bz" letter-pair forged together as a single
-geometric ligature — sharp 8px squircle corners, sound-wave bars emerging
-from the right edge of the "z" implying playback. Bauhaus + cyberpunk
-graphic-design discipline. Centered, generous negative space, perfectly
-symmetric padding. Print-quality icon, infinitely scalable look. No textures,
-no gradients, no shading, no 3D. NEVER include any letters as text inside or
-around the mark — the "bz" must read as a custom letter-ligature glyph only.
-Renders cleanly at 16px favicon size.`;
+const PROMPT = `Square 1:1 logo for a music project called "bZ Music".
+
+The composition reads in two stacked tiers, vertically centered:
+
+TIER 1 (top, larger): A stylized geometric mark made of bold rounded
+geometric shapes — a custom-drawn lowercase "bz" letter-pair, fused as a
+single ligature glyph, with two sound-wave bars emerging from the right
+edge implying audio playback. The mark is solid vivid neon-cyan #00E5FF.
+Sharp 6px squircle corners. No 3D, no gradients, no shading, no textures.
+
+TIER 2 (below the mark): The literal text "bZ Music" rendered as a
+crisp wordmark — "bZ" in bold sans-serif (Sora Black or similar geometric
+sans), the "Z" prominently uppercase, then a thin gap, then "Music" in a
+lighter weight (Sora Medium 500) all caps with wide letter-spacing.
+Text color: clean off-white #F4F4FF. Exactly this text "bZ Music" — do
+not invent other letters, do not add taglines or extra words.
+
+Background: pure dark obsidian #060610 fills the entire square. Generous
+symmetric negative space around the composition (roughly 12% margins).
+Centered, perfectly balanced. Print-quality, infinitely scalable look,
+Bauhaus + cyberpunk discipline. Render the text crisply with NO blurring,
+NO spelling mistakes, NO drift — the wordmark must read exactly "bZ Music"
+with that exact capitalization. Renders cleanly down to 192px favicon size.`;
 
 console.log('Calling OpenAI Images API (gpt-image-1, 1024×1024)…');
 const res = await fetch('https://api.openai.com/v1/images/generations', {

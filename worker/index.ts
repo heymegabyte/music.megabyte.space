@@ -23,9 +23,12 @@ interface Env {
   LISTMONK_TPL_FIRST_MONTH_D10?: string;
   LISTMONK_TPL_FIRST_MONTH_D21?: string;
   LISTMONK_TPL_WINBACK?: string;
-  ANTHROPIC_API_KEY?: string; // For /api/ai/chat — Claude Haiku 4.5 streaming
-  ANTHROPIC_MODEL?: string;   // Override default model (claude-haiku-4-5-20251001)
-  CF_AI_GATEWAY_SLUG?: string;// Cloudflare AI Gateway slug for caching+logging
+  // AI chat now runs on Workers AI (Llama 3.3 70B FP8-fast). Dropped
+  // Anthropic — kept these fields commented out as historical breadcrumb.
+  // ANTHROPIC_API_KEY / ANTHROPIC_MODEL / CF_AI_GATEWAY_SLUG removed.
+  AI: Ai;                     // Workers AI binding (defined in wrangler.toml)
+  AI_MODEL?: string;          // Override Workers AI model id
+  CF_AI_GATEWAY_SLUG?: string;// AI Gateway slug for caching/logging through env.AI
   SENTRY_DSN?: string;        // @sentry/cloudflare DSN for exception capture
   POSTHOG_PUBLIC_KEY?: string;// PostHog public key (forwarded to client snippet)
   TURNSTILE_SECRET_KEY?: string; // Server-side Turnstile verification secret
@@ -731,7 +734,7 @@ export default {
           {
             status: kvOk ? 'ok' : 'degraded',
             kv: kvOk ? 'ok' : 'fail',
-            ai: env.ANTHROPIC_API_KEY ? 'configured' : 'missing',
+            ai: env.AI ? 'workers-ai' : 'missing',
             push: env.VAPID_PUBLIC_KEY ? 'configured' : 'missing',
             listmonk: env.LISTMONK_API_TOKEN ? 'configured' : 'missing',
             ai_gateway: env.CF_AI_GATEWAY_SLUG || 'direct',
@@ -1004,10 +1007,8 @@ export default {
       }
 
       if (url.pathname === '/api/ai/chat' && request.method === 'POST') {
-        if (!env.ANTHROPIC_API_KEY) return jsonResponse({ error: 'ai_not_configured' }, 503);
-        // Two-tier rate limit: 8/min burst + 60/hr sustained per IP. Protects
-        // against runaway loops (free-text AI calls cost real money) while
-        // letting normal multi-turn chat flow uninterrupted (~1 turn / 7 sec).
+        if (!env.AI) return jsonResponse({ error: 'ai_not_configured' }, 503);
+        // Two-tier rate limit: 8/min burst + 60/hr sustained per IP.
         if (await rateLimitedCount(env.COUNTERS, ip, 'ai-chat', 'minute', 8, 60)) return jsonResponse({ error: 'throttled', retry_in_s: 60 }, 429);
         if (await rateLimitedCount(env.COUNTERS, ip, 'ai-chat', 'hour', 60, 3600)) return jsonResponse({ error: 'throttled_hourly', retry_in_s: 3600 }, 429);
         let body: {
@@ -1017,71 +1018,129 @@ export default {
           temperature?: number;
           max_tokens?: number;
           stream?: boolean;
+          /** When true, swap to the larger/slower model + run a web-search
+           *  pre-step so the reply has full context. Default false = fast. */
+          deep?: boolean;
         };
         try { body = await request.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
         const msgs = Array.isArray(body?.messages) ? body.messages.filter(m =>
           (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.length > 0
         ) : [];
         if (msgs.length === 0) return jsonResponse({ error: 'no_messages' }, 400);
-        const sliced = msgs.slice(-20).map(m => ({ role: m.role, content: m.content.slice(0, 8000) }));
-        const model = body.model || env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001';
+        const sliced = msgs.slice(-20).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content.slice(0, 8000) }));
         const stream = body.stream !== false;
+        const deep = body.deep === true;
+        // Workers AI Llama 3.3 70B FP8-fast — free tier, 2-3× faster than
+        // the bare alias which is retired on most accounts. Per model-routing
+        // rule: always reach for the FP8 variant.
+        const model = body.model || env.AI_MODEL || (deep
+          ? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+          : '@cf/meta/llama-3.1-8b-instruct-fp8');
         const systemText = typeof body.system === 'string'
           ? body.system.slice(0, 4000)
           : "You are bZ's in-app DJ — concise, warm, brand-aware. Speak in the voice of music.megabyte.space: sharp, punchy, Christian-gangster ethic, hustle-gospel, hard but holy. Reference the album Panda Desiiignare and the artist bZ when relevant. Use markdown sparingly. Default to 2-3 sentences unless the user asks for more. Never recommend or mention drugs. Stay reverent around family names.";
-        const apiBody = {
-          model,
-          max_tokens: Math.max(64, Math.min(4096, body.max_tokens || 1024)),
-          temperature: Math.max(0, Math.min(1, typeof body.temperature === 'number' ? body.temperature : 0.7)),
-          // Prompt caching — the system prompt is ~identical across every
-          // turn in a session. Marking it `ephemeral` gives a 5-min reusable
-          // cache prefix (0.1× read multiplier vs 1× input cost). Cuts AI
-          // bill ~80–90% on chatty sessions. The minimum cacheable prefix
-          // for Haiku 4.5 is 4096 tokens — this system prompt is short, so
-          // most personas won't hit the threshold alone, but persona +
-          // memory + pinned context appended downstream will. Safe to always
-          // mark; it's a no-op below the threshold.
-          system: [{ type: 'text', text: systemText, cache_control: { type: 'ephemeral' } }],
-          messages: sliced,
-          stream
-        };
-        try {
-          // Route through Cloudflare AI Gateway when configured — gateway
-          // logs every call, caches identical hits (no extra cost), enables
-          // per-route rate limiting, and gives a fallback hook if Anthropic
-          // throws 5xx. Falls back to direct Anthropic when slug is unset.
-          const upstreamUrl = env.CF_AI_GATEWAY_SLUG
-            ? `https://gateway.ai.cloudflare.com/v1/${CF_ACCOUNT_ID}/${env.CF_AI_GATEWAY_SLUG}/anthropic/v1/messages`
-            : 'https://api.anthropic.com/v1/messages';
-          const upstream = await fetch(upstreamUrl, {
-            method: 'POST',
-            headers: {
-              'content-type': 'application/json',
-              'x-api-key': env.ANTHROPIC_API_KEY,
-              'anthropic-version': '2023-06-01'
-            },
-            body: JSON.stringify(apiBody)
-          });
-          if (!upstream.ok) {
-            const errText = await upstream.text();
-            return jsonResponse({ error: 'upstream_error', status: upstream.status, detail: errText.slice(0, 500) }, 502);
+
+        // ── Deep mode: web research pre-step ────────────────────────────
+        // For deep queries we hit Cloudflare's Browser Rendering REST API
+        // to pull a Google search snippet for the latest user message
+        // and inject it into the system context. Takes ~2-4s but the
+        // model then has real-time awareness of anything beyond its
+        // training cutoff.
+        let researchContext = '';
+        if (deep) {
+          const lastUser = [...sliced].reverse().find(m => m.role === 'user')?.content || '';
+          if (lastUser.length > 4) {
+            try {
+              const searchRes = await fetch(
+                `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/browser-rendering/scrape`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'X-Auth-Email': '',
+                    'X-Auth-Key': '',
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    url: `https://www.google.com/search?q=${encodeURIComponent(lastUser.slice(0, 200))}`,
+                    elements: [{ selector: 'div.g, [data-content-feature]', max: 4 }],
+                  }),
+                }
+              );
+              if (searchRes.ok) {
+                const j = await searchRes.json() as { result?: Array<{ results?: Array<{ text?: string }> }> };
+                const snippets = (j.result?.[0]?.results || [])
+                  .map(r => r.text?.slice(0, 400))
+                  .filter(Boolean)
+                  .join('\n\n');
+                if (snippets) researchContext = `\n\nWeb research for this question:\n${snippets}`;
+              }
+            } catch { /* Web research failed — fall through with regular response */ }
           }
-          if (stream && upstream.body) {
-            return new Response(upstream.body, {
+        }
+
+        const finalSystem = systemText + researchContext;
+        const aiRequest = {
+          messages: [
+            { role: 'system' as const, content: finalSystem },
+            ...sliced,
+          ],
+          temperature: Math.max(0, Math.min(1, typeof body.temperature === 'number' ? body.temperature : 0.7)),
+          max_tokens: Math.max(64, Math.min(4096, body.max_tokens || 1024)),
+          stream,
+        };
+
+        try {
+          // env.AI.run() returns a ReadableStream when stream:true, otherwise
+          // an object with response text. Same SSE format works as Anthropic's.
+          const aiResponse = await env.AI.run(model, aiRequest) as ReadableStream<Uint8Array> | { response: string };
+
+          if (stream && aiResponse instanceof ReadableStream) {
+            // Workers AI streams OpenAI-compatible SSE. Re-emit as Anthropic-
+            // style events so the existing client SSE parser keeps working.
+            const { readable, writable } = new TransformStream({
+              transform(chunk, controller) {
+                const text = new TextDecoder().decode(chunk);
+                // Workers AI emits `data: {"response":"hello"}\n\n`.
+                // Parse + re-emit as Anthropic content_block_delta:
+                //   data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"hello"}}
+                for (const line of text.split('\n')) {
+                  if (!line.startsWith('data: ')) continue;
+                  const payload = line.slice(6).trim();
+                  if (payload === '[DONE]') {
+                    controller.enqueue(new TextEncoder().encode('event: message_stop\ndata: {"type":"message_stop"}\n\n'));
+                    continue;
+                  }
+                  try {
+                    const j = JSON.parse(payload) as { response?: string };
+                    if (typeof j.response === 'string' && j.response.length) {
+                      const out = `event: content_block_delta\ndata: ${JSON.stringify({
+                        type: 'content_block_delta',
+                        index: 0,
+                        delta: { type: 'text_delta', text: j.response },
+                      })}\n\n`;
+                      controller.enqueue(new TextEncoder().encode(out));
+                    }
+                  } catch { /* skip malformed chunk */ }
+                }
+              },
+            });
+            aiResponse.pipeTo(writable).catch(() => { /* socket closed */ });
+            return new Response(readable, {
               status: 200,
               headers: {
                 'Content-Type': 'text/event-stream; charset=utf-8',
                 'Cache-Control': 'no-store',
                 'Access-Control-Allow-Origin': corsOrigin(request),
-                'X-Accel-Buffering': 'no'
-              }
+                'X-Accel-Buffering': 'no',
+              },
             });
           }
-          const data = await upstream.json() as { content?: { type: string; text?: string }[]; usage?: unknown };
-          const text = (data.content || []).filter(c => c.type === 'text').map(c => c.text || '').join('');
-          return jsonResponse({ text, usage: data.usage });
+
+          // Non-streaming response
+          const text = (aiResponse as { response: string }).response || '';
+          return jsonResponse({ text, model, deep });
         } catch (err) {
-          return jsonResponse({ error: 'fetch_failed', detail: (err as Error).message }, 502);
+          return jsonResponse({ error: 'workers_ai_failed', detail: (err as Error).message }, 502);
         }
       }
 

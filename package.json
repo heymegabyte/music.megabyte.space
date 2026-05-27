@@ -8,7 +8,7 @@
     "dev": "vite",
     "cast:preview": "vite --open=/cast-receiver/?demo=1",
     "prebuild": "node scripts/gen-og-cards.mjs && node scripts/gen-sitemap.mjs",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/build-embed-component.mjs",
     "typecheck": "tsc -b --noEmit",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,html,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,html,css}\"",

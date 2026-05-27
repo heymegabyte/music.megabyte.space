@@ -11,6 +11,7 @@ import type { VizMode } from './visualizer';
 import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID, SPOTIFY_ARTIST_ID } from './data';
 import { SUNO_META } from './suno-meta';
 import { TRACK_TAGS, getTrackTags } from './tags';
+import { CONTENT_PAGE_BY_SLUG, CONTENT_PAGES } from './content-pages';
 import type { Track, Album } from './types';
 import { cast } from './cast';
 import type { ReceiverQueueItem, ReceiverLine, ReceiverState, PalettePayload } from './cast-protocol';
@@ -690,6 +691,8 @@ interface ShareTarget {
   cover: string;
   shareUrl: string;
   embedPath: string;
+  /** 1200×630 og:image card for the link-preview surface */
+  ogImage: string;
 }
 type EmbedSize = 'small' | 'medium' | 'wide';
 const EMBED_DIMS: Record<EmbedSize, { w: string; h: number }> = {
@@ -698,7 +701,10 @@ const EMBED_DIMS: Record<EmbedSize, { w: string; h: number }> = {
   wide: { w: '100%', h: 220 }
 };
 let shareCurrent: ShareTarget | null = null;
-let shareEmbedSize: EmbedSize = 'small';
+// Embed surfaces always render at 'medium' (480×220) — single canonical
+// size per Brian's preference. Variable kept for legacy embedSnippet
+// signature compatibility but no UI surface flips it.
+const shareEmbedSize: EmbedSize = 'medium';
 
 function buildShareTarget(kind: 'track' | 'album', id: string): ShareTarget | null {
   if (kind === 'track') {
@@ -711,7 +717,8 @@ function buildShareTarget(kind: 'track' | 'album', id: string): ShareTarget | nu
       sub: `${album?.name ?? 'bZ'} · bZ`,
       cover: album?.cover ?? '/art/cover-panda-desiiignare.png',
       shareUrl: `${SITE_ORIGIN}${trackPath(t)}`,
-      embedPath: `/embed/${t.album}/${t.id}`
+      embedPath: `/embed/${t.album}/${t.id}`,
+      ogImage: trackOgUrl(t.id)
     };
   }
   const a = ALBUM_BY_ID.get(id);
@@ -722,7 +729,8 @@ function buildShareTarget(kind: 'track' | 'album', id: string): ShareTarget | nu
     sub: `${a.trackIds.length} tracks · bZ`,
     cover: a.cover,
     shareUrl: `${SITE_ORIGIN}${albumPath(a.id)}`,
-    embedPath: `/embed/${a.id}`
+    embedPath: `/embed/${a.id}`,
+    ogImage: albumOgUrl(a.id)
   };
 }
 
@@ -910,33 +918,39 @@ function refreshShareDialog() {
   setHref('shareTumblr', `https://www.tumblr.com/widgets/share/tool?canonicalUrl=${encodeURIComponent(refUrl('tumblr'))}&title=${textEnc}&caption=${encodeURIComponent(longTextFor('tumblr'))}`);
   setHref('sharePocket', `https://getpocket.com/edit?url=${encodeURIComponent(refUrl('pocket'))}&title=${textEnc}`);
 
-  // Embed iframe code + inline live preview
+  // Link preview = the actual og:image for this track/album. What the
+  // recipient sees in their feed when the link unfurls.
+  const previewImg = $('#sharePreviewImg') as HTMLImageElement | null;
+  if (previewImg) {
+    previewImg.src = t.ogImage;
+    previewImg.alt = `${t.title} — link preview card`;
+  }
+  // Embed iframe code + live iframe preview at the BOTTOM next to the code
   const code = $('#shareEmbedCode') as HTMLTextAreaElement | null;
   if (code) code.value = embedSnippet(t, shareEmbedSize);
-  const preview = $('#sharePreview') as HTMLIFrameElement | null;
-  if (preview) {
+  const embedIframe = $('#shareEmbedIframe') as HTMLIFrameElement | null;
+  if (embedIframe) {
     const newSrc = `${SITE_ORIGIN}${t.embedPath}`;
-    if (preview.src !== newSrc) preview.src = newSrc;
+    if (embedIframe.src !== newSrc) embedIframe.src = newSrc;
   }
-  const previewFrame = $('#sharePreviewFrame') as HTMLElement | null;
-  const previewHint = $('#sharePreviewHint');
-  if (previewFrame && previewHint) {
-    const sizes: Record<string, { w: string; h: string; label: string }> = {
-      small:  { w: '320px', h: '180px', label: '320 × 180' },
-      medium: { w: '480px', h: '220px', label: '480 × 220' },
-      wide:   { w: '100%',  h: '220px', label: '100% × 220' }
-    };
-    const s = sizes[shareEmbedSize] || sizes.small;
-    previewFrame.style.setProperty('--share-preview-w', s.w);
-    previewFrame.style.setProperty('--share-preview-h', s.h);
-    previewHint.textContent = s.label;
+  const embedFrame = $('#shareEmbedFrame') as HTMLElement | null;
+  if (embedFrame) {
+    // Single canonical medium size — 480×220
+    embedFrame.style.setProperty('--share-preview-w', '480px');
+    embedFrame.style.setProperty('--share-preview-h', '220px');
   }
   const native = $('#shareNative') as HTMLButtonElement | null;
   if (native) native.hidden = !nativeShareSupported();
-  // Reset QR panel when target changes — user has to opt-in by clicking
-  // the QR chip each session (lazy canvas paint).
+  // QR auto-renders for every song. Always visible — no "click to reveal"
+  // toggle. Per-song re-render driven by the new shareCurrent.shareUrl.
   const qrBox = $('#shareQRBox');
-  if (qrBox) qrBox.hidden = true;
+  const qrCanvas = $('#shareQRCanvas') as HTMLCanvasElement | null;
+  if (qrCanvas) {
+    const ctx = qrCanvas.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+    void drawQrCanvas(qrCanvas, t.shareUrl);
+  }
+  if (qrBox) qrBox.hidden = false;
 }
 
 function openShare(kind: 'track' | 'album', id: string) {
@@ -977,25 +991,69 @@ function setupShell(root: HTMLElement) {
 
     <header class="topbar">
       <a class="brand" href="/" aria-label="bZ home">
-        <span class="brand__text">bZ</span>
+        <img class="brand__logo" src="/art/bz-icon.png" alt="bZ" width="220" height="148" decoding="async" />
       </a>
       <div class="topbar__title" aria-hidden="true">
         <span class="topbar__title-mute">now playing —</span>
         <span class="topbar__title-text" id="npChrome">press play</span>
       </div>
       <nav class="topbar__nav" aria-label="Site">
-        <button id="btnSearch" class="topbar__search" type="button" aria-label="Search tracks (⌘K)">
+        <button id="btnSearch" class="topbar__search" type="button" aria-label="Search tracks (⌘/)">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <span>Search</span>
-          <kbd>⌘K</kbd>
+          <kbd>⌘/</kbd>
         </button>
         <button id="btnLyricsOverlay" class="topbar__lyrics" type="button" aria-label="Toggle live lyrics overlay (⇧L)" aria-pressed="false" title="Live lyrics overlay (Shift+L)">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
           <span>Lyrics</span>
           <kbd>⇧L</kbd>
         </button>
-        <a id="lnkAppeal" href="/ashton/">appeal</a>
-        <a href="https://mission.megabyte.space" target="_blank" rel="noopener noreferrer">mission</a>
+        <div class="topbar__menu" data-topbar-menu>
+          <button id="btnPagesMenu" class="topbar__menu-trigger" type="button"
+                  aria-haspopup="menu" aria-expanded="false" aria-controls="topbarPagesMenu">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>Story</span>
+            <svg class="topbar__menu-caret" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+          </button>
+          <div id="topbarPagesMenu" class="topbar__menu-list" role="menu" aria-label="Story pages" hidden>
+            <a href="/about" data-content-page="about" role="menuitem">
+              <strong>About</strong>
+              <span>Hustle gospel — Newark, NJ. Hard but holy.</span>
+            </a>
+            <a href="/process" data-content-page="process" role="menuitem">
+              <strong>Process</strong>
+              <span>Suno + handwritten lyrics + visualizers</span>
+            </a>
+            <a href="/theology" data-content-page="theology" role="menuitem">
+              <strong>Theology</strong>
+              <span>Christian-gangster ethic in plain English</span>
+            </a>
+            <a href="/credits" data-content-page="credits" role="menuitem">
+              <strong>Credits</strong>
+              <span>Per-track Suno DNA + BPM/key sources</span>
+            </a>
+            <a href="/press" data-content-page="press" role="menuitem">
+              <strong>Press kit</strong>
+              <span>Bio · covers · brand voice · booking</span>
+            </a>
+            <a href="/contact" data-content-page="contact" role="menuitem">
+              <strong>Connect</strong>
+              <span>Email · phone · social handles</span>
+            </a>
+            <a href="/support" data-content-page="support" role="menuitem">
+              <strong>Support</strong>
+              <span>Share · subscribe · tip the studio</span>
+            </a>
+            <a id="lnkAppeal" href="/ashton/" role="menuitem">
+              <strong>Appeal</strong>
+              <span>Open letter to Ashton + Mila</span>
+            </a>
+            <a href="https://mission.megabyte.space" target="_blank" rel="noopener noreferrer" role="menuitem">
+              <strong>Mission ↗</strong>
+              <span>What bZ is building + why</span>
+            </a>
+          </div>
+        </div>
       </nav>
     </header>
 
@@ -1148,6 +1206,19 @@ function setupShell(root: HTMLElement) {
          placed directly where the CTA lives (album footers, more-menu).
          See renderInlineNewsletter() in this file. -->
 
+    <!-- Unified content-page dialog — non-modal sheet over the main shell.
+         Music keeps playing across page-to-page navigation. -->
+    <dialog class="contentpage" id="contentpage" aria-labelledby="contentpageTitle">
+      <button class="contentpage__close" id="contentpageClose" type="button" aria-label="Close">✕</button>
+      <nav class="contentpage__nav" id="contentpageNav" aria-label="Content pages"></nav>
+      <header class="contentpage__head">
+        <p class="contentpage__eyebrow" id="contentpageEyebrow"></p>
+        <h2 class="contentpage__title" id="contentpageTitle"></h2>
+        <p class="contentpage__sub" id="contentpageSub"></p>
+      </header>
+      <div class="contentpage__body" id="contentpageBody"></div>
+    </dialog>
+
     <dialog class="appeal" id="appeal" aria-labelledby="appealTitle">
       <button class="appeal__close" id="appealClose" type="button" aria-label="Close appeal — return to album">✕</button>
       <h3 class="appeal__chrome" id="appealTitle">appeal — bZ → Ashton + Mila</h3>
@@ -1166,16 +1237,17 @@ function setupShell(root: HTMLElement) {
           <button class="share__close" id="shareClose" type="button" aria-label="Close share">✕</button>
         </header>
 
-        <!-- Inline live preview of what gets embedded — shows the real
-             embeddable player so the user sees exactly what gets pasted
-             instead of guessing at the preview button. -->
+        <!-- Live preview = the actual og:image card that recipients see
+             when the link unfurls on X/Discord/iMessage/Slack/etc.
+             More honest than the embed iframe preview — what they see
+             in their feed IS what shows up here. -->
         <section class="share__section share__section--preview">
           <div class="share__preview-label">
-            <span class="share__label">Live preview</span>
-            <span class="share__preview-hint" id="sharePreviewHint">320 × 180</span>
+            <span class="share__label">Link preview</span>
+            <span class="share__preview-hint" id="sharePreviewHint">og · 1200×630</span>
           </div>
           <div class="share__preview-frame" id="sharePreviewFrame">
-            <iframe class="share__preview" id="sharePreview" title="Share preview" loading="lazy"></iframe>
+            <img class="share__preview-img" id="sharePreviewImg" alt="" loading="lazy" />
           </div>
         </section>
 
@@ -1189,68 +1261,84 @@ function setupShell(root: HTMLElement) {
 
         <section class="share__section">
           <label class="share__label">Share to</label>
-          <!-- 14-network grid + Web Share API as the first option when
-               supported. One-tap-share to every major surface. -->
+          <!-- Inline branded SVG icon grid — compact, gorgeous, each icon
+               sets its own --share-brand var for branded hover color. -->
           <div class="share__networks" id="shareNetworks">
-            <button class="share__chip share__chip--native" id="shareNative" type="button" hidden>
-              <span class="share__chip-ico" aria-hidden="true">↗</span><span>Share via…</span>
+            <button class="share__icon share__icon--native" id="shareNative" type="button" hidden style="--share-brand:#00E5FF">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              <span>Share</span>
             </button>
-            <a class="share__chip" id="shareXTwitter" target="_blank" rel="noopener" data-network="x">
-              <span class="share__chip-ico" aria-hidden="true">𝕏</span><span>Post on X</span>
+            <a class="share__icon" id="shareXTwitter" target="_blank" rel="noopener" data-network="x" title="Post on X" style="--share-brand:#ffffff">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <span>X</span>
             </a>
-            <a class="share__chip" id="shareThreads" target="_blank" rel="noopener" data-network="threads">
-              <span class="share__chip-ico" aria-hidden="true">@</span><span>Threads</span>
+            <a class="share__icon" id="shareThreads" target="_blank" rel="noopener" data-network="threads" title="Threads" style="--share-brand:#ffffff">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.598.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.781 3.631 2.695 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.74-1.757-.504-.582-1.279-.878-2.305-.88h-.029c-.825 0-1.946.227-2.66 1.273L7.32 8.467c.95-1.401 2.498-2.179 4.348-2.179h.044c3.084.019 4.92 1.915 5.105 5.227.106.045.211.092.314.141 1.46.687 2.527 1.728 3.087 3.012.78 1.79.851 4.708-1.522 7.041-1.812 1.785-4.013 2.595-7.103 2.617Zm1.187-11.665c-.247 0-.499.007-.755.022-1.834.103-2.974.946-2.91 2.147.064 1.193 1.347 1.749 2.74 1.671 1.323-.072 3.067-.586 3.388-3.815a10.555 10.555 0 0 0-2.463-.025Z"/></svg>
+              <span>Threads</span>
             </a>
-            <a class="share__chip" id="shareBluesky" target="_blank" rel="noopener" data-network="bluesky">
-              <span class="share__chip-ico" aria-hidden="true">⛅</span><span>Bluesky</span>
+            <a class="share__icon" id="shareBluesky" target="_blank" rel="noopener" data-network="bluesky" title="Bluesky" style="--share-brand:#0085FF">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M5.8 3.4c2.7 2 5.7 6.1 6.8 8.3 1.1-2.2 4.1-6.3 6.8-8.3 2-1.5 5.1-2.6 5.1.9 0 .7-.4 5.9-.6 6.7-.7 3-3.8 3.7-6.5 3.3 4.7.8 5.9 3.4 3.3 6.1-5 5-7.2-1.3-7.8-2.9-.1-.3-.2-.4-.2-.3 0-.1-.1 0-.2.3-.6 1.6-2.8 7.9-7.8 2.9-2.6-2.7-1.4-5.3 3.3-6.1-2.7.4-5.8-.3-6.5-3.3C.8 10.2.4 5 .4 4.3c0-3.5 3.1-2.4 5.4-.9Z"/></svg>
+              <span>Bluesky</span>
             </a>
-            <a class="share__chip" id="shareMastodon" target="_blank" rel="noopener" data-network="mastodon">
-              <span class="share__chip-ico" aria-hidden="true">🐘</span><span>Mastodon</span>
+            <a class="share__icon" id="shareMastodon" target="_blank" rel="noopener" data-network="mastodon" title="Mastodon" style="--share-brand:#6364FF">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M23.268 5.313c-.35-2.578-2.617-4.61-5.304-5.004C17.51.242 15.792 0 11.813 0h-.03c-3.98 0-4.835.242-5.288.309C3.882.692 1.496 2.518.917 5.127.64 6.412.61 7.837.661 9.143c.074 1.874.088 3.745.26 5.611.118 1.24.325 2.47.62 3.68.55 2.237 2.777 4.098 4.96 4.857 2.336.792 4.849.923 7.256.38.265-.061.527-.132.786-.213.585-.184 1.27-.39 1.774-.753a.057.057 0 0 0 .023-.043v-1.809a.052.052 0 0 0-.02-.041.053.053 0 0 0-.046-.012c-1.546.367-3.135.55-4.728.55-2.74 0-3.477-1.297-3.688-1.836a5.69 5.69 0 0 1-.32-1.464.05.05 0 0 1 .062-.052c1.51.36 3.06.546 4.62.546.366 0 .73 0 1.097-.01 1.59-.044 3.27-.124 4.836-.43.04-.008.077-.014.114-.024 2.471-.473 4.823-1.96 5.063-5.74.008-.148.029-1.555.029-1.71.001-.531.181-3.736-.013-5.706zm-3.823 9.795h-2.43V9.219c0-1.243-.523-1.873-1.577-1.873-1.162 0-1.745.748-1.745 2.225v3.235h-2.416V9.572c0-1.477-.581-2.225-1.745-2.225-1.044 0-1.577.63-1.577 1.873v5.889H5.512V9.039c0-1.243.323-2.232.972-2.965.626-.731 1.448-1.106 2.474-1.106 1.184 0 2.097.491 2.722 1.471l.624 1.046.624-1.046c.625-.98 1.538-1.471 2.722-1.471 1.026 0 1.848.375 2.474 1.106.649.733.972 1.722.972 2.965Z"/></svg>
+              <span>Mastodon</span>
             </a>
-            <a class="share__chip" id="shareFacebook" target="_blank" rel="noopener" data-network="facebook">
-              <span class="share__chip-ico" aria-hidden="true">f</span><span>Facebook</span>
+            <a class="share__icon" id="shareReddit" target="_blank" rel="noopener" data-network="reddit" title="Reddit" style="--share-brand:#FF4500">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M12 0a12 12 0 1 0 12 12A12.014 12.014 0 0 0 12 0Zm5.01 4.744a1.535 1.535 0 0 1 1.512 1.501 1.518 1.518 0 0 1-1.49 1.524 1.526 1.526 0 0 1-1.523-1.504 1.523 1.523 0 0 1 1.5-1.521ZM12 19.43c-3.21 0-5.812-2.046-5.812-4.57 0-2.526 2.602-4.571 5.812-4.571 3.211 0 5.813 2.045 5.813 4.572 0 2.526-2.602 4.569-5.813 4.569ZM18.978 13c.027.123.044.247.044.371 0 2.521-2.825 4.563-6.31 4.563-3.484 0-6.31-2.042-6.31-4.563 0-.124.017-.248.045-.371-.733-.34-1.241-1.084-1.241-1.949 0-1.184.957-2.143 2.139-2.143.585 0 1.114.234 1.502.612 1.464-.972 3.42-1.594 5.588-1.652l1.144-3.39a.516.516 0 0 1 .65-.331l3.106 1.045a1.422 1.422 0 1 1 .48 1.378l-3.083-1.043-.97 2.875c2.211.04 4.21.66 5.696 1.62a2.13 2.13 0 0 1 1.471-.591 2.142 2.142 0 0 1 .85 4.107"/><path d="M15.232 15.451a1.087 1.087 0 1 1-1.539-1.535 1.087 1.087 0 0 1 1.539 1.535Zm-3.83 0a1.085 1.085 0 1 1-1.532-1.538 1.085 1.085 0 0 1 1.532 1.538Z" opacity="0.25"/></svg>
+              <span>Reddit</span>
             </a>
-            <a class="share__chip" id="shareLinkedIn" target="_blank" rel="noopener" data-network="linkedin">
-              <span class="share__chip-ico" aria-hidden="true">in</span><span>LinkedIn</span>
+            <a class="share__icon" id="shareHN" target="_blank" rel="noopener" data-network="hn" title="Hacker News" style="--share-brand:#FF6600">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88Z"/></svg>
+              <span>HN</span>
             </a>
-            <a class="share__chip" id="shareReddit" target="_blank" rel="noopener" data-network="reddit">
-              <span class="share__chip-ico" aria-hidden="true">↑</span><span>Reddit</span>
+            <a class="share__icon" id="shareFacebook" target="_blank" rel="noopener" data-network="facebook" title="Facebook" style="--share-brand:#1877F2">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073Z"/></svg>
+              <span>Facebook</span>
             </a>
-            <a class="share__chip" id="shareHN" target="_blank" rel="noopener" data-network="hn">
-              <span class="share__chip-ico" aria-hidden="true">Y</span><span>Hacker News</span>
+            <a class="share__icon" id="shareLinkedIn" target="_blank" rel="noopener" data-network="linkedin" title="LinkedIn" style="--share-brand:#0A66C2">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286ZM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.063 2.063 0 1 1 2.063 2.065Zm1.782 13.019H3.555V9h3.564v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003Z"/></svg>
+              <span>LinkedIn</span>
             </a>
-            <a class="share__chip" id="shareTelegram" target="_blank" rel="noopener" data-network="telegram">
-              <span class="share__chip-ico" aria-hidden="true">✈</span><span>Telegram</span>
+            <a class="share__icon" id="shareWhatsApp" target="_blank" rel="noopener" data-network="whatsapp" title="WhatsApp" style="--share-brand:#25D366">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.297-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+              <span>WhatsApp</span>
             </a>
-            <a class="share__chip" id="shareWhatsApp" target="_blank" rel="noopener" data-network="whatsapp">
-              <span class="share__chip-ico" aria-hidden="true">W</span><span>WhatsApp</span>
+            <a class="share__icon" id="shareTelegram" target="_blank" rel="noopener" data-network="telegram" title="Telegram" style="--share-brand:#26A5E4">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0Zm4.962 7.224c.1-.002.321.023.464.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635Z"/></svg>
+              <span>Telegram</span>
             </a>
-            <a class="share__chip" id="shareSignal" target="_blank" rel="noopener" data-network="signal">
-              <span class="share__chip-ico" aria-hidden="true">✦</span><span>Signal</span>
+            <a class="share__icon" id="shareSignal" target="_blank" rel="noopener" data-network="signal" title="Signal" style="--share-brand:#3A76F0">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M9.12.35a.749.749 0 1 1 .36 1.456A10.501 10.501 0 0 0 1.807 9.48a.749.749 0 1 1-1.455-.36A12 12 0 0 1 9.12.35Zm5.76 0a12 12 0 0 1 8.768 8.77.749.749 0 1 1-1.455.36A10.5 10.5 0 0 0 14.52 1.807.749.749 0 1 1 14.88.35ZM.35 14.88a.749.749 0 0 1 .91.546 10.5 10.5 0 0 0 6.456 7.225.75.75 0 0 1-.526 1.404 12 12 0 0 1-7.386-8.263.749.749 0 0 1 .546-.911Zm23.302 0a.749.749 0 0 1 .546.91 12 12 0 0 1-7.388 8.263.75.75 0 0 1-.524-1.404 10.5 10.5 0 0 0 6.455-7.224.749.749 0 0 1 .911-.546ZM12 1.5a10.5 10.5 0 0 1 10.5 10.5 10.45 10.45 0 0 1-2.083 6.293L21.747 23.7l-1.486-.379a13.05 13.05 0 0 0-3.293-.428A10.5 10.5 0 1 1 12 1.5Z" opacity="0.25"/></svg>
+              <span>Signal</span>
             </a>
-            <a class="share__chip" id="shareSMS" data-network="sms">
-              <span class="share__chip-ico" aria-hidden="true">💬</span><span>SMS</span>
+            <a class="share__icon" id="shareSMS" data-network="sms" title="SMS" style="--share-brand:#34C759">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              <span>SMS</span>
             </a>
-            <a class="share__chip" id="shareEmail" target="_blank" rel="noopener" data-network="email">
-              <span class="share__chip-ico" aria-hidden="true">✉</span><span>Email</span>
+            <a class="share__icon" id="shareEmail" target="_blank" rel="noopener" data-network="email" title="Email" style="--share-brand:#EA4335">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span>Email</span>
             </a>
-            <a class="share__chip" id="sharePinterest" target="_blank" rel="noopener" data-network="pinterest">
-              <span class="share__chip-ico" aria-hidden="true">P</span><span>Pinterest</span>
+            <a class="share__icon" id="sharePinterest" target="_blank" rel="noopener" data-network="pinterest" title="Pinterest" style="--share-brand:#BD081C">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
+              <span>Pinterest</span>
             </a>
-            <a class="share__chip" id="shareTumblr" target="_blank" rel="noopener" data-network="tumblr">
-              <span class="share__chip-ico" aria-hidden="true">t</span><span>Tumblr</span>
+            <a class="share__icon" id="shareTumblr" target="_blank" rel="noopener" data-network="tumblr" title="Tumblr" style="--share-brand:#35465C">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.815v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.172z"/></svg>
+              <span>Tumblr</span>
             </a>
-            <a class="share__chip" id="sharePocket" target="_blank" rel="noopener" data-network="pocket">
-              <span class="share__chip-ico" aria-hidden="true">P</span><span>Pocket</span>
+            <a class="share__icon" id="sharePocket" target="_blank" rel="noopener" data-network="pocket" title="Pocket" style="--share-brand:#EF3F56">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M18.813 10.259l-5.646 5.419c-.32.305-.73.458-1.141.458-.41 0-.821-.153-1.141-.458l-5.646-5.419c-.657-.628-.677-1.671-.049-2.326.63-.657 1.671-.679 2.326-.05l4.51 4.326 4.51-4.326c.658-.628 1.699-.607 2.326.049.631.658.611 1.699-.049 2.327zm5.187-7.984v6.91c0 6.706-5.435 12.142-12.142 12.142h-3.716C1.435 21.327 0 15.891 0 9.185v-6.91c0-1.257 1.019-2.275 2.275-2.275h19.45C22.981 0 24 1.019 24 2.275z"/></svg>
+              <span>Pocket</span>
             </a>
-            <button class="share__chip" id="shareQR" type="button" data-network="qr">
-              <span class="share__chip-ico" aria-hidden="true">▦</span><span>QR code</span>
+            <button class="share__icon" id="shareCopyMd" type="button" data-network="markdown" title="Copy as Markdown" style="--share-brand:#7C3AED">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M22.27 19.385H1.73A1.73 1.73 0 0 1 0 17.655V6.345a1.73 1.73 0 0 1 1.73-1.73h20.54A1.73 1.73 0 0 1 24 6.345v11.308a1.73 1.73 0 0 1-1.73 1.731zM5.769 15.923v-4.5l2.308 2.885 2.307-2.885v4.5h2.308V8.078h-2.308l-2.307 2.885L5.77 8.077H3.46v7.846zM21.232 12h-2.309V8.077h-2.307V12h-2.308l3.461 4.039z"/></svg>
+              <span>MD</span>
             </button>
-            <button class="share__chip" id="shareCopyMd" type="button" data-network="markdown">
-              <span class="share__chip-ico" aria-hidden="true">M↓</span><span>Copy as MD</span>
-            </button>
-            <button class="share__chip" id="shareQuoteCard" type="button" data-network="quote-card">
-              <span class="share__chip-ico" aria-hidden="true">🖼</span><span>Quote card PNG</span>
+            <button class="share__icon" id="shareQuoteCard" type="button" data-network="quote-card" title="Quote card PNG" style="--share-brand:#F472B6">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>Card</span>
             </button>
           </div>
           <div class="share__qr" id="shareQRBox" hidden>
@@ -1259,17 +1347,17 @@ function setupShell(root: HTMLElement) {
           </div>
         </section>
 
-        <section class="share__section">
+        <section class="share__section share__section--embed">
           <label class="share__label">Embed widget</label>
-          <div class="share__sizes" role="radiogroup" aria-label="Embed size">
-            <button class="share__size is-active" data-size="small" type="button" role="radio" aria-checked="true">Small · 320×180</button>
-            <button class="share__size" data-size="medium" type="button" role="radio" aria-checked="false">Medium · 480×220</button>
-            <button class="share__size" data-size="wide" type="button" role="radio" aria-checked="false">Wide · 100%×220</button>
+          <!-- Live embed iframe — what the embed code actually renders.
+               Single fixed size (medium 480×220) — no size picker. -->
+          <div class="share__embed-frame" id="shareEmbedFrame">
+            <iframe class="share__embed-iframe" id="shareEmbedIframe" title="Embed preview" loading="lazy"></iframe>
           </div>
-          <textarea class="share__embed-code" id="shareEmbedCode" readonly rows="3" aria-label="Embed iframe HTML"></textarea>
-          <div class="share__row">
-            <button class="share__act" id="shareCopyEmbed" type="button">Copy embed code</button>
-          </div>
+          <!-- Click anywhere in the code box to copy — no separate Copy
+               button needed. Visual hint on hover. -->
+          <textarea class="share__embed-code share__embed-code--copy" id="shareEmbedCode" readonly rows="3" aria-label="Embed iframe HTML — click to copy" title="Click to copy"></textarea>
+          <p class="share__embed-hint" id="shareEmbedHint">Click code to copy</p>
         </section>
       </div>
     </dialog>
@@ -1295,44 +1383,128 @@ function setupShell(root: HTMLElement) {
     <!-- Now-playing detail panel -->
     <div class="np-panel" id="npPanel" role="dialog" aria-label="Now playing details" aria-modal="true">
       <div class="np-panel__backdrop" id="npPanelBackdrop"></div>
+      <!-- Blurred cover lives behind the card for cinematic depth -->
+      <div class="np-panel__art-bg" id="npPanelArtBg" aria-hidden="true"></div>
       <div class="np-panel__card" id="npPanelCard">
         <button class="np-panel__close" id="npPanelClose" type="button" aria-label="Close panel">✕</button>
         <div class="np-panel__hero">
-          <img class="np-panel__cover" id="npPanelCover" src="/art/cover-panda-desiiignare.png" alt="" width="90" height="90" />
-          <div>
+          <!-- Cover ring: SVG progress + spinning album cover at center -->
+          <div class="np-panel__cover-ring" id="npPanelCoverRing">
+            <svg class="np-panel__progress" viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="np-panel__progress-track" cx="50" cy="50" r="46" />
+              <circle class="np-panel__progress-bar" id="npPanelProgress" cx="50" cy="50" r="46"
+                pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" />
+            </svg>
+            <img class="np-panel__cover" id="npPanelCover" src="/art/cover-panda-desiiignare.png" alt="" width="160" height="160" />
+          </div>
+          <div class="np-panel__hero-meta">
             <p class="np-panel__label" id="npPanelLabel">bZ</p>
             <h3 class="np-panel__title" id="npPanelTitle">Press play</h3>
-            <p class="np-panel__bpm" id="npPanelBpm">— BPM</p>
+            <div class="np-panel__time" id="npPanelTime"><span id="npPanelElapsed">0:00</span> <span class="np-panel__time-sep">/</span> <span id="npPanelDur">—:—</span></div>
+            <div class="np-panel__stats" id="npPanelStats" aria-label="Track stats">
+              <span class="np-panel__stat" id="npPanelStatBpm" hidden><strong>—</strong> bpm</span>
+              <span class="np-panel__stat" id="npPanelStatKey" hidden><strong>—</strong> key</span>
+              <span class="np-panel__stat" id="npPanelStatPlays" hidden><strong>0</strong> plays</span>
+            </div>
+            <div class="np-panel__tags" id="npPanelTags" aria-label="Track tags"></div>
           </div>
         </div>
+
+        <!-- Quick-action toolbar -->
+        <div class="np-panel__actions" role="toolbar" aria-label="Track actions">
+          <button class="np-panel__action" data-np-action="share" type="button" title="Share track">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            <span>Share</span>
+          </button>
+          <button class="np-panel__action" data-np-action="copy-link" type="button" title="Copy permalink">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span>Copy</span>
+          </button>
+          <button class="np-panel__action" data-np-action="fs-lyrics" type="button" title="Full-screen lyrics">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            <span>Lyrics</span>
+          </button>
+          <button class="np-panel__action" data-np-action="fs-viz" type="button" title="Fullscreen visualizer">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>
+            <span>Viz</span>
+          </button>
+          <button class="np-panel__action" data-np-action="ai" type="button" title="Ask bZ about this track">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Ask</span>
+          </button>
+        </div>
+
+        <!-- Wisdom: track tagline / artist note -->
         <blockquote class="np-panel__wisdom" id="npPanelWisdom">Play a track to see its wisdom.</blockquote>
-        <p class="np-panel__section-label">EQ</p>
-        <div class="np-panel__eq">
-          <div class="np-panel__eq-knob">
-            <label class="np-panel__eq-label" for="eqBass">Bass</label>
-            <input class="np-panel__eq-range" id="eqBass" type="range" min="-12" max="12" step="0.5" value="3" aria-label="Bass EQ" />
-            <span class="np-panel__eq-val" id="eqBassVal">+3 dB</span>
-          </div>
-          <div class="np-panel__eq-knob">
-            <label class="np-panel__eq-label" for="eqMid">Mid</label>
-            <input class="np-panel__eq-range" id="eqMid" type="range" min="-12" max="12" step="0.5" value="1" aria-label="Mid EQ" />
-            <span class="np-panel__eq-val" id="eqMidVal">+1 dB</span>
-          </div>
-          <div class="np-panel__eq-knob">
-            <label class="np-panel__eq-label" for="eqTreb">Treble</label>
-            <input class="np-panel__eq-range" id="eqTreb" type="range" min="-12" max="12" step="0.5" value="2" aria-label="Treble EQ" />
-            <span class="np-panel__eq-val" id="eqTrebVal">+2 dB</span>
-          </div>
+
+        <!-- Live lyric preview: previous + active + next line. Mirrors the
+             karaoke overlay's word-perfect sync via the same activeLyrics
+             bundle, but in a static 3-line view inside the modal. -->
+        <div class="np-panel__lyricbox" id="npPanelLyricBox" hidden aria-label="Lyric preview">
+          <p class="np-panel__lyric np-panel__lyric--prev" id="npPanelLyricPrev"></p>
+          <p class="np-panel__lyric np-panel__lyric--now" id="npPanelLyricNow"></p>
+          <p class="np-panel__lyric np-panel__lyric--next" id="npPanelLyricNext"></p>
         </div>
-        <p class="np-panel__section-label">Reverb</p>
-        <div class="np-panel__reverb">
-          <button class="np-panel__reverb-btn" data-preset="dry" type="button">Dry</button>
-          <button class="np-panel__reverb-btn is-active" data-preset="room" type="button">Room</button>
-          <button class="np-panel__reverb-btn" data-preset="hall" type="button">Hall</button>
-          <button class="np-panel__reverb-btn" data-preset="cathedral" type="button">Cathedral</button>
-          <button class="np-panel__reverb-btn" data-preset="spring" type="button">Spring</button>
-          <button class="np-panel__reverb-btn" data-preset="plate" type="button">Plate</button>
+
+        <!-- Smart-links row: opens the track on external platforms when
+             a same-id-or-title match exists on Spotify/Apple/YouTube/Suno. -->
+        <div class="np-panel__platforms" id="npPanelPlatforms" hidden aria-label="Open on platform"></div>
+
+        <!-- Related tracks: top 3 by shared-tag cosine similarity. Click a
+             cover to jump straight to it without leaving the modal. -->
+        <div class="np-panel__related" id="npPanelRelated" hidden aria-label="Related tracks">
+          <p class="np-panel__section-label">If you like this, try</p>
+          <div class="np-panel__related-grid" id="npPanelRelatedGrid"></div>
         </div>
+
+        <!-- Lyric download row — .txt plain + .lrc with timing -->
+        <div class="np-panel__downloads" id="npPanelDownloads" hidden>
+          <button class="np-panel__dl-btn" data-np-dl="txt" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Lyrics .txt</span>
+          </button>
+          <button class="np-panel__dl-btn" data-np-dl="lrc" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span>Timed .lrc</span>
+          </button>
+        </div>
+
+        <!-- Playback rate slider — quick speed adjust without leaving the modal -->
+        <div class="np-panel__rate">
+          <label class="np-panel__rate-label" for="npRate">Speed <span class="np-panel__rate-val" id="npRateVal">1.00×</span></label>
+          <input class="np-panel__rate-range" id="npRate" type="range" min="0.5" max="2" step="0.05" value="1" aria-label="Playback speed" />
+        </div>
+
+        <details class="np-panel__more" id="npPanelMore" open>
+          <summary>Audio shaping <span class="np-panel__more-hint">EQ · Reverb</span></summary>
+          <p class="np-panel__section-label">EQ</p>
+          <div class="np-panel__eq">
+            <div class="np-panel__eq-knob">
+              <label class="np-panel__eq-label" for="eqBass">Bass</label>
+              <input class="np-panel__eq-range" id="eqBass" type="range" min="-12" max="12" step="0.5" value="3" aria-label="Bass EQ" />
+              <span class="np-panel__eq-val" id="eqBassVal">+3 dB</span>
+            </div>
+            <div class="np-panel__eq-knob">
+              <label class="np-panel__eq-label" for="eqMid">Mid</label>
+              <input class="np-panel__eq-range" id="eqMid" type="range" min="-12" max="12" step="0.5" value="1" aria-label="Mid EQ" />
+              <span class="np-panel__eq-val" id="eqMidVal">+1 dB</span>
+            </div>
+            <div class="np-panel__eq-knob">
+              <label class="np-panel__eq-label" for="eqTreb">Treble</label>
+              <input class="np-panel__eq-range" id="eqTreb" type="range" min="-12" max="12" step="0.5" value="2" aria-label="Treble EQ" />
+              <span class="np-panel__eq-val" id="eqTrebVal">+2 dB</span>
+            </div>
+          </div>
+          <p class="np-panel__section-label">Reverb</p>
+          <div class="np-panel__reverb">
+            <button class="np-panel__reverb-btn" data-preset="dry" type="button">Dry</button>
+            <button class="np-panel__reverb-btn is-active" data-preset="room" type="button">Room</button>
+            <button class="np-panel__reverb-btn" data-preset="hall" type="button">Hall</button>
+            <button class="np-panel__reverb-btn" data-preset="cathedral" type="button">Cathedral</button>
+            <button class="np-panel__reverb-btn" data-preset="spring" type="button">Spring</button>
+            <button class="np-panel__reverb-btn" data-preset="plate" type="button">Plate</button>
+          </div>
+        </details>
       </div>
     </div>
 
@@ -4066,6 +4238,90 @@ function closeAppeal({ popHistory = true }: { popHistory?: boolean } = {}) {
   }
 }
 
+// ── Content pages (About / Process / Credits / Press) ────────────────────
+// Same pattern as Appeal — opens a <dialog> sheet over the main shell so
+// the audio engine + visualizer keep running across nav. Routed by URL
+// path via the History API.
+let contentPageReturnUrl: string | null = null;
+
+function openContentPage(slug: string, { pushHistory = true }: { pushHistory?: boolean } = {}) {
+  const page = CONTENT_PAGE_BY_SLUG.get(slug);
+  if (!page) return;
+  const dialog = $('#contentpage') as HTMLDialogElement | null;
+  if (!dialog) return;
+  const eyebrow = $('#contentpageEyebrow');
+  const title = $('#contentpageTitle');
+  const sub = $('#contentpageSub');
+  const body = $('#contentpageBody');
+  const nav = $('#contentpageNav');
+  if (eyebrow) eyebrow.textContent = page.eyebrow;
+  if (title) title.textContent = page.title;
+  if (sub) sub.textContent = page.description;
+  // Cross-fade the body content swap so navigating between content pages
+  // doesn't snap. 160ms is shorter than the perceived "instant" threshold
+  // but long enough to feel intentional.
+  if (body) {
+    body.classList.add('is-swapping');
+    requestAnimationFrame(() => {
+      body.innerHTML = page.render();
+      body.scrollTop = 0;
+      requestAnimationFrame(() => body.classList.remove('is-swapping'));
+    });
+  }
+  // Build the sub-nav once per page open — active chip highlights current.
+  // Audio engine stays alive across these navigations since the parent
+  // dialog never closes; we just swap the inner content.
+  if (nav) {
+    nav.innerHTML = CONTENT_PAGES.map(p =>
+      `<a href="/${p.slug}" data-content-page="${p.slug}"${p.slug === slug ? ' aria-current="page"' : ''}>${p.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '')}</a>`
+    ).join('');
+  }
+  // Use show() (non-modal) instead of showModal() so the dialog stays in
+  // the normal stacking context. showModal() puts it in the top layer
+  // which would cover the transport bar (Brian's rule: playbar must stay
+  // visible across all content pages so music is always controllable).
+  if (!dialog.open) dialog.show();
+  document.documentElement.classList.add('is-contentpage-open');
+  // Swap document title + meta tags so per-page link unfurls and tab title
+  // reflect the open page. Restored to defaults on closeContentPage().
+  const metaTitle = page.metaTitle || `${page.title} — bZ`;
+  const metaDesc = page.metaDescription || page.description;
+  const ogImg = page.ogImage ? `${location.origin}${page.ogImage}` : null;
+  document.title = metaTitle;
+  setMeta('meta[name="description"]', 'content', metaDesc);
+  setMeta('meta[property="og:title"]', 'content', metaTitle);
+  setMeta('meta[property="og:description"]', 'content', metaDesc);
+  setMeta('meta[name="twitter:title"]', 'content', metaTitle);
+  setMeta('meta[name="twitter:description"]', 'content', metaDesc);
+  setMeta('link[rel="canonical"]', 'href', `${SITE_ORIGIN}/${slug}`);
+  setMeta('meta[property="og:url"]', 'content', `${SITE_ORIGIN}/${slug}`);
+  if (ogImg) {
+    setMeta('meta[property="og:image"]', 'content', ogImg);
+    setMeta('meta[property="og:image:secure_url"]', 'content', ogImg);
+    setMeta('meta[name="twitter:image"]', 'content', ogImg);
+  }
+  if (pushHistory && location.pathname !== `/${slug}`) {
+    contentPageReturnUrl = location.pathname + location.search + location.hash;
+    history.pushState({ contentpage: slug, returnUrl: contentPageReturnUrl }, '', `/${slug}`);
+  }
+}
+
+function closeContentPage({ popHistory = true }: { popHistory?: boolean } = {}) {
+  const dialog = $('#contentpage') as HTMLDialogElement | null;
+  if (dialog?.open) dialog.close();
+  document.documentElement.classList.remove('is-contentpage-open');
+  if (popHistory && CONTENT_PAGE_BY_SLUG.has(location.pathname.slice(1))) {
+    if (contentPageReturnUrl) {
+      history.replaceState({}, '', contentPageReturnUrl);
+      contentPageReturnUrl = null;
+    } else {
+      history.replaceState({}, '', '/');
+    }
+    const t = currentTrackId ? TRACK_BY_ID.get(currentTrackId) : null;
+    document.title = t ? `${t.title} — bZ` : 'bZ — live Web Audio gospel';
+  }
+}
+
 /**
  * RAF-based HUD and waveform update loop. Runs every frame; drives BPM/key/peak readouts,
  * L/R VU meters, B/M/T band bars, beat-dot opacity, transport waveform canvas, and
@@ -4424,6 +4680,36 @@ function bindUi() {
     if (t) play(t);
   });
 
+  // ── Audio pre-fetch on hover ───────────────────────────────────────────────
+  // Hover-over a trackrow → prefetch the MP3 + lyrics JSON in parallel so
+  // click→play feels instant. We only prefetch once per track per session
+  // (set dedupes), and we use the browser's native prefetch via a one-shot
+  // <link rel="prefetch"> tag that gets garbage-collected after the fetch
+  // resolves. Saves 200-400ms of perceived latency on first play.
+  const audioPrefetched = new Set<string>();
+  const prefetchTrackAssets = (trackId: string) => {
+    if (audioPrefetched.has(trackId)) return;
+    audioPrefetched.add(trackId);
+    const t = TRACK_BY_ID.get(trackId);
+    if (!t) return;
+    const head = document.head;
+    for (const href of [t.file, `/lyrics/${t.id}.json`]) {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = href;
+      link.as = href.endsWith('.mp3') ? 'audio' : 'fetch';
+      if (!href.endsWith('.mp3')) link.crossOrigin = 'anonymous';
+      link.onload = link.onerror = () => link.remove();
+      head.appendChild(link);
+    }
+  };
+  document.addEventListener('pointerover', e => {
+    const target = e.target as Element | null;
+    if (!target || typeof target.closest !== 'function') return;
+    const row = target.closest('[data-track]') as HTMLElement | null;
+    if (row?.dataset.track) prefetchTrackAssets(row.dataset.track);
+  }, { passive: true });
+
   $('#btnShare')?.addEventListener('click', () => {
     if (currentTrackId) openShare('track', currentTrackId);
     else if (TRACKS[0]) openShare('album', TRACKS[0].album);
@@ -4439,9 +4725,27 @@ function bindUi() {
     if (!shareCurrent) return;
     copyText(shareCurrent.shareUrl, e.currentTarget as HTMLElement);
   });
-  $('#shareCopyEmbed')?.addEventListener('click', e => {
+  // Embed code textarea — click anywhere to copy. Visual feedback via
+  // the .share__embed-hint sibling ("Click code to copy" → "Copied!").
+  $('#shareEmbedCode')?.addEventListener('click', async () => {
     if (!shareCurrent) return;
-    copyText(embedSnippet(shareCurrent, shareEmbedSize), e.currentTarget as HTMLElement);
+    const code = $('#shareEmbedCode') as HTMLTextAreaElement | null;
+    const hint = $('#shareEmbedHint');
+    if (!code) return;
+    code.select();
+    try {
+      await navigator.clipboard.writeText(embedSnippet(shareCurrent, shareEmbedSize));
+      if (hint) {
+        hint.textContent = 'Copied ✓';
+        hint.classList.add('is-copied');
+        setTimeout(() => {
+          hint.textContent = 'Click code to copy';
+          hint.classList.remove('is-copied');
+        }, 1800);
+      }
+    } catch {
+      // Clipboard blocked — selection acts as the visual cue
+    }
   });
   $('#shareNative')?.addEventListener('click', async () => {
     if (!shareCurrent) return;
@@ -4452,16 +4756,23 @@ function bindUi() {
     if (shareCurrent.kind === 'track') reportShare(shareCurrent.id);
   });
   // QR code generation — lazy, only when the user clicks the chip.
-  // Uses a 13-line bit-pattern QR encoder inlined to avoid the qrcode
-  // npm dep + the network round-trip for charts.googleapis.com.
-  $('#shareQR')?.addEventListener('click', () => {
+  // QR auto-renders via refreshShareDialog — no toggle needed.
+  // Click on the QR canvas itself downloads the PNG for easy sharing.
+  $('#shareQRCanvas')?.addEventListener('click', () => {
     if (!shareCurrent) return;
-    const box = $('#shareQRBox');
     const canvas = $('#shareQRCanvas') as HTMLCanvasElement | null;
-    if (!box || !canvas) return;
-    if (!box.hidden) { box.hidden = true; return; }
-    void drawQrCanvas(canvas, shareCurrent.shareUrl);
-    box.hidden = false;
+    if (!canvas) return;
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${shareCurrent!.id}-qr.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, 'image/png');
   });
   // Copy-as-Markdown — drops a ready-to-paste blockquote into Discord/Slack/
   // Notion/Obsidian/etc. with cover, title, deep link. One of the most
@@ -4488,18 +4799,7 @@ function bindUi() {
       if (shareCurrent?.kind === 'track') reportShare(shareCurrent.id);
     });
   });
-  document.querySelectorAll<HTMLButtonElement>('.share__size').forEach(btn => {
-    btn.addEventListener('click', () => {
-      shareEmbedSize = (btn.dataset.size as EmbedSize) || 'small';
-      document.querySelectorAll<HTMLButtonElement>('.share__size').forEach(b => {
-        const active = b === btn;
-        b.classList.toggle('is-active', active);
-        b.setAttribute('aria-checked', active ? 'true' : 'false');
-      });
-      // Refresh the entire dialog so the live preview iframe re-sizes too.
-      refreshShareDialog();
-    });
-  });
+  // (.share__size buttons removed — single medium size only per Brian.)
 
   $('#apPlay')?.addEventListener('click', () => {
     const t = autoplayPromptTrack;
@@ -4726,6 +5026,35 @@ function bindUi() {
     e.preventDefault();
     closeAppeal();
   });
+
+  // Content-page dialog wiring
+  $('#contentpageClose')?.addEventListener('click', () => closeContentPage());
+  $('#contentpage')?.addEventListener('click', e => {
+    if ((e.target as HTMLElement).id === 'contentpage') closeContentPage();
+  });
+  $('#contentpage')?.addEventListener('cancel', e => {
+    e.preventDefault();
+    closeContentPage();
+  });
+  // Intercept Story dropdown content-page links to use SPA history nav
+  // instead of full page-load (which would tear down the audio engine)
+  document.addEventListener('click', e => {
+    const link = (e.target as Element | null)?.closest?.('a[data-content-page]') as HTMLAnchorElement | null;
+    if (!link) return;
+    const slug = link.dataset.contentPage;
+    if (!slug || !CONTENT_PAGE_BY_SLUG.has(slug)) return;
+    e.preventDefault();
+    openContentPage(slug);
+    // Close the dropdown after click
+    const list = $('#topbarPagesMenu') as HTMLElement | null;
+    if (list) list.hidden = true;
+    $('#btnPagesMenu')?.setAttribute('aria-expanded', 'false');
+  });
+  // Boot-time route detection for /about /process /credits /press
+  const bootSlug = location.pathname.replace(/^\//, '').replace(/\/$/, '');
+  if (CONTENT_PAGE_BY_SLUG.has(bootSlug)) {
+    openContentPage(bootSlug, { pushHistory: false });
+  }
   window.addEventListener('message', e => {
     if (e.origin !== location.origin) return;
     if ((e.data as { type?: string } | null)?.type === 'panda-appeal-close') closeAppeal();
@@ -4733,6 +5062,30 @@ function bindUi() {
 
   // Live lyrics overlay
   $('#btnLyricsOverlay')?.addEventListener('click', () => setKaraokeOverlay(!karaokeOverlayOn));
+
+  // Topbar Story dropdown — toggles the pages menu list. Music continues
+  // playing across every link since they all stay on the same SPA shell.
+  const pagesMenuTrigger = $('#btnPagesMenu') as HTMLButtonElement | null;
+  const pagesMenuList = $('#topbarPagesMenu') as HTMLElement | null;
+  if (pagesMenuTrigger && pagesMenuList) {
+    const closePages = () => {
+      pagesMenuList.hidden = true;
+      pagesMenuTrigger.setAttribute('aria-expanded', 'false');
+    };
+    pagesMenuTrigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = !pagesMenuList.hidden;
+      if (open) { closePages(); return; }
+      pagesMenuList.hidden = false;
+      pagesMenuTrigger.setAttribute('aria-expanded', 'true');
+    });
+    document.addEventListener('click', e => {
+      if (!pagesMenuList.hidden && !(e.target as Element)?.closest('[data-topbar-menu]')) closePages();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && !pagesMenuList.hidden) closePages();
+    });
+  }
   $('#karaokeClose')?.addEventListener('click', () => setKaraokeOverlay(false));
   setKaraokeOverlay(karaokeOverlayOn);
 
@@ -4796,10 +5149,92 @@ function bindUi() {
     });
   });
 
+  // NP-Panel action toolbar (fav, share, copy-link, fs-lyrics, fs-viz, ai)
+  document.querySelectorAll<HTMLButtonElement>('.np-panel__action').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.npAction;
+      if (!action) return;
+      if (action === 'fav') {
+        if (!currentTrackId) return;
+        if (npFavs.has(currentTrackId)) npFavs.delete(currentTrackId);
+        else npFavs.add(currentTrackId);
+        saveFavs(npFavs);
+        btn.setAttribute('aria-pressed', npFavs.has(currentTrackId) ? 'true' : 'false');
+      } else if (action === 'share') {
+        if (currentTrackId) openShare('track', currentTrackId);
+      } else if (action === 'copy-link') {
+        if (!currentTrackId) return;
+        const track = TRACK_BY_ID.get(currentTrackId);
+        const album = track ? ALBUM_BY_ID.get(track.album) : null;
+        if (track && album) {
+          const url = `${location.origin}/${album.id}/${track.id}`;
+          navigator.clipboard?.writeText(url).then(() => {
+            btn.querySelector('span')!.textContent = 'Copied';
+            setTimeout(() => { btn.querySelector('span')!.textContent = 'Copy'; }, 1600);
+          });
+        }
+      } else if (action === 'fs-lyrics') {
+        closeNpPanel();
+        if (lyricsFsOpen) closeLyricsFs(); else openLyricsFs();
+      } else if (action === 'fs-viz') {
+        closeNpPanel();
+        if (document.fullscreenElement) document.exitFullscreen?.();
+        else $('#viz')?.requestFullscreen?.();
+      } else if (action === 'ai') {
+        closeNpPanel();
+        const fab = document.querySelector('[data-aichat="fab"]') as HTMLElement | null;
+        if (fab) fab.click();
+      }
+    });
+  });
+
+  // Playback rate slider — always 2 decimal places (Brian wants stable column width)
+  const npRate = $('#npRate') as HTMLInputElement | null;
+  if (npRate) {
+    npRate.addEventListener('input', () => {
+      const v = parseFloat(npRate.value);
+      engine.audio.playbackRate = v;
+      const valEl = $('#npRateVal');
+      if (valEl) valEl.textContent = `${v.toFixed(2)}×`;
+    });
+  }
+
+  // Related-track click — jumps straight to the new track and refreshes
+  // the modal in-place (no close + reopen). Event-delegated since the
+  // related grid re-renders on every refreshNpPanel.
+  $('#npPanelRelatedGrid')?.addEventListener('click', e => {
+    const btn = (e.target as Element | null)?.closest('[data-related-track]') as HTMLButtonElement | null;
+    if (!btn) return;
+    const t = TRACK_BY_ID.get(btn.dataset.relatedTrack!);
+    if (t) { play(t); refreshNpPanel(); }
+  });
+
+  // Lyric downloads — .txt + .lrc
+  document.querySelectorAll<HTMLButtonElement>('.np-panel__dl-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!currentTrackId || !activeLyrics) return;
+      const track = TRACK_BY_ID.get(currentTrackId);
+      const album = track ? ALBUM_BY_ID.get(track.album) : undefined;
+      if (!track) return;
+      const slug = track.id;
+      if (btn.dataset.npDl === 'txt') {
+        downloadString(buildLyricsTxt(), `${slug}.txt`, 'text/plain');
+      } else if (btn.dataset.npDl === 'lrc') {
+        downloadString(buildLyricsLrc(track, album), `${slug}.lrc`, 'application/x-subrip');
+      }
+    });
+  });
+
   document.addEventListener('keydown', e => {
-    const inField = e.target && (e.target as HTMLElement).matches('input, textarea, select');
-    // Cmd+K / Ctrl+K: open search regardless of focus
-    if ((e.metaKey || e.ctrlKey) && e.code === 'KeyK') { e.preventDefault(); openSearch(); return; }
+    // Defensive: document-level keydown targets can be HTMLDocument or other
+    // non-Element nodes (no .matches). Only run the form-field check on
+    // real Elements so global shortcuts never crash on edge cases.
+    const t = e.target as Element | null;
+    const inField = !!(t && typeof (t as Element).matches === 'function' &&
+      (t as Element).matches('input, textarea, select'));
+    // Cmd+K / Ctrl+K: open AI chat (matches the FAB's visible ⌘K label).
+    // Search moved to Cmd+/ — a common alternative when Cmd+K is the AI/command surface.
+    if ((e.metaKey || e.ctrlKey) && e.code === 'Slash') { e.preventDefault(); openSearch(); return; }
     if (e.key === 'Escape') {
       if (searchOpen) { closeSearch(); return; }
       if (lyricsFsOpen) { closeLyricsFs(); return; }
@@ -4931,6 +5366,16 @@ function bindUi() {
     }
     if (path !== '/ashton/' && appealOpen) {
       closeAppeal({ popHistory: false });
+    }
+    // Content-page popstate handling
+    const cpOpen = ($('#contentpage') as HTMLDialogElement | null)?.open ?? false;
+    const slug = path.replace(/^\//, '').replace(/\/$/, '');
+    if (CONTENT_PAGE_BY_SLUG.has(slug) && !cpOpen) {
+      openContentPage(slug, { pushHistory: false });
+      return;
+    }
+    if (cpOpen && !CONTENT_PAGE_BY_SLUG.has(slug)) {
+      closeContentPage({ popHistory: false });
     }
     const route = parseRouteFromUrl(path);
     if (route?.kind === 'track') {
@@ -5422,12 +5867,19 @@ const paletteCache = new Map<string, { accent: string; violet: string }>();
 function applyAlbumPalette(track: Track) {
   const album = ALBUM_BY_ID.get(track.album);
   if (!album) return;
+  // Brian's rule: the album's CANONICAL accent (data.ts album.accent) is
+  // the source of truth for every text/ui surface. The cover-extracted
+  // color is a secondary palette only — used for visualizer particle hues
+  // + the --violet decorative secondary, NEVER for the primary --accent.
+  // Otherwise Panda Desiiignare reads as orange (its cover is mostly
+  // orange/pink) when the album is explicitly defined as cyan.
+  document.documentElement.style.setProperty('--accent', album.accent);
+  document.documentElement.style.setProperty('--album-accent', album.accent);
+  visualizer?.setAccent(album.accent);
   const cover = album.cover;
   if (paletteCache.has(cover)) {
     const p = paletteCache.get(cover)!;
-    document.documentElement.style.setProperty('--accent', p.accent);
     document.documentElement.style.setProperty('--violet', p.violet);
-    visualizer?.setAccent(p.accent);
     return;
   }
   const img = new Image();
@@ -5456,15 +5908,13 @@ function applyAlbumPalette(track: Track) {
       }
       const arr = [...buckets.values()].sort((a, b) => b.n * (1 + b.sat) - a.n * (1 + a.sat));
       if (arr.length === 0) return;
-      const top = arr[0];
-      const accent = `rgb(${Math.round(top.r / top.n)}, ${Math.round(top.g / top.n)}, ${Math.round(top.b / top.n)})`;
-      const second = arr[1] ?? top;
+      // Use extracted dominant color ONLY for the decorative secondary.
+      // The canonical --accent stays the album's data-defined color.
+      const second = arr[1] ?? arr[0];
       const violet = `rgb(${Math.round(second.r / second.n)}, ${Math.round(second.g / second.n)}, ${Math.round(second.b / second.n)})`;
-      paletteCache.set(cover, { accent, violet });
-      document.documentElement.style.setProperty('--accent', accent);
+      paletteCache.set(cover, { accent: album.accent, violet });
       document.documentElement.style.setProperty('--violet', violet);
-      visualizer?.setAccent(accent);
-    } catch { /* tainted canvas — fallback to album.accent */ }
+    } catch { /* tainted canvas — keep prior violet */ }
   };
   img.src = cover;
 }
@@ -5562,35 +6012,339 @@ function showWisdomToast(track: Track) {
   }, 4400);
 }
 
+// ─── NP Panel state ─────────────────────────────────────────────────────────
+// Local favorites persist in localStorage. Heart toggle reflects this set.
+const NP_FAV_KEY = 'bz:favorites';
+function loadFavs(): Set<string> {
+  try {
+    const raw = localStorage.getItem(NP_FAV_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch { return new Set(); }
+}
+function saveFavs(set: Set<string>) {
+  try { localStorage.setItem(NP_FAV_KEY, JSON.stringify(Array.from(set))); } catch { /* noop */ }
+}
+let npFavs = loadFavs();
+
+let npPanelRaf: number | null = null;
+
+function npFormatTime(sec: number): string {
+  if (!Number.isFinite(sec) || sec < 0) sec = 0;
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function npRefreshProgress() {
+  if (!npPanelOpen) return;
+  const bar = $('#npPanelProgress') as SVGCircleElement | null;
+  const elapsed = $('#npPanelElapsed');
+  const dur = $('#npPanelDur');
+  const t = engine.audio.currentTime || 0;
+  const d = engine.audio.duration && Number.isFinite(engine.audio.duration)
+    ? engine.audio.duration : 0;
+  if (bar) {
+    const pct = d > 0 ? Math.min(100, (t / d) * 100) : 0;
+    bar.style.strokeDashoffset = String(100 - pct);
+  }
+  if (elapsed) elapsed.textContent = npFormatTime(t);
+  if (dur) dur.textContent = d > 0 ? npFormatTime(d) : '—:—';
+}
+
+// NP-panel lyric state — track last-rendered line + word so we only mutate
+// the DOM when the active line changes (full re-render) or the active word
+// changes (class flip on existing spans). Mirrors the karaoke + fullscreen
+// pattern so all three surfaces are word-perfect in lockstep.
+let npLastLineIdx = -2;
+let npLastWordIdx = -2;
+let npNowLineWords: WhisperWord[] = [];
+let npNowWordSpans: HTMLSpanElement[] = [];
+
+function npRefreshLyrics() {
+  if (!npPanelOpen) return;
+  const box = $('#npPanelLyricBox') as HTMLElement | null;
+  if (!box) return;
+  if (!activeLyrics || !activeLyrics.lines.length) {
+    box.hidden = true;
+    npLastLineIdx = -2;
+    return;
+  }
+  box.hidden = false;
+  const t = engine.audio.currentTime || 0;
+  const lines = activeLyrics.lines;
+  let idx = 0;
+  if (t < lines[0].s) idx = 0;
+  else {
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (t >= lines[i].s) { idx = i; break; }
+    }
+  }
+  const prev = $('#npPanelLyricPrev');
+  const now = $('#npPanelLyricNow');
+  const next = $('#npPanelLyricNext');
+
+  if (idx !== npLastLineIdx) {
+    // Full re-render of current-line word spans
+    if (prev) prev.textContent = idx > 0 ? lines[idx - 1].text : '';
+    if (next) next.textContent = idx + 1 < lines.length ? lines[idx + 1].text : '';
+    if (now) {
+      const ln = lines[idx];
+      const words = activeLyrics.words ?? [];
+      let lineWords = words.filter(w => (w.line ?? -1) === idx);
+      if (!lineWords.length && words.length) {
+        lineWords = words.filter(w => w.s >= ln.s - 0.2 && w.s < ln.e + 0.2);
+      }
+      if (lineWords.length) {
+        npNowLineWords = lineWords;
+        now.innerHTML = lineWords
+          .map((w, i) => `<span class="np-panel__lyric-w" data-idx="${i}">${escapeHtml(i === 0 ? w.w.charAt(0).toUpperCase() + w.w.slice(1) : w.w)}</span>`)
+          .join(' ');
+        npNowWordSpans = Array.from(now.querySelectorAll<HTMLSpanElement>('.np-panel__lyric-w'));
+      } else {
+        npNowLineWords = [];
+        npNowWordSpans = [];
+        now.textContent = ln.text;
+      }
+    }
+    npLastLineIdx = idx;
+    npLastWordIdx = -2;
+  }
+
+  // Word-by-word: find latest word whose start <= t, toggle classes only
+  // when the active word index changes so we're not thrashing the DOM.
+  if (npNowWordSpans.length && npNowLineWords.length) {
+    let active = -1;
+    if (t >= npNowLineWords[0].s) {
+      for (let i = npNowLineWords.length - 1; i >= 0; i--) {
+        if (t >= npNowLineWords[i].s) { active = i; break; }
+      }
+    }
+    if (active !== npLastWordIdx) {
+      for (let i = 0; i < npNowWordSpans.length; i++) {
+        npNowWordSpans[i].classList.toggle('np-panel__lyric-w--past', i < active);
+        npNowWordSpans[i].classList.toggle('np-panel__lyric-w--active', i === active);
+      }
+      npLastWordIdx = active;
+    }
+  }
+}
+
 function refreshNpPanel() {
   if (!npPanelOpen) return;
+  // Reset lyric trackers so the next tick re-paints the active line + word
+  // from scratch. Without this, switching tracks would leave the previous
+  // track's word spans on the same line index pretending to be current.
+  npLastLineIdx = -2;
+  npLastWordIdx = -2;
+  npNowLineWords = [];
+  npNowWordSpans = [];
   const track = currentTrackId ? (TRACK_BY_ID.get(currentTrackId) ?? null) : null;
   const album = track ? ALBUM_BY_ID.get(track.album) : null;
+  const meta = track ? SUNO_META[track.id] : null;
+  const coverUrl = album?.cover ?? '/art/cover-panda-desiiignare.png';
+
   const cover = $('#npPanelCover') as HTMLImageElement | null;
+  const artBg = $('#npPanelArtBg') as HTMLElement | null;
   const label = $('#npPanelLabel');
   const title = $('#npPanelTitle');
   const wisdom = $('#npPanelWisdom');
-  const bpmEl = $('#npPanelBpm');
-  if (cover) cover.src = album?.cover ?? '/art/cover-panda-desiiignare.png';
+  if (cover) cover.src = coverUrl;
+  if (artBg) artBg.style.backgroundImage = `url("${coverUrl}")`;
   if (label) label.textContent = album?.name ?? 'bZ';
   if (title) title.textContent = track?.title ?? 'Press play';
   if (wisdom) wisdom.textContent = track?.wisdom ?? 'Play a track to see its wisdom.';
-  const b = Math.round(engine.bpm);
-  if (bpmEl) bpmEl.textContent = b > 30 ? `${b} BPM · ${hzToNote(engine.bpm)}` : '— BPM';
+
+  // Stat chips — BPM/KEY/PLAYS, hidden when data unavailable
+  const bpmChip = $('#npPanelStatBpm') as HTMLElement | null;
+  const keyChip = $('#npPanelStatKey') as HTMLElement | null;
+  const playsChip = $('#npPanelStatPlays') as HTMLElement | null;
+  const bpmVal = meta?.sunoBpm ? Math.round(meta.sunoBpm) : (engine.bpm > 30 ? Math.round(engine.bpm) : null);
+  if (bpmChip) {
+    if (bpmVal) { bpmChip.hidden = false; (bpmChip.querySelector('strong') as HTMLElement).textContent = String(bpmVal); }
+    else bpmChip.hidden = true;
+  }
+  if (keyChip) {
+    if (meta?.sunoKey) { keyChip.hidden = false; (keyChip.querySelector('strong') as HTMLElement).textContent = meta.sunoKey; }
+    else keyChip.hidden = true;
+  }
+  if (playsChip) {
+    const plays = track ? (playCounts.get(track.id) ?? 0) : 0;
+    if (plays > 0) { playsChip.hidden = false; (playsChip.querySelector('strong') as HTMLElement).textContent = String(plays); }
+    else playsChip.hidden = true;
+  }
+
+  // Tags from getTrackTags — flatten the structured shape into a single
+  // ordered chip list (moods → themes → places → genres). Energy + tempo
+  // are surface-level descriptors that read well in the chip strip too.
+  const tagsEl = $('#npPanelTags');
+  if (tagsEl) {
+    const tt = track ? getTrackTags(track.id) : undefined;
+    if (tt) {
+      const flat = [
+        tt.energy,
+        tt.tempo,
+        ...tt.moods,
+        ...tt.themes,
+        ...tt.genres,
+        ...tt.places,
+      ].filter(Boolean) as string[];
+      const unique = Array.from(new Set(flat)).slice(0, 7);
+      tagsEl.innerHTML = unique.map(tag =>
+        `<span class="np-panel__tag">${escapeHtml(tag)}</span>`).join('');
+    } else {
+      tagsEl.innerHTML = '';
+    }
+  }
+
+  // Favorite button reflects local fav state
+  const favBtn = document.querySelector('.np-panel__action[data-np-action="fav"]') as HTMLButtonElement | null;
+  if (favBtn && track) {
+    favBtn.setAttribute('aria-pressed', npFavs.has(track.id) ? 'true' : 'false');
+  }
+
+  // Smart-link platforms — Spotify/Apple/YouTube/Suno when known
+  const platformsEl = $('#npPanelPlatforms') as HTMLElement | null;
+  if (platformsEl) {
+    const links: Array<{ label: string; url: string }> = [];
+    if (SPOTIFY_ARTIST_ID) links.push({ label: 'Spotify', url: `https://open.spotify.com/artist/${SPOTIFY_ARTIST_ID}` });
+    if (meta?.sunoId) links.push({ label: 'Suno', url: `https://suno.com/song/${meta.sunoId}` });
+    if (track?.title) {
+      const q = encodeURIComponent(`bZ ${track.title}`);
+      links.push({ label: 'YouTube', url: `https://www.youtube.com/results?search_query=${q}` });
+      links.push({ label: 'Apple Music', url: `https://music.apple.com/us/search?term=${q}` });
+    }
+    if (links.length) {
+      platformsEl.hidden = false;
+      platformsEl.innerHTML = links.map(l =>
+        `<a class="np-panel__platform" href="${l.url}" target="_blank" rel="noopener">${escapeHtml(l.label)} ↗</a>`
+      ).join('');
+    } else {
+      platformsEl.hidden = true;
+    }
+  }
+
+  // Reverb preset highlight
   document.querySelectorAll<HTMLButtonElement>('.np-panel__reverb-btn').forEach(btn => {
     btn.classList.toggle('is-active', btn.dataset.preset === activeReverb);
   });
+
+  // Sync playback rate display to actual audio rate (2 decimal places always)
+  const rateInput = $('#npRate') as HTMLInputElement | null;
+  const rateVal = $('#npRateVal');
+  const currentRate = engine.audio.playbackRate || 1;
+  if (rateInput) rateInput.value = String(currentRate);
+  if (rateVal) rateVal.textContent = `${currentRate.toFixed(2)}×`;
+
+  // Related tracks — top 3 by shared-tag count (simple Jaccard-like score)
+  const relatedEl = $('#npPanelRelated') as HTMLElement | null;
+  const relatedGrid = $('#npPanelRelatedGrid');
+  if (relatedEl && relatedGrid && track) {
+    const myTags = getTrackTags(track.id);
+    if (myTags) {
+      const mySet = new Set([...myTags.moods, ...myTags.themes, ...myTags.genres, ...myTags.places]);
+      const scored = TRACKS
+        .filter(t => t.id !== track.id)
+        .map(t => {
+          const tags = getTrackTags(t.id);
+          if (!tags) return { t, score: 0 };
+          const theirs = [...tags.moods, ...tags.themes, ...tags.genres, ...tags.places];
+          let score = theirs.filter(x => mySet.has(x)).length;
+          // Same-album bonus so the cluster reads as a curated mini-playlist
+          if (t.album === track.album) score += 1;
+          return { t, score };
+        })
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3);
+      if (scored.length) {
+        relatedEl.hidden = false;
+        relatedGrid.innerHTML = scored.map(({ t }) => {
+          const a = ALBUM_BY_ID.get(t.album);
+          return `<button class="np-panel__related-item" data-related-track="${t.id}" type="button" title="Play ${escapeHtml(t.title)}">
+            <img class="np-panel__related-cover" src="${a?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="56" height="56" loading="lazy" />
+            <div class="np-panel__related-meta">
+              <span class="np-panel__related-title">${escapeHtml(t.title)}</span>
+              <span class="np-panel__related-album">${escapeHtml(a?.name ?? 'bZ')}</span>
+            </div>
+          </button>`;
+        }).join('');
+      } else {
+        relatedEl.hidden = true;
+      }
+    }
+  }
+
+  // Lyric downloads — only show when activeLyrics has timing data
+  const dlEl = $('#npPanelDownloads') as HTMLElement | null;
+  if (dlEl) dlEl.hidden = !activeLyrics || !activeLyrics.lines.length;
+
+  npRefreshProgress();
+  npRefreshLyrics();
+}
+
+// Build .txt + .lrc strings from activeLyrics for download
+function buildLyricsTxt(): string {
+  if (!activeLyrics) return '';
+  return activeLyrics.lines.map(l => l.text).join('\n');
+}
+function buildLyricsLrc(track: Track, album: { name: string } | undefined): string {
+  if (!activeLyrics) return '';
+  const head = [
+    `[ti:${track.title}]`,
+    `[ar:bZ]`,
+    `[al:${album?.name ?? 'bZ'}]`,
+    `[length:${npFormatTime(engine.audio.duration || 0)}]`,
+    `[by:bzmusic.win]`,
+  ].join('\n');
+  const body = activeLyrics.lines.map(l => {
+    const m = Math.floor(l.s / 60);
+    const s = (l.s % 60).toFixed(2).padStart(5, '0');
+    return `[${m.toString().padStart(2, '0')}:${s}]${l.text}`;
+  }).join('\n');
+  return `${head}\n${body}\n`;
+}
+function downloadString(content: string, filename: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function npTick() {
+  if (!npPanelOpen) { npPanelRaf = null; return; }
+  npRefreshProgress();
+  npRefreshLyrics();
+  // Beat-sync — drive a CSS custom-property pulse on the modal so the
+  // cover ring + accent edges flash with the kick drum. Reads the same
+  // analyzer meters the topbar accent line uses.
+  const card = document.querySelector('.np-panel__card') as HTMLElement | null;
+  if (card) {
+    const meters = visualizer?.audioMeters();
+    const beat = meters?.beat ?? 0;
+    const energy = meters ? Math.min(1, (meters.mid ?? 0) * 0.5 + (meters.bass ?? 0) * 0.6 + beat * 0.4) : 0;
+    card.style.setProperty('--np-beat', beat.toFixed(3));
+    card.style.setProperty('--np-energy', energy.toFixed(3));
+  }
+  npPanelRaf = requestAnimationFrame(npTick);
 }
 
 function openNpPanel() {
   npPanelOpen = true;
   $('#npPanel')?.classList.add('is-open');
   refreshNpPanel();
+  if (npPanelRaf === null) npPanelRaf = requestAnimationFrame(npTick);
 }
 
 function closeNpPanel() {
   npPanelOpen = false;
   $('#npPanel')?.classList.remove('is-open');
+  if (npPanelRaf !== null) { cancelAnimationFrame(npPanelRaf); npPanelRaf = null; }
 }
 
 function registerServiceWorker() {
@@ -5640,6 +6394,12 @@ function bootstrapInitialRoute() {
     openAppeal({ pushHistory: false });
     return;
   }
+  // Content-page slugs (/about, /process, /credits, …) are routed by the
+  // content-page dialog wiring above. openContentPage sets its own meta —
+  // do NOT fall through to applyDefaultMetadata or we'll clobber the
+  // per-page og:image + title.
+  const slugCandidate = location.pathname.replace(/^\//, '').replace(/\/$/, '');
+  if (CONTENT_PAGE_BY_SLUG.has(slugCandidate)) return;
   if (location.pathname === '/share-target') {
     void consumeShareTarget();
     applyDefaultMetadata();

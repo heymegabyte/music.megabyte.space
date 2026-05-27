@@ -184,9 +184,11 @@ export function mountAIChat(opts: MountOpts = {}) {
   root.setAttribute('role', 'complementary');
   root.setAttribute('aria-label', 'AI chat');
   root.innerHTML = `
-    <button class="aichat__fab" type="button" aria-label="Open AI chat (Cmd+I)" data-aichat="fab">
+    <button class="aichat__fab" type="button" aria-label="Open AI chat (Cmd+K)" data-aichat="fab">
       <span class="aichat__fab-dot" aria-hidden="true"></span>
-      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 3a9 9 0 0 0-7.74 13.6L3 21l4.6-1.22A9 9 0 1 0 12 3Zm-3.5 9.5a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm3.5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Zm3.5 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5Z"/></svg>
+      <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <span class="aichat__fab-label">Ask</span>
+      <kbd class="aichat__fab-kbd" aria-hidden="true">⌘K</kbd>
     </button>
     <span class="aichat__fab-tip" data-aichat="fabTip" hidden aria-hidden="true"></span>
     <aside class="aichat__panel" data-aichat="panel" aria-hidden="true" tabindex="-1">
@@ -838,12 +840,31 @@ export function mountAIChat(opts: MountOpts = {}) {
     }
   }
 
+  // Monochrome SVG icon set for message action toolbar + pins. All icons
+  // use stroke="currentColor" so they inherit the white/muted color from
+  // .aichat__msg-tools button (CSS), giving the whole row visual unity.
+  // No emojis — emojis ship with hardcoded brand colors (pink pin, red
+  // heart, yellow chick) that break the monochrome chrome of the chat.
+  const ICON = (path: string, attrs = '') =>
+    `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${attrs}>${path}</svg>`;
+  const I_COPY    = ICON('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>');
+  const I_SPEAK   = ICON('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>');
+  const I_EDIT    = ICON('<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>');
+  const I_RETRY   = ICON('<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>');
+  const I_FLASK   = ICON('<path d="M9 2v6L4 18a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L15 8V2"/><line x1="9" y1="2" x2="15" y2="2"/>');
+  const I_CUT     = ICON('<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/>');
+  const I_SPARK   = ICON('<path d="m12 3-1.5 5L5 9.5l5.5 1.5L12 16l1.5-5L19 9.5 13.5 8 12 3z"/><path d="M5 18l1-2 2-1-2-1-1-2-1 2-2 1 2 1 1 2z"/>');
+  const I_BRANCH  = ICON('<line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>');
+  const I_PLAY2   = ICON('<polygon points="3 4 13 12 3 20 3 4"/><polygon points="13 4 23 12 13 20 13 4"/>');
+  const I_PIN     = ICON('<path d="M12 17v5"/><path d="M5 17h14l-2-5V5H7v7l-2 5z"/>');
+  const I_HEART   = ICON('<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>');
+
   function renderPins() {
     const sess = activeSession();
     const chips: string[] = [];
     state.settings.pinned.forEach((p, i) => {
       chips.push(
-        `<button type="button" class="aichat__pin-chip" data-pin-global="${i}" title="${escapeHtml(p)}">📌 ${escapeHtml(p.slice(0, 28))}${p.length > 28 ? '…' : ''}</button>`
+        `<button type="button" class="aichat__pin-chip" data-pin-global="${i}" title="${escapeHtml(p)}" aria-label="Pinned note: ${escapeHtml(p.slice(0, 40))}">${I_PIN}<span>${escapeHtml(p.slice(0, 28))}${p.length > 28 ? '…' : ''}</span></button>`
       );
     });
     sess.messages
@@ -851,7 +872,7 @@ export function mountAIChat(opts: MountOpts = {}) {
       .forEach(m => {
         const snippet = m.content.slice(0, 28);
         chips.push(
-          `<button type="button" class="aichat__pin-chip" data-pin-msg="${m.id}" title="${escapeHtml(m.content.slice(0, 200))}">📍 ${escapeHtml(snippet)}${m.content.length > 28 ? '…' : ''}</button>`
+          `<button type="button" class="aichat__pin-chip" data-pin-msg="${m.id}" title="${escapeHtml(m.content.slice(0, 200))}" aria-label="Pinned message: ${escapeHtml(snippet)}">${I_PIN}<span>${escapeHtml(snippet)}${m.content.length > 28 ? '…' : ''}</span></button>`
         );
       });
     if (!chips.length) {
@@ -895,17 +916,17 @@ export function mountAIChat(opts: MountOpts = {}) {
       ${followups}
       ${expandBtn}
       <div class="aichat__msg-tools" role="toolbar" aria-label="Message actions">
-        <button type="button" data-act="copy" data-id="${m.id}" aria-label="Copy" title="Copy">⧉</button>
-        ${m.role === 'assistant' ? `<button type="button" data-act="speak" data-id="${m.id}" aria-label="Read aloud" title="Read aloud">🔊</button>` : ''}
-        ${m.role === 'user' ? `<button type="button" data-act="edit" data-id="${m.id}" aria-label="Edit" title="Edit">✎</button>` : ''}
-        ${m.role === 'assistant' ? `<button type="button" data-act="retry" data-id="${m.id}" aria-label="Regenerate" title="Regenerate">↺</button>` : ''}
-        ${m.role === 'assistant' ? `<button type="button" data-act="critique" data-id="${m.id}" aria-label="Critique" title="Self-critique pass">🧪</button>` : ''}
-        ${m.role === 'assistant' ? `<button type="button" data-act="rewrite" data-id="${m.id}" aria-label="Rewrite tighter" title="Rewrite tighter">✂︎</button>` : ''}
-        ${m.role === 'assistant' ? `<button type="button" data-act="eli10" data-id="${m.id}" aria-label="Explain like I'm 10" title="Explain like I'm 10">🐣</button>` : ''}
-        ${m.role === 'assistant' ? `<button type="button" data-act="branch" data-id="${m.id}" aria-label="Branch" title="Branch conversation">⎇</button>` : ''}
-        ${m.role === 'assistant' ? `<button type="button" data-act="playlist" data-id="${m.id}" aria-label="Make a playlist from this chat" title="Make a playlist from this chat">▶︎▶︎</button>` : ''}
-        <button type="button" data-act="pin" data-id="${m.id}" aria-pressed="${m.pinned ? 'true' : 'false'}" aria-label="Pin" title="Pin">${m.pinned ? '📌' : '📍'}</button>
-        ${m.role === 'assistant' ? `<button type="button" data-act="like" data-id="${m.id}" aria-pressed="${m.liked === 1}" aria-label="Like" title="Like">${m.liked === 1 ? '♥' : '♡'}</button>` : ''}
+        <button type="button" data-act="copy" data-id="${m.id}" aria-label="Copy" title="Copy">${I_COPY}</button>
+        ${m.role === 'assistant' ? `<button type="button" data-act="speak" data-id="${m.id}" aria-label="Read aloud" title="Read aloud">${I_SPEAK}</button>` : ''}
+        ${m.role === 'user' ? `<button type="button" data-act="edit" data-id="${m.id}" aria-label="Edit" title="Edit">${I_EDIT}</button>` : ''}
+        ${m.role === 'assistant' ? `<button type="button" data-act="retry" data-id="${m.id}" aria-label="Regenerate" title="Regenerate">${I_RETRY}</button>` : ''}
+        ${m.role === 'assistant' ? `<button type="button" data-act="critique" data-id="${m.id}" aria-label="Critique" title="Self-critique pass">${I_FLASK}</button>` : ''}
+        ${m.role === 'assistant' ? `<button type="button" data-act="rewrite" data-id="${m.id}" aria-label="Rewrite tighter" title="Rewrite tighter">${I_CUT}</button>` : ''}
+        ${m.role === 'assistant' ? `<button type="button" data-act="eli10" data-id="${m.id}" aria-label="Explain like I'm 10" title="Explain like I'm 10">${I_SPARK}</button>` : ''}
+        ${m.role === 'assistant' ? `<button type="button" data-act="branch" data-id="${m.id}" aria-label="Branch" title="Branch conversation">${I_BRANCH}</button>` : ''}
+        ${m.role === 'assistant' ? `<button type="button" data-act="playlist" data-id="${m.id}" aria-label="Make a playlist from this chat" title="Make a playlist from this chat">${I_PLAY2}</button>` : ''}
+        <button type="button" data-act="pin" data-id="${m.id}" aria-pressed="${m.pinned ? 'true' : 'false'}" aria-label="Pin" title="${m.pinned ? 'Unpin' : 'Pin'}">${I_PIN}</button>
+        ${m.role === 'assistant' ? `<button type="button" data-act="like" data-id="${m.id}" aria-pressed="${m.liked === 1}" aria-label="Like" title="${m.liked === 1 ? 'Unlike' : 'Like'}">${I_HEART}</button>` : ''}
       </div>
     </li>`;
   }
@@ -1021,9 +1042,46 @@ export function mountAIChat(opts: MountOpts = {}) {
     autoScrollLocked = false;
   }
 
+  // Status pill in the header is a fixed-width chip — anything > 24 chars
+  // truncates with ellipsis AND raises a dismissable toast in the chat
+  // body so the user actually sees the message instead of it clipping
+  // silently or pushing the persona pill off the screen.
+  const STATUS_MAX = 24;
   function setStatus(text: string, busy = false) {
-    status.textContent = text;
+    const truncated = text.length > STATUS_MAX ? `${text.slice(0, STATUS_MAX - 1)}…` : text;
+    status.textContent = truncated;
+    status.title = text;
     messages.setAttribute('aria-busy', busy ? 'true' : 'false');
+    // Only toast for STATEFUL messages (not Ready / Thinking…) AND when
+    // the original text was actually truncated — short status updates
+    // don't need a toast.
+    if (text.length > STATUS_MAX && text !== 'Ready' && text !== 'Thinking…') {
+      showStatusToast(text);
+    }
+  }
+  // Lightweight dismissable toast for overflow status messages. One toast
+  // at a time; subsequent setStatus calls replace the text rather than
+  // stacking. Auto-dismisses after 4s.
+  let toastEl: HTMLElement | null = null;
+  let toastTimer: number | null = null;
+  function showStatusToast(text: string) {
+    if (!toastEl) {
+      toastEl = document.createElement('div');
+      toastEl.className = 'aichat__status-toast';
+      toastEl.setAttribute('role', 'status');
+      toastEl.innerHTML = `<span data-aichat="toastText"></span><button type="button" aria-label="Dismiss">✕</button>`;
+      toastEl.querySelector('button')?.addEventListener('click', dismissStatusToast);
+      panel.appendChild(toastEl);
+    }
+    (toastEl.querySelector('[data-aichat="toastText"]') as HTMLElement).textContent = text;
+    toastEl.classList.add('is-open');
+    if (toastTimer !== null) clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(dismissStatusToast, 4000);
+  }
+  function dismissStatusToast() {
+    if (!toastEl) return;
+    toastEl.classList.remove('is-open');
+    if (toastTimer !== null) { clearTimeout(toastTimer); toastTimer = null; }
   }
 
   function trackContext(): string {
@@ -3442,7 +3500,9 @@ export function mountAIChat(opts: MountOpts = {}) {
 
     window.addEventListener('keydown', e => {
       const meta = e.metaKey || e.ctrlKey;
-      if (meta && e.key.toLowerCase() === 'i') {
+      // Cmd+K is the primary opener (matches the visible ⌘K label on the
+      // FAB). Cmd+I stays as a legacy alias for muscle memory.
+      if (meta && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 'i') && !e.shiftKey && !e.altKey) {
         e.preventDefault();
         setOpen(!panel.classList.contains('is-open'));
       }

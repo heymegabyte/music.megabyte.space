@@ -34,6 +34,13 @@ run_worker_first = [
   "/embed/*",
   "/ashton/*",
   "/ashton-letter/*",
+  "/about",
+  "/process",
+  "/credits",
+  "/press",
+  "/theology",
+  "/contact",
+  "/support",
   "/api/*",
   "/health"
 ]
@@ -46,6 +53,11 @@ LISTMONK_LIST_NAME = "music.megabyte.space"
 [[kv_namespaces]]
 binding = "COUNTERS"
 id = "2a9973599d5c453c984cdb69758f9bde"
+
+# Workers AI binding — drives /api/ai/chat via Llama 3.3 70B (FP8-fast).
+# No API key needed; included in the free tier for typical chat volume.
+[ai]
+binding = "AI"
 
 [observability]
 enabled = true

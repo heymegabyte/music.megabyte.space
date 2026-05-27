@@ -340,6 +340,40 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
   void load(0, false);
   refreshTitle();
   setupVisualizer(engine, album.accent);
+
+  // ── postMessage API for the <bzmusic-player> web component ──────────────
+  // Parent pages embedding via the custom element can drive playback +
+  // query state via window.postMessage. We emit bzmusic:play/pause/ended
+  // up to the parent so parent pages can react to audio events.
+  window.addEventListener('message', ev => {
+    const data = ev.data as { type?: string; payload?: { seconds?: number } } | undefined;
+    if (!data || typeof data.type !== 'string') return;
+    if (data.type === 'bzmusic:play') void engine.play(playlist[idx]);
+    else if (data.type === 'bzmusic:pause') engine.audio.pause();
+    else if (data.type === 'bzmusic:seek' && typeof data.payload?.seconds === 'number') {
+      engine.audio.currentTime = data.payload.seconds;
+    } else if (data.type === 'bzmusic:get-nowplaying') {
+      const t = playlist[idx];
+      window.parent?.postMessage({
+        type: 'bzmusic:nowplaying',
+        payload: {
+          title: t.title,
+          album: album.name,
+          currentTime: engine.audio.currentTime || 0,
+          duration: engine.audio.duration || 0,
+        },
+      }, '*');
+    }
+  });
+
+  // Forward audio events to the parent so the web component can dispatch
+  // them as CustomEvents on the <bzmusic-player> element.
+  const emit = (type: string) => window.parent?.postMessage({ type }, '*');
+  engine.audio.addEventListener('play', () => emit('bzmusic:play'));
+  engine.audio.addEventListener('pause', () => emit('bzmusic:pause'));
+  engine.audio.addEventListener('ended', () => emit('bzmusic:ended'));
+  engine.audio.addEventListener('seeked', () => emit('bzmusic:seek'));
+  requestAnimationFrame(() => emit('bzmusic:ready'));
 }
 
 /** Web Audio FFT visualizer for the embed surface.

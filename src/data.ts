@@ -155,7 +155,14 @@ export const ALBUMS: Album[] = [
       'promised-land-hands',
       'st-johns-halo',
       'soup-kitchen-windows'
-    ]
+    ],
+    // Streaming/store links — search URLs that land on the bZ artist page
+    // on each platform. Swap with direct album URLs once the canonical
+    // release UPCs publish on Spotify+Apple Music.
+    links: {
+      spotify: "https://open.spotify.com/search/bZ%20St%20John%27s%20Canon",
+      appleMusic: "https://music.apple.com/us/search?term=bZ%20St%20John%27s%20Canon"
+    }
   }
 ];
 

@@ -23,13 +23,30 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/art/bzmusic-icon-32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/art/bzmusic-icon-16.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/art/bzmusic-icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/art/bzmusic-icon-512.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/art/bzmusic-apple-touch.png" />
+    <!-- real-favicongenerator standard link block. v=4 cache-bust forces
+         every browser + OS to refetch the icons since previous deploys
+         baked stale bytes into the favicon URL. -->
+    <link rel="manifest" href="/site.webmanifest?v=4" />
+    <link rel="icon" href="/favicon.ico?v=4" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=4" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=4" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png?v=4" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png?v=4" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=4" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png?v=4" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png?v=4" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png?v=4" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png?v=4" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png?v=4" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png?v=4" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png?v=4" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png?v=4" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg?v=4" color="#00E5FF" />
+    <meta name="msapplication-TileColor" content="#060610" />
+    <meta name="msapplication-TileImage" content="/mstile-150x150.png?v=4" />
+    <meta name="msapplication-config" content="/browserconfig.xml?v=4" />
 
     <meta property="og:type" content="music.album" />
     <meta property="og:title" content="Panda Desiiignare — bZ" />
@@ -91,6 +108,7 @@
       href="/art/cover-panda-desiiignare-v2.png"
       fetchpriority="high"
     />
+
 
     <!-- Speculation Rules — prerender same-origin nav targets on hover/focus.
          `moderate` eagerness keeps bandwidth sane while delivering instant
