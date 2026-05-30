@@ -666,12 +666,27 @@ function renderClipPage(trackId: string, origin: string): string {
     width: 100vw; height: 100vh;
     aspect-ratio: 9 / 16;
     margin: 0 auto;
-    background: radial-gradient(120% 80% at 50% 0%,
-      color-mix(in srgb, var(--accent) 28%, var(--bg)) 0%,
-      var(--bg) 60%),
-      linear-gradient(180deg, var(--bg) 0%, #000 100%);
+    background: #000;
     overflow: hidden;
   }
+  /* Chill stock-footage background (Pexels CC0) — looped, muted, blurred
+     + dimmed so the cover + title + lyric layer reads on top. */
+  .bg-vid {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    filter: brightness(0.55) saturate(115%);
+    z-index: 0;
+  }
+  .bg-vid-overlay {
+    position: absolute; inset: 0; z-index: 1;
+    background:
+      radial-gradient(120% 80% at 50% 0%,
+        color-mix(in srgb, var(--accent) 22%, transparent) 0%,
+        transparent 55%),
+      linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.65) 75%, rgba(0,0,0,0.85) 100%);
+    pointer-events: none;
+  }
+  .stage > *:not(.bg-vid):not(.bg-vid-overlay) { position: relative; z-index: 2; }
   .cover {
     position: absolute; top: 12%; left: 50%; transform: translateX(-50%);
     width: 64%; aspect-ratio: 1/1;
@@ -744,6 +759,8 @@ function renderClipPage(trackId: string, origin: string): string {
     <button onclick="play()">▶ Play 15s</button>
   </div>
   <div class="stage">
+    <video class="bg-vid" id="bgVid" autoplay muted loop playsinline preload="auto"></video>
+    <div class="bg-vid-overlay"></div>
     <div class="brand">bz · music.megabyte.space</div>
     <div class="cover"><img id="cover" src="/art/cover-${trackId}.jpg" onerror="this.onerror=null;this.src='/art/cover-panda-desiiignare.jpg';" alt="" /></div>
     <div class="meta">
@@ -795,6 +812,29 @@ async function play() {
 }
 loadLyrics().then(tick);
 loadCover();
+
+// Background chill video — picks a random clip from /clips/manifest.json
+// (Pexels CC0). Hash the trackId so the same track always picks the same
+// background (sharable consistency). Override with ?bg=chill-12345.
+(async () => {
+  try {
+    const m = await fetch('/clips/manifest.json');
+    if (!m.ok) return;
+    const clips = await m.json();
+    if (!clips.length) return;
+    const override = params.get('bg');
+    let pick = clips.find(c => c.id === override);
+    if (!pick) {
+      // Deterministic per-track: simple djb2 hash
+      let h = 5381;
+      for (const c of TRACK_ID) h = ((h << 5) + h) + c.charCodeAt(0);
+      pick = clips[Math.abs(h) % clips.length];
+    }
+    const v = document.getElementById('bgVid');
+    v.src = '/clips/' + pick.id + '.mp4';
+    v.play().catch(() => {});
+  } catch {}
+})();
 </script>
 </body></html>`;
 }

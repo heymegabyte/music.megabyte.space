@@ -43,6 +43,7 @@ run_worker_first = [
   "/theology",
   "/contact",
   "/support",
+  "/merch",
   "/api/*",
   "/health"
 ]

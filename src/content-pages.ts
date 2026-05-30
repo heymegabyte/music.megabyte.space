@@ -982,6 +982,63 @@ export const CONTENT_PAGES: ContentPage[] = [
     `,
   },
 
+  // ═══ MERCH ════════════════════════════════════════════════════════════
+  {
+    slug: 'merch',
+    title: 'Merch',
+    eyebrow: 'wear the gospel',
+    description: 'One shirt. Hard, holy, black cotton.',
+    ogImage: '/merch/shirt-free-satan-1.jpg',
+    metaTitle: 'Merch — bZ · FREE SATAN tee',
+    metaDescription: 'Black cotton, bold cyan FREE SATAN graffiti print. The hustle-gospel ethic on a tee. Print-on-demand via Printful, ships worldwide.',
+    jsonLdType: 'WebPage',
+    render: () => `
+      <article class="contentpage__article">
+        <p class="contentpage__lead">
+          One shirt. Black cotton. Bold cyan <strong>FREE SATAN</strong> graffiti print
+          across the chest. Provocative on first read; theologically literal on the second
+          (Christ harrowed hell — that's the gospel). Wear it loud, explain it patient.
+        </p>
+
+        ${figure('/merch/shirt-free-satan-1.jpg', 'FREE SATAN tee — black cotton with cyan graffiti print', 'Premium black 100% cotton · screen-printed cyan ink · ships worldwide via Printful.')}
+
+        ${divider('the design')}
+        <ul>
+          <li><strong>Color</strong> — black premium cotton, ring-spun, midweight</li>
+          <li><strong>Print</strong> — bold cyan #00E5FF screen-print, slightly distressed</li>
+          <li><strong>Fit</strong> — unisex regular fit, runs true to size</li>
+          <li><strong>Sizes</strong> — XS through 3XL</li>
+          <li><strong>Print method</strong> — DTG (direct-to-garment), no peeling, washes well</li>
+        </ul>
+
+        ${divider('what it means')}
+        <p>
+          The phrase reads two ways. On the surface it's punk-rock provocation; closer up it's
+          orthodox theology — Christ descended into hell and emancipated the captives
+          (1 Peter 3:18-20, Apostles' Creed). The shirt invites the conversation.
+          If you don't want to have that conversation, this isn't the shirt.
+        </p>
+
+        ${divider('order')}
+        <p style="text-align: center; padding: 24px 0;">
+          <a class="contentpage__share" id="merchBuyBtn" href="#" target="_blank" rel="noopener noreferrer" style="font-size: 0.78rem; padding: 14px 28px; background: var(--accent); color: var(--bg); border: 0;">
+            BUY · $28 USD ↗
+          </a>
+        </p>
+        <p style="color: var(--ink-mute); font-size: 0.85rem; text-align: center;">
+          Fulfilled by Printful · ships in 5–7 days · 100% of profit funds the studio + St. John's Soup Kitchen.
+        </p>
+
+        ${divider('credits')}
+        <p>
+          Design © Brian Zalewski / Megabyte Labs · Printful fulfillment · all
+          royalties split: 60% studio operating costs (servers, Suno, OpenAI, Cloudflare),
+          40% St. John's Soup Kitchen of Newark.
+        </p>
+      </article>
+    `,
+  },
+
   // ═══ SUPPORT ══════════════════════════════════════════════════════════
   {
     slug: 'support',
