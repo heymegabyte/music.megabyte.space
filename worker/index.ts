@@ -745,7 +745,7 @@ function renderClipPage(trackId: string, origin: string): string {
   </div>
   <div class="stage">
     <div class="brand">bz · music.megabyte.space</div>
-    <div class="cover"><img id="cover" src="/art/cover-${trackId}.jpg" onerror="this.onerror=null;this.src='/art/cover-panda-desiiignare.png';" alt="" /></div>
+    <div class="cover"><img id="cover" src="/art/cover-${trackId}.jpg" onerror="this.onerror=null;this.src='/art/cover-panda-desiiignare.jpg';" alt="" /></div>
     <div class="meta">
       <h1 class="title">${title}</h1>
       <div class="chips" id="chips">
@@ -1040,7 +1040,7 @@ function renderPressPage(trackId: string, origin: string): string {
 <main class="wrap">
   <section class="hero" aria-label="${title}">
     <div class="hero__cover">
-      <img id="cover" src="/art/cover-${trackId}.jpg" onerror="this.onerror=null;this.src='/art/cover-panda-desiiignare.png';" alt="${title} cover" />
+      <img id="cover" src="/art/cover-${trackId}.jpg" onerror="this.onerror=null;this.src='/art/cover-panda-desiiignare.jpg';" alt="${title} cover" />
     </div>
     <div class="hero__body">
       <span class="hero__eyebrow">press kit · single</span>

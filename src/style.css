@@ -3556,10 +3556,13 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
 }
 
 .album__spotify {
-  padding: 8px 20px 4px;
+  padding: 14px 20px 6px;
 }
 .album__spotify iframe {
-  border-radius: 12px;
+  border: 0;
+  border-radius: 14px;
+  display: block;
+  box-shadow: 0 10px 30px -12px color-mix(in srgb, #1DB954 35%, transparent);
 }
 
 /* ---------- share dialog ---------- */

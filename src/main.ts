@@ -350,7 +350,7 @@ function refreshAiPlaylist() {
     const tint = album?.accent ?? '#00E5FF';
     return `<button type="button" class="ai-pick${isCurrent ? ' is-current' : ''}" data-ai-pick="${pick.trackId}" style="--ai-pick-score:${pick.score.toFixed(3)}; --album-accent:${tint}" aria-label="Play ${t.title} from ${album?.name ?? 'bZ'} — Aeon's pick #${idx + 1}, score ${pct}">
       <span class="ai-pick__rank" aria-hidden="true">${idx + 1}</span>
-      <img class="ai-pick__cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="38" height="38" loading="lazy" />
+      <img class="ai-pick__cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.jpg'}" alt="" width="38" height="38" loading="lazy" />
       <span class="ai-pick__meta">
         <span class="ai-pick__title">${t.title}</span>
         <span class="ai-pick__album">${album?.name ?? 'bZ'}</span>
@@ -719,7 +719,7 @@ function buildShareTarget(kind: 'track' | 'album', id: string): ShareTarget | nu
       kind, id: t.id,
       title: t.title,
       sub: `${album?.name ?? 'bZ'} · bZ`,
-      cover: album?.cover ?? '/art/cover-panda-desiiignare.png',
+      cover: album?.cover ?? '/art/cover-panda-desiiignare.jpg',
       shareUrl: `${SITE_ORIGIN}${trackPath(t)}`,
       embedPath: `/embed/${t.album}/${t.id}`,
       ogImage: trackOgUrl(t.id)
@@ -1167,7 +1167,7 @@ function setupShell(root: HTMLElement) {
     <footer class="transport" aria-label="Playback transport">
       <div id="transportBgFill" aria-hidden="true"></div>
       <div class="transport__np" id="transportNp">
-        <img class="transport__np-cover" id="transportNpCover" src="/art/cover-panda-desiiignare.png" alt="Now playing — click for details" width="68" height="68" style="cursor:pointer" title="Open now-playing panel" />
+        <img class="transport__np-cover" id="transportNpCover" src="/art/cover-panda-desiiignare.jpg" alt="Now playing — click for details" width="68" height="68" style="cursor:pointer" title="Open now-playing panel" />
         <div class="transport__np-meta">
           <span class="transport__np-album" id="transportNpAlbum">bZ</span>
           <span class="transport__np-title" id="transportNpTitle">Press play</span>
@@ -1460,7 +1460,7 @@ function setupShell(root: HTMLElement) {
               <circle class="np-panel__progress-bar" id="npPanelProgress" cx="50" cy="50" r="46"
                 pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" />
             </svg>
-            <img class="np-panel__cover" id="npPanelCover" src="/art/cover-panda-desiiignare.png" alt="" width="160" height="160" />
+            <img class="np-panel__cover" id="npPanelCover" src="/art/cover-panda-desiiignare.jpg" alt="" width="160" height="160" />
           </div>
           <div class="np-panel__hero-meta">
             <p class="np-panel__label" id="npPanelLabel">bZ</p>
@@ -1646,7 +1646,7 @@ function setupShell(root: HTMLElement) {
     <div class="lyrics-fs" id="lyricsFs" role="dialog" aria-label="Full-screen lyrics" aria-modal="true">
       <button class="lyrics-fs__close" id="lyricsFsClose" type="button" aria-label="Close">✕</button>
       <div class="lyrics-fs__head">
-        <img class="lyrics-fs__cover" id="lyricsFsCover" src="/art/cover-panda-desiiignare.png" alt="" width="48" height="48" />
+        <img class="lyrics-fs__cover" id="lyricsFsCover" src="/art/cover-panda-desiiignare.jpg" alt="" width="48" height="48" />
         <div>
           <p class="lyrics-fs__eyebrow" id="lyricsFsAlbum">bZ</p>
           <h3 class="lyrics-fs__title" id="lyricsFsTitle">—</h3>
@@ -1755,7 +1755,7 @@ function setupShell(root: HTMLElement) {
 
         <div class="cast-tv">
           <figure class="cast-tv__art">
-            <img class="cast-tv__cover" id="castCover" src="/art/cover-panda-desiiignare.png" alt="" width="640" height="640" decoding="async" />
+            <img class="cast-tv__cover" id="castCover" src="/art/cover-panda-desiiignare.jpg" alt="" width="640" height="640" decoding="async" />
             <div class="cast-tv__art-glow" aria-hidden="true"></div>
             <div class="cast-tv__art-pulse" id="castArtPulse" aria-hidden="true"></div>
           </figure>
@@ -2008,9 +2008,6 @@ function renderAlbums(host: HTMLElement) {
       </header>
       <div class="ai-playlist__list" id="aiPlaylist" role="list"></div>
     </aside>`;
-  const spotifyEmbed = SPOTIFY_ARTIST_ID
-    ? `<div class="album__spotify"><iframe src="https://open.spotify.com/follow/1/?uri=spotify:artist:${SPOTIFY_ARTIST_ID}&size=detail&theme=dark&show-count=0" width="100%" height="56" scrolling="no" frameborder="0" allowtransparency="true" allow="encrypted-media" title="Follow bZ on Spotify"></iframe></div>`
-    : '';
   host.innerHTML = back + aiPlaylistModule + visible.map(album => {
     const tracks = album.trackIds.map(id => TRACK_BY_ID.get(id)).filter(Boolean) as Track[];
     return `
@@ -2037,7 +2034,6 @@ function renderAlbums(host: HTMLElement) {
             ${renderListenOn(album)}
           </div>
         </header>
-        ${isFeatured ? spotifyEmbed : ''}
         <ol class="album__tracks" role="list">
           ${tracks.map((t, idx) => {
             const plays = playCounts.get(t.id) ?? 0;
@@ -2168,7 +2164,7 @@ function renderNowPlaying(track: Track | null) {
   const npAlbum = $('#transportNpAlbum');
   const npTitle = $('#transportNpTitle');
   const npSub = $('#transportNpSub');
-  if (npCover) npCover.src = album?.cover ?? '/art/cover-panda-desiiignare.png';
+  if (npCover) npCover.src = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
   if (npAlbum) npAlbum.textContent = album?.name ?? 'bZ';
   if (npTitle) npTitle.textContent = track?.title ?? 'Press play';
   if (npSub) npSub.textContent = track ? (track.vibe ?? 'bZ') : 'bZ';
@@ -2838,11 +2834,11 @@ async function play(track: Track) {
       // to standard CAF loadMedia if the custom message fails.
       cast.selectItem(track.id, 0).catch(() => {
         const album = ALBUM_BY_ID.get(track.album);
-        cast.loadTrack(track, album?.cover ?? '/art/cover-panda-desiiignare.png', album?.name ?? 'bZ', 0).catch(() => engine.play(track));
+        cast.loadTrack(track, album?.cover ?? '/art/cover-panda-desiiignare.jpg', album?.name ?? 'bZ', 0).catch(() => engine.play(track));
       });
     } else {
       const album = ALBUM_BY_ID.get(track.album);
-      cast.loadTrack(track, album?.cover ?? '/art/cover-panda-desiiignare.png', album?.name ?? 'bZ', 0).catch(() => engine.play(track));
+      cast.loadTrack(track, album?.cover ?? '/art/cover-panda-desiiignare.jpg', album?.name ?? 'bZ', 0).catch(() => engine.play(track));
     }
     startCastMirror(track);
   } else {
@@ -3197,7 +3193,7 @@ function refreshPipState(): void {
     pipController.syncTrack({
       title: t.title,
       artist: t.artist,
-      cover: album?.cover ?? '/art/cover-panda-desiiignare.png',
+      cover: album?.cover ?? '/art/cover-panda-desiiignare.jpg',
       album: album?.name ?? 'bZ'
     });
   }
@@ -3259,7 +3255,7 @@ function stopCastMirror(): void {
 function tracksToCastItems(list: Track[]): ReceiverQueueItem[] {
   return list.map(t => {
     const album = ALBUM_BY_ID.get(t.album);
-    const cover = album?.cover ?? '/art/cover-panda-desiiignare.png';
+    const cover = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
     return {
       id: t.id,
       title: t.title,
@@ -3547,7 +3543,7 @@ function renderCastQueue(): void {
     li.className = i === 0 ? 'cast-tv__queue-item is-now' : 'cast-tv__queue-item';
     li.dataset.id = t.id;
     li.innerHTML = `
-      <img class="cast-tv__queue-cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="44" height="44" loading="lazy" />
+      <img class="cast-tv__queue-cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.jpg'}" alt="" width="44" height="44" loading="lazy" />
       <div class="cast-tv__queue-text">
         <strong>${escapeHtml(t.title)}</strong>
         <span>${escapeHtml(t.artist)}${album ? ' · ' + escapeHtml(album.name) : ''}</span>
@@ -6217,7 +6213,7 @@ function refreshLyricsFs() {
   const cover = $('#lyricsFsCover') as HTMLImageElement | null;
   const title = $('#lyricsFsTitle');
   const albumEl = $('#lyricsFsAlbum');
-  if (cover) cover.src = album?.cover ?? '/art/cover-panda-desiiignare.png';
+  if (cover) cover.src = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
   if (title) title.textContent = t?.title ?? '—';
   if (albumEl) albumEl.textContent = album?.name ?? 'bZ';
 }
@@ -6355,7 +6351,7 @@ function renderQueueRow(t: Track, showRank: boolean): string {
   const album = ALBUM_BY_ID.get(t.album);
   const plays = playCounts.get(t.id) ?? 0;
   const isCurrent = t.id === currentTrackId;
-  const cover = album?.cover ?? '/art/cover-panda-desiiignare.png';
+  const cover = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
   const rankAttr = showRank ? `data-q-rank="1"` : '';
   return `<li><button class="queue-row${isCurrent ? ' is-current' : ''}" data-q-track="${escapeHtml(t.id)}" type="button" ${rankAttr}>
     <img src="${cover}" alt="" width="44" height="44" loading="lazy" />
@@ -6599,7 +6595,7 @@ function renderSearchResults(tracks: Track[]) {
     const plays = playCounts.get(t.id) ?? 0;
     const playsBadge = `<span class="cmdk__item-plays" data-plays="${t.id}" aria-label="${plays} plays"${plays === 0 ? ' hidden' : ''}><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span data-plays-num="${t.id}">${plays}</span></span>`;
     return `<div class="cmdk__item${i === searchActiveIdx ? ' cmdk__item--active' : ''}" data-idx="${i}" role="option" aria-selected="${i === searchActiveIdx ? 'true' : 'false'}" tabindex="-1">
-      <img class="cmdk__item-cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="40" height="40" loading="lazy" />
+      <img class="cmdk__item-cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.jpg'}" alt="" width="40" height="40" loading="lazy" />
       <div class="cmdk__item-body">
         <div class="cmdk__item-title"><span class="cmdk__item-title-text">${escapeHtml(t.title)}</span>${playingBadge}</div>
         <div class="cmdk__item-sub">${escapeHtml(album?.name ?? 'bZ')} · ${escapeHtml(t.vibe)}</div>
@@ -6783,7 +6779,7 @@ function refreshNpPanel() {
   const track = currentTrackId ? (TRACK_BY_ID.get(currentTrackId) ?? null) : null;
   const album = track ? ALBUM_BY_ID.get(track.album) : null;
   const meta = track ? SUNO_META[track.id] : null;
-  const coverUrl = album?.cover ?? '/art/cover-panda-desiiignare.png';
+  const coverUrl = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
 
   const cover = $('#npPanelCover') as HTMLImageElement | null;
   const artBg = $('#npPanelArtBg') as HTMLElement | null;
@@ -6903,7 +6899,7 @@ function refreshNpPanel() {
         relatedGrid.innerHTML = scored.map(({ t }) => {
           const a = ALBUM_BY_ID.get(t.album);
           return `<button class="np-panel__related-item" data-related-track="${t.id}" type="button" title="Play ${escapeHtml(t.title)}">
-            <img class="np-panel__related-cover" src="${a?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="56" height="56" loading="lazy" />
+            <img class="np-panel__related-cover" src="${a?.cover ?? '/art/cover-panda-desiiignare.jpg'}" alt="" width="56" height="56" loading="lazy" />
             <div class="np-panel__related-meta">
               <span class="np-panel__related-title">${escapeHtml(t.title)}</span>
               <span class="np-panel__related-album">${escapeHtml(a?.name ?? 'bZ')}</span>

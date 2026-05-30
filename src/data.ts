@@ -1,11 +1,11 @@
 import type { Album, Track } from './types';
 
 const COVERS = {
-  desiiignare: '/art/cover-panda-desiiignare.png',
-  dump: '/art/cover-panda-dump.png',
-  canon: '/art/cover-st-johns-canon.png',
+  desiiignare: '/art/cover-panda-desiiignare.jpg',
+  dump: '/art/cover-panda-dump.jpg',
+  canon: '/art/cover-st-johns-canon.jpg',
   halo: '/art/cover-st-johns-halo.png',
-  galactic: '/art/cover-galactic-gospel.png',
+  galactic: '/art/cover-galactic-gospel.jpg',
   c1: '/art/chatgpt-1.png',
   c2: '/art/chatgpt-2.png',
   c3: '/art/chatgpt-3.png',
@@ -23,7 +23,7 @@ export const ALBUMS: Album[] = [
   {
     id: 'desiiignare',
     name: 'Panda Desiiignare',
-    cover: '/art/cover-panda-desiiignare-v2.png',
+    cover: '/art/cover-panda-desiiignare-v2.jpg',
     tagline: 'The flagship gospel of bZ',
     description: 'A lit, fit, JC-inspired hustle gospel. Built one prompt at a time. Cyan flag up.',
     // All album accents tuned for WCAG AAA contrast (≥7:1) against the
@@ -44,7 +44,7 @@ export const ALBUMS: Album[] = [
   {
     id: 'appeal',
     name: 'The Appeal',
-    cover: '/art/cover-galactic-gospel.png',
+    cover: '/art/cover-galactic-gospel.jpg',
     tagline: 'Open letter to Ashton + Mila in 12 movements',
     description: 'Petitions, prophecies, and white-flag prayers. The case for clemency, set to drum machines.',
     // appeal: ultra-neon magenta-violet — bumped from #C76BFF (OKLCH 0.67 L)
@@ -89,7 +89,7 @@ export const ALBUMS: Album[] = [
   {
     id: 'canopy',
     name: 'Canopy Dispatch',
-    cover: '/art/cover-canopy-dispatch.png',
+    cover: '/art/cover-canopy-dispatch.jpg',
     tagline: 'Digital-age signals from ancient roots',
     description: 'Jungle moon and birch-swing heaven. Nicene creeds and AI terms of service. Six dispatches from the edge of the old and new worlds.',
     // canopy: electric jungle lime (max-saturation green, neon-bright
@@ -137,7 +137,7 @@ export const ALBUMS: Album[] = [
   {
     id: 'canon',
     name: "St. John's Canon",
-    cover: '/art/cover-st-johns-canon.png',
+    cover: '/art/cover-st-johns-canon.jpg',
     tagline: 'Soup-kitchen liturgy in stainless steel',
     description: 'Bread, bowls, stained glass — halos on. The full canon stitched together: ten holy-machine hymns from the kitchen door to the launchpad.',
     // canon: electric chrome-saint yellow (max chroma, near-1 lightness —
