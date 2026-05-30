@@ -2805,6 +2805,8 @@ async function play(track: Track) {
   recordPlayStart(track.id);
   currentTrackId = track.id;
   updateTransportSpotifyChip(track);
+  // Wake the visualizer if it deferred its start (mobile / low-power)
+  document.dispatchEvent(new CustomEvent('panda-track-play', { detail: { id: track.id } }));
   // 260ms visualizer cross-fade hook — body[data-track-changing] is CSS-
   // listened to dim the #bg canvas briefly so consecutive tracks feel
   // like a single continuous experience instead of a jarring viz cut.
@@ -5026,8 +5028,30 @@ function bindUi() {
   const bg = $('#bg') as HTMLCanvasElement;
   visualizer = new Visualizer(bg, engine);
   visualizer.setAccent(ALBUMS[0].accent);
-  visualizer.start();
-  visualizer.setAutoCycle(true);
+  // Defer visualizer start on low-power surfaces:
+  //  - small viewport (<768px) + coarse pointer  → wait for first user
+  //    interaction so initial paint / scroll is buttery
+  //  - prefers-reduced-motion                    → start in 'wave' mode only
+  //                                                 (cheapest viz, no auto-cycle)
+  //  - low core count (≤ 4 logical CPUs)         → start with auto-cycle off
+  const isTouch = matchMedia('(max-width: 768px) and (pointer: coarse)').matches;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cores = (navigator as Navigator & { hardwareConcurrency?: number }).hardwareConcurrency || 8;
+  const heavy = isTouch || reducedMotion || cores <= 4;
+  if (heavy) {
+    if (reducedMotion) visualizer.setMode('wave');
+    // Wait for the FIRST audio play or explicit visualizer click before
+    // starting the RAF loop — saves 60fps CPU on a static idle phone.
+    const startOnce = () => { visualizer.start(); visualizer.setAutoCycle(!reducedMotion && !isTouch); };
+    document.addEventListener('panda-track-play', startOnce, { once: true });
+    document.addEventListener('click', e => {
+      const t = e.target as Element | null;
+      if (t?.closest?.('[data-viz-trigger], #bg, .topbar__viz, #modeBtn')) startOnce();
+    }, { once: true });
+  } else {
+    visualizer.start();
+    visualizer.setAutoCycle(true);
+  }
 
   const modeBtnLabel = $('#modeBtnLabel');
   const vizGrid = $('#vizGrid') as HTMLDivElement | null;
