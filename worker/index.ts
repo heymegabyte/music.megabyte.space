@@ -32,6 +32,9 @@ interface Env {
   SENTRY_DSN?: string;        // @sentry/cloudflare DSN for exception capture
   POSTHOG_PUBLIC_KEY?: string;// PostHog public key (forwarded to client snippet)
   TURNSTILE_SECRET_KEY?: string; // Server-side Turnstile verification secret
+  SPOTIFY_CLIENT_ID?: string;    // Spotify Web API client credentials grant
+  SPOTIFY_CLIENT_SECRET?: string;
+  SPOTIFY_ARTIST_ID?: string;    // Optional: pin the bZ Spotify artist id (avoids one lookup)
 }
 
 const CF_ACCOUNT_ID = '84fa0d1b16ff8086dd958c468ce7fd59';
@@ -48,6 +51,50 @@ const ALLOWED_HOSTS = new Set([
 
 const VALID_TRACK_ID = /^[a-z0-9-]{1,80}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// ── Spotify Web API types + token helper ──────────────────────────────
+interface SpotifyArtistRef { id: string; name: string; }
+interface SpotifyTrack {
+  id: string;
+  name: string;
+  popularity?: number;
+  preview_url?: string | null;
+  duration_ms?: number;
+  external_urls?: { spotify?: string };
+  album?: { name?: string; images?: { url: string; width?: number; height?: number }[] };
+  artists?: SpotifyArtistRef[];
+}
+interface SpotifyArtist {
+  id: string;
+  name: string;
+  followers?: { total: number };
+  popularity?: number;
+  external_urls?: { spotify?: string };
+  images?: { url: string; width?: number; height?: number }[];
+  genres?: string[];
+}
+
+// Client-credentials grant → bearer token. Cached in KV for 55 minutes
+// (Spotify tokens last 1h; refresh slightly early to dodge clock skew).
+async function getSpotifyToken(env: Env): Promise<string | null> {
+  if (!env.SPOTIFY_CLIENT_ID || !env.SPOTIFY_CLIENT_SECRET) return null;
+  const cached = await env.COUNTERS.get('sp:token');
+  if (cached) return cached;
+  const basic = btoa(`${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`);
+  const r = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${basic}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
+  });
+  if (!r.ok) return null;
+  const j = await r.json() as { access_token?: string; expires_in?: number };
+  if (!j.access_token) return null;
+  await env.COUNTERS.put('sp:token', j.access_token, { expirationTtl: 3300 });
+  return j.access_token;
+}
 
 /**
  * Returns the appropriate `Access-Control-Allow-Origin` header value for
@@ -594,6 +641,586 @@ function lookupSeo(pathname: string): RouteSeo | null {
   return null;
 }
 
+// ── /clip/{trackId} — TikTok / Reels / Shorts vertical render ──────
+// 1080×1920 surface designed to be screen-recorded from a phone (iOS
+// Control Center → screen-record) or captured via Cloudflare Browser
+// Rendering for an automated MP4. 15-second window picks the song's
+// hook (default: 00:21 onward, configurable via ?start=NN seconds).
+function titleFromSlug(slug: string): string {
+  return slug.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+}
+function renderClipPage(trackId: string, origin: string): string {
+  const title = titleFromSlug(trackId);
+  return `<!doctype html><html lang="en"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1080,initial-scale=1" />
+<title>${title} — bZ · clip</title>
+<meta name="robots" content="noindex" />
+<style>
+  :root { --bg:#060610; --accent:#00E5FF; --ink:#f4f4ff; }
+  *,*::before,*::after { box-sizing: border-box; }
+  html,body { margin:0; padding:0; background: #000; overflow: hidden; height:100%; }
+  body { font-family: 'Sora', system-ui, -apple-system, sans-serif; color: var(--ink); }
+  .stage {
+    position: fixed; inset: 0;
+    width: 100vw; height: 100vh;
+    aspect-ratio: 9 / 16;
+    margin: 0 auto;
+    background: radial-gradient(120% 80% at 50% 0%,
+      color-mix(in srgb, var(--accent) 28%, var(--bg)) 0%,
+      var(--bg) 60%),
+      linear-gradient(180deg, var(--bg) 0%, #000 100%);
+    overflow: hidden;
+  }
+  .cover {
+    position: absolute; top: 12%; left: 50%; transform: translateX(-50%);
+    width: 64%; aspect-ratio: 1/1;
+    border-radius: 24px; overflow: hidden;
+    box-shadow: 0 24px 70px -10px color-mix(in srgb, var(--accent) 60%, transparent),
+                0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+    animation: float 4s ease-in-out infinite alternate;
+  }
+  @keyframes float { from { transform: translateX(-50%) translateY(0) rotate(-0.5deg); } to { transform: translateX(-50%) translateY(-12px) rotate(0.5deg); } }
+  .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .brand {
+    position: absolute; top: 3.5%; left: 0; right: 0; text-align: center;
+    font-size: clamp(20px, 2.4vw, 36px); font-weight: 900;
+    letter-spacing: 0.32em; text-transform: uppercase;
+    color: color-mix(in srgb, var(--accent) 80%, var(--ink));
+    text-shadow: 0 0 20px color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+  .meta {
+    position: absolute; bottom: 22%; left: 6%; right: 6%;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .title {
+    font-size: clamp(38px, 5.4vw, 84px); font-weight: 900; line-height: 1.02;
+    text-align: center; letter-spacing: -0.02em;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.7);
+  }
+  .lyric {
+    position: absolute; bottom: 10%; left: 6%; right: 6%;
+    text-align: center;
+    font-size: clamp(28px, 3.6vw, 56px); font-weight: 700; line-height: 1.2;
+    color: var(--ink);
+    text-shadow: 0 2px 18px rgba(0,0,0,0.7),
+                 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+    min-height: 1.4em;
+  }
+  .chips {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+    font-size: clamp(13px, 1.4vw, 22px); font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .chip {
+    padding: 6px 14px; border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, rgba(255,255,255,0.1));
+    background: rgba(6,6,16,0.6);
+  }
+  .url {
+    position: absolute; bottom: 3%; left: 0; right: 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(13px, 1.5vw, 22px);
+    color: color-mix(in srgb, var(--ink) 70%, transparent);
+    letter-spacing: 0.22em; text-transform: lowercase;
+  }
+  .controls {
+    position: fixed; top: 12px; right: 12px; z-index: 99;
+    display: flex; gap: 8px;
+  }
+  .controls button {
+    padding: 8px 14px; border-radius: 8px; border: 0; cursor: pointer;
+    background: var(--accent); color: var(--bg);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700;
+  }
+  @media print { .controls { display: none; } }
+</style>
+</head>
+<body>
+  <div class="controls">
+    <button onclick="document.documentElement.requestFullscreen()">Fullscreen</button>
+    <button onclick="play()">▶ Play 15s</button>
+  </div>
+  <div class="stage">
+    <div class="brand">bz · music.megabyte.space</div>
+    <div class="cover"><img id="cover" src="/art/cover-${trackId}.jpg" onerror="this.onerror=null;this.src='/art/cover-panda-desiiignare.png';" alt="" /></div>
+    <div class="meta">
+      <h1 class="title">${title}</h1>
+      <div class="chips" id="chips">
+        <span class="chip" id="bpm">— BPM</span>
+        <span class="chip" id="key">— KEY</span>
+      </div>
+    </div>
+    <div class="lyric" id="lyric"></div>
+    <div class="url">stream on spotify · bzmusic.win</div>
+  </div>
+  <audio id="audio" src="/audio/${trackId}.mp3" preload="auto" crossorigin="anonymous"></audio>
+<script>
+const ORIGIN = ${JSON.stringify(origin)};
+const TRACK_ID = ${JSON.stringify(trackId)};
+const params = new URLSearchParams(location.search);
+const startSec = parseFloat(params.get('start') || '21');
+const audio = document.getElementById('audio');
+audio.currentTime = startSec;
+const lyricEl = document.getElementById('lyric');
+let bundle = null;
+async function loadLyrics() {
+  try {
+    const r = await fetch('/lyrics/' + TRACK_ID + '.json');
+    if (!r.ok) return;
+    bundle = await r.json();
+  } catch {}
+}
+async function loadCover() {
+  try {
+    const r = await fetch('/api/spotify/track?title=' + encodeURIComponent(${JSON.stringify(title)}));
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.albumArt) document.getElementById('cover').src = d.albumArt;
+  } catch {}
+}
+function tick() {
+  if (!bundle) return;
+  const t = audio.currentTime;
+  const cur = bundle.lines.find(l => t >= l.s && t < l.e);
+  if (cur) lyricEl.textContent = cur.text;
+  requestAnimationFrame(tick);
+}
+async function play() {
+  audio.currentTime = startSec;
+  await audio.play();
+  setTimeout(() => audio.pause(), 15000);
+}
+loadLyrics().then(tick);
+loadCover();
+</script>
+</body></html>`;
+}
+
+// ── /press/{trackId} — per-track press one-pager ───────────────────
+// Polished, print-ready single page intended to be sent to ONE
+// journalist or curator. Bio + headshot + cover + streaming links +
+// lyric excerpt + sync availability + contact.
+function renderPressPage(trackId: string, origin: string): string {
+  const title = titleFromSlug(trackId);
+  return `<!doctype html><html lang="en"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>${title} — press kit · bZ</title>
+<meta name="description" content="${title} by bZ — Newark hustle-gospel. Press kit + streaming links + sync availability." />
+<meta property="og:title" content="${title} — press kit · bZ" />
+<meta property="og:description" content="${title} by bZ — Newark hustle-gospel. Streaming + sync + booking." />
+<meta property="og:image" content="${origin}/art/cover-${trackId}.jpg" />
+<meta name="theme-color" content="#060610" />
+<meta name="robots" content="noindex" />
+<style>
+  :root {
+    --bg:#060610; --accent:#00E5FF; --ink:#f4f4ff;
+    --mute:#a0a0c0; --line: rgba(255,255,255,0.08); --line-strong: rgba(255,255,255,0.14);
+    --topbar-h: 56px;
+  }
+  *,*::before,*::after { box-sizing: border-box; }
+  html,body { margin:0; padding:0; background: var(--bg); color: var(--ink); font-family: 'Sora', system-ui, -apple-system, sans-serif; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  html { scroll-behavior: smooth; }
+  ::selection { background: color-mix(in srgb, var(--accent) 55%, transparent); color: var(--bg); }
+
+  /* Sticky top nav — Home + Player + Press index, all one tap */
+  .topnav {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    background: linear-gradient(180deg, rgba(6,6,16,0.96), rgba(6,6,16,0.78));
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line));
+    min-height: var(--topbar-h);
+  }
+  .topnav__brand {
+    display: inline-flex; align-items: center;
+    text-decoration: none; color: var(--ink);
+    padding: 0 6px; border-radius: 8px;
+    transition: opacity 160ms ease, transform 140ms ease;
+  }
+  .topnav__brand:hover { opacity: 0.85; transform: translateY(-1px); }
+  .topnav__brand-mark { display: block; height: 38px; width: auto; }
+  .topnav__spacer { flex: 1 1 auto; }
+  .topnav__link {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 13px; border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: rgba(244,244,255,0.04);
+    color: var(--ink); text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.16em; text-transform: uppercase;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 140ms ease;
+    white-space: nowrap;
+  }
+  .topnav__link:hover { border-color: color-mix(in srgb, var(--accent) 60%, transparent); color: var(--accent); transform: translateY(-1px); }
+  .topnav__link--primary {
+    background: var(--accent); color: var(--bg); border-color: var(--accent);
+  }
+  .topnav__link--primary:hover { background: color-mix(in srgb, var(--accent) 88%, white); color: var(--bg); }
+  @media (max-width: 540px) { .topnav__link span { display: none; } .topnav__link { padding: 7px 10px; } }
+
+  /* Reading-progress hairline */
+  .progress { position: sticky; top: var(--topbar-h); height: 2px; z-index: 19; background: rgba(255,255,255,0.04); margin-top: -2px; }
+  .progress__bar { height: 100%; background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 60%, white)); transform-origin: 0 50%; transform: scaleX(0); transition: transform 100ms linear; box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 60%, transparent); }
+
+  .wrap { max-width: 820px; margin: 0 auto; padding: 36px 24px 80px; }
+
+  /* Cinematic hero — cover as half-page backdrop with title overlay */
+  .hero {
+    position: relative;
+    margin: 0 0 36px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--bg);
+    box-shadow: 0 28px 80px -22px color-mix(in srgb, var(--accent) 50%, transparent), 0 0 0 1px var(--line);
+  }
+  .hero__cover { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+  .hero__cover img { width: 100%; height: 110%; object-fit: cover; filter: saturate(110%); transform: translateY(0); transition: transform 80ms linear; will-change: transform; }
+  .hero__cover::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg,
+      rgba(6,6,16,0.0) 0%,
+      rgba(6,6,16,0.45) 45%,
+      rgba(6,6,16,0.95) 100%);
+  }
+  .hero__body {
+    position: relative; z-index: 1;
+    padding: 220px 28px 28px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  @media (min-width: 720px) { .hero__body { padding: 280px 36px 36px; } }
+  .hero__eyebrow {
+    display:inline-flex; align-items:center; gap:8px; align-self: flex-start;
+    padding:5px 12px; border-radius:999px;
+    border:1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+    background: color-mix(in srgb, var(--accent) 10%, rgba(6,6,16,0.6));
+    backdrop-filter: blur(8px);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase;
+  }
+  .hero__title {
+    margin: 0;
+    font-size: clamp(2.2rem, 6vw, 4rem); font-weight: 900;
+    line-height: 0.98; letter-spacing: -0.025em;
+    text-shadow: 0 4px 28px rgba(0,0,0,0.7);
+  }
+  .hero__sub { margin: 0; color: rgba(244,244,255,0.78); font-size: 1.02rem; text-shadow: 0 2px 12px rgba(0,0,0,0.6); }
+  .hero__cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; align-items: center; }
+
+  .preview-btn {
+    appearance: none; display: inline-flex; align-items: center; gap: 10px;
+    padding: 10px 18px 10px 12px; border: 0; border-radius: 999px;
+    background: var(--accent); color: var(--bg);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 30px -12px color-mix(in srgb, var(--accent) 80%, transparent);
+    transition: transform 140ms ease, box-shadow 200ms ease, background 160ms ease;
+  }
+  .preview-btn:hover { transform: translateY(-1px); box-shadow: 0 14px 36px -12px color-mix(in srgb, var(--accent) 90%, transparent); background: color-mix(in srgb, var(--accent) 88%, white); }
+  .preview-btn:active { transform: translateY(0); }
+  .preview-btn__icon {
+    display: grid; place-items: center;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--bg); color: var(--accent);
+  }
+  .preview-btn.is-playing .preview-btn__icon svg { display: none; }
+  .preview-btn.is-playing .preview-btn__icon::after {
+    content: ''; display: block; width: 8px; height: 10px;
+    border-left: 3px solid var(--accent); border-right: 3px solid var(--accent);
+  }
+
+  /* Drop-cap on the bio first letter */
+  .bio::first-letter {
+    float: left; font-family: 'Sora', sans-serif; font-weight: 900;
+    font-size: 4.2em; line-height: 0.85;
+    padding: 6px 12px 0 0; color: var(--accent);
+    text-shadow: 0 0 22px color-mix(in srgb, var(--accent) 38%, transparent);
+  }
+
+  /* Related-tracks list */
+  .related { display: grid; gap: 6px; margin: 0 0 32px; }
+  .related a {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 12px;
+    align-items: center; padding: 10px 14px;
+    border-radius: 10px; border: 1px solid var(--line);
+    background: rgba(244,244,255,0.025);
+    color: var(--ink); text-decoration: none;
+    transition: border-color 160ms ease, background 160ms ease, transform 140ms ease;
+  }
+  .related a:hover { border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 6%, transparent); transform: translateX(2px); }
+  .related__num { font-family: 'JetBrains Mono', monospace; color: var(--mute); font-size: 11px; letter-spacing: 0.1em; min-width: 18px; }
+  .related__title { font-weight: 600; }
+  .related__arrow { color: var(--mute); transition: color 160ms ease, transform 140ms ease; }
+  .related a:hover .related__arrow { color: var(--accent); transform: translateX(2px); }
+
+  /* Metadata strip — compact mono-grid */
+  .meta-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+    margin: 0 0 36px;
+    padding: 18px 22px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(244,244,255,0.02);
+  }
+  @media (min-width: 720px) { .meta-grid { grid-template-columns: repeat(4, 1fr); } }
+  .meta-grid > div { min-width: 0; }
+  .meta-grid dt { color: var(--mute); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 3px; }
+  .meta-grid dd { margin: 0; font-family: 'Sora', sans-serif; font-weight: 600; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  h2 { font-size: 0.62rem; font-weight: 800; margin: 36px 0 14px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--mute); font-family: 'JetBrains Mono', monospace; }
+  h2:first-of-type { margin-top: 0; }
+  .bio { font-size: 1.05rem; line-height: 1.7; color: rgba(244,244,255,0.92); }
+  .bio em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+  .links { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
+  .links a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); background: color-mix(in srgb, var(--accent) 5%, rgba(6,6,16,0.4)); color: var(--ink); text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; transition: all 160ms ease; }
+  .links a:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); transform: translateY(-1px); }
+  .links a--primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .links a--primary:hover { background: color-mix(in srgb, var(--accent) 88%, white); color: var(--bg); }
+
+  .spotify-embed { margin: 0 0 28px; border-radius: 12px; overflow: hidden; min-height: 0; transition: min-height 240ms ease; }
+  .spotify-embed:not(:empty) { min-height: 80px; }
+  .spotify-embed iframe { display: block; border: 0; width: 100%; }
+
+  .lyric-card { position: relative; padding: 26px 28px 24px 48px; border-radius: 14px; background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, transparent), color-mix(in srgb, var(--accent) 3%, transparent)); border-left: 3px solid var(--accent); font-family: 'Sora', sans-serif; font-style: italic; font-weight: 600; font-size: 1.12rem; line-height: 1.55; margin: 0 0 28px; color: var(--ink); }
+  .lyric-card::before { content: '\\201C'; position: absolute; top: -10px; left: 14px; font-size: 3.4rem; font-family: 'Sora', sans-serif; font-style: normal; line-height: 1; color: var(--accent); opacity: 0.32; }
+
+  .contact { padding: 22px 24px; border-radius: 14px; border: 1px solid var(--line); background: rgba(244,244,255,0.02); margin: 0 0 14px; }
+  .contact a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted color-mix(in srgb, var(--accent) 40%, transparent); }
+  .contact a:hover { border-bottom-style: solid; }
+  .contact__note { margin: 14px 0 0; color: var(--mute); font-size: 0.88rem; }
+
+  footer { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--mute); font-size: 0.82rem; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: baseline; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media print {
+    html,body { background: white !important; color: black !important; }
+    .topnav, .progress { display: none !important; }
+    .wrap { padding: 0; max-width: 100%; }
+    .hero { box-shadow: none !important; border: 1px solid black !important; }
+    .hero__cover::after { background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 60%, rgba(255,255,255,0.9) 100%) !important; }
+    .hero__title, .hero__sub { color: black !important; text-shadow: none !important; }
+    .hero__eyebrow { background: white !important; color: black !important; border-color: black !important; }
+    .meta-grid, .contact, .lyric-card { background: white !important; }
+    .lyric-card { color: black !important; border-color: black !important; }
+    .links a { background: white !important; color: black !important; border-color: black !important; }
+    a { color: black !important; }
+  }
+</style>
+</head>
+<body>
+<nav class="topnav" aria-label="Press kit nav">
+  <a class="topnav__brand" href="${origin}/" aria-label="bZ home">
+    <img class="topnav__brand-mark" src="${origin}/art/bz-icon.png" alt="bZ" width="160" height="108" />
+  </a>
+  <span class="topnav__spacer"></span>
+  <a class="topnav__link" href="${origin}/" aria-label="Back to home">
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12 12 4l9 8"/><path d="M5 10v10h14V10"/></svg>
+    <span>Home</span>
+  </a>
+  <a class="topnav__link" href="${origin}/press">
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+    <span>Press kit</span>
+  </a>
+  <a class="topnav__link topnav__link--primary" href="${origin}/${trackId}">
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+    <span>Play</span>
+  </a>
+</nav>
+<div class="progress"><div class="progress__bar" id="progressBar"></div></div>
+
+<main class="wrap">
+  <section class="hero" aria-label="${title}">
+    <div class="hero__cover">
+      <img id="cover" src="/art/cover-${trackId}.jpg" onerror="this.onerror=null;this.src='/art/cover-panda-desiiignare.png';" alt="${title} cover" />
+    </div>
+    <div class="hero__body">
+      <span class="hero__eyebrow">press kit · single</span>
+      <h1 class="hero__title">${title}</h1>
+      <p class="hero__sub" id="sub">A bZ single. Hustle-gospel · Newark NJ.</p>
+      <div class="hero__cta">
+        <button class="preview-btn" id="previewBtn" type="button" aria-label="Play 30-second preview">
+          <span class="preview-btn__icon" id="previewIcon">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          </span>
+          <span id="previewLabel">Preview · 30s</span>
+        </button>
+        <a class="topnav__link" href="${origin}/${trackId}" style="background: rgba(6,6,16,0.7);">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          <span>Full track on bZ</span>
+        </a>
+      </div>
+      <audio id="previewAudio" src="${origin}/audio/${trackId}.mp3" preload="none"></audio>
+    </div>
+  </section>
+
+  <dl class="meta-grid">
+    <div><dt>Artist</dt><dd>bZ (Brian Zalewski)</dd></div>
+    <div><dt>Genre</dt><dd>Hustle-gospel · CHH</dd></div>
+    <div><dt>Origin</dt><dd>Newark, NJ</dd></div>
+    <div><dt>Label</dt><dd>Megabyte Labs</dd></div>
+    <div><dt>Duration</dt><dd id="duration">—</dd></div>
+    <div><dt>BPM</dt><dd id="bpm">—</dd></div>
+    <div><dt>Key</dt><dd id="key">—</dd></div>
+    <div><dt>Released</dt><dd>${new Date().getFullYear()}</dd></div>
+  </dl>
+
+  <h2>Stream + share</h2>
+  <div class="links" id="links">
+    <a href="#" id="lnk-spotify" class="links a--primary" target="_blank" rel="noopener">Spotify ↗</a>
+    <a href="https://music.apple.com/search?term=bZ%20${encodeURIComponent(title)}" target="_blank" rel="noopener">Apple Music ↗</a>
+    <a href="https://music.youtube.com/search?q=bZ+${encodeURIComponent(title)}" target="_blank" rel="noopener">YouTube Music ↗</a>
+    <a href="${origin}/${trackId}" target="_blank" rel="noopener">Web player ↗</a>
+    <a href="${origin}/clip/${trackId}" target="_blank" rel="noopener">TikTok clip ↗</a>
+  </div>
+  <div class="spotify-embed" id="embed"></div>
+
+  <h2>About bZ</h2>
+  <p class="bio">bZ is Brian Zalewski — full-stack engineer turned solo hustle-gospel artist out of Newark NJ. Six albums, fifty-plus tracks, Suno-assisted production. Christian-gangster ethic. Zero drug references. Family-reverent. Soup-kitchen serving. The grind and the gospel point the same direction. <em>Hard but holy.</em></p>
+
+  <h2>Lyric excerpt</h2>
+  <blockquote class="lyric-card" id="excerpt">Loading…</blockquote>
+
+  <h2>More from bZ</h2>
+  <div class="related" id="related"></div>
+
+  <h2>Sync availability</h2>
+  <p>Master + publishing controlled by the artist. Pre-cleared for sync (film, TV, ads, games) with one-stop licensing. Faith-positive cues welcome. Contact for fee + scope.</p>
+
+  <h2>Contact + booking</h2>
+  <div class="contact">
+    <p style="margin:0;line-height:1.8;">
+      <strong>Brian Zalewski</strong> · bZ<br/>
+      <a href="mailto:brian@megabyte.space">brian@megabyte.space</a><br/>
+      <a href="tel:+14696943696">+1 (469) 694-3696</a>
+    </p>
+    <p class="contact__note">Reply within 48 hours · NDA on request · Full kit at <a href="${origin}/press">/press</a></p>
+  </div>
+
+  <footer>
+    <span>Generated ${new Date().toISOString().slice(0,10)} · Print-ready (⌘P)</span>
+    <a href="${origin}/press">All press kits ↗</a>
+    <a href="${origin}/">${origin.replace('https://','')} ↗</a>
+  </footer>
+</main>
+<script>
+const TRACK_ID = ${JSON.stringify(trackId)};
+const ORIGIN = ${JSON.stringify(origin)};
+
+// Scroll-progress hairline + parallax cover
+const bar = document.getElementById('progressBar');
+const coverImg = document.querySelector('.hero__cover img');
+let ticking = false;
+function tick() {
+  ticking = false;
+  const h = document.documentElement;
+  const max = Math.max(1, h.scrollHeight - h.clientHeight);
+  bar.style.transform = 'scaleX(' + Math.min(1, Math.max(0, h.scrollTop / max)) + ')';
+  // Parallax: cover translates up at 30% of scroll speed (caps at -60px)
+  if (coverImg) coverImg.style.transform = 'translateY(' + Math.max(-60, -h.scrollTop * 0.3) + 'px)';
+}
+addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(tick); } }, { passive: true });
+
+// Preview button — plays first 30s of the local audio, with a play/pause toggle
+const previewBtn = document.getElementById('previewBtn');
+const previewAudio = document.getElementById('previewAudio');
+const previewLabel = document.getElementById('previewLabel');
+let previewTimer = null;
+previewBtn?.addEventListener('click', () => {
+  if (!previewAudio) return;
+  if (previewAudio.paused) {
+    previewAudio.currentTime = 0;
+    previewAudio.play().catch(() => { previewLabel.textContent = 'Preview unavailable'; });
+    previewBtn.classList.add('is-playing');
+    previewLabel.textContent = 'Pause preview';
+    previewTimer = setTimeout(() => { previewAudio.pause(); }, 30000);
+  } else {
+    previewAudio.pause();
+  }
+});
+previewAudio?.addEventListener('pause', () => {
+  previewBtn.classList.remove('is-playing');
+  previewLabel.textContent = 'Preview · 30s';
+  if (previewTimer) clearTimeout(previewTimer);
+});
+previewAudio?.addEventListener('ended', () => {
+  previewBtn.classList.remove('is-playing');
+  previewLabel.textContent = 'Preview · 30s';
+});
+
+// Related tracks — fetch the catalog manifest and pick 4 sibling tracks
+// from the same album (or random from catalog if no album mate).
+async function loadRelated() {
+  try {
+    const r = await fetch('/tracks.json');
+    if (!r.ok) return;
+    const all = await r.json();
+    const me = all.find(t => t.id === TRACK_ID);
+    let pool = [];
+    if (me && me.album) pool = all.filter(t => t.album === me.album && t.id !== TRACK_ID);
+    if (pool.length < 4) {
+      const extras = all.filter(t => t.id !== TRACK_ID && !pool.includes(t)).slice(0, 4 - pool.length);
+      pool = [...pool, ...extras];
+    }
+    pool = pool.slice(0, 4);
+    const host = document.getElementById('related');
+    if (!host) return;
+    host.innerHTML = pool.map((t, i) => {
+      const num = String(i + 1).padStart(2, '0');
+      return '<a href="' + ORIGIN + '/press/' + t.id + '">' +
+        '<span class="related__num">' + num + '</span>' +
+        '<span class="related__title">' + t.title + '</span>' +
+        '<svg class="related__arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>' +
+      '</a>';
+    }).join('');
+  } catch {}
+}
+loadRelated();
+
+async function loadMeta() {
+  try {
+    const r = await fetch('/api/spotify/track?title=' + encodeURIComponent(${JSON.stringify(title)}));
+    if (r.ok) {
+      const d = await r.json();
+      if (d.spotifyUrl) document.getElementById('lnk-spotify').href = d.spotifyUrl;
+      if (d.albumName) document.getElementById('sub').textContent = 'from ' + d.albumName + ' · bZ';
+      if (d.durationMs) {
+        const m = Math.floor(d.durationMs / 60000), s = Math.floor((d.durationMs % 60000) / 1000).toString().padStart(2, '0');
+        document.getElementById('duration').textContent = m + ':' + s;
+      }
+      if (d.id) {
+        document.getElementById('embed').innerHTML =
+          '<iframe src="https://open.spotify.com/embed/track/' + d.id + '?utm_source=press" height="80" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+      }
+    }
+  } catch {}
+  try {
+    const r2 = await fetch('/lyrics/' + TRACK_ID + '.json');
+    if (r2.ok) {
+      const b = await r2.json();
+      if (b.lines && b.lines.length) {
+        const mid = Math.floor(b.lines.length / 2);
+        const excerpt = b.lines.slice(mid, mid + 4).map(l => l.text).join(' / ');
+        document.getElementById('excerpt').textContent = '"' + excerpt + '"';
+      }
+    }
+  } catch {
+    document.getElementById('excerpt').textContent = '[lyrics pending]';
+  }
+}
+loadMeta();
+</script>
+</body></html>`;
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -1006,6 +1633,86 @@ export default {
         });
       }
 
+      // ── Spotify endpoints ────────────────────────────────────────────
+      // Resolve bZ tracks → Spotify metadata (id, popularity, preview_url,
+      // album art). Cached aggressively in KV because Spotify rate-limits
+      // and the data only changes when popularity ticks (~daily).
+      if (url.pathname === '/api/spotify/track' && request.method === 'GET') {
+        const title = (url.searchParams.get('title') || '').trim();
+        const artist = (url.searchParams.get('artist') || 'bZ').trim();
+        if (!title) return jsonResponse({ error: 'title_required' }, 400);
+        if (!env.SPOTIFY_CLIENT_ID || !env.SPOTIFY_CLIENT_SECRET) {
+          return jsonResponse({ error: 'spotify_not_configured' }, 503);
+        }
+        const cacheKey = `sp:track:${artist.toLowerCase()}:${title.toLowerCase()}`;
+        const cached = await env.COUNTERS.get(cacheKey, 'json');
+        if (cached) return jsonResponse(cached);
+        const token = await getSpotifyToken(env);
+        if (!token) return jsonResponse({ error: 'spotify_auth_failed' }, 502);
+        const q = encodeURIComponent(`track:"${title}" artist:"${artist}"`);
+        const sr = await fetch(`https://api.spotify.com/v1/search?q=${q}&type=track&limit=1`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!sr.ok) return jsonResponse({ error: 'spotify_search_failed', status: sr.status }, 502);
+        const sd = await sr.json() as { tracks?: { items?: SpotifyTrack[] } };
+        const top = sd.tracks?.items?.[0];
+        const result = top ? {
+          id: top.id,
+          name: top.name,
+          popularity: top.popularity ?? 0,
+          previewUrl: top.preview_url ?? null,
+          spotifyUrl: top.external_urls?.spotify ?? null,
+          albumArt: top.album?.images?.[0]?.url ?? null,
+          albumName: top.album?.name ?? null,
+          durationMs: top.duration_ms ?? null,
+          artists: (top.artists ?? []).map(a => a.name),
+        } : { id: null };
+        await env.COUNTERS.put(cacheKey, JSON.stringify(result), { expirationTtl: 86400 });
+        return jsonResponse(result);
+      }
+
+      // Aggregate artist stats — pulls follower count + monthly listeners
+      // proxy + top tracks. Used by the "Follow on Spotify" sticky CTA.
+      if (url.pathname === '/api/spotify/artist' && request.method === 'GET') {
+        if (!env.SPOTIFY_CLIENT_ID || !env.SPOTIFY_CLIENT_SECRET) {
+          return jsonResponse({ error: 'spotify_not_configured' }, 503);
+        }
+        const cacheKey = `sp:artist:bz`;
+        const cached = await env.COUNTERS.get(cacheKey, 'json');
+        if (cached) return jsonResponse(cached);
+        const token = await getSpotifyToken(env);
+        if (!token) return jsonResponse({ error: 'spotify_auth_failed' }, 502);
+        let artistId = env.SPOTIFY_ARTIST_ID;
+        if (!artistId) {
+          // Resolve once via search; cache via env hint
+          const sr = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent('bZ Brian Zalewski')}&type=artist&limit=1`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (sr.ok) {
+            const sd = await sr.json() as { artists?: { items?: SpotifyArtist[] } };
+            artistId = sd.artists?.items?.[0]?.id;
+          }
+        }
+        if (!artistId) return jsonResponse({ error: 'artist_not_found' }, 404);
+        const ar = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!ar.ok) return jsonResponse({ error: 'spotify_artist_failed', status: ar.status }, 502);
+        const ad = await ar.json() as SpotifyArtist;
+        const result = {
+          id: ad.id,
+          name: ad.name,
+          followers: ad.followers?.total ?? 0,
+          popularity: ad.popularity ?? 0,
+          spotifyUrl: ad.external_urls?.spotify ?? null,
+          image: ad.images?.[0]?.url ?? null,
+          genres: ad.genres ?? [],
+        };
+        // 1-hour cache so the counter feels live but doesn't burn quota
+        await env.COUNTERS.put(cacheKey, JSON.stringify(result), { expirationTtl: 3600 });
+        return jsonResponse(result);
+      }
+
       if (url.pathname === '/api/ai/chat' && request.method === 'POST') {
         if (!env.AI) return jsonResponse({ error: 'ai_not_configured' }, 503);
         // Two-tier rate limit: 8/min burst + 60/hr sustained per IP.
@@ -1092,7 +1799,24 @@ export default {
         try {
           // env.AI.run() returns a ReadableStream when stream:true, otherwise
           // an object with response text. Same SSE format works as Anthropic's.
-          const aiResponse = await env.AI.run(model, aiRequest) as ReadableStream<Uint8Array> | { response: string };
+          // Retry once + fall back to 8B model if the chosen model errors —
+          // Workers AI 70B occasionally returns transient 500s under load.
+          const runWithRetry = async (m: string): Promise<ReadableStream<Uint8Array> | { response: string }> => {
+            let lastErr: unknown;
+            for (let attempt = 0; attempt < 2; attempt++) {
+              try { return await env.AI.run(m, aiRequest) as ReadableStream<Uint8Array> | { response: string }; }
+              catch (e) { lastErr = e; await new Promise(r => setTimeout(r, 250 * (attempt + 1))); }
+            }
+            throw lastErr;
+          };
+          let aiResponse: ReadableStream<Uint8Array> | { response: string };
+          try { aiResponse = await runWithRetry(model); }
+          catch (primaryErr) {
+            // Fall back to the smaller, faster, more-available 8B model
+            if (model !== '@cf/meta/llama-3.1-8b-instruct-fp8') {
+              aiResponse = await runWithRetry('@cf/meta/llama-3.1-8b-instruct-fp8');
+            } else { throw primaryErr; }
+          }
 
           if (stream && aiResponse instanceof ReadableStream) {
             // Workers AI streams OpenAI-compatible SSE. Re-emit as Anthropic-
@@ -1140,11 +1864,34 @@ export default {
           const text = (aiResponse as { response: string }).response || '';
           return jsonResponse({ text, model, deep });
         } catch (err) {
-          return jsonResponse({ error: 'workers_ai_failed', detail: (err as Error).message }, 502);
+          return jsonResponse({
+            error: 'workers_ai_failed',
+            detail: (err as Error).message,
+            // Friendly client-facing copy — AI chat UI surfaces `friendly`.
+            friendly: 'The AI is briefly offline (Workers AI hiccup). Try again in 10–20 seconds.',
+          }, 502);
         }
       }
 
       return jsonResponse({ error: 'not_found' }, 404);
+    }
+
+    // ── TikTok-ready vertical clip page (outside /api guard) ─────
+    if (url.pathname.startsWith('/clip/') && request.method === 'GET') {
+      const trackId = url.pathname.slice('/clip/'.length).replace(/\/$/, '');
+      if (!VALID_TRACK_ID.test(trackId)) return new Response('Not found', { status: 404 });
+      return new Response(renderClipPage(trackId, url.origin), {
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+      });
+    }
+
+    // ── Per-track press one-pager (outside /api guard) ───────────
+    if (url.pathname.startsWith('/press/') && request.method === 'GET') {
+      const trackId = url.pathname.slice('/press/'.length).replace(/\/$/, '');
+      if (!VALID_TRACK_ID.test(trackId)) return new Response('Not found', { status: 404 });
+      return new Response(renderPressPage(trackId, url.origin), {
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=600' },
+      });
     }
 
     const isAudio = url.pathname.startsWith('/audio/');

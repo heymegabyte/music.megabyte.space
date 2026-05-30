@@ -1046,18 +1046,44 @@ export function mountAIChat(opts: MountOpts = {}) {
   // truncates with ellipsis AND raises a dismissable toast in the chat
   // body so the user actually sees the message instead of it clipping
   // silently or pushing the persona pill off the screen.
-  const STATUS_MAX = 24;
+  // Hard cap on what shows in the topbar pill. Anything longer goes to a
+  // dismissable toast — the navbar should NEVER spill long messages.
+  const STATUS_MAX = 14;
+  // Pill stays compact for these well-known short statuses. Everything else
+  // either fits under STATUS_MAX or routes the full text to a toast and
+  // collapses the pill to a single-word summary.
+  const STATUS_PILL_ALLOW = new Set([
+    'Ready',
+    'Thinking…',
+    'Listening…',
+    'Streaming…',
+    'Stopped',
+    'Saved',
+    'Pinned',
+    'Copied',
+    'Updated',
+  ]);
   function setStatus(text: string, busy = false) {
-    const truncated = text.length > STATUS_MAX ? `${text.slice(0, STATUS_MAX - 1)}…` : text;
-    status.textContent = truncated;
-    status.title = text;
     messages.setAttribute('aria-busy', busy ? 'true' : 'false');
-    // Only toast for STATEFUL messages (not Ready / Thinking…) AND when
-    // the original text was actually truncated — short status updates
-    // don't need a toast.
-    if (text.length > STATUS_MAX && text !== 'Ready' && text !== 'Thinking…') {
-      showStatusToast(text);
+    // Empty text clears the pill + tooltip — no toast.
+    if (!text) {
+      status.textContent = '';
+      status.title = '';
+      return;
     }
+    const fits = text.length <= STATUS_MAX;
+    const isAllowedShort = STATUS_PILL_ALLOW.has(text);
+    if (fits || isAllowedShort) {
+      // Short, scannable label — show in the pill, no toast.
+      status.textContent = text;
+      status.title = text;
+      return;
+    }
+    // Anything verbose: collapse the pill to a single-word summary and
+    // route the FULL text to a dismissable toast. The pill never spills.
+    status.textContent = 'Updated';
+    status.title = text;
+    showStatusToast(text);
   }
   // Lightweight dismissable toast for overflow status messages. One toast
   // at a time; subsequent setStatus calls replace the text rather than
@@ -1084,10 +1110,21 @@ export function mountAIChat(opts: MountOpts = {}) {
     if (toastTimer !== null) { clearTimeout(toastTimer); toastTimer = null; }
   }
 
+  function openContentPageContext(): string {
+    // Read the open content page slug from a globally-exposed getter
+    // (set by openContentPage in main.ts). When the user is reading
+    // /about / /theology / etc, the model should know so "explain this
+    // section" / "summarize this" works without copy-paste.
+    type W = typeof window & { getOpenContentPageSlug?: () => string | null };
+    const slug = (window as W).getOpenContentPageSlug?.() ?? null;
+    if (!slug) return '';
+    return `\nThe user is currently reading the content page /${slug}. Feel free to reference what's on that page when relevant.`;
+  }
+
   function trackContext(): string {
     const eng = opts.engine;
     const st = eng?.state();
-    if (!st?.track) return 'No track is currently playing. The user is browsing the catalog — feel free to recommend.';
+    if (!st?.track) return 'No track is currently playing. The user is browsing the catalog — feel free to recommend.' + openContentPageContext();
     const cur = st.track;
     const min = Math.floor((st.currentTime || 0) / 60);
     const sec = Math.floor((st.currentTime || 0) % 60)
@@ -1114,7 +1151,7 @@ export function mountAIChat(opts: MountOpts = {}) {
         if (titles.length) recentLine = `\nRecently played (newest first): ${titles.join(' → ')}`;
       }
     } catch { /* noop */ }
-    return `Now playing: "${cur.title}" by ${cur.artist || 'bZ'}${cur.album ? ` (${cur.album})` : ''} at ${min}:${sec}${bpm}. Status: ${st.playing ? 'playing' : 'paused'}.${albumLine}${recentLine}${lyricLine}${wisdom}`;
+    return `Now playing: "${cur.title}" by ${cur.artist || 'bZ'}${cur.album ? ` (${cur.album})` : ''} at ${min}:${sec}${bpm}. Status: ${st.playing ? 'playing' : 'paused'}.${albumLine}${recentLine}${lyricLine}${wisdom}${openContentPageContext()}`;
   }
 
   function currentLyric(): string {

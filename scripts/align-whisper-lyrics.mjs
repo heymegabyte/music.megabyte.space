@@ -48,12 +48,15 @@ function parseTracks(src) {
   const start = src.search(/export const TRACKS\s*:\s*Track\[\]\s*=\s*\[/);
   if (start < 0) return [];
   const region = src.slice(start);
-  const blocks = region.match(/\{\s*id:\s*'[^']+',\s*title:\s*'[^']+'[\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
+  // Accept both single- and double-quoted id/title fields so freshly
+  // imported tracks (which often serialize as double-quoted) parse too.
+  const blocks = region.match(/\{\s*id:\s*['"][^'"]+['"],\s*title:\s*['"][^'"]+['"][\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
   return blocks.map(b => {
-    const id = b.match(/id:\s*'([^']+)'/)?.[1];
+    const id = b.match(/id:\s*['"]([^'"]+)['"]/)?.[1];
     const lyricsBlock = b.match(/lyrics:\s*\[([\s\S]*?)\n\s{4}\]/)?.[1] ?? '';
-    const lines = [...lyricsBlock.matchAll(/'((?:[^'\\]|\\.)*)'/g)].map(m =>
-      m[1].replace(/\\'/g, "'").replace(/\\"/g, '"')
+    // Match both 'single' and "double" quoted lyric strings.
+    const lines = [...lyricsBlock.matchAll(/(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g)].map(m =>
+      (m[1] ?? m[2] ?? '').replace(/\\'/g, "'").replace(/\\"/g, '"')
     );
     return id ? { id, lines } : null;
   }).filter(Boolean);

@@ -24,6 +24,9 @@ export interface ContentPage {
   metaTitle?: string;
   /** Long-form SEO description — defaults to description field */
   metaDescription?: string;
+  /** Schema.org type for the per-page JSON-LD block. Defaults to 'WebPage'.
+   *  Common choices: 'AboutPage' / 'ContactPage' / 'Article' / 'CollectionPage'. */
+  jsonLdType?: 'AboutPage' | 'ContactPage' | 'Article' | 'CollectionPage' | 'WebPage';
   render: () => string;
 }
 
@@ -90,6 +93,7 @@ export const CONTENT_PAGES: ContentPage[] = [
     ogImage: '/og/og-about.jpg',
     metaTitle: 'About bZ — Newark-based hustle-gospel artist',
     metaDescription: "Brian Zalewski is bZ — solo hustle-gospel artist out of Newark, NJ. 6 albums, 50+ tracks, Suno-assisted production. Christian-gangster ethic. Hard but holy.",
+    jsonLdType: 'AboutPage',
     render: () => `
       <article class="contentpage__article">
         <figure class="contentpage__hero">
@@ -237,6 +241,7 @@ export const CONTENT_PAGES: ContentPage[] = [
     ogImage: '/og/og-process.jpg',
     metaTitle: 'Process — how a bZ song gets made',
     metaDescription: '5-stage pipeline: lyric draft → Suno → Whisper align → audio analysis → visualizer engineering. Cost per track ~$0.42. Anatomy of one song included.',
+    jsonLdType: 'Article',
     render: () => `
       <article class="contentpage__article">
         <p class="contentpage__lead">
@@ -410,6 +415,7 @@ export const CONTENT_PAGES: ContentPage[] = [
     ogImage: '/og/og-theology.jpg',
     metaTitle: 'Theology — the hard-but-holy framework behind every bZ track',
     metaDescription: 'James 1:27 set to 808s. Three pillars: mercy, discipline, service. No drug references, family-reverent, soup-kitchen-serving. FAQ for the curious.',
+    jsonLdType: 'Article',
     render: () => `
       <article class="contentpage__article">
         <p class="contentpage__lead">
@@ -563,6 +569,7 @@ export const CONTENT_PAGES: ContentPage[] = [
     ogImage: '/og/og-credits.jpg',
     metaTitle: 'Credits — per-track DNA + tool credits + licensing',
     metaDescription: 'Every bZ track shows its Suno model, BPM source, key, generation date. Tool credits, OSS honor roll, licensing summary. Full transparency.',
+    jsonLdType: 'CollectionPage',
     render: () => {
       const rows = TRACKS.map(t => {
         const m = SUNO_META[t.id];
@@ -699,6 +706,7 @@ export const CONTENT_PAGES: ContentPage[] = [
     ogImage: '/og/og-press.jpg',
     metaTitle: 'Press kit — bios, covers, brand assets, booking',
     metaDescription: '50-word + 150-word bios. Hi-res cover art (6 albums). Headshot. Brand voice. Booking + licensing. Interview answers. Embed snippets. Everything writers and curators need.',
+    jsonLdType: 'AboutPage',
     render: () => {
       const covers = ALBUMS.map(a => `
         <a class="contentpage__cover" href="${esc(a.cover)}" target="_blank" rel="noopener" title="Open ${esc(a.name)} cover full-res">
@@ -751,6 +759,27 @@ export const CONTENT_PAGES: ContentPage[] = [
           ${pullquote(`Mama called us baby sharks in the dark`, 'Mama Called Us — The Appeal')}
           ${pullquote(`Win through your actions, never through argument`, 'Eisenhower Matrix — Wormhole Tape')}
           ${pullquote(`Chef Lu in the kitchen, fire in the pot, brand new child of God`, 'Chef Lu Stew — Panda Desiiignare')}
+
+          ${divider('per-track press kits')}
+          <p style="color: var(--ink-mute); font-size: 0.86rem;">
+            Every track ships a dedicated one-pager — bio, hi-res cover, streaming links,
+            lyric excerpt, sync availability, contact. Send a journalist or curator one URL.
+          </p>
+          <ul class="contentpage__press-list">
+            ${ALBUMS.map(a => {
+              const tracks = a.trackIds.map(id => TRACKS.find(t => t.id === id)).filter(Boolean);
+              if (!tracks.length) return '';
+              return `<li>
+                <h5>${esc(a.name)}</h5>
+                <div class="contentpage__press-grid">
+                  ${tracks.map(t => `<a class="contentpage__press-chip" href="/press/${esc(t!.id)}">
+                    <span>${esc(t!.title)}</span>
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+                  </a>`).join('')}
+                </div>
+              </li>`;
+            }).join('')}
+          </ul>
 
           ${divider('hi-res cover art')}
           <p style="color: var(--ink-mute); font-size: 0.86rem;">Click any cover to open the full-res original — all are © Brian Zalewski / Megabyte Labs.</p>
@@ -859,6 +888,7 @@ export const CONTENT_PAGES: ContentPage[] = [
     ogImage: '/og/og-contact.jpg',
     metaTitle: 'Connect — booking, press, prayer requests, consulting',
     metaDescription: 'brian@megabyte.space · +1 (469) 694-3696 · response in 48 hours. Office hours, languages spoken, before-you-reach-out checklist, NDA available.',
+    jsonLdType: 'ContactPage',
     render: () => `
       <article class="contentpage__article">
         <p class="contentpage__lead">
@@ -961,6 +991,7 @@ export const CONTENT_PAGES: ContentPage[] = [
     ogImage: '/og/og-support.jpg',
     metaTitle: 'Support bZ — share, subscribe, tip, hire, donate',
     metaDescription: "Five tiers from free (share + subscribe) to recurring ($1-$100/mo Sponsors). Every $5 tip = 1,700 Spotify streams. Surplus routes to St. John's Soup Kitchen of Newark.",
+    jsonLdType: 'WebPage',
     render: () => `
       <article class="contentpage__article">
         <p class="contentpage__lead">

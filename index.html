@@ -10,6 +10,15 @@
       // HTML/script source in this app is built from internal data, never
       // from user input, so passthrough is correct. See src/trusted-types.ts.
       try { window.trustedTypes && window.trustedTypes.createPolicy('default', { createHTML: function(s){return s;}, createScript: function(s){return s;}, createScriptURL: function(s){return s;} }); } catch (e) {}
+      // Pre-paint topbar mode: if the URL is a content-page slug, flip
+      // <html> into story mode BEFORE the bundle paints so the topbar
+      // boots in chip-rail layout instead of flickering from main-nav
+      // → chip-rail mid-render.
+      try {
+        if (/^\/(?:about|process|theology|credits|press|contact|support)\/?$/.test(location.pathname)) {
+          document.documentElement.classList.add('is-story-mode');
+        }
+      } catch (e) {}
     </script>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />

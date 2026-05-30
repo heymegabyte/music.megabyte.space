@@ -8,7 +8,7 @@ import { AudioEngine } from './audio';
 import type { ReverbPreset } from './audio';
 import { Visualizer } from './visualizer';
 import type { VizMode } from './visualizer';
-import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID, SPOTIFY_ARTIST_ID } from './data';
+import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID, SPOTIFY_ARTIST_ID, SPOTIFY_ARTIST_URL, NEXT_RELEASE } from './data';
 import { SUNO_META } from './suno-meta';
 import { TRACK_TAGS, getTrackTags } from './tags';
 import { CONTENT_PAGE_BY_SLUG, CONTENT_PAGES } from './content-pages';
@@ -660,6 +660,10 @@ function setAlbumFilter(albumId: string | null, opts: { push?: boolean; render?:
     const host = $('#albums');
     if (host) renderAlbums(host);
   }
+  // Refresh the hero so the visualizer surface shows the album name +
+  // tagline while no track is playing yet.
+  const t = currentTrackId ? TRACK_BY_ID.get(currentTrackId) : null;
+  renderNowPlaying(t ?? null);
 }
 
 function showAutoplayPrompt(track: Track) {
@@ -988,6 +992,11 @@ async function copyText(value: string, btn?: HTMLElement | null) {
 function setupShell(root: HTMLElement) {
   root.innerHTML = `
     <canvas id="bg" aria-hidden="true"></canvas>
+    <a class="skip-link" href="#contentpageScroll">Skip to content</a>
+    <!-- Release-prep checklist banner — shows for ≤14 days before NEXT_RELEASE,
+         hides on dismiss, auto-vanishes once date passes. Empty when no
+         release is queued in data.ts NEXT_RELEASE. -->
+    <aside class="release-banner" id="releaseBanner" hidden aria-label="Upcoming release checklist"></aside>
 
     <header class="topbar">
       <a class="brand" href="/" aria-label="bZ home">
@@ -997,7 +1006,29 @@ function setupShell(root: HTMLElement) {
         <span class="topbar__title-mute">now playing —</span>
         <span class="topbar__title-text" id="npChrome">press play</span>
       </div>
-      <nav class="topbar__nav" aria-label="Site">
+      <!-- Story-mode chip rail. Replaces the normal topbar nav when the
+           Story button is engaged. Page chips for direct navigation; click
+           the ✕ to exit story-mode and restore the normal topbar. -->
+      <nav class="topbar__story-nav" id="topbarStoryNav" aria-label="Story pages" hidden>
+        <!-- Mobile (≤768px): single trigger that opens the dropdown sheet
+             below. Desktop (>768px): chip rail is the nav. CSS toggles
+             which one is visible. -->
+        <button id="btnStoryNavMobile" class="topbar__story-mobile-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="topbarStoryNavSheet">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span id="topbarStoryNavMobileLabel">Story</span>
+          <svg class="topbar__story-mobile-caret" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+        </button>
+        <a href="/" class="topbar__story-home" id="btnStoryHome" data-story-home aria-label="Back to home">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12 12 4l9 8"/><path d="M5 10v10h14V10"/></svg>
+          <span>Home</span>
+        </a>
+        <div class="topbar__story-nav-chips" id="topbarStoryNavChips"></div>
+        <div class="topbar__story-sheet" id="topbarStoryNavSheet" role="menu" aria-labelledby="btnStoryNavMobile" hidden></div>
+        <button id="btnStoryNavClose" class="topbar__story-nav-close" type="button" aria-label="Exit story mode">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </nav>
+      <nav class="topbar__nav" id="topbarMainNav" aria-label="Site">
         <button id="btnSearch" class="topbar__search" type="button" aria-label="Search tracks (⌘/)">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <span>Search</span>
@@ -1008,6 +1039,11 @@ function setupShell(root: HTMLElement) {
           <span>Lyrics</span>
           <kbd>⇧L</kbd>
         </button>
+        <a id="btnSpotifyFollow" class="topbar__spotify" href="${SPOTIFY_ARTIST_URL}" target="_blank" rel="noopener noreferrer" aria-label="Follow bZ on Spotify" title="Follow on Spotify">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.41a.7.7 0 0 1-.96.23c-2.63-1.61-5.94-1.97-9.84-1.08a.7.7 0 0 1-.31-1.36c4.27-.97 7.94-.56 10.88 1.25.33.2.43.65.23.96zm1.23-2.74a.87.87 0 0 1-1.2.29c-3.01-1.85-7.6-2.39-11.16-1.31a.87.87 0 0 1-.51-1.66c4.07-1.24 9.13-.64 12.59 1.48.41.25.54.79.28 1.2zm.1-2.86c-3.61-2.14-9.57-2.34-13.02-1.29a1.05 1.05 0 1 1-.61-2.01c3.96-1.2 10.55-.97 14.7 1.49a1.05 1.05 0 1 1-1.07 1.81z"/></svg>
+          <span>Follow</span>
+          <span class="topbar__spotify-count" id="spotifyFollowerCount" aria-hidden="true"></span>
+        </a>
         <div class="topbar__menu" data-topbar-menu>
           <button id="btnPagesMenu" class="topbar__menu-trigger" type="button"
                   aria-haspopup="menu" aria-expanded="false" aria-controls="topbarPagesMenu">
@@ -1137,6 +1173,12 @@ function setupShell(root: HTMLElement) {
           <span class="transport__np-title" id="transportNpTitle">Press play</span>
           <span class="transport__np-sub" id="transportNpSub">bZ</span>
           <span class="transport__np-suno" id="transportNpSuno" aria-hidden="true"></span>
+          <span class="transport__np-spotify" id="transportNpSpotify" hidden>
+            <a id="transportNpSpotifyLink" href="#" target="_blank" rel="noopener noreferrer" aria-label="Stream on Spotify">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.41a.7.7 0 0 1-.96.23c-2.63-1.61-5.94-1.97-9.84-1.08a.7.7 0 0 1-.31-1.36c4.27-.97 7.94-.56 10.88 1.25.33.2.43.65.23.96zm1.23-2.74a.87.87 0 0 1-1.2.29c-3.01-1.85-7.6-2.39-11.16-1.31a.87.87 0 0 1-.51-1.66c4.07-1.24 9.13-.64 12.59 1.48.41.25.54.79.28 1.2zm.1-2.86c-3.61-2.14-9.57-2.34-13.02-1.29a1.05 1.05 0 1 1-.61-2.01c3.96-1.2 10.55-.97 14.7 1.49a1.05 1.05 0 1 1-1.07 1.81z"/></svg>
+              <span id="transportNpSpotifyText">Stream</span>
+            </a>
+          </span>
         </div>
       </div>
       <div class="transport__controls">
@@ -1210,13 +1252,36 @@ function setupShell(root: HTMLElement) {
          Music keeps playing across page-to-page navigation. -->
     <dialog class="contentpage" id="contentpage" aria-labelledby="contentpageTitle">
       <button class="contentpage__close" id="contentpageClose" type="button" aria-label="Close">✕</button>
-      <nav class="contentpage__nav" id="contentpageNav" aria-label="Content pages"></nav>
-      <header class="contentpage__head">
-        <p class="contentpage__eyebrow" id="contentpageEyebrow"></p>
-        <h2 class="contentpage__title" id="contentpageTitle"></h2>
-        <p class="contentpage__sub" id="contentpageSub"></p>
-      </header>
-      <div class="contentpage__body" id="contentpageBody"></div>
+      <!-- The page-switcher nav lives in the TOPBAR (#topbarStoryNav) while
+           a content page is open, so the dialog body has no in-dialog nav.
+           The dialog itself is the scroll container — scrollbar sits at the
+           far right of the viewport. Title + body live inside a single
+           centered 720px column so they scroll together like a real page. -->
+      <!-- Reading-progress hairline pinned to the top edge of the dialog.
+           Width animates with scrollTop/scrollHeight so users see they
+           have more to read. -->
+      <div class="contentpage__progress" id="contentpageProgress" aria-hidden="true"></div>
+      <div class="contentpage__scroll" id="contentpageScroll">
+        <header class="contentpage__head">
+          <p class="contentpage__eyebrow" id="contentpageEyebrow"></p>
+          <h2 class="contentpage__title" id="contentpageTitle"></h2>
+          <p class="contentpage__sub" id="contentpageSub"></p>
+          <div class="contentpage__head-actions">
+            <button id="contentpageShare" class="contentpage__share" type="button" aria-label="Share this page" data-slug="">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              <span>Share</span>
+            </button>
+            <a class="contentpage__share contentpage__share--print" href="javascript:window.print()" aria-label="Print this page">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>Print</span>
+            </a>
+          </div>
+        </header>
+        <!-- Floating right-rail TOC, populated from <h4> headings post-render.
+             Sticky positioned on desktop, hidden on mobile. -->
+        <nav class="contentpage__toc" id="contentpageToc" aria-label="On this page" hidden></nav>
+        <div class="contentpage__body" id="contentpageBody"></div>
+      </div>
     </dialog>
 
     <dialog class="appeal" id="appeal" aria-labelledby="appealTitle">
@@ -1572,6 +1637,9 @@ function setupShell(root: HTMLElement) {
       <p class="karaoke__now" id="karaokeNow">Press play to see the lyrics.</p>
       <p class="karaoke__next" id="karaokeNext"></p>
       <p class="karaoke__next karaoke__next--2" id="karaokeNext2"></p>
+      <!-- Chord hint row — shows the I→V→vi→IV progression for the
+           current track's detected key. Hidden when no key data. -->
+      <div class="karaoke__chords" id="karaokeChords" aria-label="Chord hints" hidden></div>
     </aside>
 
     <!-- Full-screen karaoke -->
@@ -2015,6 +2083,32 @@ function renderAlbums(host: HTMLElement) {
   }
 }
 
+// Batch-hydrate Spotify badges across every track row after render.
+// 51 tracks × 24h KV cache = one slow uncached pass per session, then
+// instant for every subsequent visitor. Concurrency-limited (4 in flight)
+// so we don't blast the Worker on a cold cache.
+async function hydrateTrackRowSpotifyBadges(root: HTMLElement | Document = document) {
+  const targets = Array.from(root.querySelectorAll<HTMLElement>('.trackrow__spotify[data-spotify-title]:not([data-resolved])'));
+  if (!targets.length) return;
+  const concurrency = 4;
+  let cursor = 0;
+  async function worker() {
+    while (cursor < targets.length) {
+      const el = targets[cursor++];
+      const title = el.dataset.spotifyTitle;
+      if (!title) continue;
+      el.dataset.resolved = '1';
+      const info = await resolveSpotifyTrack(title);
+      if (!info?.spotifyUrl) continue;
+      const pop = typeof info.popularity === 'number' ? info.popularity : 0;
+      el.innerHTML = `<a href="${info.spotifyUrl}" target="_blank" rel="noopener noreferrer" aria-label="Stream ${escapeHtml(title)} on Spotify"${pop > 0 ? ` title="Spotify popularity ${pop}/100"` : ''}>
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.41a.7.7 0 0 1-.96.23c-2.63-1.61-5.94-1.97-9.84-1.08a.7.7 0 0 1-.31-1.36c4.27-.97 7.94-.56 10.88 1.25.33.2.43.65.23.96zm1.23-2.74a.87.87 0 0 1-1.2.29c-3.01-1.85-7.6-2.39-11.16-1.31a.87.87 0 0 1-.51-1.66c4.07-1.24 9.13-.64 12.59 1.48.41.25.54.79.28 1.2zm.1-2.86c-3.61-2.14-9.57-2.34-13.02-1.29a1.05 1.05 0 1 1-.61-2.01c3.96-1.2 10.55-.97 14.7 1.49a1.05 1.05 0 1 1-1.07 1.81z"/></svg>${pop > 0 ? `<span>${pop}</span>` : ''}</a>`;
+      el.hidden = false;
+    }
+  }
+  await Promise.all(Array.from({ length: concurrency }, worker));
+}
+
 type TagChip = { kind: 'mood' | 'theme' | 'genre' | 'place' | 'tempo' | 'energy'; label: string };
 
 function topTagsFor(tags: ReturnType<typeof getTrackTags>, max = 5): TagChip[] {
@@ -2037,14 +2131,26 @@ function trackTagsAttr(trackId: string): string {
 }
 
 function renderNowPlaying(track: Track | null) {
-  const album = track ? ALBUM_BY_ID.get(track.album) : null;
+  // When the user has filtered to a single album but hasn't pressed play yet,
+  // surface THAT album in the hero (name + tagline) instead of the generic
+  // "PRESS PLAY" stub. Makes /<album> feel like a real album page.
+  const filteredAlbum = !track && currentAlbumFilter ? ALBUM_BY_ID.get(currentAlbumFilter) : null;
+  const album = track ? ALBUM_BY_ID.get(track.album) : filteredAlbum;
   const heroAlbum = $('#heroAlbum');
   const heroTitle = $('#heroTitle');
   const heroVibe = $('#heroVibe');
   const npChrome = $('#npChrome');
   if (heroAlbum) heroAlbum.textContent = (album?.name || 'bZ · Cyan Flag').toUpperCase();
-  if (heroTitle) heroTitle.textContent = (track ? track.title : 'PRESS PLAY').toUpperCase();
-  if (heroVibe) heroVibe.textContent = track?.vibe || 'Web Audio API live. Hard but holy.';
+  if (heroTitle) {
+    heroTitle.textContent = track
+      ? track.title.toUpperCase()
+      : (filteredAlbum ? filteredAlbum.name.toUpperCase() : 'PRESS PLAY');
+  }
+  if (heroVibe) {
+    heroVibe.textContent = track?.vibe
+      || filteredAlbum?.tagline
+      || 'Web Audio API live. Hard but holy.';
+  }
   const heroTags = $('#heroTags');
   if (heroTags) {
     const tags = track ? getTrackTags(track.id) : undefined;
@@ -2462,6 +2568,75 @@ function paintKaraokeOverlay(idx: number, bundle: LyricsBundle) {
   }
   host.classList.add('is-pulse');
   setTimeout(() => host.classList.remove('is-pulse'), 360);
+  updateChordHints(idx);
+}
+
+// ── Chord hints overlay ─────────────────────────────────────────────
+// Given a detected musical key, build the four most-common pop chord
+// scale degrees (I, V, vi, IV — "the four chords") and display them in
+// rotation per line. This is a heuristic, not a transcription — it
+// gives the listener a starting point to play along, nothing more.
+const MAJOR_SCALES: Record<string, string[]> = {
+  // Major key root → I, ii, iii, IV, V, vi, vii°
+  C:  ['C',  'Dm', 'Em', 'F',  'G',  'Am', 'Bdim'],
+  G:  ['G',  'Am', 'Bm', 'C',  'D',  'Em', 'F#dim'],
+  D:  ['D',  'Em', 'F#m','G',  'A',  'Bm', 'C#dim'],
+  A:  ['A',  'Bm', 'C#m','D',  'E',  'F#m','G#dim'],
+  E:  ['E',  'F#m','G#m','A',  'B',  'C#m','D#dim'],
+  B:  ['B',  'C#m','D#m','E',  'F#', 'G#m','A#dim'],
+  F:  ['F',  'Gm', 'Am', 'Bb', 'C',  'Dm', 'Edim'],
+  Bb: ['Bb', 'Cm', 'Dm', 'Eb', 'F',  'Gm', 'Adim'],
+  Eb: ['Eb', 'Fm', 'Gm', 'Ab', 'Bb', 'Cm', 'Ddim'],
+  Ab: ['Ab', 'Bbm','Cm', 'Db', 'Eb', 'Fm', 'Gdim'],
+};
+function chordsForKey(key: string | undefined): { I: string; V: string; vi: string; IV: string } | null {
+  if (!key) return null;
+  // Accept "C", "C major", "Cm", "C minor". Default to major.
+  const norm = key.trim().replace(/\s+/g, ' ');
+  const m = norm.match(/^([A-G][#b]?)(?:\s*(major|minor|m))?$/i);
+  if (!m) return null;
+  const root = m[1].charAt(0).toUpperCase() + m[1].slice(1).replace('B', 'b').replace('S', '#');
+  // For minor keys, use the relative major's chords with vi as the tonic.
+  const isMinor = /minor|m$/i.test(norm) && !/major/i.test(norm);
+  const RELATIVE_MAJ: Record<string, string> = {
+    Am: 'C', Em: 'G', Bm: 'D', 'F#m': 'A', 'C#m': 'E', 'G#m': 'B',
+    Dm: 'F', Gm: 'Bb', Cm: 'Eb', Fm: 'Ab', Bbm: 'Db', Ebm: 'Gb',
+  };
+  let scaleRoot = root;
+  if (isMinor) scaleRoot = RELATIVE_MAJ[root + 'm'] ?? root;
+  const scale = MAJOR_SCALES[scaleRoot];
+  if (!scale) return null;
+  return { I: scale[0], V: scale[4], vi: scale[5], IV: scale[3] };
+}
+function parseKeyFromSunoStyle(style?: string): string | undefined {
+  if (!style) return undefined;
+  // "key of d minor" / "D minor key" / "minor key" / "d# minor"
+  let m = style.match(/key\s+of\s+([a-g][#b]?)\s*(major|minor)?/i);
+  if (m) return `${m[1].toUpperCase()}${m[2] ? ' ' + m[2].toLowerCase() : ''}`;
+  m = style.match(/([a-g][#b]?)\s+(major|minor)\s+key/i);
+  if (m) return `${m[1].toUpperCase()} ${m[2].toLowerCase()}`;
+  return undefined;
+}
+function updateChordHints(lineIdx: number) {
+  const el = $('#karaokeChords');
+  if (!el) return;
+  const t = currentTrackId ? TRACK_BY_ID.get(currentTrackId) : null;
+  if (!t) { el.hidden = true; return; }
+  const key = parseKeyFromSunoStyle(SUNO_META[t.id]?.sunoStyle) || parseKeyFromSunoStyle(SUNO_META[t.id]?.sunoStyleFull);
+  const chords = chordsForKey(key);
+  if (!chords) { el.hidden = true; return; }
+  // 4-chord loop: I → V → vi → IV (the "Axis of Awesome" progression that
+  // underpins most modern pop, and ~half of bZ's hooks)
+  const loop = [chords.I, chords.V, chords.vi, chords.IV];
+  const cur = loop[lineIdx % 4];
+  const next = loop[(lineIdx + 1) % 4];
+  el.hidden = false;
+  el.innerHTML = `
+    <span class="karaoke__chord karaoke__chord--cur">${escapeHtml(cur)}</span>
+    <span class="karaoke__chord-sep">→</span>
+    <span class="karaoke__chord karaoke__chord--next">${escapeHtml(next)}</span>
+    <span class="karaoke__chord-key">key · ${escapeHtml(key ?? '')}</span>
+  `;
 }
 
 let karaokeDragBound = false;
@@ -2633,6 +2808,7 @@ async function play(track: Track) {
   pushTrackUrl(track);
   recordPlayStart(track.id);
   currentTrackId = track.id;
+  updateTransportSpotifyChip(track);
   // 260ms visualizer cross-fade hook — body[data-track-changing] is CSS-
   // listened to dim the #bg canvas briefly so consecutive tracks feel
   // like a single continuous experience instead of a jarring viz cut.
@@ -4243,30 +4419,61 @@ function closeAppeal({ popHistory = true }: { popHistory?: boolean } = {}) {
 // the audio engine + visualizer keep running across nav. Routed by URL
 // path via the History API.
 let contentPageReturnUrl: string | null = null;
+// Exposed for AI chat context — the AI knows which page the user is
+// reading so "explain this section" / "summarize this" works without
+// copy-paste. Cleared on closeContentPage.
+let currentContentPageSlug: string | null = null;
+export function getOpenContentPageSlug(): string | null { return currentContentPageSlug; }
+// Exposed on window so AI chat (separate module) can read it without
+// circular import.
+(window as typeof window & { getOpenContentPageSlug?: () => string | null }).getOpenContentPageSlug = getOpenContentPageSlug;
 
 function openContentPage(slug: string, { pushHistory = true }: { pushHistory?: boolean } = {}) {
   const page = CONTENT_PAGE_BY_SLUG.get(slug);
   if (!page) return;
   const dialog = $('#contentpage') as HTMLDialogElement | null;
   if (!dialog) return;
+  currentContentPageSlug = slug;
   const eyebrow = $('#contentpageEyebrow');
   const title = $('#contentpageTitle');
   const sub = $('#contentpageSub');
   const body = $('#contentpageBody');
+  const shareBtn = $('#contentpageShare') as HTMLButtonElement | null;
   const nav = $('#contentpageNav');
   if (eyebrow) eyebrow.textContent = page.eyebrow;
   if (title) title.textContent = page.title;
   if (sub) sub.textContent = page.description;
-  // Cross-fade the body content swap so navigating between content pages
-  // doesn't snap. 160ms is shorter than the perceived "instant" threshold
-  // but long enough to feel intentional.
-  if (body) {
-    body.classList.add('is-swapping');
-    requestAnimationFrame(() => {
-      body.innerHTML = page.render();
-      body.scrollTop = 0;
-      requestAnimationFrame(() => body.classList.remove('is-swapping'));
-    });
+  if (shareBtn) shareBtn.dataset.slug = slug;
+  // Sequential page transition — OLD content fades out (220 ms), then
+  // the inner column is swapped, then NEW content fades in (220 ms).
+  // Scoped strictly to .contentpage__scroll so the topbar chip rail,
+  // dialog backdrop, transport, and the rest of the app stay mounted
+  // and untouched — no document-level View Transition that would
+  // capture and re-render the navbar.
+  const scrollInner = $('#contentpageScroll');
+  const scrollOuter = dialog;
+  const doSwap = () => {
+    if (body) body.innerHTML = page.render();
+    if (scrollOuter) scrollOuter.scrollTop = 0;
+    renderContentPageTOC();
+    setupContentPageScrollIn();
+  };
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dialogAlreadyOpen = dialog.open;
+  if (!scrollInner || !body || reduced || !dialogAlreadyOpen) {
+    // First open or reduced motion: paint immediately, let the dialog's
+    // own entrance animation handle the fade-in.
+    doSwap();
+  } else {
+    // Sequential page swap inside an already-open dialog:
+    //   1. Fade OLD content fully out (220ms).
+    //   2. Swap innerHTML once invisible.
+    //   3. Fade NEW content in (220ms).
+    scrollInner.classList.add('is-swapping');
+    window.setTimeout(() => {
+      doSwap();
+      requestAnimationFrame(() => scrollInner.classList.remove('is-swapping'));
+    }, 230);
   }
   // Build the sub-nav once per page open — active chip highlights current.
   // Audio engine stays alive across these navigations since the parent
@@ -4300,16 +4507,59 @@ function openContentPage(slug: string, { pushHistory = true }: { pushHistory?: b
     setMeta('meta[property="og:image:secure_url"]', 'content', ogImg);
     setMeta('meta[name="twitter:image"]', 'content', ogImg);
   }
+  // Per-page JSON-LD — emits a single <script id="contentpage-jsonld">
+  // block per open. Replaced (not appended) on every page swap so the
+  // crawler sees exactly one schema per route.
+  const ldType = page.jsonLdType || 'WebPage';
+  const url = `${SITE_ORIGIN}/${slug}`;
+  const ld: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': ldType,
+    name: metaTitle,
+    headline: metaTitle,
+    description: metaDesc,
+    url,
+    inLanguage: 'en-US',
+    isPartOf: { '@type': 'WebSite', name: 'bZ', url: SITE_ORIGIN },
+    author: { '@type': 'Person', name: 'Brian Zalewski', url: 'https://megabyte.space' },
+    publisher: { '@type': 'Organization', name: 'Megabyte Labs', url: 'https://megabyte.space' },
+  };
+  if (ogImg) ld.image = ogImg;
+  if (ldType === 'Article') {
+    ld.mainEntityOfPage = { '@type': 'WebPage', '@id': url };
+  }
+  let ldEl = document.getElementById('contentpage-jsonld') as HTMLScriptElement | null;
+  if (!ldEl) {
+    ldEl = document.createElement('script');
+    ldEl.type = 'application/ld+json';
+    ldEl.id = 'contentpage-jsonld';
+    document.head.appendChild(ldEl);
+  }
+  ldEl.textContent = JSON.stringify(ld);
   if (pushHistory && location.pathname !== `/${slug}`) {
     contentPageReturnUrl = location.pathname + location.search + location.hash;
     history.pushState({ contentpage: slug, returnUrl: contentPageReturnUrl }, '', `/${slug}`);
   }
+  // Notify the topbar story-mode wiring so the chip rail engages + the
+  // active chip updates as the user clicks between pages.
+  document.dispatchEvent(new CustomEvent('panda-contentpage-open', { detail: { slug } }));
 }
 
 function closeContentPage({ popHistory = true }: { popHistory?: boolean } = {}) {
   const dialog = $('#contentpage') as HTMLDialogElement | null;
   if (dialog?.open) dialog.close();
   document.documentElement.classList.remove('is-contentpage-open');
+  currentContentPageSlug = null;
+  document.dispatchEvent(new CustomEvent('panda-contentpage-close'));
+  // Restore default meta (og:image was sticking to last opened page after
+  // close — bug fix). If a track is playing, prefer its meta; else fall
+  // back to the homepage defaults.
+  const t = currentTrackId ? TRACK_BY_ID.get(currentTrackId) : null;
+  if (t) applyTrackMetadata(t);
+  else applyDefaultMetadata();
+  // Drop the per-page JSON-LD so the crawler doesn't see stale schema on
+  // routes that are not content pages.
+  document.getElementById('contentpage-jsonld')?.remove();
   if (popHistory && CONTENT_PAGE_BY_SLUG.has(location.pathname.slice(1))) {
     if (contentPageReturnUrl) {
       history.replaceState({}, '', contentPageReturnUrl);
@@ -4317,9 +4567,273 @@ function closeContentPage({ popHistory = true }: { popHistory?: boolean } = {}) 
     } else {
       history.replaceState({}, '', '/');
     }
-    const t = currentTrackId ? TRACK_BY_ID.get(currentTrackId) : null;
-    document.title = t ? `${t.title} — bZ` : 'bZ — live Web Audio gospel';
   }
+}
+
+// Reveal-on-scroll observer for content-page rich blocks. Applied per
+// render so a page switch re-animates the entrances.
+let contentScrollInObserver: IntersectionObserver | null = null;
+function setupContentPageScrollIn() {
+  const body = $('#contentpageBody');
+  const dialog = $('#contentpage') as HTMLDialogElement | null;
+  if (!body || !dialog) return;
+  if (contentScrollInObserver) contentScrollInObserver.disconnect();
+  contentScrollInObserver = new IntersectionObserver(entries => {
+    for (const en of entries) {
+      if (en.isIntersecting) {
+        en.target.classList.add('is-in');
+        contentScrollInObserver?.unobserve(en.target);
+      }
+    }
+  }, { root: dialog, rootMargin: '0px 0px -10% 0px', threshold: 0 });
+  const targets = body.querySelectorAll('.contentpage__figure, .contentpage__pullquote, .contentpage__highlight, .contentpage__stats, .contentpage__cards, .contentpage__divider');
+  targets.forEach(el => contentScrollInObserver?.observe(el));
+}
+
+// ── Content page: floating right-rail TOC ────────────────────────────
+// Generated from <h4> headings inside .contentpage__body after every
+// render. Clicking a TOC entry scrolls the dialog to that section.
+// IntersectionObserver highlights the active section while reading.
+let tocObserver: IntersectionObserver | null = null;
+function renderContentPageTOC() {
+  const toc = $('#contentpageToc');
+  const body = $('#contentpageBody');
+  const dialog = $('#contentpage') as HTMLDialogElement | null;
+  if (!toc || !body || !dialog) return;
+  // Find headings + assign ids if missing
+  const headings = Array.from(body.querySelectorAll<HTMLElement>('h4'));
+  if (headings.length < 3) { toc.hidden = true; toc.innerHTML = ''; return; }
+  toc.hidden = false;
+  toc.innerHTML = headings.map((h, i) => {
+    if (!h.id) h.id = `toc-${i}-${(h.textContent || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}`;
+    return `<a href="#${h.id}" data-toc="${h.id}">${escapeHtml(h.textContent || '')}</a>`;
+  }).join('');
+  // Smooth-scroll on click — dialog is the scroll container
+  toc.querySelectorAll<HTMLAnchorElement>('a').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const id = a.dataset.toc!;
+      const el = document.getElementById(id);
+      if (!el) return;
+      const top = el.getBoundingClientRect().top - dialog.getBoundingClientRect().top + dialog.scrollTop - 24;
+      dialog.scrollTo({ top, behavior: 'smooth' });
+    });
+  });
+  // IntersectionObserver to highlight the section that's currently in
+  // the upper third of the viewport
+  if (tocObserver) tocObserver.disconnect();
+  tocObserver = new IntersectionObserver(entries => {
+    for (const en of entries) {
+      if (!en.isIntersecting) continue;
+      toc.querySelectorAll<HTMLAnchorElement>('a').forEach(a => {
+        a.toggleAttribute('aria-current', a.dataset.toc === en.target.id);
+        if (a.dataset.toc === en.target.id) a.setAttribute('aria-current', 'location');
+      });
+      break;
+    }
+  }, { root: dialog, rootMargin: '0px 0px -65% 0px', threshold: [0, 1] });
+  headings.forEach(h => tocObserver?.observe(h));
+}
+
+// ── Content page: reading progress hairline ─────────────────────────
+// Updates the width of #contentpageProgress as the dialog scrolls.
+function setupContentPageProgress() {
+  const dialog = $('#contentpage') as HTMLDialogElement | null;
+  const bar = $('#contentpageProgress');
+  if (!dialog || !bar) return;
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const max = Math.max(1, dialog.scrollHeight - dialog.clientHeight);
+    const pct = Math.min(100, Math.max(0, (dialog.scrollTop / max) * 100));
+    bar.style.transform = `scaleX(${pct / 100})`;
+  };
+  dialog.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }, { passive: true });
+  // Reset on every open
+  document.addEventListener('panda-contentpage-open', () => { bar.style.transform = 'scaleX(0)'; });
+}
+
+// ── Content page: share button (Web Share API + clipboard fallback) ─
+function setupContentPageShare() {
+  const btn = $('#contentpageShare') as HTMLButtonElement | null;
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    const slug = btn.dataset.slug || '';
+    const page = CONTENT_PAGE_BY_SLUG.get(slug);
+    if (!page) return;
+    const url = `${SITE_ORIGIN}/${slug}`;
+    const title = page.metaTitle || page.title;
+    const text = page.metaDescription || page.description;
+    type NavShare = Navigator & { share?: (d: { title: string; text: string; url: string }) => Promise<void> };
+    const nav = navigator as NavShare;
+    if (typeof nav.share === 'function') {
+      try { await nav.share({ title, text, url }); return; } catch { /* user cancelled or denied */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      btn.querySelector('span')!.textContent = 'Copied';
+      setTimeout(() => { const s = btn.querySelector('span'); if (s) s.textContent = 'Share'; }, 1600);
+    } catch { /* clipboard blocked */ }
+  });
+}
+
+// ── Release-prep checklist banner ───────────────────────────────────
+// When NEXT_RELEASE in data.ts has a date within 14 days, render a
+// dismissable banner above the topbar with the day-countdown + a quick
+// link to the full checklist. Auto-dismiss is persisted per release
+// date in localStorage so closing it once doesn't re-prompt.
+function setupReleaseBanner() {
+  if (!NEXT_RELEASE?.date) return;
+  const banner = document.getElementById('releaseBanner');
+  if (!banner) return;
+  const release = new Date(NEXT_RELEASE.date + 'T00:00:00Z');
+  const today = new Date();
+  const daysLeft = Math.ceil((release.getTime() - today.getTime()) / 86400000);
+  if (daysLeft > 14 || daysLeft < -1) return;
+  try {
+    if (localStorage.getItem(`bz:release-dismissed:${NEXT_RELEASE.date}`) === '1') return;
+  } catch { /* ignore */ }
+  const title = NEXT_RELEASE.title;
+  const presave = NEXT_RELEASE.preSaveUrl;
+  const daysText = daysLeft <= 0 ? 'OUT NOW' : `${daysLeft}d`;
+  const milestones: Array<{ days: number; label: string; href: string }> = [
+    { days: 10, label: 'Pitch S4A editorial (≥7 d early)', href: 'https://artists.spotify.com/c/song/pitch' },
+    { days: 10, label: 'Submit to Groover / SubmitHub', href: 'https://groover.co' },
+    { days: 7,  label: 'TikTok teaser × 3 (hook clip)', href: 'https://www.tiktok.com/upload' },
+    { days: 3,  label: 'Pre-save campaign live', href: presave || 'https://distrokid.com/hyperfollow' },
+    { days: 0,  label: 'Drop day: Marquee / Showcase ad', href: 'https://ads.spotify.com' },
+  ];
+  const checklist = milestones.map(m => {
+    const status = daysLeft > m.days ? '○' : daysLeft <= m.days ? '●' : '○';
+    const done = daysLeft <= m.days;
+    return `<a class="release-banner__step${done ? ' is-active' : ''}" href="${m.href}" target="_blank" rel="noopener noreferrer">${status} ${m.label}</a>`;
+  }).join('');
+  banner.innerHTML = `
+    <div class="release-banner__inner">
+      <span class="release-banner__pulse" aria-hidden="true"></span>
+      <span class="release-banner__count">${daysText}</span>
+      <strong class="release-banner__title">${title}</strong>
+      <span class="release-banner__steps">${checklist}</span>
+      <button class="release-banner__close" type="button" aria-label="Dismiss">✕</button>
+    </div>`;
+  banner.hidden = false;
+  banner.querySelector<HTMLButtonElement>('.release-banner__close')?.addEventListener('click', () => {
+    banner.hidden = true;
+    try { localStorage.setItem(`bz:release-dismissed:${NEXT_RELEASE!.date}`, '1'); } catch { /* ignore */ }
+  });
+}
+
+// ── Spotify: per-track resolver + transport chip ────────────────────
+// In-memory cache so we don't re-hit the Worker for tracks we've seen
+// this session. Worker also KV-caches for 24h, but skipping the fetch
+// entirely is still cheaper.
+interface SpotifyTrackInfo {
+  id: string | null;
+  spotifyUrl?: string | null;
+  popularity?: number;
+  previewUrl?: string | null;
+  albumArt?: string | null;
+  albumName?: string | null;
+}
+const spotifyTrackCache = new Map<string, SpotifyTrackInfo>();
+async function resolveSpotifyTrack(title: string): Promise<SpotifyTrackInfo | null> {
+  if (spotifyTrackCache.has(title)) return spotifyTrackCache.get(title)!;
+  try {
+    const r = await fetch(`/api/spotify/track?title=${encodeURIComponent(title)}`);
+    if (!r.ok) return null;
+    const info = await r.json() as SpotifyTrackInfo;
+    spotifyTrackCache.set(title, info);
+    return info;
+  } catch { return null; }
+}
+async function updateTransportSpotifyChip(track: Track) {
+  const wrap = $('#transportNpSpotify');
+  const link = $('#transportNpSpotifyLink') as HTMLAnchorElement | null;
+  const text = $('#transportNpSpotifyText');
+  if (!wrap || !link) return;
+  wrap.hidden = true;
+  const info = await resolveSpotifyTrack(track.title);
+  if (!info || !info.id || !info.spotifyUrl) return;
+  link.href = info.spotifyUrl;
+  if (text) {
+    if (typeof info.popularity === 'number' && info.popularity > 0) {
+      text.textContent = `Stream · ${info.popularity}`;
+      text.title = `Spotify popularity ${info.popularity}/100`;
+    } else {
+      text.textContent = 'Stream';
+    }
+  }
+  wrap.hidden = false;
+}
+// Resolve once at boot — the follower count + cover image render in the
+// topbar Follow button. Cached server-side for 1h so calling on every
+// page load is cheap.
+async function loadSpotifyArtistStats() {
+  const countEl = $('#spotifyFollowerCount');
+  if (!countEl) return;
+  try {
+    const r = await fetch('/api/spotify/artist');
+    if (!r.ok) return;
+    const d = await r.json() as { followers?: number; spotifyUrl?: string };
+    if (typeof d.followers === 'number' && d.followers > 0) {
+      const fmt = d.followers >= 1000 ? `${(d.followers / 1000).toFixed(1)}k` : `${d.followers}`;
+      countEl.textContent = fmt;
+    }
+  } catch { /* swallow — non-critical */ }
+}
+
+// ── Topbar story chip rail: prefetch + arrow-key nav ────────────────
+function setupStoryChipEnhancements() {
+  const rail = $('#topbarStoryNavChips');
+  if (!rail) return;
+  // Prefetch the page render result on hover. Since each page render is a
+  // pure function of the registry (no network), the win is JS warming: the
+  // browser has the bundle in memory, GC is quiet, click feels instant.
+  const prefetched = new Set<string>();
+  rail.addEventListener('pointerover', e => {
+    const a = (e.target as Element | null)?.closest?.('a[data-content-page]') as HTMLAnchorElement | null;
+    if (!a) return;
+    const slug = a.dataset.contentPage;
+    if (!slug || prefetched.has(slug)) return;
+    prefetched.add(slug);
+    const page = CONTENT_PAGE_BY_SLUG.get(slug);
+    if (!page) return;
+    // Pre-call render() to JIT-warm the template strings + cache any
+    // figure() URLs into the browser image cache by creating offscreen
+    // <link rel="prefetch as=image"> for each <img src>.
+    const html = page.render();
+    const matches = html.matchAll(/<img[^>]+src="([^"]+)"/g);
+    for (const m of matches) {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.as = 'image';
+      link.href = m[1];
+      document.head.appendChild(link);
+      // Don't accumulate — drop after the browser fires the prefetch
+      setTimeout(() => link.remove(), 2000);
+    }
+  });
+  // Arrow-key navigation between chips. Tab moves OUT of the rail; ←/→
+  // move focus between chips; Enter activates (default link behavior).
+  rail.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') return;
+    const chips = Array.from(rail.querySelectorAll<HTMLAnchorElement>('a[data-content-page]'));
+    if (!chips.length) return;
+    const current = document.activeElement as HTMLElement | null;
+    let idx = chips.findIndex(c => c === current);
+    if (idx < 0) idx = chips.findIndex(c => c.hasAttribute('aria-current'));
+    if (idx < 0) idx = 0;
+    if (e.key === 'ArrowLeft') idx = (idx - 1 + chips.length) % chips.length;
+    else if (e.key === 'ArrowRight') idx = (idx + 1) % chips.length;
+    else if (e.key === 'Home') idx = 0;
+    else if (e.key === 'End') idx = chips.length - 1;
+    e.preventDefault();
+    chips[idx].focus();
+  });
 }
 
 /**
@@ -5029,6 +5543,11 @@ function bindUi() {
 
   // Content-page dialog wiring
   $('#contentpageClose')?.addEventListener('click', () => closeContentPage());
+  setupContentPageProgress();
+  setupContentPageShare();
+  setupStoryChipEnhancements();
+  void loadSpotifyArtistStats();
+  setupReleaseBanner();
   $('#contentpage')?.addEventListener('click', e => {
     if ((e.target as HTMLElement).id === 'contentpage') closeContentPage();
   });
@@ -5050,11 +5569,9 @@ function bindUi() {
     if (list) list.hidden = true;
     $('#btnPagesMenu')?.setAttribute('aria-expanded', 'false');
   });
-  // Boot-time route detection for /about /process /credits /press
-  const bootSlug = location.pathname.replace(/^\//, '').replace(/\/$/, '');
-  if (CONTENT_PAGE_BY_SLUG.has(bootSlug)) {
-    openContentPage(bootSlug, { pushHistory: false });
-  }
+  // Boot-time route detection deferred — see end of setupShell (the
+  // story-mode wiring needs to be registered FIRST so the
+  // panda-contentpage-open event has a listener when boot fires it).
   window.addEventListener('message', e => {
     if (e.origin !== location.origin) return;
     if ((e.data as { type?: string } | null)?.type === 'panda-appeal-close') closeAppeal();
@@ -5063,28 +5580,121 @@ function bindUi() {
   // Live lyrics overlay
   $('#btnLyricsOverlay')?.addEventListener('click', () => setKaraokeOverlay(!karaokeOverlayOn));
 
-  // Topbar Story dropdown — toggles the pages menu list. Music continues
-  // playing across every link since they all stay on the same SPA shell.
+  // Topbar Story button — engages "story mode": the normal topbar nav
+  // (Search / Lyrics / Story / menu) is hidden and replaced inline by a
+  // chip rail of all content-page links. Click a chip to open that page;
+  // click the ✕ at the right of the rail to exit story mode and restore
+  // the normal nav. Music keeps playing through the whole flow.
   const pagesMenuTrigger = $('#btnPagesMenu') as HTMLButtonElement | null;
   const pagesMenuList = $('#topbarPagesMenu') as HTMLElement | null;
-  if (pagesMenuTrigger && pagesMenuList) {
-    const closePages = () => {
-      pagesMenuList.hidden = true;
-      pagesMenuTrigger.setAttribute('aria-expanded', 'false');
-    };
-    pagesMenuTrigger.addEventListener('click', e => {
-      e.stopPropagation();
-      const open = !pagesMenuList.hidden;
-      if (open) { closePages(); return; }
-      pagesMenuList.hidden = false;
-      pagesMenuTrigger.setAttribute('aria-expanded', 'true');
+  const storyNav = $('#topbarStoryNav') as HTMLElement | null;
+  const storyNavChips = $('#topbarStoryNavChips') as HTMLElement | null;
+  // Populate the story-mode chip rail from CONTENT_PAGES so the link set
+  // stays in sync with the page registry. Each chip carries the same
+  // data-content-page hook the existing click delegate already handles.
+  if (storyNavChips) {
+    storyNavChips.innerHTML = CONTENT_PAGES.map(p => {
+      const label = p.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '');
+      return `<a href="/${p.slug}" data-content-page="${p.slug}" class="topbar__story-chip">${escapeHtml(label)}</a>`;
+    }).join('');
+  }
+  // Mobile dropdown — same link set, vertical bottom sheet. Click the
+  // trigger to open; click a link to navigate (delegate handles it);
+  // click outside or Esc to close.
+  const storySheet = $('#topbarStoryNavSheet') as HTMLElement | null;
+  const storyMobileTrigger = $('#btnStoryNavMobile') as HTMLButtonElement | null;
+  const storyMobileLabel = $('#topbarStoryNavMobileLabel');
+  if (storySheet) {
+    storySheet.innerHTML = CONTENT_PAGES.map(p => {
+      const label = p.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '');
+      const sub = p.eyebrow;
+      return `<a href="/${p.slug}" data-content-page="${p.slug}" class="topbar__story-sheet-item" role="menuitem">
+        <strong>${escapeHtml(label)}</strong>
+        <span>${escapeHtml(sub)}</span>
+      </a>`;
+    }).join('');
+  }
+  function setMobileSheetOpen(on: boolean) {
+    if (storySheet) storySheet.hidden = !on;
+    storyMobileTrigger?.setAttribute('aria-expanded', on ? 'true' : 'false');
+    document.documentElement.classList.toggle('is-story-sheet-open', on);
+  }
+  storyMobileTrigger?.addEventListener('click', e => {
+    e.stopPropagation();
+    const next = storySheet?.hidden ?? true;
+    setMobileSheetOpen(next);
+  });
+  document.addEventListener('click', e => {
+    if (!storySheet || storySheet.hidden) return;
+    const t = e.target as Element | null;
+    if (t?.closest('#topbarStoryNavSheet') || t?.closest('#btnStoryNavMobile')) return;
+    setMobileSheetOpen(false);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && storySheet && !storySheet.hidden) setMobileSheetOpen(false);
+  });
+  // Sync mobile trigger label to the open page
+  document.addEventListener('panda-contentpage-open', e => {
+    const slug = (e as CustomEvent<{ slug: string }>).detail?.slug;
+    const page = slug ? CONTENT_PAGE_BY_SLUG.get(slug) : null;
+    if (page && storyMobileLabel) {
+      storyMobileLabel.textContent = page.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '');
+    }
+    setMobileSheetOpen(false);
+    // Highlight the active row in the sheet
+    storySheet?.querySelectorAll<HTMLAnchorElement>('[data-content-page]').forEach(a => {
+      const active = a.dataset.contentPage === slug;
+      a.toggleAttribute('aria-current', active);
+      if (active) a.setAttribute('aria-current', 'page');
     });
-    document.addEventListener('click', e => {
-      if (!pagesMenuList.hidden && !(e.target as Element)?.closest('[data-topbar-menu]')) closePages();
+  });
+  function setStoryMode(on: boolean) {
+    document.documentElement.classList.toggle('is-story-mode', on);
+    if (storyNav) storyNav.hidden = !on;
+    pagesMenuTrigger?.setAttribute('aria-expanded', on ? 'true' : 'false');
+    if (pagesMenuList) pagesMenuList.hidden = true; // never use the old dropdown again
+  }
+  pagesMenuTrigger?.addEventListener('click', e => {
+    e.stopPropagation();
+    const on = !document.documentElement.classList.contains('is-story-mode');
+    setStoryMode(on);
+  });
+  $('#btnStoryNavClose')?.addEventListener('click', () => {
+    setStoryMode(false);
+    closeContentPage();
+  });
+  // Home pill — same behavior as ✕ but explicit/labeled. Intercept the
+  // navigation so we don't full-page-reload (preserves audio engine).
+  $('#btnStoryHome')?.addEventListener('click', e => {
+    e.preventDefault();
+    setStoryMode(false);
+    closeContentPage();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.documentElement.classList.contains('is-story-mode')) {
+      setStoryMode(false);
+    }
+  });
+  // When a content page opens via any path (URL boot, story chip, deep
+  // link), make sure story mode is engaged so the chip rail is visible.
+  // When the page closes (Esc / close button / popstate), drop story mode.
+  document.addEventListener('panda-contentpage-open', () => setStoryMode(true));
+  document.addEventListener('panda-contentpage-close', () => setStoryMode(false));
+  // Sync active chip on every page open
+  document.addEventListener('panda-contentpage-open', e => {
+    const slug = (e as CustomEvent<{ slug: string }>).detail?.slug;
+    if (!storyNavChips || !slug) return;
+    storyNavChips.querySelectorAll<HTMLAnchorElement>('[data-content-page]').forEach(a => {
+      const isActive = a.dataset.contentPage === slug;
+      a.toggleAttribute('aria-current', isActive);
+      if (isActive) a.setAttribute('aria-current', 'page');
     });
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && !pagesMenuList.hidden) closePages();
-    });
+  });
+  // Boot-time route detection — runs AFTER the story-mode listeners are
+  // attached so a direct hit to /about engages the chip rail immediately.
+  const bootSlug = location.pathname.replace(/^\//, '').replace(/\/$/, '');
+  if (CONTENT_PAGE_BY_SLUG.has(bootSlug)) {
+    openContentPage(bootSlug, { pushHistory: false });
   }
   $('#karaokeClose')?.addEventListener('click', () => setKaraokeOverlay(false));
   setKaraokeOverlay(karaokeOverlayOn);
@@ -5108,6 +5718,9 @@ function bindUi() {
   $('#cmdkResults')?.addEventListener('click', e => {
     const item = (e.target as HTMLElement).closest('.cmdk__item') as HTMLElement | null;
     if (!item) return;
+    // Content page hit?
+    const pageSlug = item.dataset.page;
+    if (pageSlug) { closeSearch(); openContentPage(pageSlug); return; }
     const idx = Number(item.dataset.idx ?? -1);
     const input = $('#cmdkInput') as HTMLInputElement | null;
     const tracks = filterTracks(input?.value ?? '');
@@ -5934,23 +6547,51 @@ function filterTracks(query: string): Track[] {
   });
 }
 
+function filterContentPages(query: string): Array<{ slug: string; title: string; sub: string; ogImage?: string }> {
+  const q = query.toLowerCase().trim();
+  if (!q) return [];
+  return CONTENT_PAGES.filter(p => {
+    const haystack = [p.title, p.eyebrow, p.description, p.metaTitle ?? '', p.metaDescription ?? '']
+      .join(' ').toLowerCase();
+    return haystack.includes(q);
+  }).map(p => ({ slug: p.slug, title: p.title, sub: p.description, ogImage: p.ogImage }));
+}
+
 function renderSearchResults(tracks: Track[]) {
   const results = $('#cmdkResults');
   const empty = $('#cmdkEmpty') as HTMLElement | null;
   const count = $('#cmdkCount');
   if (!results || !empty || !count) return;
-  if (!tracks.length) {
+  const input = $('#cmdkInput') as HTMLInputElement | null;
+  const pages = filterContentPages(input?.value ?? '');
+  if (!tracks.length && !pages.length) {
     results.innerHTML = '';
     empty.hidden = false;
-    count.textContent = '0 tracks';
+    count.textContent = '0 results';
     searchActiveIdx = -1;
     return;
   }
   empty.hidden = true;
-  count.textContent = `${tracks.length} track${tracks.length !== 1 ? 's' : ''}`;
+  const parts: string[] = [];
+  parts.push(`${tracks.length} track${tracks.length !== 1 ? 's' : ''}`);
+  if (pages.length) parts.push(`${pages.length} page${pages.length !== 1 ? 's' : ''}`);
+  count.textContent = parts.join(' · ');
   if (searchActiveIdx < 0) searchActiveIdx = 0;
   searchActiveIdx = Math.min(searchActiveIdx, tracks.length - 1);
-  results.innerHTML = tracks.map((t, i) => {
+  // Content pages first (so a user typing "theology" hits the page, not
+  // a track that happens to mention it)
+  const pagesHtml = pages.length
+    ? `<div class="cmdk__group">pages</div>` + pages.map(p =>
+      `<div class="cmdk__item cmdk__item--page" data-page="${escapeHtml(p.slug)}" role="option" tabindex="-1">
+         <img class="cmdk__item-cover" src="${escapeHtml(p.ogImage ?? '/og/og-about.jpg')}" alt="" width="40" height="40" loading="lazy" />
+         <div class="cmdk__item-body">
+           <div class="cmdk__item-title"><span class="cmdk__item-title-text">${escapeHtml(p.title)}</span></div>
+           <div class="cmdk__item-sub">${escapeHtml(p.sub)}</div>
+         </div>
+         <span class="cmdk__item-badge cmdk__item-badge--inline">page</span>
+       </div>`).join('') + (tracks.length ? `<div class="cmdk__group">tracks</div>` : '')
+    : '';
+  results.innerHTML = pagesHtml + tracks.map((t, i) => {
     const album = ALBUM_BY_ID.get(t.album);
     // Playing badge moved INLINE next to the title (was floating at the
     // far-right of the row, visually orphaned from the track it labels).

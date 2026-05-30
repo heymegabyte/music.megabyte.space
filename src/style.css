@@ -481,7 +481,7 @@ a {
 /* ---------- topbar ---------- */
 .topbar {
   position: relative;
-  z-index: 3;
+  z-index: 41; /* sit above .contentpage[open] (z-index:40) */
   overflow: visible;
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -492,6 +492,247 @@ a {
   background: linear-gradient(180deg, rgba(6, 6, 16, 0.86), rgba(6, 6, 16, 0.4));
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+/* ── Story mode ──────────────────────────────────────────────────────
+   When the user clicks the "Story" button (or opens any content page)
+   the html element gains .is-story-mode. The topbar's normal pieces
+   (now-playing title + Search / Lyrics / Story buttons) cross-fade out
+   and the chip rail of all content pages cross-fades in inside the
+   same topbar shell. Brand logo + transport stay locked in place. */
+/* In story mode the normal title + nav are removed from layout so the
+   chip rail gets the full middle/right grid track. */
+.is-story-mode .topbar__title,
+.is-story-mode .topbar__nav { display: none; }
+.topbar__story-nav {
+  grid-column: 2 / 4;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 240ms ease 60ms, transform 280ms cubic-bezier(0.2, 0.85, 0.25, 1) 60ms;
+}
+.is-story-mode .topbar__story-nav:not([hidden]) {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
+.topbar__story-nav[hidden] { display: none !important; }
+.topbar__story-home {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 25%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 6%, rgba(6, 6, 16, 0.5));
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 140ms ease;
+}
+.topbar__story-home:hover {
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 70%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 12%, rgba(6, 6, 16, 0.6));
+  transform: translateY(-1px);
+}
+.topbar__story-home:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--album-accent, var(--accent)) 70%, var(--accent));
+  outline-offset: 2px;
+}
+@media (max-width: 768px) {
+  /* Mobile collapses to a single trigger; home is reachable via the brand
+     logo on the far left, so the duplicate Home pill hides. */
+  .topbar__story-home { display: none; }
+}
+
+.topbar__story-nav-chips {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 6px 4px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+}
+.topbar__story-nav-chips::-webkit-scrollbar { display: none; }
+.topbar__story-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 22%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 5%, rgba(6, 6, 16, 0.5));
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 140ms ease,
+    box-shadow 180ms ease;
+}
+.topbar__story-chip:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 50%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 10%, rgba(6, 6, 16, 0.6));
+  transform: translateY(-1px);
+}
+.topbar__story-chip:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--album-accent, var(--accent)) 70%, var(--accent));
+  outline-offset: 2px;
+}
+.topbar__story-chip[aria-current='page'] {
+  color: var(--bg);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 100%, transparent);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 100%, transparent) 0%,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 88%, transparent) 100%);
+  box-shadow:
+    0 0 22px -4px color-mix(in srgb, var(--album-accent, var(--accent)) 65%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 28%, transparent);
+  text-shadow: 0 1px 0 color-mix(in srgb, #000 18%, transparent);
+}
+.topbar__story-nav-close {
+  flex: 0 0 auto;
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 22%, var(--line));
+  background: rgba(6, 6, 16, 0.6);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 140ms ease;
+}
+.topbar__story-nav-close:hover,
+.topbar__story-nav-close:focus-visible {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 10%, rgba(6, 6, 16, 0.6));
+  outline: none;
+  transform: rotate(90deg);
+}
+/* ── Desktop (>768px): chip rail is the nav, mobile trigger hides ──── */
+.topbar__story-mobile-trigger { display: none; }
+.topbar__story-sheet { display: none; }
+/* ── Mobile (≤768px): single trigger + bottom-sheet dropdown ───────── */
+@media (max-width: 768px) {
+  .topbar__story-nav-chips { display: none; }
+  .topbar__story-mobile-trigger {
+    appearance: none;
+    flex: 1 1 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 35%, var(--line));
+    background: color-mix(in srgb, var(--album-accent, var(--accent)) 8%, rgba(6, 6, 16, 0.55));
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    min-width: 0;
+    transition: background 180ms ease, border-color 180ms ease, transform 140ms ease;
+  }
+  .topbar__story-mobile-trigger > span {
+    flex: 1 1 auto;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .topbar__story-mobile-trigger:hover {
+    border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+    transform: translateY(-1px);
+  }
+  .topbar__story-mobile-trigger[aria-expanded='true'] { border-color: var(--album-accent, var(--accent)); }
+  .topbar__story-mobile-trigger[aria-expanded='true'] .topbar__story-mobile-caret { transform: rotate(180deg); }
+  .topbar__story-mobile-caret { transition: transform 200ms cubic-bezier(0.2, 0.85, 0.25, 1); flex: 0 0 auto; }
+  .topbar__story-sheet {
+    display: block;
+    position: fixed;
+    top: calc(var(--topbar-h, 60px) + 6px);
+    left: 8px;
+    right: 8px;
+    z-index: 60;
+    padding: 6px;
+    border-radius: 16px;
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--album-accent, var(--accent)) 10%, rgba(8, 8, 22, 0.97)) 0%,
+      rgba(6, 6, 16, 0.97) 100%);
+    border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 35%, var(--line));
+    box-shadow:
+      0 24px 60px -16px rgba(0, 0, 0, 0.7),
+      0 0 0 1px color-mix(in srgb, var(--album-accent, var(--accent)) 22%, transparent) inset,
+      0 -2px 0 color-mix(in srgb, var(--album-accent, var(--accent)) 45%, transparent) inset;
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    max-height: calc(100vh - var(--topbar-h, 60px) - var(--transport-h, 120px) - 24px);
+    overflow-y: auto;
+    animation: story-sheet-in 200ms cubic-bezier(0.2, 0.85, 0.25, 1);
+  }
+  @keyframes story-sheet-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .topbar__story-sheet[hidden] { display: none; }
+  .topbar__story-sheet-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 6px 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--ink);
+    transition: background 160ms ease;
+  }
+  .topbar__story-sheet-item strong {
+    grid-column: 1 / -1;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: -0.005em;
+  }
+  .topbar__story-sheet-item span {
+    grid-column: 1 / -1;
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+  .topbar__story-sheet-item:hover { background: color-mix(in srgb, var(--album-accent, var(--accent)) 10%, transparent); }
+  .topbar__story-sheet-item[aria-current='page'] {
+    background: color-mix(in srgb, var(--album-accent, var(--accent)) 18%, transparent);
+    box-shadow: inset 3px 0 0 var(--album-accent, var(--accent));
+  }
+  .topbar__story-sheet-item[aria-current='page'] strong {
+    color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
+  }
 }
 .topbar::after {
   content: '';
@@ -589,7 +830,8 @@ html.is-playing .brand__logo {
 .topbar__nav {
   display: inline-flex;
   align-items: center;
-  gap: 22px;
+  justify-content: center;
+  gap: 14px;
   font-family: var(--font-mono);
   font-size: 0.74rem;
   text-transform: uppercase;
@@ -8483,9 +8725,9 @@ body.cast-tv-open .transport {
   border: 1px solid color-mix(in srgb, var(--aichat-accent) 18%, rgba(255, 255, 255, 0.08));
   border-radius: 999px;
   background: rgba(6, 6, 16, 0.4);
-  /* Cap width — anything that would overflow truncates with ellipsis
-     and the full message pops into the .aichat__status-toast below. */
-  max-width: 18ch;
+  /* Hard cap — pill is a status indicator, NEVER a message channel.
+     Anything verbose routes to the dismissable .aichat__status-toast. */
+  max-width: 13ch;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -12885,13 +13127,13 @@ a.aichat__widget:hover {
   display: none;
 }
 .contentpage[open] {
-  display: flex;
-  flex-direction: column;
+  /* The dialog IS the scroll container — scrollbar sits at the far right
+     edge of the viewport just like a normal page. Topbar + transport
+     stay locked above + below; everything between them scrolls together
+     (title, eyebrow, sub, body) like reading a long-form article. */
+  display: block;
   position: fixed;
-  /* Top of viewport → just above the transport bar. Topbar still
-     visible at its own z-stack above the page; we cover everything
-     between the topbar and the transport. */
-  top: 0;
+  top: var(--topbar-h, 60px);
   left: 0;
   right: 0;
   bottom: var(--transport-h, 120px);
@@ -12901,9 +13143,20 @@ a.aichat__widget:hover {
   height: auto;
   border: 0;
   border-radius: 0;
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--album-accent, var(--accent)) 6%, rgba(10, 10, 24, 0.96)) 0%,
-    rgba(6, 6, 16, 0.97) 100%);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  /* Page-feel background: subtle accent bloom at the top of the column
+     (so the title block reads as a "hero"), fading into pure dark by
+     ~600px. Backdrop blur lets the visualizer texture leak through. */
+  background:
+    radial-gradient(80% 60% at 50% 0%,
+      color-mix(in srgb, var(--album-accent, var(--accent)) 18%, transparent) 0%,
+      transparent 60%),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--album-accent, var(--accent)) 7%, rgba(10, 10, 24, 0.96)) 0%,
+      rgba(6, 6, 16, 0.97) 60%);
   backdrop-filter: blur(28px) saturate(140%);
   -webkit-backdrop-filter: blur(28px) saturate(140%);
   box-shadow:
@@ -12916,85 +13169,117 @@ a.aichat__widget:hover {
 @keyframes contentpageIn {
   from { transform: translateY(12px); opacity: 0; }
 }
-/* Add 60px top padding inside the body so content clears the topbar
-   (which has its own fixed z-index above the contentpage). */
-.contentpage[open] .contentpage__head {
-  padding-top: calc(var(--topbar-h, 60px) + 28px);
-}
-.contentpage__close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 2;
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid var(--line-strong);
-  background: rgba(6, 6, 16, 0.7);
-  color: var(--ink-soft);
-  cursor: pointer;
-  transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 140ms ease;
-}
-.contentpage__close:hover,
-.contentpage__close:focus-visible {
-  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
-  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
-  background: color-mix(in srgb, var(--album-accent, var(--accent)) 10%, rgba(6, 6, 16, 0.7));
-  outline: none;
-}
-/* Content page chrome — 720px max-width centered for readability.
-   The dialog itself spans full viewport width; the inner head + body
-   are constrained so long-form copy reads at magazine column width. */
-.contentpage__head {
-  padding: 32px 24px 18px;
-  border-bottom: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 14%, var(--line));
+/* Inner scroll column — centered 720px reading width that holds title +
+   body. is-swapping class fades + slides BOTH together so the page-to-
+   page transition reads as a single content swap, not two animations. */
+.contentpage__scroll {
   max-width: 720px;
   margin: 0 auto;
+  padding: 0 24px 56px;
   width: 100%;
   box-sizing: border-box;
+  transition:
+    opacity 220ms ease,
+    transform 280ms cubic-bezier(0.2, 0.85, 0.25, 1);
+  will-change: opacity, transform;
+}
+.contentpage__scroll.is-swapping {
+  opacity: 0;
+  transform: translateY(16px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .contentpage__scroll { transition: none; }
+  .contentpage__scroll.is-swapping { opacity: 1; transform: none; }
+}
+/* Right-edge scrollbar — visible + branded so users see "this is a real
+   scrollable page" at a glance. Webkit + Firefox + standard. */
+.contentpage[open]::-webkit-scrollbar { width: 12px; }
+.contentpage[open]::-webkit-scrollbar-track {
+  background: rgba(6, 6, 16, 0.4);
+}
+.contentpage[open]::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 35%, rgba(255, 255, 255, 0.06));
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  transition: background 200ms ease;
+}
+.contentpage[open]::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 65%, rgba(255, 255, 255, 0.1));
+  background-clip: padding-box;
+}
+.contentpage[open] {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--album-accent, var(--accent)) 45%, rgba(255, 255, 255, 0.08))
+                    rgba(6, 6, 16, 0.4);
+}
+/* Defensive: hide the old in-dialog nav-wrap if anything still renders it */
+.contentpage__nav-wrap { display: none !important; }
+/* Close button is hidden visually but kept in DOM as a fallback (no-JS,
+   screen-reader bypass). Canonical close is the topbar #btnStoryNavClose. */
+.contentpage__close {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+  opacity: 0;
+}
+/* Content page header — cinematic title block at the TOP of the scroll
+   column. Scrolls with the body so it behaves like a real article hero. */
+.contentpage__head {
+  padding: 42px 0 22px;
+  border-bottom: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 18%, var(--line));
+  margin-bottom: 28px;
 }
 .contentpage__eyebrow {
-  margin: 0 0 8px;
+  margin: 0 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 35%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 10%, rgba(6, 6, 16, 0.4));
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.3em;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
 }
 .contentpage__title {
-  margin: 0 0 10px;
+  margin: 0 0 14px;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
   color: var(--ink);
   text-wrap: balance;
-  text-shadow: 0 0 24px color-mix(in srgb, var(--album-accent, var(--accent)) 28%, transparent);
+  text-shadow: 0 0 32px color-mix(in srgb, var(--album-accent, var(--accent)) 35%, transparent);
 }
 .contentpage__sub {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 0.9rem;
-  line-height: 1.45;
+  font-size: 1.02rem;
+  line-height: 1.55;
   color: var(--ink-mute);
+  text-wrap: pretty;
+  max-width: 56ch;
 }
 .contentpage__body {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  padding: 24px 24px 48px;
-  max-width: 720px;
-  margin: 0 auto;
+  /* Body no longer scrolls — its parent .contentpage__scroll does. The
+     body is just a content column that joins the head in the same flow. */
+  padding: 0;
+  margin: 0;
   width: 100%;
   box-sizing: border-box;
-  transition: opacity 160ms ease;
-}
-.contentpage__body.is-swapping { opacity: 0; }
-@media (prefers-reduced-motion: reduce) {
-  .contentpage__body { transition: none; }
-  .contentpage__body.is-swapping { opacity: 1; }
 }
 .contentpage__article {
   font-family: var(--font-body);
@@ -13434,52 +13719,102 @@ a.aichat__widget:hover {
 /* In-page navbar — sticky strip of all 7 content pages so users can
    jump page-to-page without closing + reopening. Lives between topbar
    and the content head. */
-.contentpage__nav {
+/* ── Content-page sub-nav ─────────────────────────────────────────────
+   Sticky pill rail just below the topbar. Tall enough to read at a
+   glance, with edge-fade so horizontal scroll on mobile is discoverable
+   and a glowing active state that picks up the album accent. */
+.contentpage__nav-wrap {
   position: sticky;
-  top: 0;
-  z-index: 5;
+  top: calc(var(--topbar-h, 60px) + 12px);
+  z-index: 6;
+  margin: calc(var(--topbar-h, 60px) + 16px) auto 6px;
+  padding: 0 18px;
+  max-width: 760px;
+  width: 100%;
+  box-sizing: border-box;
+  /* Fade out the chip rail at left/right edges so users see there's more */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+          mask-image: linear-gradient(90deg, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+}
+.contentpage__nav {
   display: flex;
-  gap: 4px;
-  padding: 10px 16px;
-  margin: calc(var(--topbar-h, 60px) + 4px) auto 0;
-  max-width: 720px;
+  gap: 8px;
+  padding: 8px 10px;
   width: 100%;
   box-sizing: border-box;
   overflow-x: auto;
   scrollbar-width: none;
-  background: rgba(6, 6, 16, 0.85);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border-bottom: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 14%, var(--line));
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--album-accent, var(--accent)) 8%, rgba(8, 8, 20, 0.94)) 0%,
+      rgba(6, 6, 16, 0.94) 100%);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 18%, var(--line));
+  box-shadow:
+    0 8px 28px -12px color-mix(in srgb, var(--album-accent, var(--accent)) 45%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--album-accent, var(--accent)) 12%, transparent);
 }
 .contentpage__nav::-webkit-scrollbar { display: none; }
 .contentpage__nav a {
+  position: relative;
   flex: 0 0 auto;
-  padding: 6px 12px;
+  padding: 9px 16px;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
   border-radius: 999px;
-  border: 1px solid var(--line);
+  border: 1px solid transparent;
   font-family: var(--font-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.14em;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--ink-mute);
   text-decoration: none;
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  white-space: nowrap;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 140ms ease,
+    box-shadow 180ms ease;
 }
 .contentpage__nav a:hover {
   color: var(--ink);
-  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 45%, transparent);
-  background: color-mix(in srgb, var(--album-accent, var(--accent)) 6%, transparent);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 48%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 8%, transparent);
+  transform: translateY(-1px);
+}
+.contentpage__nav a:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--album-accent, var(--accent)) 70%, var(--accent));
+  outline-offset: 2px;
 }
 .contentpage__nav a[aria-current='page'] {
-  color: var(--ink);
-  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 65%, transparent);
-  background: color-mix(in srgb, var(--album-accent, var(--accent)) 14%, transparent);
-  box-shadow: 0 0 16px -4px color-mix(in srgb, var(--album-accent, var(--accent)) 45%, transparent);
+  color: var(--bg);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 100%, transparent);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 100%, transparent) 0%,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 88%, transparent) 100%);
+  box-shadow:
+    0 0 24px -4px color-mix(in srgb, var(--album-accent, var(--accent)) 65%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 25%, transparent);
+  text-shadow: 0 1px 0 color-mix(in srgb, #000 18%, transparent);
 }
-/* When nav present, head doesn't need the topbar clearance — nav already provides it */
+/* When nav present, head doesn't need extra topbar clearance — the nav
+   wrap already sat below the topbar, so head starts immediately */
+.contentpage[open] .contentpage__nav-wrap + .contentpage__head,
 .contentpage[open] .contentpage__nav + .contentpage__head {
-  padding-top: 28px;
+  padding-top: 18px;
+}
+@media (max-width: 480px) {
+  .contentpage__nav-wrap {
+    top: calc(var(--topbar-h, 60px) + 8px);
+    margin-top: calc(var(--topbar-h, 60px) + 10px);
+    padding: 0 10px;
+  }
+  .contentpage__nav { padding: 6px 8px; gap: 6px; }
+  .contentpage__nav a { padding: 8px 13px; font-size: 0.62rem; min-height: 32px; letter-spacing: 0.14em; }
 }
 
 /* Highlight callout — bordered accent box for facts / warnings / asides */
@@ -13718,4 +14053,917 @@ select:focus-visible,
 [role='button']:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--album-accent, var(--accent)) 70%, transparent);
   outline-offset: 2px;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   UNIFIED CHROME LAYER — every scrollable surface, every status pill,
+   every persona/topbar chip speaks the same visual language. This block
+   intentionally lives LAST so it can specialize per-surface defaults
+   without fighting earlier rules.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Branded scrollbar (shared across every scroll container) ──────── */
+.contentpage[open],
+.aichat__messages,
+.aichat__drawer,
+.aichat__sheet,
+.aichat__cheatsheet,
+.np-panel__scroll,
+.share__networks,
+.search__results {
+  scrollbar-width: thin;
+  scrollbar-color:
+    color-mix(in srgb, var(--album-accent, var(--accent)) 45%, rgba(255, 255, 255, 0.08))
+    rgba(6, 6, 16, 0.4);
+}
+.contentpage[open]::-webkit-scrollbar,
+.aichat__messages::-webkit-scrollbar,
+.aichat__drawer::-webkit-scrollbar,
+.aichat__sheet::-webkit-scrollbar,
+.aichat__cheatsheet::-webkit-scrollbar,
+.np-panel__scroll::-webkit-scrollbar,
+.share__networks::-webkit-scrollbar,
+.search__results::-webkit-scrollbar { width: 12px; }
+.contentpage[open]::-webkit-scrollbar-track,
+.aichat__messages::-webkit-scrollbar-track,
+.aichat__drawer::-webkit-scrollbar-track,
+.aichat__sheet::-webkit-scrollbar-track,
+.aichat__cheatsheet::-webkit-scrollbar-track,
+.np-panel__scroll::-webkit-scrollbar-track,
+.share__networks::-webkit-scrollbar-track,
+.search__results::-webkit-scrollbar-track { background: rgba(6, 6, 16, 0.4); }
+.contentpage[open]::-webkit-scrollbar-thumb,
+.aichat__messages::-webkit-scrollbar-thumb,
+.aichat__drawer::-webkit-scrollbar-thumb,
+.aichat__sheet::-webkit-scrollbar-thumb,
+.aichat__cheatsheet::-webkit-scrollbar-thumb,
+.np-panel__scroll::-webkit-scrollbar-thumb,
+.share__networks::-webkit-scrollbar-thumb,
+.search__results::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 35%, rgba(255, 255, 255, 0.06));
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  transition: background 200ms ease;
+}
+.contentpage[open]::-webkit-scrollbar-thumb:hover,
+.aichat__messages::-webkit-scrollbar-thumb:hover,
+.aichat__drawer::-webkit-scrollbar-thumb:hover,
+.aichat__sheet::-webkit-scrollbar-thumb:hover,
+.aichat__cheatsheet::-webkit-scrollbar-thumb:hover,
+.np-panel__scroll::-webkit-scrollbar-thumb:hover,
+.share__networks::-webkit-scrollbar-thumb:hover,
+.search__results::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 70%, rgba(255, 255, 255, 0.12));
+  background-clip: padding-box;
+}
+
+/* ── Status pill — match topbar story chip language exactly ─────────── */
+.aichat__status {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 22%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 5%, rgba(6, 6, 16, 0.5));
+  max-width: 13ch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+.aichat__panel.is-streaming .aichat__status {
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 12%, rgba(6, 6, 16, 0.5));
+  box-shadow: 0 0 18px -4px color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+}
+
+/* ── Persona pill — same chip pattern (uppercase mono, accent-tinted) ─ */
+.aichat__persona-pill {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px 6px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 22%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 5%, rgba(6, 6, 16, 0.5));
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 140ms ease,
+    box-shadow 180ms ease;
+}
+.aichat__persona-pill:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 50%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 10%, rgba(6, 6, 16, 0.6));
+  transform: translateY(-1px);
+}
+.aichat__persona-pill[aria-expanded='true'] {
+  color: var(--bg);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 100%, transparent);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 100%, transparent) 0%,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 88%, transparent) 100%);
+  box-shadow:
+    0 0 22px -4px color-mix(in srgb, var(--album-accent, var(--accent)) 65%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 28%, transparent);
+}
+
+/* ── Header action icons — consistent lift + accent on hover ────────── */
+.aichat__icon {
+  border-radius: 8px;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 140ms ease;
+}
+.aichat__icon:hover {
+  transform: translateY(-1px);
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
+}
+
+/* ── AI Chat panel — match contentpage background-glow language ─────── */
+.aichat__panel {
+  background:
+    radial-gradient(80% 40% at 50% 0%,
+      color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 14%, transparent) 0%,
+      transparent 55%),
+    linear-gradient(180deg, rgba(8, 8, 22, 0.86) 0%, rgba(4, 4, 12, 0.94) 100%);
+  border-left: 1px solid color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 22%, rgba(255, 255, 255, 0.05));
+}
+
+/* ── Welcome chip set — match the topbar story-chip pill language ──── */
+.aichat__chips button {
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 22%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 5%, rgba(6, 6, 16, 0.5));
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+.aichat__chips button:hover {
+  border-color: color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 55%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--aichat-accent)) 12%, rgba(6, 6, 16, 0.6));
+  color: var(--ink);
+}
+
+/* ── Release-prep checklist banner ───────────────────────────────── */
+.release-banner {
+  position: relative;
+  z-index: 50;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 14%, rgba(6, 6, 16, 0.96)),
+    color-mix(in srgb, var(--accent) 6%, rgba(6, 6, 16, 0.98)));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  color: var(--ink);
+  overflow: hidden;
+}
+.release-banner[hidden] { display: none; }
+.release-banner__inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 18px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.release-banner__inner::-webkit-scrollbar { display: none; }
+.release-banner__pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+  animation: release-pulse 1.6s ease-in-out infinite;
+  flex: 0 0 auto;
+}
+@keyframes release-pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+.release-banner__count {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  flex: 0 0 auto;
+}
+.release-banner__title {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  text-transform: none;
+  flex: 0 0 auto;
+}
+.release-banner__steps {
+  display: flex;
+  gap: 6px;
+  margin-left: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.release-banner__step {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(6, 6, 16, 0.4);
+  color: var(--ink-mute);
+  text-decoration: none;
+  font-size: 0.55rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 140ms ease;
+}
+.release-banner__step:hover { color: var(--ink); border-color: var(--accent); transform: translateY(-1px); }
+.release-banner__step.is-active {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.release-banner__close {
+  margin-left: auto;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--ink-mute);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  transition: color 160ms ease, background 160ms ease;
+}
+.release-banner__close:hover { color: var(--ink); background: rgba(244,244,255,0.06); }
+@media (max-width: 768px) {
+  .release-banner__steps { display: none; }
+}
+
+/* ── Per-row Spotify badge (lazy-hydrated via IntersectionObserver) ─ */
+.trackrow__spotify { display: inline-flex; }
+.trackrow__spotify[hidden] { display: none; }
+.trackrow__spotify a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, #1DB954 30%, transparent);
+  background: color-mix(in srgb, #1DB954 8%, transparent);
+  color: #1DB954;
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  transition: background 160ms ease, transform 140ms ease;
+}
+.trackrow__spotify a:hover {
+  background: #1DB954;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* ── Per-track press kit list (rendered inside /press page body) ─── */
+.contentpage__press-list {
+  list-style: none;
+  margin: 18px 0 28px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.contentpage__press-list h5 {
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.contentpage__press-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.contentpage__press-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none !important;
+  text-underline-offset: 0;
+  text-decoration-color: transparent !important;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 22%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 5%, rgba(6, 6, 16, 0.4));
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 140ms ease;
+}
+.contentpage__press-chip svg { opacity: 0.55; transition: opacity 160ms ease, transform 160ms ease; }
+.contentpage__press-chip:hover {
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 65%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 12%, rgba(6, 6, 16, 0.5));
+  transform: translateY(-1px);
+}
+.contentpage__press-chip:hover svg { opacity: 1; transform: translate(1px, -1px); }
+
+/* ── Spotify chrome: Follow button + Stream chip ────────────────── */
+/* Cancel the inherited .topbar__nav a::after sliding underline — the
+   pill has its own hover treatment (green bg + glow). */
+.topbar__spotify::after { content: none !important; }
+
+.topbar__spotify {
+  /* Match .topbar__menu-trigger exactly — same border, background,
+     text color, height, padding, font. The ONLY thing unique to this
+     button is the Spotify-green on hover/focus. */
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgba(244, 244, 255, 0.05);
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 120ms ease;
+}
+.topbar__spotify:active { transform: translateY(1px); }
+.topbar__spotify:hover,
+.topbar__spotify:focus-visible {
+  color: #fff;
+  background: #1DB954;
+  border-color: #1DB954;
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px -4px rgba(29, 185, 84, 0.6);
+  outline: none;
+}
+.topbar__spotify-count {
+  padding-left: 8px;
+  border-left: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  color: inherit;
+  opacity: 0.7;
+  font-size: 0.56rem;
+  letter-spacing: 0.1em;
+}
+.topbar__spotify:hover .topbar__spotify-count,
+.topbar__spotify:focus-visible .topbar__spotify-count { opacity: 0.85; }
+.topbar__spotify-count:empty { display: none; }
+
+.transport__np-spotify {
+  display: inline-flex;
+  margin-top: 3px;
+}
+.transport__np-spotify a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, #1DB954 40%, transparent);
+  background: color-mix(in srgb, #1DB954 12%, transparent);
+  color: #1DB954;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 180ms ease, transform 140ms ease;
+}
+.transport__np-spotify a:hover {
+  background: #1DB954;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* ── Reading progress hairline ──────────────────────────────────── */
+.contentpage__progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 100%, transparent),
+    color-mix(in srgb, var(--album-accent, var(--accent)) 80%, transparent));
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  transition: transform 100ms linear;
+  pointer-events: none;
+  z-index: 3;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--album-accent, var(--accent)) 70%, transparent);
+}
+
+/* ── Share + print buttons in page hero ─────────────────────────── */
+.contentpage__head-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.contentpage__share {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 25%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 5%, rgba(6, 6, 16, 0.5));
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 140ms ease;
+}
+.contentpage__share:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 12%, rgba(6, 6, 16, 0.6));
+  transform: translateY(-1px);
+}
+
+/* ── Floating right-rail TOC (desktop only) ─────────────────────── */
+.contentpage__toc { display: none; }
+@media (min-width: 1100px) {
+  .contentpage__toc:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: fixed;
+    top: calc(var(--topbar-h, 60px) + 80px);
+    right: 36px;
+    width: 180px;
+    max-height: calc(100vh - var(--topbar-h, 60px) - var(--transport-h, 120px) - 120px);
+    overflow-y: auto;
+    padding: 14px 14px 14px 18px;
+    border-left: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 25%, var(--line));
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    z-index: 41;
+    pointer-events: auto;
+  }
+  .contentpage__toc a {
+    color: var(--ink-mute);
+    text-decoration: none;
+    padding: 5px 0 5px 10px;
+    border-left: 2px solid transparent;
+    margin-left: -12px;
+    transition: color 160ms ease, border-color 160ms ease;
+  }
+  .contentpage__toc a:hover { color: var(--ink); }
+  .contentpage__toc a[aria-current='location'] {
+    color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
+    border-color: var(--album-accent, var(--accent));
+  }
+}
+
+/* ── Chord-hint row in karaoke overlay ──────────────────────────── */
+.karaoke__chords {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 18%, var(--line));
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.karaoke__chord {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 25%, var(--line));
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.karaoke__chord--cur {
+  color: var(--bg);
+  background: var(--album-accent, var(--accent));
+  border-color: var(--album-accent, var(--accent));
+  box-shadow: 0 0 14px -4px color-mix(in srgb, var(--album-accent, var(--accent)) 65%, transparent);
+}
+.karaoke__chord--next {
+  color: var(--ink-mute);
+  background: rgba(6, 6, 16, 0.5);
+}
+.karaoke__chord-sep { color: var(--ink-mute); font-size: 0.7rem; }
+.karaoke__chord-key {
+  margin-left: auto;
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+/* ── Skip-to-content link ───────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  z-index: 100;
+  padding: 10px 14px;
+  background: var(--bg);
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
+  border: 1px solid var(--album-accent, var(--accent));
+  border-radius: 0 0 8px 0;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: top 160ms ease;
+}
+.skip-link:focus-visible {
+  top: 0;
+  outline: 2px solid var(--album-accent, var(--accent));
+  outline-offset: 2px;
+}
+
+/* ── Mobile hero retune ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .contentpage__title {
+    font-size: clamp(1.6rem, 6vw, 2.4rem) !important;
+    letter-spacing: -0.02em;
+  }
+  .contentpage__eyebrow {
+    font-size: 0.55rem !important;
+    letter-spacing: 0.22em !important;
+    padding: 4px 10px !important;
+  }
+  .contentpage__sub { font-size: 0.92rem !important; }
+  .contentpage__head { padding-top: 32px !important; }
+  .contentpage__head-actions { margin-top: 14px; }
+}
+
+/* ── Search overlay: page-group label + page badge ──────────────── */
+.cmdk__group {
+  padding: 14px 16px 6px;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  border-bottom: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 14%, var(--line));
+}
+.cmdk__item--page .cmdk__item-badge--inline {
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 14%, transparent);
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 40%, transparent);
+}
+
+/* ── Print stylesheet ───────────────────────────────────────────── */
+@media print {
+  html, body { background: white !important; color: black !important; }
+  .topbar, .transport, .aichat__fab, .aichat__panel,
+  .contentpage__progress, .contentpage__head-actions,
+  .contentpage__toc, .skip-link, #bg, .topbar__story-nav,
+  .viz, .rail, .karaoke {
+    display: none !important;
+  }
+  .contentpage[open] {
+    position: static !important;
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+  }
+  .contentpage__scroll { max-width: 720px; margin: 0 auto; padding: 0; }
+  .contentpage__title, .contentpage__article h4, .contentpage__sub,
+  .contentpage__lead, .contentpage__article {
+    color: black !important;
+    text-shadow: none !important;
+  }
+  .contentpage__eyebrow {
+    background: white !important;
+    color: black !important;
+    border-color: black !important;
+  }
+  a { color: black !important; text-decoration: underline !important; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.85em; color: #555; }
+  .contentpage__figure img { max-width: 100% !important; page-break-inside: avoid; }
+  .contentpage__article h4 { page-break-after: avoid; }
+}
+
+/* ── Magazine-grade content-page typography + section rhythm ─────── */
+/* Drop cap on the first lead paragraph — sets a magazine tone */
+.contentpage__article .contentpage__lead {
+  font-size: 1.18rem;
+  line-height: 1.55;
+  color: rgba(244, 244, 255, 0.94);
+  text-wrap: pretty;
+  margin: 0 0 28px;
+}
+.contentpage__article .contentpage__lead::first-letter {
+  float: left;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 4.4em;
+  line-height: 0.85;
+  padding: 6px 12px 0 0;
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
+  text-shadow: 0 0 24px color-mix(in srgb, var(--album-accent, var(--accent)) 35%, transparent);
+}
+/* Section dividers: thin glowing rule + small mono kicker centered */
+.contentpage__divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 48px 0 28px;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--album-accent, var(--accent)) 70%, var(--ink-mute));
+}
+.contentpage__divider::before,
+.contentpage__divider::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 50%, transparent),
+    transparent);
+}
+.contentpage__divider span { flex: 0 0 auto; padding: 0 6px; }
+/* Figures: framed, soft accent glow, subtle floating animation on hover */
+.contentpage__figure {
+  margin: 28px 0;
+  padding: 8px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 6%, rgba(6, 6, 16, 0.4));
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 20%, var(--line));
+  box-shadow: 0 18px 50px -22px color-mix(in srgb, var(--album-accent, var(--accent)) 50%, transparent);
+  transition: transform 320ms cubic-bezier(0.2, 0.85, 0.25, 1), box-shadow 320ms ease;
+}
+.contentpage__figure:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 28px 60px -22px color-mix(in srgb, var(--album-accent, var(--accent)) 70%, transparent);
+}
+.contentpage__figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin: 0;
+}
+.contentpage__figure figcaption {
+  padding: 12px 8px 4px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+/* Refined pull quote with leading glyph + accent rule */
+.contentpage__pullquote {
+  position: relative;
+  margin: 32px 0;
+  padding: 22px 28px 22px 56px;
+  border-radius: 14px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 8%, transparent),
+    color-mix(in srgb, var(--album-accent, var(--accent)) 3%, transparent));
+  border-left: 3px solid var(--album-accent, var(--accent));
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  line-height: 1.45;
+  font-style: italic;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.contentpage__pullquote::before {
+  content: '\201C';
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  font-family: var(--font-display);
+  font-size: 4rem;
+  font-style: normal;
+  line-height: 1;
+  color: var(--album-accent, var(--accent));
+  opacity: 0.35;
+}
+.contentpage__pullquote cite {
+  display: block;
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-style: normal;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+/* Stats grid — bigger numbers, glow on hover */
+.contentpage__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 28px 0;
+}
+@media (max-width: 640px) { .contentpage__stats { grid-template-columns: repeat(2, 1fr); } }
+.contentpage__stats > div {
+  padding: 18px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(244, 244, 255, 0.025);
+  text-align: center;
+  transition: border-color 200ms ease, background 200ms ease, transform 140ms ease;
+}
+.contentpage__stats > div:hover {
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 8%, transparent);
+  transform: translateY(-2px);
+}
+.contentpage__stats strong {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.6rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
+  text-shadow: 0 0 18px color-mix(in srgb, var(--album-accent, var(--accent)) 30%, transparent);
+}
+.contentpage__stats span {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+/* Highlight callouts — frosted accent panels */
+.contentpage__highlight {
+  margin: 24px 0;
+  padding: 18px 22px;
+  border-radius: 14px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--album-accent, var(--accent)) 14%, rgba(6, 6, 16, 0.4)),
+    color-mix(in srgb, var(--album-accent, var(--accent)) 4%, rgba(6, 6, 16, 0.5)));
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 35%, var(--line));
+  box-shadow: 0 8px 32px -16px color-mix(in srgb, var(--album-accent, var(--accent)) 60%, transparent);
+}
+.contentpage__highlight strong {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));
+}
+.contentpage__highlight p { margin: 0; }
+/* Cards grid for case studies */
+.contentpage__cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin: 24px 0;
+}
+@media (max-width: 640px) { .contentpage__cards { grid-template-columns: 1fr; } }
+.contentpage__card {
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(244, 244, 255, 0.025);
+  transition: border-color 200ms ease, transform 160ms ease, background 200ms ease;
+}
+.contentpage__card:hover {
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 6%, transparent);
+  transform: translateY(-2px);
+}
+.contentpage__card h5 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.005em;
+}
+.contentpage__card-meta {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 35%, var(--line));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 8%, transparent);
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.contentpage__card p { margin: 0; color: rgba(244, 244, 255, 0.85); }
+/* Anchor link on h4 — show a # on hover for linkable sections */
+.contentpage__article h4 { position: relative; scroll-margin-top: 80px; }
+.contentpage__article h4::before {
+  content: '#';
+  position: absolute;
+  left: -22px;
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.contentpage__article h4:hover::before { opacity: 0.6; }
+/* Scroll-in entrance for major elements */
+.contentpage__figure,
+.contentpage__pullquote,
+.contentpage__highlight,
+.contentpage__stats,
+.contentpage__cards,
+.contentpage__divider {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 500ms ease, transform 600ms cubic-bezier(0.2, 0.85, 0.25, 1);
+}
+.contentpage__figure.is-in,
+.contentpage__pullquote.is-in,
+.contentpage__highlight.is-in,
+.contentpage__stats.is-in,
+.contentpage__cards.is-in,
+.contentpage__divider.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .contentpage__figure, .contentpage__pullquote, .contentpage__highlight,
+  .contentpage__stats, .contentpage__cards, .contentpage__divider {
+    opacity: 1; transform: none; transition: none;
+  }
+}
+
+/* ── Body text inside contentpage — slightly more refined typography ─ */
+.contentpage__article {
+  font-size: 1.0rem;
+  line-height: 1.65;
+}
+.contentpage__article p { margin: 0 0 18px; }
+.contentpage__article h4 {
+  margin: 30px 0 12px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.contentpage__article a {
+  color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--album-accent, var(--accent)) 45%, transparent);
+  transition: text-decoration-color 160ms ease, color 160ms ease;
+}
+.contentpage__article a:hover {
+  text-decoration-color: var(--album-accent, var(--accent));
 }
