@@ -76,7 +76,7 @@ img { -webkit-user-drag: none; user-select: none; }
      dim/translucent. */
   padding-right: calc(var(--safe) + clamp(300px, 24vw, 460px) + 3vmin);
   /* Clear the fixed bZ brand bug in the top-left corner. */
-  padding-top: calc(var(--safe) + 150px);
+  padding-top: calc(var(--safe) + 112px);
   isolation: isolate;
   /* OLED burn-in protection: drift the whole stage a few px over ~2.5min so no
      static pixel (logo, title, queue) ever sits still on an always-on TV. Uses
@@ -111,8 +111,10 @@ img { -webkit-user-drag: none; user-select: none; }
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   50%      { transform: translate3d(0, -3px, 0) scale(1.015); }
 }
-#nowPlaying { width: 100%; flex: 0 0 auto; }
-#lyrics { width: 100%; flex: 1 1 auto; min-height: 0; }
+#nowPlaying { width: 100%; flex: 0 1 auto; min-height: 0; }
+/* Lyrics own the bulk of the screen + a hard floor so they never collapse to a
+   2-line sliver on short (720p) TVs — the line/word scroll needs real height. */
+#lyrics { width: 100%; flex: 1 1 auto; min-height: min(46vh, 520px); }
 
 /* ── Background: deep-black brand gradient + drifting cyan aurora ──────── */
 .stage__bg {
@@ -202,9 +204,9 @@ img { -webkit-user-drag: none; user-select: none; }
    into the bottom 66.7%. */
 .np__art-wrap {
   position: relative;
-  width: min(31vh, 38vw);
-  height: min(31vh, 38vw);
-  max-height: 31vh;
+  width: min(22vh, 30vw);
+  height: min(22vh, 30vw);
+  max-height: 22vh;
   aspect-ratio: 1;
   flex: 0 0 auto;
   border-radius: 24px;
