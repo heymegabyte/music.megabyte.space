@@ -3,9 +3,9 @@
  *
  * About is the consolidated hub: it absorbs the former Process, Theology,
  * Support, and Connect pages (those slugs 301 → /about in worker/index.ts).
- * Long pages get an auto-built left-rail TOC from their <h4> section dividers
- * (renderContentPageTOC in main.ts); Merch opts out via `hideToc` since it
- * ships its own in-content nav.
+ * Every page gets an auto-built sticky left-rail TOC from its <h4> section
+ * dividers (renderContentPageTOC in main.ts); product-card titles
+ * (.merch-card__title) are excluded so Merch's rail lists sections, not products.
  *
  * Each opens as a non-modal <dialog> over the main shell so the audio
  * element + visualizer keep playing across navigation. Routed by URL path.
@@ -690,17 +690,8 @@ export const CONTENT_PAGES: ContentPage[] = [
     metaTitle: 'Merch — bZ · FREE SATAN apparel suite',
     metaDescription: 'The full FREE SATAN — It’s Animal Abuse apparel suite. Comfort Colors heavyweight tees, hoodies, long-sleeves, tanks. DTG print, ships worldwide via Printful.',
     jsonLdType: 'WebPage',
-    hideToc: true,
     render: () => `
       <article class="contentpage__article merch-page">
-       <nav class="merch-toc" aria-label="Merch sections">
-         <span class="merch-toc__label">On this page</span>
-         <a href="#merch-suite" class="merch-toc__link" data-merch-toc="merch-suite">The suite</a>
-         <a href="#merch-meaning" class="merch-toc__link" data-merch-toc="merch-meaning">What it means</a>
-         <a href="#merch-blanks" class="merch-toc__link" data-merch-toc="merch-blanks">The blanks</a>
-         <a href="#merch-integration" class="merch-toc__link" data-merch-toc="merch-integration">The integration</a>
-         <a href="#merch-money" class="merch-toc__link" data-merch-toc="merch-money">Where money goes</a>
-       </nav>
        <div class="merch-main">
 
         <div class="merch-hero">
@@ -726,7 +717,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           </div>
         </div>
 
-        <div class="contentpage__divider" id="merch-suite"><span>the suite</span></div>
+        <h4 class="contentpage__divider" id="merch-suite"><span>the suite</span></h4>
         <div class="merch-grid">
           ${merchSuite.items.filter((i: any) => i.mockup).map((item: any, idx: number) => `
             <a class="merch-card" href="${esc(item.storefrontUrl)}" target="_blank" rel="noopener noreferrer" data-idx="${idx}">
@@ -754,7 +745,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           <a href="https://bz-music.printful.me" target="_blank" rel="noopener noreferrer">bz-music.printful.me ↗</a>.
         </p>
 
-        <div class="contentpage__divider" id="merch-meaning"><span>what it means</span></div>
+        <h4 class="contentpage__divider" id="merch-meaning"><span>what it means</span></h4>
         <p>
           “FREE SATAN” on the headline + “it’s Animal Abuse” on the banner
           stages the joke that frames the gospel. Christ descended into hell and emancipated the
@@ -762,7 +753,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           If you don’t want to have that conversation, this isn’t the shirt.
         </p>
 
-        <div class="contentpage__divider" id="merch-blanks"><span>the blanks</span></div>
+        <h4 class="contentpage__divider" id="merch-blanks"><span>the blanks</span></h4>
         <ul>
           <li><strong>Comfort Colors 1717</strong> — 6.1oz garment-dyed heavyweight tee, ring-spun cotton</li>
           <li><strong>Comfort Colors 6014</strong> — garment-dyed heavyweight long-sleeve</li>
@@ -779,7 +770,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           Printful US fulfillment centers.
         </p>
 
-        <div class="contentpage__divider" id="merch-integration"><span>the integration</span></div>
+        <h4 class="contentpage__divider" id="merch-integration"><span>the integration</span></h4>
         <p>
           End-to-end: <strong>add to cart on this page → Stripe Checkout →
           Printful order auto-created on payment</strong>. The cart lives in
@@ -797,7 +788,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           New design? Re-run the script; the whole catalog refreshes in ~3 minutes.
         </p>
 
-        <div class="contentpage__divider" id="merch-money"><span>where the money goes</span></div>
+        <h4 class="contentpage__divider" id="merch-money"><span>where the money goes</span></h4>
         <p>
           100% of profit splits two ways: <strong>60% studio operating costs</strong>
           (Cloudflare, Suno, OpenAI, mastering, distribution) and

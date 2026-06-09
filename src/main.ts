@@ -4607,8 +4607,10 @@ function renderContentPageTOC() {
   // auto-TOC doesn't duplicate it.
   const page = currentContentPageSlug ? CONTENT_PAGE_BY_SLUG.get(currentContentPageSlug) : null;
   if (page?.hideToc) { toc.hidden = true; toc.innerHTML = ''; return; }
-  // Find headings + assign ids if missing
-  const headings = Array.from(body.querySelectorAll<HTMLElement>('h4'));
+  // Find section headings + assign ids if missing. Exclude product-card titles
+  // (Merch's `.merch-card__title` h4s) so the rail lists real sections, not
+  // every product.
+  const headings = Array.from(body.querySelectorAll<HTMLElement>('h4:not(.merch-card__title)'));
   if (headings.length < 3) { toc.hidden = true; toc.innerHTML = ''; return; }
   toc.hidden = false;
   toc.innerHTML = headings.map((h, i) => {
