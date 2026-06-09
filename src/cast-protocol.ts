@@ -61,6 +61,8 @@ export interface ReceiverQueueItem {
   audio: string;
   duration?: number;
   vibe?: string;
+  bpm?: number;        // authoritative tempo from Suno provenance (rounded)
+  musicalKey?: string; // e.g. "C minor" — Suno-detected key
 }
 
 export interface ReceiverWord { w: string; s: number; e: number; }

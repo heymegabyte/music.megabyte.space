@@ -21,6 +21,7 @@ import './style.css';
 // Default Trusted Types policy installed by inline <head> script in embed.html.
 import { AudioEngine } from './audio';
 import { ALBUM_BY_ID, TRACK_BY_ID } from './data';
+import { fmtTime } from './format';
 import type { Track, Album } from './types';
 
 const SITE_ORIGIN = 'https://music.megabyte.space';
@@ -51,12 +52,6 @@ function parseEmbedTarget(): EmbedTarget {
   return { kind: 'album', album, tracks };
 }
 
-function fmtTime(s: number) {
-  if (!Number.isFinite(s) || s < 0) return '0:00';
-  const m = Math.floor(s / 60);
-  const r = Math.floor(s % 60);
-  return `${m}:${r.toString().padStart(2, '0')}`;
-}
 
 function escapeHtml(s: string) {
   return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));

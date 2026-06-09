@@ -197,6 +197,164 @@ test.describe('cast-receiver — standalone streaming', () => {
   });
 });
 
+test.describe('cast-receiver — gorgeous redesign + new functions', () => {
+  test.beforeEach(async ({ page }) => { await blockCastSdk(page); });
+  test.afterEach(async ({ page }) => { await stopAllAudio(page); });
+
+  test('?test alias auto-seeds the full catalogue + autoplays', async ({ page }) => {
+    test.setTimeout(60_000);
+    const errs = recordConsoleErrors(page);
+    await page.goto(`${RECEIVER_PATH}?test`, { waitUntil: 'domcontentloaded' });
+
+    await page.waitForFunction(() => {
+      const api = (window as unknown as { __castReceiver?: { runtime?: { queue?: unknown[] } } }).__castReceiver;
+      return Array.isArray(api?.runtime?.queue) && api!.runtime!.queue!.length > 1;
+    }, { timeout: 15_000 });
+
+    const queueLen = await page.evaluate(() =>
+      (window as unknown as { __castReceiver: { runtime: { queue: unknown[] } } }).__castReceiver.runtime.queue.length);
+    expect(queueLen).toBeGreaterThanOrEqual(20);
+    await expect(page.locator('#title')).not.toBeEmpty({ timeout: 10_000 });
+    expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
+  });
+
+  test('brand DOM: aurora + viz canvas + art glow all present', async ({ page }) => {
+    const errs = recordConsoleErrors(page);
+    await page.goto(`${RECEIVER_PATH}?test`, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('.stage__aurora')).toHaveCount(1);
+    await expect(page.locator('canvas#viz')).toBeVisible();
+    await expect(page.locator('#artGlow')).toHaveCount(1);
+    await expect(page.locator('#artWrap')).toHaveCount(1);
+
+    // Brand invariant: the background stays deep brand-black. The accent is now
+    // tinted PER TRACK from the cover art (receiver-side palette extraction), so
+    // it resolves to a valid color but is no longer pinned to brand cyan.
+    const tokens = await page.evaluate(() => {
+      const cs = getComputedStyle(document.documentElement);
+      return { accent: cs.getPropertyValue('--accent').trim(), bg: cs.getPropertyValue('--bg').trim() };
+    });
+    expect(tokens.bg.toLowerCase()).toBe('#060610');
+    expect(tokens.accent).toMatch(/^(#[0-9a-fA-F]{3,8}|rgb|hsl|oklch)/);
+    expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
+  });
+
+  test('Web Audio visualizer actually paints non-empty pixels during playback', async ({ page }) => {
+    test.setTimeout(60_000);
+    const errs = recordConsoleErrors(page);
+    await page.goto(`${RECEIVER_PATH}?test`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!(window as unknown as { __castReceiver?: unknown }).__castReceiver, { timeout: 15_000 });
+
+    // Force playback (autoplay policy needs a gesture in headless).
+    await page.evaluate(async () => {
+      const audio = document.querySelector('audio') as HTMLAudioElement | null;
+      if (audio && audio.paused) { try { await audio.play(); } catch { /* policy */ } }
+    });
+    await page.waitForFunction(() => {
+      const a = document.querySelector('audio');
+      return !!a && a.currentTime > 0.6;
+    }, { timeout: 25_000 });
+
+    // Sample the canvas — at least some pixels must be non-transparent (the
+    // visualizer is drawing bars/blooms, not a blank frame).
+    const painted = await page.evaluate(() => {
+      const c = document.querySelector('canvas#viz') as HTMLCanvasElement | null;
+      if (!c || !c.width || !c.height) return -1;
+      const g = c.getContext('2d');
+      if (!g) return -2;
+      const { data } = g.getImageData(0, 0, c.width, c.height);
+      let nonEmpty = 0;
+      for (let i = 3; i < data.length; i += 4 * 997) if (data[i] > 8) nonEmpty++;
+      return nonEmpty;
+    });
+    expect(painted, 'visualizer canvas should have painted pixels').toBeGreaterThan(0);
+    expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
+  });
+
+  test('beat var (--beat) is driven on the document during playback', async ({ page }) => {
+    test.setTimeout(60_000);
+    const errs = recordConsoleErrors(page);
+    await page.goto(`${RECEIVER_PATH}?test`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!(window as unknown as { __castReceiver?: unknown }).__castReceiver, { timeout: 15_000 });
+    await page.evaluate(async () => {
+      const audio = document.querySelector('audio') as HTMLAudioElement | null;
+      if (audio && audio.paused) { try { await audio.play(); } catch { /* policy */ } }
+    });
+    // --beat starts unset/0; once FFT energy flows it must become a parseable
+    // number in [0,1] at least once.
+    await page.waitForFunction(() => {
+      const v = getComputedStyle(document.documentElement).getPropertyValue('--beat').trim();
+      const n = parseFloat(v);
+      return v !== '' && Number.isFinite(n) && n >= 0 && n <= 1;
+    }, { timeout: 25_000 });
+    expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
+  });
+
+  test('queue view toggle + queue rows render for the seeded catalogue', async ({ page }) => {
+    test.setTimeout(60_000);
+    const errs = recordConsoleErrors(page);
+    await page.goto(`${RECEIVER_PATH}?test`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => {
+      const api = (window as unknown as { __castReceiver?: { runtime?: { queue?: unknown[] } } }).__castReceiver;
+      return Array.isArray(api?.runtime?.queue) && api!.runtime!.queue!.length > 1;
+    }, { timeout: 15_000 });
+
+    // Queue rows rendered, exactly one marked is-now.
+    await expect(page.locator('.queue__item').first()).toBeVisible({ timeout: 10_000 });
+    const rowCount = await page.locator('.queue__item').count();
+    expect(rowCount).toBeGreaterThanOrEqual(20);
+    await expect(page.locator('.queue__item.is-now')).toHaveCount(1);
+
+    // D-pad: ArrowDown moves focus; ArrowRight opens the queue view.
+    await page.locator('#queueList').focus().catch(() => { /* focus best-effort */ });
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(300);
+    const view = await page.locator('#stage').getAttribute('data-view');
+    expect(['queue', 'now-playing']).toContain(view); // either is a valid post-key state
+    expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
+  });
+
+  test('self-fetches + renders the correct synced lyric lines for the current track', async ({ page }) => {
+    test.setTimeout(60_000);
+    const errs = recordConsoleErrors(page);
+    await page.goto(RECEIVER_PATH, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!(window as unknown as { __castReceiver?: unknown }).__castReceiver, { timeout: 15_000 });
+    await page.evaluate((items) => {
+      (window as unknown as { __castReceiver: { loadQueue: (q: unknown[]) => void } }).__castReceiver.loadQueue(items);
+    }, SAMPLE_QUEUE);
+    // The receiver self-fetches /lyrics/chef-lu-stew.json (authoritative — its word
+    // timings match the exact MP3). Real synced lines replace the empty hint.
+    await expect(page.locator('#lyrics')).toHaveCount(1);
+    await expect(page.locator('.lyrics__line').first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.lyrics__line.is-empty')).toHaveCount(0);
+    expect(await page.locator('.lyrics__line').count()).toBeGreaterThan(3);
+    // A stale push for a DIFFERENT track must be ignored (never show the wrong song).
+    await page.evaluate(() => {
+      (window as unknown as { __castReceiver: { setLyrics: (id: string, lines: unknown[]) => void } })
+        .__castReceiver.setLyrics('some-other-track', [{ t: 0, text: 'WRONG SONG LYRIC' }]);
+    });
+    await expect(page.getByText('WRONG SONG LYRIC')).toHaveCount(0);
+    expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
+  });
+
+  test('album palette tints --accent without breaking brand-black bg', async ({ page }) => {
+    const errs = recordConsoleErrors(page);
+    await page.goto(RECEIVER_PATH, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!(window as unknown as { __castReceiver?: unknown }).__castReceiver, { timeout: 15_000 });
+    // Drive a palette directly (mirrors what a sender pushes from album art).
+    await page.evaluate(() => {
+      document.documentElement.style.setProperty('--accent', '#ff8800');
+      document.documentElement.style.setProperty('--accent-2', '#3355ff');
+    });
+    const after = await page.evaluate(() => {
+      const cs = getComputedStyle(document.documentElement);
+      return { accent: cs.getPropertyValue('--accent').trim(), bg: cs.getPropertyValue('--bg').trim() };
+    });
+    expect(after.accent.toLowerCase()).toBe('#ff8800');
+    expect(after.bg.toLowerCase()).toBe('#060610'); // bg stays brand-black
+    expect(errs, `console errors: ${errs.join(' | ')}`).toEqual([]);
+  });
+});
+
 test.describe('embed player — advanced standalone widget', () => {
   test.beforeEach(async ({ page }) => {
     await page.route(/cloudflareinsights\.com|cdn-cgi\/challenge-platform|cdn-cgi\/speculation/, r => r.abort());

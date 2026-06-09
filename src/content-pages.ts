@@ -97,11 +97,11 @@ export const CONTENT_PAGES: ContentPage[] = [
   // ═══ ABOUT ════════════════════════════════════════════════════════════
   {
     slug: 'about',
-    title: 'About bZ',
+    title: 'About',
     eyebrow: 'who is this',
     description: 'Brian Zalewski — Newark-based solo artist. Hustle-gospel music. Megabyte Labs founder. Hard but holy.',
     ogImage: '/og/og-about.jpg',
-    metaTitle: 'About bZ — artist, theology, process, support',
+    metaTitle: 'About — artist, theology, process, support',
     metaDescription: "Brian Zalewski is bZ — solo hustle-gospel artist out of Newark, NJ. The full story: bio, hard-but-holy theology, the 5-stage song-making process, how to support the studio, and how to connect. 6 albums, 50+ tracks.",
     jsonLdType: 'AboutPage',
     render: () => `
@@ -364,7 +364,7 @@ export const CONTENT_PAGES: ContentPage[] = [
   // ═══ CREDITS ══════════════════════════════════════════════════════════
   {
     slug: 'credits',
-    title: 'Per-track provenance',
+    title: 'Tracks',
     eyebrow: 'every song, every dna',
     description: 'Suno model, BPM source, generation date — auto-rendered from SUNO_META so the catalog audits itself.',
     ogImage: '/og/og-credits.jpg',
@@ -501,11 +501,11 @@ export const CONTENT_PAGES: ContentPage[] = [
   // ═══ PRESS ════════════════════════════════════════════════════════════
   {
     slug: 'press',
-    title: 'Press kit',
+    title: 'Press',
     eyebrow: 'for writers, curators, programmers',
     description: 'One-page everything-you-need. Bio + hi-res covers + EPK + booking.',
     ogImage: '/og/og-press.jpg',
-    metaTitle: 'Press kit — bios, covers, brand assets, booking',
+    metaTitle: 'Press — bios, covers, brand assets, booking',
     metaDescription: '50-word + 150-word bios. Hi-res cover art (6 albums). Headshot. Brand voice. Booking + licensing. Interview answers. Embed snippets. Everything writers and curators need.',
     jsonLdType: 'AboutPage',
     render: () => {

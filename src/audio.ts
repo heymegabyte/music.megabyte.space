@@ -57,6 +57,14 @@ export class AudioEngine {
   private energyHistory: number[] = [];
   private listeners = new Set<Listener>();
   private unlocked = false;
+  // Low-power surfaces (mobile / few cores / reduced-data) get a leaner Web
+  // Audio graph: NO always-on convolver (the single most CPU-expensive node —
+  // it ran at 0.08 wet, near-inaudible, every frame), smaller FFTs, and no
+  // stereo-split analysers. The convolver is built lazily the first time a
+  // wet reverb preset is actually selected. Verified bottleneck on Pixel 8 /
+  // Chrome mobile (2026-06).
+  lowPower = false;
+  private mergerNode: GainNode | null = null;
   /** Outstanding `audio.play()` promise. We `await` it before mutating `src`
    *  so back-to-back track switches don't trigger AbortError races. */
   private playPromise: Promise<void> | null = null;
@@ -85,7 +93,26 @@ export class AudioEngine {
     this.audio.addEventListener('pause', () => this.emit());
     this.audio.addEventListener('timeupdate', () => this.emit());
     this.audio.addEventListener('loadedmetadata', () => this.emit());
+    // Self-heal transient origin faults (e.g. Cloudflare ASSETS cold-start 503
+    // under preload burst). The <audio> element has no built-in recovery — a
+    // single blip otherwise strands playback. Reload the same src ONCE per track
+    // after a short backoff, restoring position + play state.
+    this.audio.addEventListener('error', () => {
+      const code = this.audio.error?.code;
+      if (!this.current || (code !== 2 && code !== 4)) return; // network/src only
+      if (this.reloadGuard === this.current.id) return;        // already retried this track
+      this.reloadGuard = this.current.id;
+      const wasPlaying = !this.audio.paused;
+      const at = this.audio.currentTime || 0;
+      setTimeout(() => {
+        if (!this.audio.src) return;
+        this.audio.load();
+        if (wasPlaying) this.audio.play().then(() => { if (at) this.audio.currentTime = at; }).catch(() => { /* gesture/abort */ });
+      }, 700);
+    });
   }
+
+  private reloadGuard = '';
 
   on(fn: Listener) {
     this.listeners.add(fn);
@@ -96,12 +123,27 @@ export class AudioEngine {
     for (const l of this.listeners) l();
   }
 
+  /** Detect a low-power surface — mobile viewport + coarse pointer, ≤4 cores,
+   *  low device-memory, or reduced-data. Cached on first call. Drives the lean
+   *  Web Audio graph below. */
+  private detectLowPower(): boolean {
+    if (typeof window === 'undefined' || typeof matchMedia !== 'function') return false;
+    const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
+    const coarseSmall = matchMedia('(max-width: 768px) and (pointer: coarse)').matches;
+    const fewCores = (nav.hardwareConcurrency ?? 8) <= 4;
+    const lowMem = (nav.deviceMemory ?? 8) <= 4;
+    const saveData = nav.connection?.saveData === true;
+    const reducedData = matchMedia('(prefers-reduced-data: reduce)').matches;
+    return coarseSmall || fewCores || lowMem || saveData || reducedData;
+  }
+
   /** Deferred AudioContext init — must be triggered by a user gesture to satisfy browser autoplay policy. */
   unlock() {
     if (this.unlocked) return;
     const W = window as unknown as { webkitAudioContext?: typeof AudioContext };
     const Ctx = window.AudioContext || W.webkitAudioContext;
     if (!Ctx) return;
+    this.lowPower = this.detectLowPower();
     const ctx = new Ctx();
     this.ctx = ctx;
 
@@ -135,57 +177,81 @@ export class AudioEngine {
     this.compressor.attack.value = 0.003;
     this.compressor.release.value = 0.22;
 
-    this.convolver = ctx.createConvolver();
-    this.convolver.normalize = true;
-    this.convolver.buffer = makeImpulseResponse(ctx, 2.6, 2.6, false);
-
     this.dryGain = ctx.createGain();
-    this.dryGain.gain.value = 0.92;
+    this.dryGain.gain.value = this.lowPower ? 1.0 : 0.92;
     this.wetGain = ctx.createGain();
-    this.wetGain.gain.value = 0.08;
+    this.wetGain.gain.value = this.lowPower ? 0 : 0.08;
 
     this.gain = ctx.createGain();
     this.gain.gain.value = 0.95;
 
     this.analyser = ctx.createAnalyser();
-    this.analyser.fftSize = 2048;
+    // Smaller FFT on low-power: 1024 bins is plenty for the bar/wave viz and
+    // halves the per-frame analysis cost vs 2048.
+    this.analyser.fftSize = this.lowPower ? 1024 : 2048;
     this.analyser.smoothingTimeConstant = 0.84;
     this.freqData = new Uint8Array(new ArrayBuffer(this.analyser.frequencyBinCount));
     this.timeData = new Uint8Array(new ArrayBuffer(this.analyser.frequencyBinCount));
 
-    this.splitter = ctx.createChannelSplitter(2);
-    this.analyserL = ctx.createAnalyser();
-    this.analyserR = ctx.createAnalyser();
-    this.analyserL.fftSize = 1024;
-    this.analyserR.fftSize = 1024;
-    this.analyserL.smoothingTimeConstant = 0.7;
-    this.analyserR.smoothingTimeConstant = 0.7;
-    this.freqL = new Uint8Array(new ArrayBuffer(this.analyserL.frequencyBinCount));
-    this.freqR = new Uint8Array(new ArrayBuffer(this.analyserR.frequencyBinCount));
+    const merger = ctx.createGain();
+    this.mergerNode = merger;
 
-    // input → highpass → bass → mid → treble → compressor → split: dry+wet → analyser → splitter → gain → destination
+    // input → highpass → bass → mid → treble → compressor → dry → merger
     this.source.connect(this.highpass);
     this.highpass.connect(this.bass);
     this.bass.connect(this.mid);
     this.mid.connect(this.treble);
     this.treble.connect(this.compressor);
     this.compressor.connect(this.dryGain);
-    this.compressor.connect(this.convolver);
-    this.convolver.connect(this.wetGain);
-
-    const merger = ctx.createGain();
     this.dryGain.connect(merger);
-    this.wetGain.connect(merger);
+
+    if (!this.lowPower) {
+      // Full graph: always-on convolver reverb + stereo-split analysers.
+      this.convolver = ctx.createConvolver();
+      this.convolver.normalize = true;
+      this.convolver.buffer = makeImpulseResponse(ctx, 2.6, 2.6, false);
+      this.compressor.connect(this.convolver);
+      this.convolver.connect(this.wetGain);
+      this.wetGain.connect(merger);
+
+      this.splitter = ctx.createChannelSplitter(2);
+      this.analyserL = ctx.createAnalyser();
+      this.analyserR = ctx.createAnalyser();
+      this.analyserL.fftSize = 1024;
+      this.analyserR.fftSize = 1024;
+      this.analyserL.smoothingTimeConstant = 0.7;
+      this.analyserR.smoothingTimeConstant = 0.7;
+      this.freqL = new Uint8Array(new ArrayBuffer(this.analyserL.frequencyBinCount));
+      this.freqR = new Uint8Array(new ArrayBuffer(this.analyserR.frequencyBinCount));
+      merger.connect(this.splitter);
+      this.splitter.connect(this.analyserL, 0);
+      this.splitter.connect(this.analyserR, 1);
+    }
+    // Low-power: NO convolver (built lazily in ensureConvolver() if the user
+    // picks a wet preset), NO stereo split. channelEnergy() falls back to the
+    // mono analyser so the visualizer's stereo-skew degrades gracefully.
 
     merger.connect(this.analyser);
-    merger.connect(this.splitter);
-    this.splitter.connect(this.analyserL, 0);
-    this.splitter.connect(this.analyserR, 1);
-
     this.analyser.connect(this.gain);
     this.gain.connect(ctx.destination);
 
     this.unlocked = true;
+  }
+
+  /** Lazily build the convolver + stereo analysers the first time reverb is
+   *  genuinely needed on a low-power device (user picks room/hall/etc). Keeps
+   *  the default mobile graph lean while still honoring an explicit choice. */
+  private ensureConvolver(): boolean {
+    if (this.convolver) return true;
+    const ctx = this.ctx;
+    if (!ctx || !this.compressor || !this.mergerNode) return false;
+    this.convolver = ctx.createConvolver();
+    this.convolver.normalize = true;
+    this.convolver.buffer = makeImpulseResponse(ctx, 2.6, 2.6, false);
+    this.compressor.connect(this.convolver);
+    this.convolver.connect(this.wetGain!);
+    this.wetGain!.connect(this.mergerNode);
+    return true;
   }
 
   setEQ(eq: Partial<EQSettings>) {
@@ -196,14 +262,18 @@ export class AudioEngine {
 
   setReverbWet(amount: number) {
     const v = Math.max(0, Math.min(1, amount));
+    // On low-power the convolver may not exist yet — build it on first wet use.
+    if (v > 0) this.ensureConvolver();
     if (this.wetGain) this.wetGain.gain.value = v;
     if (this.dryGain) this.dryGain.gain.value = 1 - v * 0.6;
   }
 
   setReverbPreset(preset: ReverbPreset) {
-    if (!this.ctx || !this.convolver) return;
+    if (!this.ctx) return;
     const p = REVERB_PRESETS[preset];
-    this.convolver.buffer = makeImpulseResponse(this.ctx, p.duration, p.decay, p.reverse);
+    // Lazily materialize the convolver on low-power when a wet preset is picked.
+    if (p.wet > 0 && !this.ensureConvolver()) return;
+    if (this.convolver) this.convolver.buffer = makeImpulseResponse(this.ctx, p.duration, p.decay, p.reverse);
     this.setReverbWet(p.wet);
   }
 
@@ -220,6 +290,7 @@ export class AudioEngine {
       // Pause first so the in-flight load doesn't race the new src.
       if (!this.audio.paused) this.audio.pause();
       this.current = track;
+      this.reloadGuard = ''; // fresh track → allow one self-heal retry again
       this.audio.src = track.file;
       this.audio.load();
     }
@@ -361,9 +432,19 @@ export class AudioEngine {
   }
 
   channelEnergy(): { l: number; r: number } {
+    const n = this.freqL.length;
+    // Low-power graph has no stereo split — collapse to mono energy so the
+    // visualizer's stereo-skew degrades to centered (skew 0) instead of NaN.
+    if (n === 0) {
+      const m = this.freqData.length;
+      if (m === 0) return { l: 0, r: 0 };
+      let sum = 0;
+      for (let i = 0; i < m; i++) sum += this.freqData[i];
+      const e = sum / m / 255;
+      return { l: e, r: e };
+    }
     let l = 0;
     let r = 0;
-    const n = this.freqL.length;
     for (let i = 0; i < n; i++) {
       l += this.freqL[i];
       r += this.freqR[i];

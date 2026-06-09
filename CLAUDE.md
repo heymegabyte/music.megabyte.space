@@ -56,11 +56,14 @@ Worker reads secrets from `wrangler secret put`:
 - `ANTHROPIC_API_KEY` — required for `/api/ai/chat`
 - `LISTMONK_API_TOKEN` — required for `/api/subscribe`
 - `VAPID_*` + `PUSH_ADMIN_TOKEN` — required for `/api/push/*`
+- `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` — required for `/api/merch/*`
 
 Local dev uses `.dev.vars` (gitignored).
 
 ## Conventions specific to this repo
 
+- **Payments:** Stripe for ALL online payments — always. `/api/merch/checkout` is Stripe Checkout and stays that way. Square is only ever added when a real in-person/POS leg exists (this storefront has none). Do not migrate online flows to Square.
+- **Lyrics timing:** if karaoke is "off", the stored lyrics are usually the wrong Suno take (or polluted with prompt metadata), NOT a timing bug — the aligner's `stats.matchRate` will be low. Rebuild from the accurate transcript with `npm run lyrics:rebuild -- <id>` (wraps `scripts/rebuild-lyrics-from-cache.mjs`), then it re-syncs `src/data.ts`. `npm run lyrics:validate` (also in `prebuild`) hard-fails on wrong-take (matchRate <60%) + collapsed lines; allowlist a track in that script only when Whisper genuinely can't hear it (e.g. `cbo-pen` number-rap).
 - **Lyrics:** Christian-gangster ethic. Zero drug references. See `~/.claude/projects/-Users-apple-emdash-projects-music-megabyte-space/memory/feedback_lyrics_christian_gangster.md`.
 - **Cast:** default receiver (`CC1AD845`) until the custom receiver is device-bound. Custom App ID `228565CB` lives in `src/cast-protocol.ts`.
 - **Karaoke overlay:** word highlighting mirrors the fullscreen lyrics pattern in `src/main.ts` (parallel arrays `karaokeOverlayWords` + `karaokeOverlayWordSpans` + `karaokeOverlayWordIdx`, driven by the existing `startKaraoke` tick loop).

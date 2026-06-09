@@ -33,7 +33,12 @@ const MOOD_RULES: Array<[RegExp, string]> = [
 ];
 
 const THEME_RULES: Array<[RegExp, string]> = [
-  [/no drug|no vice|no bottle|sober|discipline|virtue/i, 'no-substance'],
+  // no-substance = the project's clean-living ethos (CLAUDE.md: "Christian-
+  // gangster, zero drug references"). Catches both literal sobriety language
+  // and the redemption-from-the-old-life markers the catalog actually uses
+  // ("brand new child", "clean plate, warm grace") so songs whose ethic is
+  // sobriety-without-the-keyword still tag.
+  [/no drug|no vice|no bottle|no needle|sober|stay(?:ed)? clean|clean plate|brand new child|discipline|virtue/i, 'no-substance'],
   [/greene|law \d|forty-eight|48 laws/i, 'greene-law'],
   [/soup|kitchen|plate|bread|feed|meal|stew|bean/i, 'soup-kitchen'],
   [/ai|artificial|silicon|model|engine|crown of ai/i, 'ai'],

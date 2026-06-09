@@ -1080,11 +1080,11 @@ function setupShell(root: HTMLElement) {
               <span>Bio · theology · process · support · connect</span>
             </a>
             <a href="/credits" data-content-page="credits" role="menuitem">
-              <strong>Credits</strong>
+              <strong>Tracks</strong>
               <span>Per-track Suno DNA + BPM/key sources</span>
             </a>
             <a href="/press" data-content-page="press" role="menuitem">
-              <strong>Press kit</strong>
+              <strong>Press</strong>
               <span>Bio · covers · brand voice · booking</span>
             </a>
             <a href="/merch" data-content-page="merch" role="menuitem">
@@ -1601,7 +1601,7 @@ function setupShell(root: HTMLElement) {
       </button>
       <button class="more-menu__item" data-action="queue" type="button" role="menuitem">
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        <span>Queue &amp; recents</span>
+        <span>Queue &amp; Library</span>
         <kbd>Q</kbd>
       </button>
       <button id="btnPip" class="more-menu__item" data-action="mini" type="button" role="menuitem" aria-label="Pop out mini player" title="Pop out mini player — survives tab switches" hidden>
@@ -5436,9 +5436,6 @@ function bindUi() {
     moreMenu.style.bottom = `${window.innerHeight - r.top + 10}px`;
     moreMenu.hidden = false;
     moreBtn.setAttribute('aria-expanded', 'true');
-    // Lazy-load the Spotify Connect surface — only the small fraction of
-    // users who open the more-menu ever need this bundle (~14KB gzipped).
-    void import('./spotify-connect').then(m => m.mountSpotifyConnect(moreMenu));
   };
   moreBtn?.addEventListener('click', e => {
     e.stopPropagation();

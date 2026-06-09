@@ -152,10 +152,7 @@ const WIDGET_HINT =
   'Required fields per kind are documented in docs/ai-chat-widgets.md. Never ' +
   'use widgets when the answer is a single sentence — let markdown stand alone.';
 
-const VARIABLE_HELP = '{{track}} {{artist}} {{album}} {{lyric}} {{time}} {{bpm}} {{wisdom}}';
-
 const STORAGE_KEY = 'bz-chat-v1';
-const DEFAULT_SYSTEM = PERSONAS.dj.system;
 
 const ROTATING_PROMPTS = [
   'Ask about a lyric.',

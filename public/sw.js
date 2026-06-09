@@ -1,4 +1,4 @@
-const VERSION = 'panda-desiiignare-v1';
+const VERSION = 'panda-desiiignare-v2';
 const SHELL_CACHE = `${VERSION}-shell`;
 const RUNTIME_CACHE = `${VERSION}-runtime`;
 const AUDIO_CACHE = `${VERSION}-audio`;
@@ -34,6 +34,27 @@ function isHTML(req) {
   return req.headers.get('accept')?.includes('text/html');
 }
 
+// The Cache API rejects partial (206) + opaque responses — audio range
+// requests return 206, which previously threw "Failed to execute 'put' on
+// 'Cache': Partial response (status code 206) is unsupported" and surfaced as
+// an uncaught promise rejection. Only cache full, OK, same-origin responses.
+function isCacheable(request, response) {
+  return (
+    !!response &&
+    response.ok &&
+    response.status === 200 &&
+    request.method === 'GET' &&
+    response.type !== 'opaque' &&
+    response.type !== 'opaqueredirect'
+  );
+}
+
+async function safePut(cache, request, response) {
+  if (!isCacheable(request, response)) return;
+  try { await cache.put(request, response.clone()); }
+  catch { /* range/partial/quota — skip silently, never reject the fetch */ }
+}
+
 async function networkFirst(request, cacheName, timeoutMs = 3000) {
   const cache = await caches.open(cacheName);
   try {
@@ -41,7 +62,7 @@ async function networkFirst(request, cacheName, timeoutMs = 3000) {
       fetch(request),
       new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), timeoutMs))
     ]);
-    cache.put(request, network.clone());
+    await safePut(cache, request, network);
     return network;
   } catch {
     const cached = await cache.match(request);
@@ -59,7 +80,7 @@ async function cacheFirst(request, cacheName, maxEntries = 60) {
   const cached = await cache.match(request);
   if (cached) return cached;
   const network = await fetch(request);
-  cache.put(request, network.clone());
+  await safePut(cache, request, network);
   trimCache(cacheName, maxEntries);
   return network;
 }
@@ -68,8 +89,8 @@ async function staleWhileRevalidate(request, cacheName, maxEntries = 80) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   const networkPromise = fetch(request)
-    .then(res => {
-      cache.put(request, res.clone());
+    .then(async res => {
+      await safePut(cache, request, res);
       trimCache(cacheName, maxEntries);
       return res;
     })

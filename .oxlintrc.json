@@ -1,0 +1,18 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "unicorn", "typescript"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-unused-expressions": "off",
+    "no-misleading-character-class": "off",
+    "unicorn/prefer-string-starts-ends-with": "off",
+    "unicorn/no-useless-fallback-in-spread": "off",
+    "unicorn/no-new-array": "off"
+  },
+  "ignorePatterns": ["dist", "node_modules", "public", "_archive", "*.test.ts"]
+}

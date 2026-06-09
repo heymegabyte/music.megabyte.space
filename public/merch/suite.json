@@ -1,0 +1,461 @@
+{
+  "generated_at": "2026-05-31T01:15:39.543Z",
+  "store_id": 18259062,
+  "storefront": "https://bz-music.printful.me",
+  "design_url": "/merch/design-free-satan-v2.png",
+  "note": "Generated via Printful API — real Printful mockups + sync products in Brian's Store (native API).",
+  "items": [
+    {
+      "slug": "tee-1717-pepper",
+      "title": "FREE SATAN Heavyweight Tee",
+      "blank": "Comfort Colors 1717",
+      "color": "Pepper",
+      "blurb": "6.1oz garment-dyed cotton · cream FREE SATAN graffiti + caged-devil art.",
+      "price": 32,
+      "catalogProductId": 586,
+      "productId": 435959717,
+      "variantCount": 6,
+      "mockup": "/merch/mockups/tee-1717-pepper.png",
+      "storefrontUrl": "https://bz-music.printful.me",
+      "variants": [
+        {
+          "sync_variant_id": 5332597081,
+          "catalog_variant_id": 17693,
+          "name": "FREE SATAN Heavyweight Tee / Pepper / S",
+          "size": "S",
+          "color": "Pepper",
+          "retail_price": "32.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bbd7b6098"
+        },
+        {
+          "sync_variant_id": 5332597082,
+          "catalog_variant_id": 17694,
+          "name": "FREE SATAN Heavyweight Tee / Pepper / M",
+          "size": "M",
+          "color": "Pepper",
+          "retail_price": "32.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bbda7a896"
+        },
+        {
+          "sync_variant_id": 5332597083,
+          "catalog_variant_id": 17695,
+          "name": "FREE SATAN Heavyweight Tee / Pepper / L",
+          "size": "L",
+          "color": "Pepper",
+          "retail_price": "32.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bbdb9f979"
+        },
+        {
+          "sync_variant_id": 5332597084,
+          "catalog_variant_id": 17696,
+          "name": "FREE SATAN Heavyweight Tee / Pepper / XL",
+          "size": "XL",
+          "color": "Pepper",
+          "retail_price": "32.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bbdcbe3a3"
+        },
+        {
+          "sync_variant_id": 5332597085,
+          "catalog_variant_id": 17697,
+          "name": "FREE SATAN Heavyweight Tee / Pepper / 2XL",
+          "size": "2XL",
+          "color": "Pepper",
+          "retail_price": "32.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bbdddcd53"
+        },
+        {
+          "sync_variant_id": 5332597086,
+          "catalog_variant_id": 17698,
+          "name": "FREE SATAN Heavyweight Tee / Pepper / 3XL",
+          "size": "3XL",
+          "color": "Pepper",
+          "retail_price": "32.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bbdef1f45"
+        }
+      ]
+    },
+    {
+      "slug": "long-sleeve-6014",
+      "title": "FREE SATAN Long-Sleeve",
+      "blank": "Comfort Colors 6014",
+      "color": "Pepper",
+      "blurb": "Heavyweight garment-dyed long-sleeve · same Pepper wash, studio winters.",
+      "price": 42,
+      "catalogProductId": 753,
+      "productId": 435959741,
+      "variantCount": 6,
+      "mockup": "/merch/mockups/long-sleeve-6014.png",
+      "storefrontUrl": "https://bz-music.printful.me",
+      "variants": [
+        {
+          "sync_variant_id": 5332597365,
+          "catalog_variant_id": 19412,
+          "name": "FREE SATAN Long-Sleeve / Black / S",
+          "size": "S",
+          "color": "Black",
+          "retail_price": "42.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bce0376d8"
+        },
+        {
+          "sync_variant_id": 5332597366,
+          "catalog_variant_id": 19419,
+          "name": "FREE SATAN Long-Sleeve / Black / M",
+          "size": "M",
+          "color": "Black",
+          "retail_price": "42.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bce158a89"
+        },
+        {
+          "sync_variant_id": 5332597367,
+          "catalog_variant_id": 19426,
+          "name": "FREE SATAN Long-Sleeve / Black / L",
+          "size": "L",
+          "color": "Black",
+          "retail_price": "42.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bce2916c1"
+        },
+        {
+          "sync_variant_id": 5332597369,
+          "catalog_variant_id": 19433,
+          "name": "FREE SATAN Long-Sleeve / Black / XL",
+          "size": "XL",
+          "color": "Black",
+          "retail_price": "42.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bce38d7c2"
+        },
+        {
+          "sync_variant_id": 5332597370,
+          "catalog_variant_id": 19440,
+          "name": "FREE SATAN Long-Sleeve / Black / 2XL",
+          "size": "2XL",
+          "color": "Black",
+          "retail_price": "42.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bce49d8c7"
+        },
+        {
+          "sync_variant_id": 5332597371,
+          "catalog_variant_id": 19447,
+          "name": "FREE SATAN Long-Sleeve / Black / 3XL",
+          "size": "3XL",
+          "color": "Black",
+          "retail_price": "42.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bce5b28f8"
+        }
+      ]
+    },
+    {
+      "slug": "hoodie-1567",
+      "title": "FREE SATAN Hoodie",
+      "blank": "Comfort Colors 1567",
+      "color": "Black",
+      "blurb": "Heavyweight pullover hoodie · cream art screen-bright on faded black.",
+      "price": 64,
+      "catalogProductId": 970,
+      "productId": 435959806,
+      "variantCount": 6,
+      "mockup": "/merch/mockups/hoodie-1567.png",
+      "storefrontUrl": "https://bz-music.printful.me",
+      "variants": [
+        {
+          "sync_variant_id": 5332597478,
+          "catalog_variant_id": 24808,
+          "name": "FREE SATAN Hoodie / Blue Jean / S",
+          "size": "S",
+          "color": "Blue Jean",
+          "retail_price": "64.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bdec10247"
+        },
+        {
+          "sync_variant_id": 5332597479,
+          "catalog_variant_id": 24809,
+          "name": "FREE SATAN Hoodie / Blue Jean / M",
+          "size": "M",
+          "color": "Blue Jean",
+          "retail_price": "64.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bdedab409"
+        },
+        {
+          "sync_variant_id": 5332597480,
+          "catalog_variant_id": 24810,
+          "name": "FREE SATAN Hoodie / Blue Jean / L",
+          "size": "L",
+          "color": "Blue Jean",
+          "retail_price": "64.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bdef020f4"
+        },
+        {
+          "sync_variant_id": 5332597481,
+          "catalog_variant_id": 24811,
+          "name": "FREE SATAN Hoodie / Blue Jean / XL",
+          "size": "XL",
+          "color": "Blue Jean",
+          "retail_price": "64.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bdf0fc934"
+        },
+        {
+          "sync_variant_id": 5332597482,
+          "catalog_variant_id": 24812,
+          "name": "FREE SATAN Hoodie / Blue Jean / 2XL",
+          "size": "2XL",
+          "color": "Blue Jean",
+          "retail_price": "64.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bdf24d846"
+        },
+        {
+          "sync_variant_id": 5332597483,
+          "catalog_variant_id": 24813,
+          "name": "FREE SATAN Hoodie / Blue Jean / 3XL",
+          "size": "3XL",
+          "color": "Blue Jean",
+          "retail_price": "64.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8bdf3942a8"
+        }
+      ]
+    },
+    {
+      "slug": "crewneck-1566",
+      "title": "FREE SATAN Crewneck",
+      "blank": "Comfort Colors 1566",
+      "color": "Pepper",
+      "blurb": "Garment-dyed crewneck sweatshirt · same canvas, no hood.",
+      "price": 58,
+      "catalogProductId": 839,
+      "productId": 435959914,
+      "variantCount": 6,
+      "mockup": "/merch/mockups/crewneck-1566.png",
+      "storefrontUrl": "https://bz-music.printful.me",
+      "variants": [
+        {
+          "sync_variant_id": 5332598717,
+          "catalog_variant_id": 21980,
+          "name": "FREE SATAN Crewneck / Pepper / S",
+          "size": "S",
+          "color": "Pepper",
+          "retail_price": "58.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c30a42ab5"
+        },
+        {
+          "sync_variant_id": 5332598718,
+          "catalog_variant_id": 21981,
+          "name": "FREE SATAN Crewneck / Pepper / M",
+          "size": "M",
+          "color": "Pepper",
+          "retail_price": "58.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c30b99e86"
+        },
+        {
+          "sync_variant_id": 5332598719,
+          "catalog_variant_id": 21982,
+          "name": "FREE SATAN Crewneck / Pepper / L",
+          "size": "L",
+          "color": "Pepper",
+          "retail_price": "58.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c30c8fef7"
+        },
+        {
+          "sync_variant_id": 5332598760,
+          "catalog_variant_id": 21983,
+          "name": "FREE SATAN Crewneck / Pepper / XL",
+          "size": "XL",
+          "color": "Pepper",
+          "retail_price": "58.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c30dd0711"
+        },
+        {
+          "sync_variant_id": 5332598761,
+          "catalog_variant_id": 21984,
+          "name": "FREE SATAN Crewneck / Pepper / 2XL",
+          "size": "2XL",
+          "color": "Pepper",
+          "retail_price": "58.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c30f15b88"
+        },
+        {
+          "sync_variant_id": 5332598762,
+          "catalog_variant_id": 21985,
+          "name": "FREE SATAN Crewneck / Pepper / 3XL",
+          "size": "3XL",
+          "color": "Pepper",
+          "retail_price": "58.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c310e3533"
+        }
+      ]
+    },
+    {
+      "slug": "tank-9360",
+      "title": "FREE SATAN Tank",
+      "blank": "Comfort Colors 9360",
+      "color": "Pepper",
+      "blurb": "Garment-dyed tank · July sets, gym, \"92° and still working\" weather.",
+      "price": 30,
+      "catalogProductId": 907,
+      "productId": 435959930,
+      "variantCount": 6,
+      "mockup": "/merch/mockups/tank-9360.png",
+      "storefrontUrl": "https://bz-music.printful.me",
+      "variants": [
+        {
+          "sync_variant_id": 5332599097,
+          "catalog_variant_id": 23303,
+          "name": "FREE SATAN Tank / Pepper / S",
+          "size": "S",
+          "color": "Pepper",
+          "retail_price": "30.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c41e34892"
+        },
+        {
+          "sync_variant_id": 5332599100,
+          "catalog_variant_id": 23334,
+          "name": "FREE SATAN Tank / Pepper / M",
+          "size": "M",
+          "color": "Pepper",
+          "retail_price": "30.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c41f379e2"
+        },
+        {
+          "sync_variant_id": 5332599102,
+          "catalog_variant_id": 23365,
+          "name": "FREE SATAN Tank / Pepper / L",
+          "size": "L",
+          "color": "Pepper",
+          "retail_price": "30.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c42141a87"
+        },
+        {
+          "sync_variant_id": 5332599104,
+          "catalog_variant_id": 23396,
+          "name": "FREE SATAN Tank / Pepper / XL",
+          "size": "XL",
+          "color": "Pepper",
+          "retail_price": "30.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c4228f764"
+        },
+        {
+          "sync_variant_id": 5332599106,
+          "catalog_variant_id": 23427,
+          "name": "FREE SATAN Tank / Pepper / 2XL",
+          "size": "2XL",
+          "color": "Pepper",
+          "retail_price": "30.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c423b1119"
+        },
+        {
+          "sync_variant_id": 5332599107,
+          "catalog_variant_id": 23458,
+          "name": "FREE SATAN Tank / Pepper / 3XL",
+          "size": "3XL",
+          "color": "Pepper",
+          "retail_price": "30.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c424ee3b3"
+        }
+      ]
+    },
+    {
+      "slug": "pocket-tee-6030",
+      "title": "FREE SATAN Pocket Tee",
+      "blank": "Comfort Colors 6030",
+      "color": "Pepper",
+      "blurb": "Heavyweight pocket tee · cream FREE SATAN art over the pocket.",
+      "price": 34,
+      "error": "Printful POST /store/products → 400: {\"code\":400,\"result\":\"Large embroidery placements cannot be used in API\",\"error\":{\"reason\":\"BadRequest\",\"message\":\"Large embroidery placements cannot be used in API\"}}",
+      "variants": []
+    },
+    {
+      "slug": "sweatpants-1469",
+      "title": "FREE SATAN Sweatpants",
+      "blank": "Comfort Colors 1469",
+      "color": "Pepper",
+      "blurb": "Garment-dyed fleece sweatpants · pairs with the crewneck or hoodie.",
+      "price": 56,
+      "error": "Printful POST /store/products → 400: {\"code\":400,\"result\":\"thread_colors_apparel option is missing or incorrect! Allowed values: #FFFFFF, #000000, #96A1A8, #A67843, #FFCC00, #E25C27, #CC3366, #CC3333, #660000, #333366, #005397, #3399FF, #6B5294, #01784E, #7BA35A\",\"error\":{\"reason\":\"BadRequest\",\"message\":\"thread_colors_apparel option is missing or incorrect! Allowed values: #FFFFFF, #000000, #96A1A8, #A67843, #FFCC00, #E25C27, #CC3366, #CC3333, #660000, #333366, #005397, #3399FF, #6B5294, #01784E, #7BA35A\"}}",
+      "variants": []
+    },
+    {
+      "slug": "tote-allover",
+      "title": "FREE SATAN Tote",
+      "blank": "All-Over Print Tote",
+      "color": "Black",
+      "blurb": "Heavy cotton tote · carries records, journals, the apron.",
+      "price": 22,
+      "catalogProductId": 84,
+      "productId": 435960081,
+      "variantCount": 1,
+      "mockup": "/merch/mockups/tote-allover.png",
+      "storefrontUrl": "https://bz-music.printful.me",
+      "variants": [
+        {
+          "sync_variant_id": 5332599855,
+          "catalog_variant_id": 4533,
+          "name": "FREE SATAN Tote / Black / 15″×15″",
+          "size": "15″×15″",
+          "color": "Black",
+          "retail_price": "22.00",
+          "currency": "USD",
+          "in_stock": true,
+          "external_id": "6a1b8c9bd8e168"
+        }
+      ]
+    }
+  ],
+  "synced_at": "2026-05-31T01:27:42.783Z"
+}

@@ -5,6 +5,8 @@
 // against the host document — both windows share the same JS realm so we pass
 // references freely.
 
+import { fmtTime } from './format';
+
 export interface PipController {
   isSupported: boolean;
   isOpen(): boolean;
@@ -31,13 +33,6 @@ interface PipApiWindow extends Window {
 }
 
 const SUPPORTED = typeof window !== 'undefined' && 'documentPictureInPicture' in window;
-
-function fmtTime(s: number): string {
-  if (!Number.isFinite(s) || s < 0) return '0:00';
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  return `${m}:${sec.toString().padStart(2, '0')}`;
-}
 
 export function createPipController(hooks: PipHooks): PipController {
   let pipWindow: Window | null = null;
