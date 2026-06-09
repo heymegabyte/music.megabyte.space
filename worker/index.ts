@@ -1601,10 +1601,18 @@ export default {
         if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
           return jsonResponse({ error: 'invalid_email' }, 400);
         }
+        const emailHash = await sha256Hex(email);
+        // Idempotent: a known email re-submitting (double-click, second widget,
+        // returning visitor) is NOT abuse — return a clean 200 "already" instead
+        // of a 429 that surfaces as a console error. The IP/email rate limits stay
+        // for FRESH emails only, so bots spraying new addresses still get throttled.
+        const knownEmail = await env.COUNTERS.get(`email:${emailHash}`).catch(() => null);
+        if (knownEmail) {
+          return jsonResponse({ ok: true, listmonk: 'already', push: 'skipped' });
+        }
         if (await rateLimited(env.COUNTERS, ip, 'subscribe', 'global', 60)) {
           return jsonResponse({ error: 'throttled' }, 429);
         }
-        const emailHash = await sha256Hex(email);
         if (await rateLimited(env.COUNTERS, emailHash, 'subscribe-email', 'global', 120)) {
           return jsonResponse({ error: 'throttled' }, 429);
         }
@@ -1661,14 +1669,26 @@ export default {
         try { body = await request.json() as PushSubscriptionRecord; } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
         if (!body?.endpoint || !body.keys?.p256dh || !body.keys?.auth) return jsonResponse({ error: 'invalid_subscription' }, 400);
         if (!/^https:\/\//.test(body.endpoint)) return jsonResponse({ error: 'invalid_endpoint' }, 400);
-        if (await rateLimited(env.COUNTERS, ip, 'push-sub', 'global', 30)) return jsonResponse({ error: 'throttled' }, 429);
-        const id = await sha256Hex(body.endpoint);
-        await env.COUNTERS.put(`push:${id}`, JSON.stringify({
-          endpoint: body.endpoint,
-          keys: { p256dh: body.keys.p256dh, auth: body.keys.auth },
-          subscribedAt: Date.now()
-        }), { expirationTtl: 60 * 60 * 24 * 90 });
-        return jsonResponse({ ok: true, id });
+        // Best-effort persistence. A transient KV blip must NOT bubble to a 500
+        // (which surfaces as a console error) — push opt-in is non-critical, so
+        // on storage failure return a soft 200 {ok:false} the client can ignore.
+        try {
+          // TTL must be >= 60 — Cloudflare KV rejects shorter expirations (a 30s
+          // value here was throwing "Invalid expiration_ttl", surfacing as a 500).
+          if (await rateLimited(env.COUNTERS, ip, 'push-sub', 'global', 60)) {
+            return jsonResponse({ ok: true, deduped: true });
+          }
+          const id = await sha256Hex(body.endpoint);
+          await env.COUNTERS.put(`push:${id}`, JSON.stringify({
+            endpoint: body.endpoint,
+            keys: { p256dh: body.keys.p256dh, auth: body.keys.auth },
+            subscribedAt: Date.now()
+          }), { expirationTtl: 60 * 60 * 24 * 90 });
+          return jsonResponse({ ok: true, id });
+        } catch (err) {
+          console.warn('push/subscribe storage failed', err instanceof Error ? err.message : String(err));
+          return jsonResponse({ ok: false, deferred: true });
+        }
       }
 
       if (url.pathname === '/api/push/unsubscribe' && request.method === 'POST') {
