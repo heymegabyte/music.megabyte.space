@@ -5967,7 +5967,8 @@ function bindUi() {
       (t as Element).matches('input, textarea, select'));
     // Cmd+K / Ctrl+K: open AI chat (matches the FAB's visible ⌘K label).
     // Search moved to Cmd+/ — a common alternative when Cmd+K is the AI/command surface.
-    if ((e.metaKey || e.ctrlKey) && e.code === 'Slash') { e.preventDefault(); openSearch(); return; }
+    // Search palette: ⌘K (the cmdk convention + what the UI advertises) AND ⌘/.
+    if ((e.metaKey || e.ctrlKey) && (e.code === 'Slash' || e.code === 'KeyK')) { e.preventDefault(); openSearch(); return; }
     if (e.key === 'Escape') {
       if (searchOpen) { closeSearch(); return; }
       if (lyricsFsOpen) { closeLyricsFs(); return; }
@@ -5976,8 +5977,10 @@ function bindUi() {
       if (npPanelOpen) { closeNpPanel(); return; }
     }
     if (inField) return;
-    // Global `/` → focus AI chat composer (open chat first if closed).
-    // Mirrors GitHub/Slack/Linear `/` slash convention.
+    // Global `/` (no shift) → focus AI chat composer (open chat first if closed).
+    // Mirrors GitHub/Slack/Linear `/` slash convention. `?` (Shift+Slash) is
+    // reserved for the keyboard-shortcuts overlay below (what the more-menu +
+    // overlay advertise) — do NOT consume Shift+Slash here.
     if (e.code === 'Slash' && !e.shiftKey) {
       e.preventDefault();
       const fab = document.querySelector<HTMLButtonElement>('[data-aichat="fab"]');
@@ -5985,18 +5988,6 @@ function bindUi() {
       requestAnimationFrame(() => {
         const input = document.querySelector<HTMLTextAreaElement>('[data-aichat="input"]');
         input?.focus({ preventScroll: true });
-      });
-      return;
-    }
-    // `?` (Shift+Slash) → open AI chat composer pre-typed with /help to
-    // surface the slash-command palette.
-    if (e.code === 'Slash' && e.shiftKey) {
-      e.preventDefault();
-      const fab = document.querySelector<HTMLButtonElement>('[data-aichat="fab"]');
-      if (fab && document.body.dataset.aichatOpen !== '1') fab.click();
-      requestAnimationFrame(() => {
-        const input = document.querySelector<HTMLTextAreaElement>('[data-aichat="input"]');
-        if (input) { input.value = '/help'; input.focus({ preventScroll: true }); input.dispatchEvent(new Event('input', { bubbles: true })); }
       });
       return;
     }
