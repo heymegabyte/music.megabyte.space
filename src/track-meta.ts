@@ -389,6 +389,36 @@ export function albumSeo(album: Album): RouteSeo {
   };
 }
 
+// Server-rendered SEO for the content pages (About / Tracks / Press / Merch /
+// Privacy / Terms). Mirrors the metaTitle/metaDescription in content-pages.ts —
+// kept as a small static list here so the worker's MetaRewriter rewrites the
+// <head> at the edge (without importing the heavy content-pages render bundle).
+// Without this, every content route served the homepage <title> to crawlers.
+const CONTENT_PAGES_SEO: Array<{ slug: string; title: string; description: string; og: string }> = [
+  { slug: 'about', title: 'About bZ — Newark hustle-gospel artist, theology, process', description: "Brian Zalewski is bZ — solo hustle-gospel artist out of Newark, NJ. Bio, hard-but-holy theology, the 5-stage song-making process, how to support the studio, and how to connect.", og: '/og/og-about.jpg' },
+  { slug: 'credits', title: 'Tracks — per-track Suno DNA, BPM/key sources, licensing', description: 'Every bZ track’s provenance: Suno model + style prompt, measured BPM + key, lyric-alignment method, and licensing. Full transparency on how each song was made.', og: FALLBACK_OG },
+  { slug: 'press', title: 'Press — bios, cover art, brand voice, booking + embeds', description: '50-word + 150-word bios, hi-res cover art for every album, headshot, brand voice, booking + licensing, interview answers, and a live embed-player preview. Everything writers and curators need.', og: FALLBACK_OG },
+  { slug: 'merch', title: 'Merch — bZ FREE SATAN apparel suite (Printful)', description: 'The full FREE SATAN — It’s Animal Abuse apparel suite: Comfort Colors heavyweight tees, hoodies, long-sleeves, tanks. DTG print, Stripe checkout, ships worldwide via Printful.', og: '/merch/mockups/tee-1717-pepper.png' },
+  { slug: 'privacy', title: 'Privacy — music.megabyte.space', description: 'How music.megabyte.space handles data: anonymous play/share counts, opt-in newsletter, Stripe checkout, privacy-aware analytics. No accounts, no ad trackers, no sale of data.', og: FALLBACK_OG },
+  { slug: 'terms', title: 'Terms of Service — music.megabyte.space', description: 'Plain-English terms: stream freely for personal use, music + lyrics are © Brian Zalewski, merch via Stripe + Printful, licensing on request, no warranties.', og: FALLBACK_OG },
+];
+
+function contentPageSeo(c: { slug: string; title: string; description: string; og: string }): RouteSeo {
+  const path = `/${c.slug}`;
+  const url = `${SITE_ORIGIN}${path}`;
+  const title = clampLen(c.title, 30, 60, ' — bZ');
+  const description = clampLen(c.description, 120, 156, ' Hard but holy.');
+  const ogImage = c.og.startsWith('http') ? c.og : `${SITE_ORIGIN}${c.og}`;
+  return {
+    path, title, description, canonical: url,
+    ogTitle: title, ogDescription: description, ogType: 'website',
+    ogImage, ogImageAlt: `${c.title} — bZ`,
+    twitterTitle: title, twitterDescription: description, twitterImage: ogImage,
+    jsonLd: [{ '@context': 'https://schema.org', '@type': 'WebPage', name: c.title, description, url, isPartOf: { '@type': 'WebSite', name: 'bZ — music.megabyte.space', url: SITE_ORIGIN } }],
+    seoBody: `<h1>${c.title}</h1><p>${description}</p><p><a href="/">bZ — music.megabyte.space</a></p>`,
+  };
+}
+
 export function buildSeoIndex(): Record<string, RouteSeo> {
   const map: Record<string, RouteSeo> = {};
   for (const album of ALBUMS) {
@@ -397,6 +427,10 @@ export function buildSeoIndex(): Record<string, RouteSeo> {
   }
   for (const track of TRACKS) {
     const seo = trackSeo(track);
+    map[seo.path] = seo;
+  }
+  for (const c of CONTENT_PAGES_SEO) {
+    const seo = contentPageSeo(c);
     map[seo.path] = seo;
   }
   return map;
