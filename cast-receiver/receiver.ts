@@ -3,6 +3,8 @@
 // Lifecycle:
 //   1. /cast-receiver/index.html loads cast_receiver_framework.js (gstatic).
 //   2. UA sniff (`CrKey/` marker) decides REAL vs STANDALONE preview.
+
+// Default Trusted Types policy installed by inline <head> script in cast-receiver/index.html.
 //      • REAL Chromecast → wire `CastReceiverContext.getPlayerManager()`,
 //        open the custom namespace `urn:x-cast:com.megabyte.music`, then
 //        `ctx.start()` with our tuned `PlaybackConfig`.
@@ -48,6 +50,8 @@ interface StandaloneApi {
   runtime: RuntimeState;
   audio: HTMLAudioElement | null;
   loadQueue: (items: ReceiverQueueItem[], startIndex?: number) => void;
+  setLyrics: (trackId: string, lines: ReceiverLine[]) => void;
+  setVolume: (v: number) => void;
   play: () => void;
   pause: () => void;
   seek: (s: number) => void;
@@ -102,6 +106,11 @@ let standaloneAudio: HTMLAudioElement | null = null;
 // the page. That's a needs-gesture state, NOT a playback error — surface a
 // hint + attempt resume on the next click instead of logging + retrying.
 let pendingAutoplayResume = false;
+// Defer AudioContext creation until audio is genuinely allowed to play (a user
+// gesture in preview, or PLAYING state in a real Cast session). Creating it
+// eagerly trips Chrome's "AudioContext was not allowed to start" console warning
+// in the ?test preview. Until unlocked, the visualizer draws a synthetic wave.
+let audioUnlocked = false;
 
 // Playback failure backoff: per-track strike count, then skip after 3 strikes
 // so the playlist never wedges on one bad object.
@@ -159,6 +168,12 @@ function buildStandalonePlayer() {
   standaloneAudio.addEventListener('loadeddata', () => fire('LOADED_DATA'));
   standaloneAudio.addEventListener('ended', () => fire('MEDIA_FINISHED'));
   standaloneAudio.addEventListener('error', () => fire('ERROR'));
+  // Buffering / stall → show the overlay; resume → hide it.
+  standaloneAudio.addEventListener('waiting', () => setBuffering(true));
+  standaloneAudio.addEventListener('stalled', () => setBuffering(true));
+  standaloneAudio.addEventListener('playing', () => setBuffering(false));
+  standaloneAudio.addEventListener('canplay', () => setBuffering(false));
+  standaloneAudio.addEventListener('seeked', () => setBuffering(false));
   return {
     addEventListener: (k: string, fn: () => void) => { (listeners[k] ??= []).push(fn); },
     setMessageInterceptor: (_t: any, _fn: any) => { /* no-op in standalone */ },
@@ -232,7 +247,7 @@ const subscribe = (type: string | undefined, fn: () => void) => {
   try { playerManager.addEventListener(type, fn); }
   catch (err) { logErr('subscribe:' + type, err); }
 };
-subscribe(Events.PLAYING, () => { renderUI(); broadcast(); });
+subscribe(Events.PLAYING, () => { audioUnlocked = true; renderUI(); broadcast(); });
 subscribe(Events.PAUSE, () => { renderUI(); broadcast(); });
 subscribe(Events.SEEKED, () => broadcast());
 subscribe(Events.TIME_UPDATE, () => updateProgress());
@@ -246,6 +261,8 @@ subscribe(Events.LOADED_DATA, () => {
 });
 subscribe(Events.MEDIA_FINISHED, () => onTrackEnded());
 subscribe(Events.ERROR, (e: any) => onPlaybackError(e));
+// CAF buffering state (real Chromecast) → buffering overlay.
+subscribe(Events.BUFFERING, (e: any) => setBuffering(e?.isBuffering === true));
 
 if (!standaloneMode) {
   ctx.addEventListener(window.cast!.framework.system.EventType?.SENDER_CONNECTED ?? 'senderconnected', (ev: any) => {
@@ -298,7 +315,61 @@ if (!standaloneMode) {
     // Larger queue cache for gapless skips
     queueRequestHandler: undefined
   });
+  // Real TV remote volume → on-screen OSD. The CAF system fires SYSTEM_VOLUME_CHANGED
+  // with { level, muted } whenever the hardware/remote volume moves.
+  try {
+    const sys = window.cast!.framework.system;
+    const evType = sys?.EventType?.SYSTEM_VOLUME_CHANGED;
+    if (evType) ctx.addEventListener(evType, (e: any) => {
+      const lvl = typeof e?.data?.level === 'number' ? e.data.level : (e?.level ?? 1);
+      showVolumeOsd(lvl, !!(e?.data?.muted ?? e?.muted));
+    });
+  } catch { /* older CAF without the system-volume event → sender-driven OSD still works */ }
 }
+
+// Visualizer module state — MUST be declared before init() (which calls
+// startVisualizer()) since `let` is not hoisted: reading it earlier throws a
+// TDZ ReferenceError that blanks the whole receiver.
+//   beatEnergy — smoothed bass level (0..1) pushed into the --beat CSS var so
+//                the album-glow ring + aurora pulse without a 2nd JS loop.
+//   vizQuality — 'high' until the FPS probe downshifts to 'lite' on weak TV GPUs
+//                (fewer bars, no particles/reflection/blur, DPR=1).
+let beatEnergy = 0;
+let vizQuality: 'high' | 'lite' = 'high';
+// Lyrics + meta fetch state — declared BEFORE init() so the boot-time auto-seed
+// (init → onQueueLoad → primeLyrics → selfFetchLyrics/enrichMeta) never hits a
+// temporal-dead-zone on these module-level lets.
+let lyricsFetchToken = 0;
+let castMetaPromise: Promise<Record<string, { bpm?: number; key?: string }>> | null = null;
+// Lyrics source for the CURRENT track. Self-fetched lyrics (/lyrics/<id>.json)
+// are authoritative — their word timings match the exact MP3 the receiver
+// streams — so a self-fetch always wins and a sender push only fills the gap
+// when there's no JSON file. Reset to null on every track change.
+let lyricsSource: 'self' | 'sender' | null = null;
+// Set true once self-fetch confirms a track has NO lyrics file (404/empty) so
+// renderLyrics shows a gorgeous "instrumental" state instead of a perpetual
+// "Lyrics syncing…" (which falsely implies lyrics are still loading). Reset per
+// track in primeLyrics; cleared the moment real lyrics arrive (sender or self).
+let lyricsMissing = false;
+// Cached lyric DOM (rebuilt in renderLyrics) so the 60fps tick never re-queries
+// the document — keeps karaoke word-fill cheap on weak Android TVs.
+let lyricLineEls: HTMLElement[] = [];
+let activeWordEls: HTMLSpanElement[] = [];
+// Per-track palette extracted from the cover art (receiver-side) — gives every
+// track its own accent without a sender push. Sender palette:set still wins.
+let paletteFromSender = false;
+let lastPaletteTrackId: string | null = null;
+const paletteCache = new Map<string, { accent: string; accent2: string; violet: string }>();
+// UI-awake timer — declared before init() so wakeUI() is safe to call from the
+// boot-time auto-seed (track load wakes the UI before it auto-dims).
+let uiAwakeTimer = 0;
+// Buffering overlay debounce — declared before init() (standalone player wires
+// 'waiting' listeners during boot).
+let bufferTimer = 0;
+// Up Next card state — declared before init() (loadAndPlay → hideUpNext runs
+// during the boot-time auto-seed).
+let upNextShownFor: string | null = null;
+
 init();
 
 // ─── Init UI ────────────────────────────────────────────────────────────────
@@ -324,6 +395,8 @@ function exposeStandaloneApi() {
     runtime,
     audio: standaloneAudio,
     loadQueue: (items, startIndex = 0) => onQueueLoad({ items, startIndex, autoplay: true }),
+    setLyrics: (trackId, lines) => applyLyrics({ trackId, lines }),
+    setVolume: (v: number) => { onVolume({ level: v } as VolumePayload); },
     play: () => playerManager.play(),
     pause: () => playerManager.pause(),
     seek: (s: number) => playerManager.seek(s),
@@ -341,26 +414,35 @@ function exposeStandaloneApi() {
   // had to defer it. One handler covers all input modalities (mouse, touch,
   // keyboard, gamepad-as-keyboard via D-pad).
   const resumeOnGesture = () => {
+    // A gesture means the AudioContext is now allowed — unlock the analyser so
+    // the visualizer binds to real audio, and resume the ctx if it exists.
+    audioUnlocked = true;
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => { /* policy */ });
     if (!pendingAutoplayResume || !standaloneAudio) return;
     pendingAutoplayResume = false;
     standaloneAudio.play().catch(() => { pendingAutoplayResume = true; });
   };
-  ['click', 'keydown', 'touchstart'].forEach((evt) => {
+  ['click', 'keydown', 'touchstart', 'pointerdown'].forEach((evt) => {
     document.addEventListener(evt, resumeOnGesture, { passive: true });
   });
   maybeAutoSeed();
 }
 
-// URL-driven demo seed: `?demo=1` loads the full TRACKS catalog;
-// `?track=<id>` starts at one specific track; `?autoplay=0` boots paused so
-// click-to-play is testable without user-gesture autoplay friction.
+// URL-driven test/demo seed:
+//   ?test        → load the full catalog + autoplay (laptop test of the TV UI)
+//   ?demo=1      → same as ?test (legacy alias)
+//   ?track=<id>  → start at one specific track
+//   ?autoplay=0  → boot paused so click-to-play is testable without the
+//                  browser's user-gesture autoplay friction
+// Open https://music.megabyte.space/cast-receiver/?test on a laptop to preview
+// exactly what the Chromecast renders, with songs loading automatically.
 function maybeAutoSeed() {
   try {
     const params = new URLSearchParams(window.location.search);
-    const wantsDemo = params.get('demo') === '1';
+    const wantsTest = params.has('test') || params.get('demo') === '1';
     const trackId = params.get('track');
     const autoplay = params.get('autoplay') !== '0';
-    if (!wantsDemo && !trackId) return;
+    if (!wantsTest && !trackId) return;
     const items = TRACKS.map(t => {
       const album = ALBUMS.find(a => a.trackIds.includes(t.id));
       const cover = album?.cover ?? '/art/cover-panda-desiiignare.png';
@@ -384,6 +466,7 @@ function maybeAutoSeed() {
 
 // ─── Sender → receiver dispatch ─────────────────────────────────────────────
 function handleSenderMessage(event: any) {
+  wakeUI(); // a sender (phone remote) is interacting → light up the queue rail
   const senderId: string = event.senderId ?? 'unknown';
   let msg: unknown;
   try {
@@ -475,13 +558,17 @@ function onQueueLoad(p: QueueLoadPayload) {
   if (!p?.items?.length) { errorOut('empty_queue', new Error('queue:load with zero items')); return; }
   runtime.queue = p.items.slice(0, 200);
   if (typeof p.shuffle === 'boolean') runtime.shuffle = p.shuffle;
-  if (p.loop) runtime.loop = p.loop;
+  // Force loop:'all' unless the sender explicitly asks for 'one'. The receiver
+  // must keep cycling the whole playlist forever — including AFTER the caster
+  // disconnects — starting from whatever track was first cast. (A sender that
+  // omits loop, or sends 'off', still loops here.)
+  runtime.loop = p.loop === 'one' ? 'one' : 'all';
   const startIdx = clamp(p.startIndex ?? 0, 0, runtime.queue.length - 1);
   runtime.index = startIdx;
   runtime.focusedIndex = startIdx;
   renderQueue();
   if (p.autoplay !== false) loadAndPlay(runtime.queue[startIdx], p.startPosition ?? 0);
-  else renderUI();
+  else { wakeUI(); renderUI(); primeLyrics(runtime.queue[startIdx]); } // show synced lyrics even while paused
   broadcast(true);
   toast(`Queue loaded · ${runtime.queue.length} tracks`, 'success', 1500);
 }
@@ -548,10 +635,37 @@ function onSeek(p: SeekPayload) {
 function onVolume(p: VolumePayload) {
   const lvl = clamp(p.level, 0, 1);
   safe(() => playerManager.setVolume(lvl));
+  showVolumeOsd(lvl, false);
 }
 
 function onMute(p: MutePayload) {
   safe(() => playerManager.setMediaElement?.()?.mute?.(p.muted));
+  showVolumeOsd(playerManager.getCurrentVolume?.()?.level ?? 1, p.muted);
+}
+
+// Transient on-screen volume bar — TV remotes + sender volume changes get visible
+// feedback instead of silently moving. Auto-hides ~1.6s after the last change.
+let volOsdTimer = 0;
+function showVolumeOsd(level: number, muted: boolean) {
+  const osd = $('#volOsd');
+  const fill = $('#volOsdFill') as HTMLElement | null;
+  const pct = $('#volOsdPct');
+  const icon = $('#volOsdIcon');
+  if (!osd || !fill || !pct) return;
+  const v = muted ? 0 : clamp(level, 0, 1);
+  fill.style.width = `${Math.round(v * 100)}%`;
+  pct.textContent = muted ? 'Muted' : `${Math.round(v * 100)}%`;
+  osd.classList.toggle('is-muted', muted);
+  icon?.classList.toggle('is-muted', muted);
+  osd.classList.add('is-visible');
+  osd.setAttribute('aria-hidden', 'false');
+  wakeUI();
+  if (volOsdTimer) clearTimeout(volOsdTimer);
+  volOsdTimer = window.setTimeout(() => {
+    osd.classList.remove('is-visible');
+    osd.setAttribute('aria-hidden', 'true');
+    volOsdTimer = 0;
+  }, 1600);
 }
 
 function stepTrack(dir: 1 | -1) {
@@ -619,6 +733,9 @@ function onPlaybackError(e: any) {
 
 function loadAndPlay(item: ReceiverQueueItem, startPosition = 0) {
   if (!item?.audio) { errorOut('no_audio', new Error('queue item missing audio url')); return; }
+  hideUpNext(); // clear any "up next" card from the previous track
+  setBuffering(false); // reset any stale spinner from the previous track
+  wakeUI(); // a new track is a "presence" event → brighten, then auto-dim after 5s
   try {
     // In standalone preview mode (no Cast SDK), window.cast.framework.messages
     // is undefined — pass a plain object that buildStandalonePlayer().load()
@@ -651,11 +768,7 @@ function loadAndPlay(item: ReceiverQueueItem, startPosition = 0) {
       req.currentTime = Math.max(0, startPosition);
     }
     playerManager.load(req);
-    runtime.lyricsTrackId = item.id;
-    runtime.lyrics = [];
-    lastLyricsActiveIdx = -2;
-    lastLyricsActiveWordIdx = -2;
-    renderLyrics();
+    primeLyrics(item);
     renderUI();
     setStatus('live', 'Live');
   } catch (err) {
@@ -695,11 +808,49 @@ function renderUI() {
   setText('#artist', cur.artist);
   setText('#album', cur.album);
   setText('#eyebrow', cur.vibe || 'Casting from music.megabyte.space');
+  renderMetaChips(cur);
   const art = $('#artImg') as HTMLImageElement | null;
   if (art && cur.cover && art.src !== cur.cover) {
+    // Crossfade to the new cover.
+    art.style.opacity = '0';
+    art.onload = () => { art.style.opacity = '1'; };
     art.onerror = () => { logErr('art', new Error('art load failed: ' + cur.cover)); art.src = '/art/cover-panda-desiiignare.png'; };
     art.src = cur.cover;
+    // Sheen sweep on track change — re-trigger the CSS animation by toggling
+    // the class across a reflow.
+    const wrap = $('#artWrap');
+    if (wrap && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      wrap.classList.remove('is-fresh');
+      void wrap.offsetWidth;
+      wrap.classList.add('is-fresh');
+    }
   }
+  // Per-track color from the cover (receiver-side). Runs once per track; sender
+  // palette:set still overrides via the paletteFromSender guard.
+  if (cur.cover && lastPaletteTrackId !== cur.id) {
+    lastPaletteTrackId = cur.id;
+    paletteFromSender = false;
+    extractPaletteFromCover(new URL(cur.cover, location.href).toString());
+  }
+}
+
+// Meta chip row under the title — track position, runtime, source. Mirrors the
+// main site's playbar chips (BPM/key aren't in the cast payload, so we surface
+// what the receiver actually has: position, duration, live source).
+function renderMetaChips(cur: ReceiverQueueItem) {
+  const host = $('#npChips');
+  if (!host) return;
+  const pos = runtime.index >= 0 ? runtime.index + 1 : 1;
+  const total = runtime.queue.length || 1;
+  const durSec = playerManager.getDurationSec?.() ?? cur.duration ?? 0;
+  const dur = durSec > 0 ? fmtTime(durSec) : null;
+  const chips: string[] = [
+    `<span class="np__chip np__chip--num">${pos}<i>/</i>${total}</span>`,
+    cur.bpm ? `<span class="np__chip"><b>${cur.bpm}</b><i>BPM</i></span>` : '',
+    cur.musicalKey ? `<span class="np__chip np__chip--key">${escHtml(cur.musicalKey)}</span>` : '',
+    dur ? `<span class="np__chip">${dur}</span>` : ''
+  ].filter(Boolean);
+  host.innerHTML = chips.join('');
 }
 
 function renderQueue() {
@@ -731,8 +882,13 @@ function renderQueue() {
 function renderLyrics() {
   const inner = $('#lyricsInner');
   if (!inner) return;
+  lyricLineEls = [];
+  activeWordEls = [];
   if (!runtime.lyrics.length) {
-    inner.innerHTML = '<p class="lyrics__line is-empty">Lyrics syncing…</p>';
+    // No lyrics yet: distinguish "still loading" from "this track has none".
+    inner.innerHTML = lyricsMissing
+      ? '<p class="lyrics__line is-instrumental"><span class="lyrics__note">♪</span>Instrumental</p>'
+      : '<p class="lyrics__line is-empty">Lyrics syncing…</p>';
     return;
   }
   inner.innerHTML = runtime.lyrics.map((l, i) => {
@@ -745,6 +901,7 @@ function renderLyrics() {
     }
     return `<p class="lyrics__line" data-idx="${i}">${escHtml(l.text)}</p>`;
   }).join('');
+  lyricLineEls = Array.from(inner.querySelectorAll<HTMLElement>('.lyrics__line'));
 }
 
 function updateProgress() {
@@ -754,95 +911,311 @@ function updateProgress() {
   setText('#total', fmtTime(dur));
   const fill = $('#progFill') as HTMLElement | null;
   if (fill) fill.style.width = (dur > 0 ? Math.max(0, Math.min(1, cur / dur)) * 100 : 0).toFixed(1) + '%';
-  tickLyrics(cur);
+  updateUpNext(dur > 0 ? dur - cur : 0, dur);
+  // Word-level lyric highlighting is driven from the rAF loop (60fps) for smooth
+  // sync — TIME_UPDATE only fires a few times/sec, which made words jump.
   pendingState = true;
 }
 
+// The track that will play next, mirroring stepTrack(1): index+1, wrapping to 0
+// when loop is 'all'. Returns null on loop:'one' or the last track without loop.
+function peekNextTrack(): ReceiverQueueItem | null {
+  if (runtime.queue.length === 0 || runtime.index < 0) return null;
+  if (runtime.loop === 'one') return null;
+  let next = runtime.index + 1;
+  if (next >= runtime.queue.length) {
+    if (runtime.loop === 'all') next = 0;
+    else return null;
+  }
+  if (next === runtime.index) return null;
+  return runtime.queue[next] ?? null;
+}
+
+// Slide the "Up Next" card in during the last ~12s of a playing track.
+function updateUpNext(remaining: number, dur: number) {
+  const card = $('#upNext');
+  if (!card) return;
+  const next = peekNextTrack();
+  const show = dur > 12 && remaining > 1 && remaining <= 12 && !!next
+    && playerManager.getPlayerState?.() === 'PLAYING';
+  if (show && next) {
+    if (upNextShownFor !== next.id) {
+      upNextShownFor = next.id;
+      setText('#upNextTitle', next.title);
+      setText('#upNextArtist', next.artist);
+      const img = $('#upNextArt') as HTMLImageElement | null;
+      if (img && next.cover) img.src = next.cover;
+    }
+    card.classList.add('is-on');
+    card.setAttribute('aria-hidden', 'false');
+  } else {
+    hideUpNext();
+  }
+}
+function hideUpNext() {
+  const card = $('#upNext');
+  if (!card) return;
+  card.classList.remove('is-on');
+  card.setAttribute('aria-hidden', 'true');
+  upNextShownFor = null;
+}
+
 function tickLyrics(now: number) {
-  if (!runtime.lyrics.length) return;
-  let active = -1;
-  let lo = 0, hi = runtime.lyrics.length - 1;
+  if (!runtime.lyrics.length || !lyricLineEls.length) return;
+  // Active line via binary search on line start times. Clamp to 0 so the FIRST
+  // line is selected the moment the song starts — a long instrumental intro
+  // (e.g. chef-lu-stew's vocal enters ~21s in) otherwise leaves no line selected
+  // and reads as a broken/unsynced screen. The first line's words stay unfilled
+  // (--fill 0) until their own timestamps, so it's highlighted-but-not-yet-sung.
+  let active = -1, lo = 0, hi = runtime.lyrics.length - 1;
   while (lo <= hi) {
     const mid = (lo + hi) >> 1;
     if (runtime.lyrics[mid].t <= now) { active = mid; lo = mid + 1; }
     else hi = mid - 1;
   }
-  const lineChanged = active !== lastLyricsActiveIdx;
-  if (lineChanged) {
-    if (lastLyricsActiveIdx >= 0) {
-      const prevLine = $$('.lyrics__line')[lastLyricsActiveIdx];
-      if (prevLine) prevLine.querySelectorAll('.lyrics__w').forEach(s => {
-        s.classList.remove('is-active', 'is-past');
-      });
-    }
+  if (active < 0) active = 0;
+  if (active !== lastLyricsActiveIdx) {
     lastLyricsActiveIdx = active;
-    lastLyricsActiveWordIdx = -2;
-    $$('.lyrics__line').forEach((el, i) => {
+    for (let i = 0; i < lyricLineEls.length; i++) {
+      const el = lyricLineEls[i];
       el.classList.toggle('is-active', i === active);
       el.classList.toggle('is-past', i < active);
       el.classList.toggle('is-soon', i === active + 1);
-    });
-    const target = $$('.lyrics__line')[active];
-    const inner = $('#lyricsInner') as HTMLElement | null;
+    }
+    activeWordEls = Array.from(lyricLineEls[active].querySelectorAll<HTMLSpanElement>('.lyrics__w'));
     const wrap = $('#lyrics') as HTMLElement | null;
+    const target = lyricLineEls[active];
+    const inner = $('#lyricsInner') as HTMLElement | null;
     if (target && inner && wrap) {
-      const wrapH = wrap.clientHeight;
-      const offset = (target.offsetTop + target.offsetHeight / 2) - (wrapH / 2);
+      const offset = (target.offsetTop + target.offsetHeight / 2) - (wrap.clientHeight / 2);
       inner.style.transform = `translateY(${-offset}px)`;
     }
   }
+  // Karaoke word-fill: each word in the active line fills left→right (sung white,
+  // unsung dim) via --fill (0→1). Smooth because this runs every rAF frame.
   if (active < 0) return;
-  const line = runtime.lyrics[active];
-  const words = line?.words;
-  if (!words || !words.length) return;
-  let wIdx = -1;
+  const words = runtime.lyrics[active]?.words;
+  if (!words || !words.length || !activeWordEls.length) return;
   for (let i = 0; i < words.length; i++) {
+    const span = activeWordEls[i];
+    if (!span) continue;
     const w = words[i];
-    if (now >= w.s && now < w.e) { wIdx = i; break; }
-    if (now < w.s) { wIdx = i - 1; break; }
+    const f = now >= w.e ? 1 : now < w.s ? 0 : (now - w.s) / Math.max(0.06, w.e - w.s);
+    span.style.setProperty('--fill', f.toFixed(3));
   }
-  if (wIdx === -1 && now >= words[words.length - 1].e) wIdx = words.length - 1;
-  if (wIdx === lastLyricsActiveWordIdx) return;
-  lastLyricsActiveWordIdx = wIdx;
-  const lineEl = $$('.lyrics__line')[active];
-  if (!lineEl) return;
-  const wordEls = lineEl.querySelectorAll<HTMLSpanElement>('.lyrics__w');
-  wordEls.forEach((s, i) => {
-    s.classList.toggle('is-active', i === wIdx);
-    s.classList.toggle('is-past', i < wIdx);
-  });
 }
 
 function applyPalette(p: PalettePayload) {
   const root = document.documentElement.style;
-  if (p.bg) {
-    // Build 4-stop gradient from a single hex by deriving HSL siblings
-    root.setProperty('--bg-a', '#06030f');
-    root.setProperty('--bg-b', p.bg);
-    root.setProperty('--bg-c', p.muted || p.bg);
-    root.setProperty('--bg-d', p.vibrant || p.accent || p.bg);
-  }
+  // Brand is black + cyan: the background stays deep-black (set in CSS), and we
+  // tint ONLY the accent/secondary/violet hues from the album art so the aurora
+  // + visualizer + glows shift per track without ever washing the page to a
+  // non-brand color. (Old behavior repainted the whole bg from album hue.)
   if (p.accent) root.setProperty('--accent', p.accent);
-  if (p.vibrant) root.setProperty('--vibrant', p.vibrant);
-  if (p.muted) root.setProperty('--muted', p.muted);
+  // Secondary accent: prefer the album's vibrant, else its muted, else keep brand.
+  if (p.vibrant || p.muted) root.setProperty('--accent-2', p.vibrant || p.muted || '#50aae3');
+  if (p.muted) root.setProperty('--violet', p.muted);
   if (p.ink) root.setProperty('--ink', p.ink);
+  paletteFromSender = true; // sender push is authoritative over receiver extraction
 }
 
-function applyLyrics(p: LyricsPayload) {
-  if (!p?.trackId) return;
-  if (p.trackId !== currentItem()?.id) {
-    runtime.lyricsTrackId = p.trackId;
+// Receiver-side palette: pull a vibrant accent + secondary from the cover art so
+// EVERY track gets its own color (aurora/glow/viz/title sheen shift per track)
+// even with no sender push (standalone preview, or a sender that omits palette).
+// Same-origin covers → canvas is not tainted. Cheap: one 24×24 read per track.
+function applyExtracted(p: { accent: string; accent2: string; violet: string }) {
+  if (paletteFromSender) return; // never override a sender palette
+  const root = document.documentElement.style;
+  root.setProperty('--accent', p.accent);
+  root.setProperty('--accent-2', p.accent2);
+  root.setProperty('--violet', p.violet);
+}
+function extractPaletteFromCover(url: string) {
+  if (!url) return;
+  const cached = paletteCache.get(url);
+  if (cached) { applyExtracted(cached); return; }
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    try {
+      const n = 24;
+      const cv = document.createElement('canvas');
+      cv.width = n; cv.height = n;
+      const cx = cv.getContext('2d', { willReadFrequently: true });
+      if (!cx) return;
+      cx.drawImage(img, 0, 0, n, n);
+      const d = cx.getImageData(0, 0, n, n).data;
+      let best = { score: -1, h: 190 }, second = { score: -1, h: 210 };
+      for (let i = 0; i < d.length; i += 4) {
+        const [h, s, l] = rgbToHsl(d[i], d[i + 1], d[i + 2]);
+        if (l < 0.18 || l > 0.82) continue;              // skip near-black/white
+        const score = s * (1 - Math.abs(l - 0.55));       // vibrant + mid-light
+        if (score > best.score) { second = best; best = { score, h }; }
+        else if (score > second.score && Math.abs(h - best.h) > 40) second = { score, h };
+      }
+      const pal = {
+        accent: `hsl(${Math.round(best.h)} 92% 62%)`,
+        accent2: `hsl(${Math.round(second.h)} 85% 60%)`,
+        violet: `hsl(${Math.round(best.h)} 70% 46%)`,
+      };
+      paletteCache.set(url, pal);
+      const curUrl = currentItem() ? new URL(currentItem()!.cover, location.href).toString() : '';
+      if (curUrl === url) applyExtracted(pal);
+    } catch { /* tainted/canvas blocked → keep brand cyan */ }
+  };
+  img.src = url;
+}
+
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0));
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
   }
-  runtime.lyrics = (p.lines ?? []).slice().sort((a, b) => a.t - b.t);
+  return [h, s, l];
+}
+
+// Core lyric setter — sorts, stores, records the source, re-renders.
+function setLyricsLines(trackId: string, lines: ReceiverLine[], source: 'self' | 'sender') {
+  runtime.lyricsTrackId = trackId;
+  runtime.lyrics = lines.slice().sort((a, b) => a.t - b.t);
+  lyricsSource = source;
+  lyricsMissing = false; // real lyrics arrived → clear any instrumental state
   lastLyricsActiveIdx = -2;
   lastLyricsActiveWordIdx = -2;
   renderLyrics();
+}
+
+// Sender / shim entry point. IGNORE pushes that don't match the track actually
+// playing (prevents a stale push showing the WRONG song), and never override an
+// authoritative self-fetch.
+function applyLyrics(p: LyricsPayload) {
+  if (!p?.trackId) return;
+  const cur = currentItem()?.id;
+  if (cur && p.trackId !== cur) return;       // wrong-track push → drop
+  if (lyricsSource === 'self') return;        // self-fetch is authoritative
+  setLyricsLines(p.trackId, p.lines ?? [], 'sender');
+}
+
+// Reset + render lyrics for a track, then self-fetch them. Called whether the
+// track is playing or merely loaded (paused), so lyrics always show.
+function primeLyrics(item: ReceiverQueueItem | undefined) {
+  if (!item) return;
+  runtime.lyricsTrackId = item.id;
+  runtime.lyrics = [];
+  lyricsSource = null;
+  lyricsMissing = false;
+  lastLyricsActiveIdx = -2;
+  lastLyricsActiveWordIdx = -2;
+  renderLyrics();
+  void selfFetchLyrics(item);
+  void enrichMeta(item);
+}
+
+// Self-fetch word-timed lyrics from the same origin (/lyrics/<id>.json). These
+// timings match the EXACT MP3 the receiver streams, so they are AUTHORITATIVE —
+// they override any sender push and drive precise word-level highlighting. Works
+// in the standalone ?test preview too.
+async function selfFetchLyrics(item: ReceiverQueueItem) {
+  const token = ++lyricsFetchToken;
+  try {
+    const r = await fetch(`/lyrics/${encodeURIComponent(item.id)}.json`, { cache: 'force-cache' });
+    if (!r.ok) { markLyricsMissing(item.id, token); return; }
+    // A misbehaving origin can return 200 with the SPA HTML shell for a missing
+    // file; parse defensively so HTML-as-JSON is "missing", not a stuck "syncing…".
+    const data = await r.json().catch(() => null) as { lines?: Array<{ s: number; e?: number; text: string }>; words?: Array<{ w: string; s: number; e: number; line?: number }> } | null;
+    if (!data) { markLyricsMissing(item.id, token); return; }
+    // Stale guard: track changed or a newer fetch superseded this one.
+    if (token !== lyricsFetchToken || currentItem()?.id !== item.id) return;
+    const rawLines = data.lines ?? [];
+    const rawWords = (data.words ?? []).filter(w => typeof w.s === 'number').slice().sort((a, b) => a.s - b.s);
+    // Assign each word to a line. Many lyrics files OMIT the per-word `line`
+    // field (11/72 as of 2026-06-08) — relying on it dropped every word to
+    // line -1 → those tracks got NO word-level highlight. Group by TIME instead
+    // (the latest line whose start ≤ the word's start), which works for every
+    // file; fall back to the `line` field only when it's present on all words.
+    const buckets: Array<Array<{ w: string; s: number; e: number }>> = rawLines.map(() => []);
+    const hasLineField = rawWords.length > 0 && rawWords.every(w => Number.isInteger(w.line));
+    for (const w of rawWords) {
+      let li = -1;
+      if (hasLineField) {
+        li = w.line as number;
+      } else {
+        for (let i = 0; i < rawLines.length; i++) { if (rawLines[i].s <= w.s) li = i; else break; }
+      }
+      if (li >= 0 && li < buckets.length) buckets[li].push({ w: w.w, s: w.s, e: w.e });
+    }
+    const lines: ReceiverLine[] = rawLines.map((l, i) => {
+      const lw = buckets[i].sort((a, b) => a.s - b.s); // monotonic so the fill wipes left→right
+      return { t: l.s, e: l.e, text: l.text, ...(lw.length ? { words: lw } : {}) } as ReceiverLine;
+    });
+    if (lines.length) setLyricsLines(item.id, lines, 'self'); // authoritative
+    else markLyricsMissing(item.id, token);                   // file exists but empty
+  } catch { /* offline / transient → keep sender push or "syncing…" (don't claim instrumental) */ }
+}
+
+// A self-fetch confirmed this track has no usable lyrics (404 or empty file).
+// Show the gorgeous "instrumental" state — but only if this is still the current
+// track, the fetch wasn't superseded, and no sender push has filled the lyrics.
+function markLyricsMissing(trackId: string, token: number) {
+  if (token !== lyricsFetchToken || currentItem()?.id !== trackId) return;
+  if (lyricsSource === 'sender' || runtime.lyrics.length) return;
+  lyricsMissing = true;
+  renderLyrics();
+}
+
+// Compact per-track BPM + key map (public/cast-meta.json, ~2kB), fetched once.
+// Real Cast items already carry bpm/musicalKey from the sender; this enriches the
+// standalone ?test preview and acts as a fallback when a sender omits them.
+function loadCastMeta() {
+  if (!castMetaPromise) {
+    castMetaPromise = fetch('/cast-meta.json', { cache: 'force-cache' })
+      .then(r => (r.ok ? r.json() : {}))
+      .catch(() => ({}));
+  }
+  return castMetaPromise;
+}
+async function enrichMeta(item: ReceiverQueueItem) {
+  if (item.bpm && item.musicalKey) return; // sender already provided both
+  const map = await loadCastMeta();
+  const m = map[item.id];
+  if (!m) return;
+  if (m.bpm && !item.bpm) item.bpm = m.bpm;
+  if (m.key && !item.musicalKey) item.musicalKey = m.key;
+  if (currentItem()?.id === item.id) renderMetaChips(item);
 }
 
 function setView(view: ReceiverView | 'idle') {
   runtime.view = (view === 'idle' ? 'now-playing' : view);
   const stage = $('#stage') as HTMLElement | null;
   if (stage) stage.dataset.view = view;
+
+  // a11y: the idle splash and the live content (now-playing + lyrics + queue,
+  // all simultaneously in the grid) are mutually exclusive. Mark the inactive
+  // group inert + aria-hidden so assistive tech — and the focused #queueList —
+  // never live inside an aria-hidden subtree (Chrome logs that as an error).
+  const idle = view === 'idle';
+  const splash = $('#idleSplash') as HTMLElement | null;
+  const content = ['#nowPlaying', '#lyrics', '#queue'].map(s => $(s) as HTMLElement | null);
+  setHidden(splash, !idle);
+  for (const el of content) setHidden(el, idle);
+}
+
+/** Toggle aria-hidden + inert together, blurring focus out of a hidden subtree. */
+function setHidden(el: HTMLElement | null, hidden: boolean) {
+  if (!el) return;
+  el.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+  (el as HTMLElement & { inert: boolean }).inert = hidden;
+  if (hidden && el.contains(document.activeElement)) {
+    (document.activeElement as HTMLElement | null)?.blur();
+  }
 }
 
 function scrollFocusedIntoView() {
@@ -854,7 +1227,39 @@ function scrollFocusedIntoView() {
 }
 
 // ─── D-pad keyboard ────────────────────────────────────────────────────────
+// ── UI wake ───────────────────────────────────────────────────────────────
+// The queue rail rests at opacity 0.25 (CSS). Any controller signal — D-pad
+// key, sender message, touch — flips body.ui-awake → CSS fades it to 1 over
+// 0.333s. After 5s of silence it auto-dims again so the now-playing + wave
+// visualizer own the 10-foot screen.
+function wakeUI() {
+  document.body.classList.add('ui-awake');
+  if (uiAwakeTimer) clearTimeout(uiAwakeTimer);
+  uiAwakeTimer = setTimeout(() => document.body.classList.remove('ui-awake'), 5000) as unknown as number;
+}
+
+// Buffering overlay with a 350ms debounce so brief micro-stalls don't flicker
+// a spinner. on=true schedules the show; on=false cancels/hides immediately.
+function setBuffering(on: boolean) {
+  const el = $('#buffering');
+  if (!el) return;
+  if (on) {
+    if (bufferTimer || el.classList.contains('is-on')) return;
+    bufferTimer = window.setTimeout(() => {
+      bufferTimer = 0;
+      el.classList.add('is-on');
+      el.setAttribute('aria-hidden', 'false');
+    }, 350) as unknown as number;
+  } else {
+    if (bufferTimer) { clearTimeout(bufferTimer); bufferTimer = 0; }
+    el.classList.remove('is-on');
+    el.setAttribute('aria-hidden', 'true');
+  }
+}
+
 function setupKeyboard() {
+  document.addEventListener('keydown', () => wakeUI(), { passive: true, capture: true });
+  document.addEventListener('pointermove', () => wakeUI(), { passive: true });
   document.addEventListener('keydown', (e) => {
     const k = e.key;
     if (runtime.view === 'queue') {
@@ -918,17 +1323,23 @@ function setupKeyboard() {
 let audioCtx: AudioContext | null = null;
 let analyser: AnalyserNode | null = null;
 let analyserFreq: Uint8Array | null = null;
+let analyserTime: Uint8Array | null = null;
 let analyserBound: HTMLMediaElement | null = null;
 
 function ensureAnalyser(): AnalyserNode | null {
+  // Don't create/resume the AudioContext before playback is allowed — avoids the
+  // autoplay-policy console warning. Synthetic wave covers the pre-unlock window.
+  if (!audioUnlocked) return null;
   const el: HTMLMediaElement | null = standaloneAudio ?? (playerManager.getMediaElement?.() as HTMLMediaElement | null) ?? null;
   if (!el) return null;
   if (analyser && analyserBound === el) return analyser;
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
     const node = analyser ?? audioCtx.createAnalyser();
-    node.fftSize = 256;
-    node.smoothingTimeConstant = 0.78;
+    // 2048 fft → 1024 time-domain samples: smooth oscilloscope wave (matches
+    // the main app's wave mode). smoothing 0.82 keeps the line silky at 10ft.
+    node.fftSize = 2048;
+    node.smoothingTimeConstant = 0.82;
     let src: MediaElementAudioSourceNode | undefined = (el as any).__bzSrc;
     if (!src) {
       src = audioCtx.createMediaElementSource(el);
@@ -941,6 +1352,7 @@ function ensureAnalyser(): AnalyserNode | null {
     analyser = node;
     analyserBound = el;
     analyserFreq = new Uint8Array(node.frequencyBinCount);
+    analyserTime = new Uint8Array(node.fftSize);
     return node;
   } catch (err) {
     logErr('analyser-init', err);
@@ -951,8 +1363,13 @@ function ensureAnalyser(): AnalyserNode | null {
 function startVisualizer() {
   const canvas = $('#viz') as HTMLCanvasElement | null;
   if (!canvas) return;
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // DPR cap: Android TV panels are 1080p with dpr≈1, but some report 1.5-2 and
+  // then can't fill that many pixels at 60fps. Cap at 1.5, drop to 1 in lite.
+  let dpr = Math.min(1.5, window.devicePixelRatio || 1);
   const resize = () => {
+    dpr = vizQuality === 'lite' ? 1 : Math.min(1.5, window.devicePixelRatio || 1);
     canvas.width = Math.floor(window.innerWidth * dpr);
     canvas.height = Math.floor(window.innerHeight * dpr);
   };
@@ -960,69 +1377,168 @@ function startVisualizer() {
   window.addEventListener('resize', resize);
   const ctx2 = canvas.getContext('2d', { alpha: true });
   if (!ctx2) return;
+
+  // Drifting particle field — cheap depth cue behind the bars. Seeded once.
+  const PARTICLES = 46;
+  const parts = Array.from({ length: PARTICLES }, () => ({
+    x: Math.random(), y: Math.random(),
+    r: 0.4 + Math.random() * 1.6,
+    sp: 0.02 + Math.random() * 0.06,
+    ph: Math.random() * Math.PI * 2
+  }));
+
   let blobPhase = 0;
-  const smooth: number[] = new Array(64).fill(0);
+  let lastBeatAt = 0;
+
+  // Adaptive performance for ANY Android TV WebView:
+  //  • Rolling FPS estimate (EMA of frame delta) — not just a one-time warmup
+  //    probe, so sustained jank mid-playback ALSO downshifts to lite.
+  //  • In lite, cap the draw rate to ~40fps (skip frames) to leave the TV's
+  //    weak GPU/CPU headroom for audio decode + Shaka.
+  //  • Pause entirely while the tab/app is backgrounded.
+  let fpsEMA = 60, lastT = 0, warmFrames = 0;
+  const LITE_FRAME_MS = 1000 / 40;
+  let lastDrawT = 0;
+
   const tick = (t: number) => {
     requestAnimationFrame(tick);
     if (document.hidden) return;
+    // Smooth word-level lyric highlighting — runs every frame (cheap: tickLyrics
+    // only touches the DOM when the active line/word changes), even in lite.
+    if (runtime.lyrics.length) tickLyrics(playerManager.getCurrentTimeSec?.() ?? 0);
+    if (lastT) {
+      const dt = t - lastT;
+      if (dt > 0 && dt < 500) fpsEMA = fpsEMA * 0.9 + (1000 / dt) * 0.1;
+      warmFrames++;
+      // After ~1s warmup, if sustained FPS is weak, drop to lite (once).
+      if (warmFrames > 60 && fpsEMA < 46 && vizQuality === 'high') {
+        vizQuality = 'lite';
+        document.documentElement.classList.add('no-gpu');
+        resize();
+      }
+    }
+    lastT = t;
+
+    // Lite frame cap — skip draws to hold ~40fps and free the CPU.
+    if (vizQuality === 'lite') {
+      if (t - lastDrawT < LITE_FRAME_MS) return;
+      lastDrawT = t;
+    }
+
     const w = canvas.width, h = canvas.height;
     ctx2.clearRect(0, 0, w, h);
     const playing = playerManager.getPlayerState?.() === 'PLAYING';
     const accent = getCSS('--accent') || '#00e5ff';
-    const vibrant = getCSS('--vibrant') || '#ff4ab6';
-    const muted = getCSS('--muted') || '#7c3aed';
+    const accent2 = getCSS('--accent-2') || '#50aae3';
+    const violet = getCSS('--violet') || '#7c3aed';
+    const lite = vizQuality === 'lite';
 
-    // 1) Palette ambient blobs — always drawn so idle isn't dead empty.
-    blobPhase += 0.0035;
+    // ── Layer 1: drifting particles (skipped in lite / reduced) ──────────
+    if (!lite && !reduced) {
+      for (const p of parts) {
+        p.ph += p.sp * 0.02;
+        const py = (p.y + Math.sin(p.ph) * 0.02 + 1) % 1;
+        const px = (p.x + Math.cos(p.ph * 0.7) * 0.01 + 1) % 1;
+        ctx2.beginPath();
+        ctx2.arc(px * w, py * h, p.r * dpr, 0, Math.PI * 2);
+        ctx2.fillStyle = hexToRgba(accent, 0.10 + 0.12 * Math.abs(Math.sin(p.ph)));
+        ctx2.fill();
+      }
+    }
+
+    // ── Read FFT (for bass/beat) + time-domain (for the wave) ────────────
+    const an = ensureAnalyser();
+    let bassSum = 0, bassN = 0;
+    if (an && analyserFreq) {
+      an.getByteFrequencyData(analyserFreq);
+      const bins = analyserFreq.length;
+      const bassCut = Math.max(2, Math.floor(bins * 0.08));
+      for (let j = 0; j < bassCut; j++) { bassSum += analyserFreq[j]; bassN++; }
+    }
+    if (an && analyserTime) an.getByteTimeDomainData(analyserTime);
+
+    // ── Beat → --beat CSS var (drives the album-glow ring + aurora) ──────
+    const bass = bassN ? (bassSum / bassN) / 255 : (playing ? 0.3 : 0.08);
+    beatEnergy = beatEnergy * 0.86 + bass * 0.14;
+    const pulse = Math.max(0, Math.min(1, (bass - beatEnergy) * 3 + bass * 0.5));
+    if (bass > beatEnergy * 1.25 && t - lastBeatAt > 180) lastBeatAt = t;
+    const beat = playing ? pulse : 0;
+    document.documentElement.style.setProperty('--beat', beat.toFixed(3));
+
+    // ── Centered radial bass bloom behind the wave ───────────────────────
+    if (!lite) {
+      const cx = w / 2, cy = h * 0.5;
+      const rr = Math.max(w, h) * (0.20 + bass * 0.24);
+      const bloom = ctx2.createRadialGradient(cx, cy, 0, cx, cy, rr);
+      bloom.addColorStop(0, hexToRgba(accent, 0.14 + bass * 0.18));
+      bloom.addColorStop(0.5, hexToRgba(violet, 0.06));
+      bloom.addColorStop(1, hexToRgba(accent, 0));
+      ctx2.fillStyle = bloom;
+      ctx2.fillRect(0, 0, w, h);
+    }
+
+    // ── Ambient palette blobs (always, so idle has life) ─────────────────
+    blobPhase += 0.003;
+    const blobAlpha = lite ? 0.10 : 0.16;
     const blobs: Array<[number, number, string, number]> = [
-      [0.22 + 0.08 * Math.sin(blobPhase), 0.30 + 0.06 * Math.cos(blobPhase * 0.9), accent, 0.20],
-      [0.78 + 0.06 * Math.cos(blobPhase * 1.1), 0.40 + 0.07 * Math.sin(blobPhase * 0.7), vibrant, 0.18],
-      [0.50 + 0.05 * Math.sin(blobPhase * 1.3), 0.75 + 0.05 * Math.cos(blobPhase), muted, 0.14]
+      [0.20 + 0.07 * Math.sin(blobPhase), 0.28 + 0.05 * Math.cos(blobPhase * 0.9), accent, blobAlpha],
+      [0.80 + 0.05 * Math.cos(blobPhase * 1.1), 0.42 + 0.06 * Math.sin(blobPhase * 0.7), accent2, blobAlpha * 0.85]
     ];
     for (const [bx, by, color, alpha] of blobs) {
-      const r = Math.max(w, h) * 0.55;
+      const r = Math.max(w, h) * 0.5;
       const grad = ctx2.createRadialGradient(bx * w, by * h, 0, bx * w, by * h, r);
       grad.addColorStop(0, hexToRgba(color, alpha));
       grad.addColorStop(1, hexToRgba(color, 0));
       ctx2.fillStyle = grad;
       ctx2.fillRect(0, 0, w, h);
     }
-    if (!playing) return;
 
-    // 2) Real FFT bars (sender-mirror) — fall back to gentle waveform if the
-    // analyser isn't wired yet (autoplay policy, cross-origin without CORS, etc.).
-    const an = ensureAnalyser();
-    const bars = 64;
-    const bw = w / bars;
-    let arr: number[] = new Array(bars).fill(0);
-    if (an && analyserFreq) {
-      an.getByteFrequencyData(analyserFreq);
-      const bins = analyserFreq.length;
-      for (let i = 0; i < bars; i++) {
-        const lo = Math.floor((i / bars) * bins);
-        const hi = Math.floor(((i + 1) / bars) * bins);
-        let s = 0, n = 0;
-        for (let j = lo; j < hi && j < bins; j++) { s += analyserFreq[j]; n++; }
-        arr[i] = n ? (s / n) / 255 : 0;
-      }
+    // ── WAVE visualizer — multi-layer additive oscilloscope (ported from the
+    //    regular app's `wave` mode). Time-domain samples drawn as glowing,
+    //    color-shifted, additively-blended lines around the vertical center,
+    //    amplitude pumped by beat + bass. Reads gorgeous on a 10-foot screen.
+    const cy = h / 2;
+    const phase = t / 1000;
+    let timeArr: Uint8Array;
+    if (an && analyserTime) {
+      timeArr = analyserTime;
     } else {
-      const phase = (t / 1000) * 1.2;
-      for (let i = 0; i < bars; i++) {
-        const f = (Math.sin(phase + i * 0.18) + 1) / 2;
-        const energy = 0.5 + 0.5 * Math.sin(phase * 1.5 + i * 0.31);
-        arr[i] = 0.4 + 0.6 * f * energy;
+      // Idle / pre-gesture synthetic sine so the wave is never a dead flat line.
+      const N = 256;
+      const synth = new Uint8Array(N);
+      for (let i = 0; i < N; i++) {
+        synth[i] = 128 + Math.sin(i * 0.12 + phase * 2) * 26 * (playing ? 1 : 0.5);
       }
+      timeArr = synth;
     }
-    for (let i = 0; i < bars; i++) {
-      smooth[i] = smooth[i] * 0.72 + arr[i] * 0.28;
-      const v = smooth[i];
-      const bh = h * 0.22 * Math.max(0.05, v);
-      const grad = ctx2.createLinearGradient(0, h - bh, 0, h);
-      grad.addColorStop(0, vibrant);
-      grad.addColorStop(1, accent);
-      ctx2.fillStyle = grad;
-      ctx2.fillRect(i * bw + 1, h - bh, bw - 2, bh);
+    const N = timeArr.length;
+    const layers = lite ? 3 : 5;
+    ctx2.save();
+    ctx2.globalCompositeOperation = 'lighter';
+    ctx2.lineCap = 'round';
+    ctx2.lineJoin = 'round';
+    ctx2.lineWidth = dpr * (lite ? 1.8 : 2.4);
+    const layerHex = [accent, accent2, accent, violet, accent2];
+    for (let layer = 0; layer < layers; layer++) {
+      const off = (layer - (layers - 1) / 2) * h * 0.05;
+      const amp = h * (0.14 + beat * 0.1 + bass * 0.08);
+      const phaseShift = layer * 0.6;
+      const isMain = layer === Math.floor(layers / 2);
+      ctx2.beginPath();
+      for (let i = 0; i < N; i++) {
+        const x = (i / (N - 1)) * w;
+        const v = (timeArr[i] - 128) / 128;
+        const y = cy + off + v * amp + Math.sin(i * 0.05 + phase * 2 + phaseShift) * h * 0.01;
+        if (i === 0) ctx2.moveTo(x, y); else ctx2.lineTo(x, y);
+      }
+      const col = layerHex[layer % layerHex.length];
+      ctx2.strokeStyle = hexToRgba(col, isMain ? 0.92 : 0.34);
+      if (isMain && !lite) { ctx2.shadowColor = hexToRgba(accent, 0.7); ctx2.shadowBlur = 22 * dpr; }
+      else ctx2.shadowBlur = 0;
+      ctx2.stroke();
     }
+    ctx2.shadowBlur = 0;
+    ctx2.restore();
   };
   requestAnimationFrame(tick);
 }
@@ -1167,6 +1683,9 @@ function toast(message: string, tone: 'success' | 'error' | 'info' = 'info', dur
   (toast as any)._t = window.setTimeout(() => {
     el.classList.remove('is-visible');
     el.setAttribute('aria-hidden', 'true');
+    // Clear after the fade so `.toast:empty { display:none }` removes the
+    // bubble entirely — no empty pill lingering at the bottom of the TV.
+    window.setTimeout(() => { if (!el.classList.contains('is-visible')) el.textContent = ''; }, 360);
   }, durationMs);
 }
 

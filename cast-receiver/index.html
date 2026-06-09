@@ -2,6 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <script>
+      try { window.trustedTypes && window.trustedTypes.createPolicy('default', { createHTML: function(s){return s;}, createScript: function(s){return s;}, createScriptURL: function(s){return s;} }); } catch (e) {}
+    </script>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
     <title>BZ Music · Cast</title>
@@ -19,32 +22,37 @@
   <body>
     <main id="stage" class="stage" data-view="now-playing">
       <div class="stage__bg" id="bg" aria-hidden="true"></div>
+      <div class="stage__aurora" aria-hidden="true"></div>
       <canvas id="viz" class="viz" aria-hidden="true"></canvas>
+      <img class="brand-bug" src="/art/bz-icon.png" alt="bZ" decoding="async" />
 
       <section class="np" id="nowPlaying" data-view-target="now-playing">
-        <div class="np__art-wrap">
-          <div class="np__art-glow" id="artGlow" aria-hidden="true"></div>
-          <img id="artImg" class="np__art" src="" alt="" />
-        </div>
-        <div class="np__meta">
-          <p class="np__eyebrow" id="eyebrow">Casting from music.megabyte.space</p>
-          <h1 class="np__title" id="title">—</h1>
-          <p class="np__sub"><span id="artist">—</span> · <span id="album">—</span></p>
-          <div class="np__progress">
-            <div class="np__bar"><div class="np__fill" id="progFill"></div></div>
-            <div class="np__times"><span id="now">0:00</span><span id="total">0:00</span></div>
+        <h1 class="np__title" id="title">—</h1>
+        <div class="np__row">
+          <div class="np__art-wrap" id="artWrap">
+            <div class="np__art-glow" id="artGlow" aria-hidden="true"></div>
+            <img id="artImg" class="np__art" src="" alt="" />
           </div>
-          <p class="np__hint" id="hint">▲ ▼ Queue · ◀ ▶ Seek · OK Play / Pause · Back Now Playing</p>
+          <div class="np__meta">
+            <p class="np__eyebrow" id="eyebrow">Casting from music.megabyte.space</p>
+            <p class="np__sub"><span id="artist">—</span> · <span id="album">—</span></p>
+            <div class="np__chips" id="npChips" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="np__progress">
+          <p class="np__hint" id="hint">▲▼ Queue · ◀▶ Seek · OK Play/Pause · Back Home</p>
+          <div class="np__bar"><div class="np__fill" id="progFill"></div></div>
+          <div class="np__times"><span id="now">0:00</span><span id="total">0:00</span></div>
         </div>
       </section>
 
-      <section class="lyrics" id="lyrics" data-view-target="lyrics" aria-hidden="true">
+      <section class="lyrics" id="lyrics" data-view-target="lyrics">
         <div class="lyrics__inner" id="lyricsInner">
           <p class="lyrics__line is-empty">Lyrics syncing…</p>
         </div>
       </section>
 
-      <aside class="queue" id="queue" data-view-target="queue" aria-hidden="true">
+      <aside class="queue" id="queue" data-view-target="queue">
         <header class="queue__header">
           <h2>Queue</h2>
           <span id="queueCount">0</span>
@@ -72,13 +80,38 @@
             <p class="idle__qr-hint">Scan to join · phone becomes the remote</p>
           </div>
           <div class="idle__hint-row">
-            <span class="idle__chip">▲ ▼ Queue</span>
-            <span class="idle__chip">◀ ▶ Seek</span>
-            <span class="idle__chip">OK Play / Pause</span>
-            <span class="idle__chip">Back Now Playing</span>
+            <span class="idle__chip">▲▼ Queue</span>
+            <span class="idle__chip">◀▶ Seek</span>
+            <span class="idle__chip">OK Play/Pause</span>
+            <span class="idle__chip">Back Home</span>
           </div>
         </div>
       </section>
     </main>
+
+    <!-- Overlays live OUTSIDE #stage so position:fixed is viewport-relative
+         (the stage's burn-in `translate` would otherwise be their containing
+         block and offset/scale them). -->
+    <aside class="upnext" id="upNext" aria-hidden="true">
+      <span class="upnext__label">Up Next</span>
+      <div class="upnext__body">
+        <img class="upnext__art" id="upNextArt" src="" alt="" />
+        <div class="upnext__text">
+          <span class="upnext__title" id="upNextTitle">—</span>
+          <span class="upnext__artist" id="upNextArtist">—</span>
+        </div>
+      </div>
+    </aside>
+
+    <div class="buffering" id="buffering" aria-hidden="true" role="status">
+      <span class="buffering__spin" aria-hidden="true"></span>
+      <span class="buffering__label">Buffering…</span>
+    </div>
+
+    <div class="vol-osd" id="volOsd" aria-hidden="true" role="status">
+      <svg class="vol-osd__icon" id="volOsdIcon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path class="vol-osd__wave" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="vol-osd__wave" d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+      <div class="vol-osd__track"><div class="vol-osd__fill" id="volOsdFill"></div></div>
+      <span class="vol-osd__pct" id="volOsdPct">100%</span>
+    </div>
   </body>
 </html>

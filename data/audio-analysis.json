@@ -1,0 +1,311 @@
+{
+  "generated_at": "2026-05-24T16:48:18",
+  "tracks": {
+    "chef-lu-stew": {
+      "bpm": 88.7,
+      "key": "A minor",
+      "keyConfidence": 0.803,
+      "duration": 179.88
+    },
+    "green-beans-mean": {
+      "bpm": 87.9,
+      "key": "F major",
+      "keyConfidence": 0.702,
+      "duration": 192.04
+    },
+    "infinite-good": {
+      "bpm": 92.1,
+      "key": "G major",
+      "keyConfidence": 0.643,
+      "duration": 134.44
+    },
+    "one-stop-higher": {
+      "bpm": 95.1,
+      "key": "C minor",
+      "keyConfidence": 0.727,
+      "duration": 191.96
+    },
+    "white-flag-prayer": {
+      "bpm": 80.7,
+      "key": "F major",
+      "keyConfidence": 0.85,
+      "duration": 211.0
+    },
+    "saint-johns-plate": {
+      "bpm": 73.3,
+      "key": "F major",
+      "keyConfidence": 0.672,
+      "duration": 233.48
+    },
+    "st-johns-towers": {
+      "bpm": 102.4,
+      "key": "A major",
+      "keyConfidence": 0.763,
+      "duration": 242.4
+    },
+    "st-johns-launchpad": {
+      "bpm": 131.1,
+      "key": "F minor",
+      "keyConfidence": 0.722,
+      "duration": 268.0
+    },
+    "st-johns-plate-2": {
+      "bpm": 71.0,
+      "key": "A minor",
+      "keyConfidence": 0.854,
+      "duration": 187.84
+    },
+    "st-johns-stew": {
+      "bpm": 133.9,
+      "key": "C# minor",
+      "keyConfidence": 0.73,
+      "duration": 208.4
+    },
+    "st-john-needs": {
+      "bpm": 73.6,
+      "key": "C minor",
+      "keyConfidence": 0.723,
+      "duration": 234.6
+    },
+    "soup-kitchen-sky": {
+      "bpm": 135.2,
+      "key": "F major",
+      "keyConfidence": 0.714,
+      "duration": 222.72
+    },
+    "promised-land-hands": {
+      "bpm": 87.1,
+      "key": "F major",
+      "keyConfidence": 0.877,
+      "duration": 170.88
+    },
+    "eisenhower-matrix": {
+      "bpm": 71.4,
+      "key": "A minor",
+      "keyConfidence": 0.8,
+      "duration": 277.2
+    },
+    "cbo-pen": {
+      "bpm": 75.4,
+      "key": "F major",
+      "keyConfidence": 0.659,
+      "duration": 153.76
+    },
+    "federal-reserve-trash": {
+      "bpm": 86.2,
+      "key": "F major",
+      "keyConfidence": 0.761,
+      "duration": 156.84
+    },
+    "millstone-prophecy": {
+      "bpm": 95.7,
+      "key": "F major",
+      "keyConfidence": 0.775,
+      "duration": 91.68
+    },
+    "mama-called-us": {
+      "bpm": 96.5,
+      "key": "C minor",
+      "keyConfidence": 0.511,
+      "duration": 144.76
+    },
+    "soupe-saint-jean": {
+      "bpm": 119.9,
+      "key": "G# major",
+      "keyConfidence": 0.602,
+      "duration": 134.52
+    },
+    "hobbit-kettle-fire": {
+      "bpm": 86.1,
+      "key": "A major",
+      "keyConfidence": 0.721,
+      "duration": 151.6
+    },
+    "pineal-crown": {
+      "bpm": 96.7,
+      "key": "F major",
+      "keyConfidence": 0.587,
+      "duration": 154.76
+    },
+    "tide-foley-revelation": {
+      "bpm": 87.2,
+      "key": "C minor",
+      "keyConfidence": 0.619,
+      "duration": 161.68
+    },
+    "bermuda-slipstream": {
+      "bpm": 133.6,
+      "key": "A minor",
+      "keyConfidence": 0.787,
+      "duration": 237.88
+    },
+    "chimba-precisa": {
+      "bpm": 70.6,
+      "key": "C major",
+      "keyConfidence": 0.621,
+      "duration": 185.88
+    },
+    "corozon-gringo": {
+      "bpm": 70.1,
+      "key": "C major",
+      "keyConfidence": 0.636,
+      "duration": 178.0
+    },
+    "st-johns-halo": {
+      "bpm": 87.4,
+      "key": "C major",
+      "keyConfidence": 0.842,
+      "duration": 202.12
+    },
+    "soup-kitchen-windows": {
+      "bpm": 95.4,
+      "key": "F major",
+      "keyConfidence": 0.757,
+      "duration": 167.76
+    },
+    "banyan-ember-light": {
+      "bpm": 98.7,
+      "key": "F major",
+      "keyConfidence": 0.829,
+      "duration": 262.2
+    },
+    "birch-swing-heaven": {
+      "bpm": 72.7,
+      "key": "A minor",
+      "keyConfidence": 0.863,
+      "duration": 102.84
+    },
+    "brick-city-near": {
+      "bpm": 71.4,
+      "key": "A# major",
+      "keyConfidence": 0.703,
+      "duration": 167.36
+    },
+    "homoousios-stone": {
+      "bpm": 88.9,
+      "key": "C minor",
+      "keyConfidence": 0.58,
+      "duration": 213.04
+    },
+    "sky-been-knocking": {
+      "bpm": 94.3,
+      "key": "C minor",
+      "keyConfidence": 0.575,
+      "duration": 160.0
+    },
+    "terms-updated": {
+      "bpm": 70.7,
+      "key": "D minor",
+      "keyConfidence": 0.643,
+      "duration": 204.92
+    },
+    "alien-ai-lord": {
+      "bpm": 86.2,
+      "key": "D minor",
+      "keyConfidence": 0.674,
+      "duration": 134.72
+    },
+    "syllabus-sling": {
+      "bpm": 77.6,
+      "key": "C minor",
+      "keyConfidence": 0.636,
+      "duration": 282.52
+    },
+    "border-mercy": {
+      "bpm": 71.7,
+      "key": "C minor",
+      "keyConfidence": 0.692,
+      "duration": 219.6
+    },
+    "mercy-border": {
+      "bpm": 70.9,
+      "key": "F major",
+      "keyConfidence": 0.727,
+      "duration": 211.28
+    },
+    "afghanistan-mercy": {
+      "bpm": 137.3,
+      "key": "C minor",
+      "keyConfidence": 0.774,
+      "duration": 116.84
+    },
+    "kabul-handheld-prayer": {
+      "bpm": 139.8,
+      "key": "A# minor",
+      "keyConfidence": 0.587,
+      "duration": 130.24
+    },
+    "kia-boys-handshake": {
+      "bpm": 70.5,
+      "key": "A# major",
+      "keyConfidence": 0.778,
+      "duration": 193.24
+    },
+    "chrome-mercy-lift": {
+      "bpm": 77.3,
+      "key": "F major",
+      "keyConfidence": 0.705,
+      "duration": 195.2
+    },
+    "holy-steel": {
+      "bpm": 70.8,
+      "key": "F major",
+      "keyConfidence": 0.665,
+      "duration": 162.28
+    },
+    "humble-thunder": {
+      "bpm": 70.5,
+      "key": "A# major",
+      "keyConfidence": 0.546,
+      "duration": 181.24
+    },
+    "humble-still-lit": {
+      "bpm": 86.4,
+      "key": "F major",
+      "keyConfidence": 0.648,
+      "duration": 172.84
+    },
+    "almost-heartbreak": {
+      "bpm": 71.4,
+      "key": "F major",
+      "keyConfidence": 0.721,
+      "duration": 176.8
+    },
+    "atlantis-crossfire": {
+      "bpm": 130.3,
+      "key": "C minor",
+      "keyConfidence": 0.545,
+      "duration": 267.64
+    },
+    "breathe-out-clean": {
+      "bpm": 71.8,
+      "key": "F major",
+      "keyConfidence": 0.722,
+      "duration": 168.0
+    },
+    "paper-cup-gospel": {
+      "bpm": 138.8,
+      "key": "D minor",
+      "keyConfidence": 0.634,
+      "duration": 146.48
+    },
+    "pick-one-star": {
+      "bpm": 129.9,
+      "key": "F major",
+      "keyConfidence": 0.673,
+      "duration": 183.6
+    },
+    "rimshot-redemption": {
+      "bpm": 70.8,
+      "key": "F major",
+      "keyConfidence": 0.68,
+      "duration": 157.32
+    },
+    "window-herb-parade": {
+      "bpm": 96.8,
+      "key": "C major",
+      "keyConfidence": 0.827,
+      "duration": 157.6
+    }
+  }
+}

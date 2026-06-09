@@ -17,5 +17,5 @@
     "noEmit": true,
     "types": ["@cloudflare/workers-types"]
   },
-  "include": ["src/**/*.ts", "vite.config.ts", "worker/**/*.ts"]
+  "include": ["src/**/*.ts", "worker/**/*.ts"]
 }

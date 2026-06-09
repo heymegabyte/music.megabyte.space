@@ -2,6 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <script>
+      try { window.trustedTypes && window.trustedTypes.createPolicy('default', { createHTML: function(s){return s;}, createScript: function(s){return s;}, createScriptURL: function(s){return s;} }); } catch (e) {}
+    </script>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
     <title>Ashton + Mila — the appeal from bZ — Panda Desiiignare</title>
@@ -39,10 +42,20 @@
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap");
       :root {
-        --bg: #060610; --ink: #f4f4ff; --ink-soft: rgba(244,244,255,0.78);
-        --ink-mute: rgba(244,244,255,0.5); --accent: #00e5ff; --violet: #7c3aed;
-        --hot: #ff2da0; --gold: #f5c24a;
+        --bg: #060610; --ink: #f4f4ff; --ink-soft: rgba(244,244,255,0.82);
+        --ink-mute: rgba(244,244,255,0.5);
+        /* Neon palette parity with bzmusic.win — electric cyan (was #00e5ff),
+           electric magenta-violet (was #7c3aed), hot-pink (was #ff2da0),
+           electric yellow (was #f5c24a). All chosen for max chroma at high
+           lightness so they pop against #060610. */
+        --accent: #00FFFF; --violet: #C76BFF;
+        --hot: #FF1F8F; --gold: #FFE600;
         --line: rgba(244,244,255,0.1);
+        /* Contrast-safe text variant of --accent — OKLCH-clamped to guarantee
+           luminance ≥ 0.78 so accent text stays neon even when used over the
+           radial-gradient bg's brighter regions. */
+        --ink-accent: oklch(from var(--accent) max(l, 0.82) max(c, 0.2) h);
+        --text-bg-dark: rgba(6, 6, 16, 0.85);
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
@@ -56,11 +69,11 @@
           var(--bg);
         min-height: 100vh;
       }
-      a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .2s; }
+      a { color: var(--ink-accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .2s; }
       a:hover, a:focus-visible { border-bottom-color: var(--accent); }
       .wrap { max-width: 920px; margin: 0 auto; padding: clamp(28px, 5vw, 80px); }
       .eyebrow { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.85rem;
-        letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+        letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-accent); margin: 0 0 14px; }
       h1 {
         font-family: "Sora", system-ui, sans-serif; font-weight: 800; line-height: 0.98;
         font-size: clamp(2.4rem, 6vw, 5rem); margin: 0 0 24px; letter-spacing: -0.025em;
@@ -71,7 +84,7 @@
       h2 { font-family: "Sora", system-ui, sans-serif; font-size: clamp(1.4rem, 2vw + 1rem, 2rem);
         margin: 32px 0 12px; letter-spacing: -0.02em; }
       p { color: var(--ink-soft); max-width: 70ch; text-wrap: pretty; }
-      strong { color: var(--accent); font-weight: 700; }
+      strong { color: var(--ink-accent); font-weight: 700; }
       em { color: var(--gold); font-style: italic; }
       video {
         width: 100%; border-radius: 28px; margin-top: 12px;
@@ -96,7 +109,7 @@
       blockquote { border-left: 3px solid var(--accent); margin: 24px 0;
         padding: 12px 18px; background: rgba(0,229,255,0.05); border-radius: 0 14px 14px 0;
         color: var(--ink); font-size: 1.08rem; }
-      .signoff { font-family: "Sora"; font-weight: 700; color: var(--accent);
+      .signoff { font-family: "Sora"; font-weight: 700; color: var(--ink-accent);
         font-size: 1.1rem; margin-top: 32px; }
     </style>
   </head>

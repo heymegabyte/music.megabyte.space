@@ -1,0 +1,61 @@
+name: Prod E2E
+
+# Runs the full-flow Playwright feature matrix against the LIVE site:
+#  - on every push to main (post-merge regression gate)
+#  - every 6 hours (continuous synthetic monitor — catches prod-only drift,
+#    expired secrets, broken upstreams that a build-time check can't see)
+#  - on demand via the Actions tab
+# Only needs the public PROD_URL, so no Cloudflare secrets are required.
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      prod_url:
+        description: 'Target base URL'
+        required: false
+        default: 'https://music.megabyte.space'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prod-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  feature-matrix:
+    name: feature matrix (desktop + mobile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chrome
+        run: npx playwright install --with-deps chrome
+
+      - name: Run prod feature matrix
+        env:
+          PROD_URL: ${{ github.event.inputs.prod_url || 'https://music.megabyte.space' }}
+        run: npm run test:e2e:prod -- feature-matrix
+
+      - name: Upload screenshots + traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: feature-matrix-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore

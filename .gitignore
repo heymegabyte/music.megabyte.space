@@ -14,13 +14,51 @@ dist
 .claude/settings.local.json
 public/og/track-*.jpg
 public/og/track-*.png
+tsconfig.tsbuildinfo
+
+# ── Build, test & automation output (never source-controlled) ──────────
 .wrangler/
 test-results/
 playwright-report/
+playwright/.cache/
 .verify-shots/
 .playwright-mcp/
-tsconfig.tsbuildinfo
+coverage/
+.nyc_output/
+*.lcov
 
-# Stray verification screenshots — keep them out of the repo root.
+# ── Verification / debug screenshots & captures (repo root + anywhere) ──
+# These accumulate from Playwright + manual QA. Keep them out of git.
+/*.png
+/*.jpeg
+/*.jpg
+/*.webp
+/*.gif
+/*.mp4
+/*.mov
 /verify-*.png
 /viz-picker-*.png
+hero-*.png
+*-before.png
+*-after.png
+*-final*.png
+
+# ── One-off probe / scratch scripts ────────────────────────────────────
+/probe*.mjs
+/scripts/_*.mjs
+/_*.mjs
+/_*.js
+
+# ── Suno extraction artifacts — regeneratable via scripts/fetch-suno-metadata.mjs;
+#    ~3 MB of raw prompt/tag data that bloats the diff. ───────────────────
+/data/suno-feed.json
+/data/suno-matches.json
+/data/whisper-cache/
+
+# ── Local audit scratch files ──────────────────────────────────────────
+_sks_*.json
+_PROD.txt
+_VERDICT.txt
+
+# ── Relocated large media: print masters + orphaned video (kept local, never web-served) ──
+/_archive/

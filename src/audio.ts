@@ -70,6 +70,12 @@ export class AudioEngine {
     // through the Cast SDK's CastContext.requestSession() instead, so the
     // browser shouldn't auto-prompt the system Remote Playback overlay.
     this.audio.disableRemotePlayback = true;
+    // Allow Safari/iOS AirPlay route — `x-webkit-airplay="allow"` opts in
+    // even when `disableRemotePlayback` is set above (the WebKit attribute
+    // pre-dates the standard property and is treated independently). The
+    // AirPlay button surfaces via `airplayAvailable()` in src/web-share.ts
+    // once Safari signals an available route.
+    this.audio.setAttribute('x-webkit-airplay', 'allow');
     this.audio.setAttribute('data-engine', 'bz');
     this.audio.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none;';
     if (typeof document !== 'undefined' && document.body) document.body.appendChild(this.audio);

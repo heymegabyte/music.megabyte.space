@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "vite",
     "cast:preview": "vite --open=/cast-receiver/?demo=1",
-    "prebuild": "node scripts/gen-og-cards.mjs",
-    "build": "tsc -b && vite build",
+    "prebuild": "node scripts/gen-og-cards.mjs && node scripts/gen-sitemap.mjs && node scripts/gen-tracks-manifest.mjs",
+    "build": "tsc -b && vite build && node scripts/build-embed-component.mjs",
     "typecheck": "tsc -b --noEmit",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,cjs,json,md,html,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,cjs,json,md,html,css}\"",
@@ -20,7 +20,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "prepare": "lefthook install || true",
+    "sync-suno": "node scripts/fetch-suno-metadata.mjs --merge --realign && python3 scripts/analyze-audio.py && node scripts/build-suno-meta.mjs",
+    "sync-suno:cached": "node scripts/fetch-suno-metadata.mjs --cached --merge --realign && python3 scripts/analyze-audio.py && node scripts/build-suno-meta.mjs",
+    "analyze-audio": "python3 scripts/analyze-audio.py",
+    "sync-lyrics:whisper-cache": "node scripts/whisper-cache.mjs",
+    "sync-lyrics:align": "node scripts/align-whisper-lyrics.mjs",
+    "sync-lyrics:all": "npm run sync-lyrics:whisper-cache && npm run sync-lyrics:align"
   },
   "dependencies": {
     "lottie-web": "^5.12.2",
@@ -29,6 +36,8 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260504.1",
     "@playwright/test": "^1.59.1",
+    "@types/node": "^25.9.1",
+    "lefthook": "^1.13.7",
     "prettier": "^3.3.3",
     "typescript": "^5.6.3",
     "vite": "^6.0.7",

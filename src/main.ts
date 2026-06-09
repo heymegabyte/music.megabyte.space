@@ -1,17 +1,26 @@
 import './style.css';
+// Trusted Types default policy is installed by the inline <script> at the
+// top of index.html (BEFORE Vite's main bundle loads + before CF's
+// bot-management injects its iframe). Duplicating the createPolicy('default')
+// call here logs a `'allow-duplicates'` CSP warning even though our CSP
+// permits it — Chrome report-only mode is noisy. Keep this entry point lean.
 import { AudioEngine } from './audio';
 import type { ReverbPreset } from './audio';
 import { Visualizer } from './visualizer';
 import type { VizMode } from './visualizer';
-import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID, SPOTIFY_ARTIST_ID } from './data';
+import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID, SPOTIFY_ARTIST_ID, SPOTIFY_ARTIST_URL, NEXT_RELEASE } from './data';
+import { SUNO_META } from './suno-meta';
 import { TRACK_TAGS, getTrackTags } from './tags';
+import { CONTENT_PAGE_BY_SLUG, CONTENT_PAGES } from './content-pages';
+import { bootIfMerchPage } from './merch-cart';
+import { fmtTime, fmtClock, fmtHz, hzToNote } from './format';
 import type { Track, Album } from './types';
 import { cast } from './cast';
 import type { ReceiverQueueItem, ReceiverLine, ReceiverState, PalettePayload } from './cast-protocol';
 import { extractPalette, type Palette } from './palette';
 interface CastWord { w: string; s: number; e: number; }
 interface CastLine { t: number; e: number; text: string; words: CastWord[]; }
-import { hue, type HueGroup } from './hue';
+import { hue } from './hue';
 import {
   airplayAvailable,
   showAirPlayPicker,
@@ -24,8 +33,10 @@ import {
 import { nativeShareSupported, shareWithFallback } from './web-share';
 import { pushSupported, pushState, subscribePush, unsubscribePush } from './web-push';
 import { createPipController, type PipController } from './pip';
-import { mountSpotifyConnect, handleAuthCallback as handleSpotifyCallback } from './spotify-connect';
-import { mountAIChat } from './ai-chat';
+// ai-chat (~132KB) and spotify-connect (~14KB) are dynamic-imported below so
+// the LCP-critical main bundle ships ~145KB lighter. ai-chat loads on idle +
+// first Cmd+I/Cmd+K intent; spotify-connect loads only when the OAuth callback
+// route or the more-menu pair button triggers it.
 
 const $ = <T extends HTMLElement>(sel: string, root: Document | HTMLElement = document) =>
   root.querySelector(sel) as T | null;
@@ -37,6 +48,9 @@ interface LyricsBundle { words?: WhisperWord[]; lines: WhisperLine[]; duration?:
 
 const engine = new AudioEngine();
 let visualizer: Visualizer;
+// Wake Lock helpers come from media-integrations.ts (which also handles
+// the visibilitychange re-acquire). We just wire them to audio play/pause
+// below so the screen stays lit while listening.
 let currentTrackId: string | null = null;
 let pipController: PipController | null = null;
 let hudRaf: number | null = null;
@@ -93,7 +107,8 @@ const LS_KEYS = {
   installDismissed: 'bz:installDismissed',
   installSnoozeUntil: 'bz:installSnoozeUntil',
   crossfade: 'bz:crossfade',
-  listenStats: 'bz:listenStats'
+  listenStats: 'bz:listenStats',
+  statsCache: 'bz:statsCache'
 };
 
 interface LocalListenStat {
@@ -171,6 +186,9 @@ function recordPlayStart(trackId: string) {
   stat.lastPlayAt = Date.now();
   lastPlayedAt = { id: trackId, startedAt: Date.now(), lastTime: 0, counted: false };
   persistListenStats();
+  // Toast-style newsletter nudge removed. Subscribe UI now lives inline
+  // at every album footer + in the more-menu via `.nl-inline` widgets,
+  // so no popup is needed to capture the signup intent.
 }
 
 function recordListenProgress(currentTime: number) {
@@ -195,9 +213,29 @@ function recordTrackEnded() {
   persistListenStats();
 }
 
+/** Synchronously seed playCounts/shareCounts from the last-known /api/stats
+ *  snapshot in localStorage so Aeon's Choice paints the REAL ranking on the
+ *  first frame instead of the catalog-order fallback (which then visibly
+ *  reshuffled seconds later when the network fetch landed). Returns true if a
+ *  usable snapshot was applied. */
+function seedStatsFromCache(): boolean {
+  try {
+    const raw = localStorage.getItem(LS_KEYS.statsCache);
+    if (!raw) return false;
+    const cached = JSON.parse(raw) as { tracks?: Record<string, { plays?: number; shares?: number }> };
+    if (!cached?.tracks) return false;
+    let any = false;
+    for (const [id, c] of Object.entries(cached.tracks)) {
+      if (typeof c.plays === 'number') { playCounts.set(id, c.plays); any = true; }
+      if (typeof c.shares === 'number') { shareCounts.set(id, c.shares); any = true; }
+    }
+    return any;
+  } catch { return false; }
+}
+
 async function loadGlobalStats() {
   try {
-    const res = await fetch('/api/stats', { cache: 'no-store' });
+    const res = await fetch('/api/stats');
     if (!res.ok) return;
     const data = await res.json() as { tracks?: Record<string, { plays?: number; shares?: number }> };
     if (data.tracks) {
@@ -205,6 +243,8 @@ async function loadGlobalStats() {
         if (typeof c.plays === 'number') playCounts.set(id, c.plays);
         if (typeof c.shares === 'number') shareCounts.set(id, c.shares);
       }
+      // Persist the snapshot so the NEXT visit pre-saturates instantly.
+      try { localStorage.setItem(LS_KEYS.statsCache, JSON.stringify(data)); } catch { /* quota */ }
     }
     statsLoaded = true;
     document.querySelectorAll<HTMLElement>('[data-plays]').forEach(el => {
@@ -328,9 +368,14 @@ function refreshAiPlaylist() {
     const album = ALBUM_BY_ID.get(t.album);
     const isCurrent = pick.trackId === currentTrackId;
     const pct = Math.round(pick.score * 100);
-    return `<button type="button" class="ai-pick${isCurrent ? ' is-current' : ''}" data-ai-pick="${pick.trackId}" style="--ai-pick-score:${pick.score.toFixed(3)}" aria-label="Play ${t.title} from ${album?.name ?? 'bZ'} — AI pick #${idx + 1}, score ${pct}">
+    // Inline --album-accent per pick so each chip pulls its OWN track's
+    // album palette (cyan/violet/teal/lime/rose/gold) instead of the
+    // global --accent fallback. Without this every pick rendered cyan
+    // regardless of which album it came from.
+    const tint = album?.accent ?? '#00E5FF';
+    return `<button type="button" class="ai-pick${isCurrent ? ' is-current' : ''}" data-ai-pick="${pick.trackId}" style="--ai-pick-score:${pick.score.toFixed(3)}; --album-accent:${tint}" aria-label="Play ${t.title} from ${album?.name ?? 'bZ'} — Aeon's pick #${idx + 1}, score ${pct}">
       <span class="ai-pick__rank" aria-hidden="true">${idx + 1}</span>
-      <img class="ai-pick__cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="38" height="38" loading="lazy" />
+      <img class="ai-pick__cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.jpg'}" alt="" width="38" height="38" loading="lazy" />
       <span class="ai-pick__meta">
         <span class="ai-pick__title">${t.title}</span>
         <span class="ai-pick__album">${album?.name ?? 'bZ'}</span>
@@ -372,17 +417,7 @@ function refreshShareLabel() {
   }
 }
 
-function fmtTime(s: number) {
-  if (!Number.isFinite(s) || s < 0) return '0:00';
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  return `${m}:${sec.toString().padStart(2, '0')}`;
-}
-function fmtHz(hz: number) {
-  if (!Number.isFinite(hz) || hz <= 0) return '— Hz';
-  if (hz >= 1000) return `${(hz / 1000).toFixed(2)} kHz`;
-  return `${Math.round(hz)} Hz`;
-}
+// fmtTime / fmtHz / fmtClock / hzToNote now live in ./format (shared, de-duped).
 
 const VIZ_GROUPS: Array<{ label: string; tagline: string; modes: VizMode[] }> = [
   { label: 'Cosmos',   tagline: 'Stars, galaxies, deep space',  modes: ['starfield', 'constellation', 'galaxy', 'supernova', 'aurora', 'nebula'] },
@@ -467,23 +502,34 @@ function filterVizGrid(grid: HTMLElement | null, q: string) {
   grid.dataset.empty = groupHits === 0 ? '1' : '';
 }
 
-const NOTE_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
-function hzToNote(hz: number): string {
-  if (!Number.isFinite(hz) || hz <= 20) return '—';
-  const midi = Math.round(69 + 12 * Math.log2(hz / 440));
-  const name = NOTE_NAMES[((midi % 12) + 12) % 12];
-  const oct = Math.floor(midi / 12) - 1;
-  return `${name}${oct}`;
-}
-
-function fmtClock(s: number): string {
-  if (!Number.isFinite(s) || s < 0) s = 0;
-  const m = Math.floor(s / 60);
-  const r = Math.floor(s % 60);
-  return `${m}:${r.toString().padStart(2, '0')}`;
-}
-
 function trackPath(track: Track) { return `/${track.album}/${track.id}`; }
+
+/**
+ * Inline newsletter widget — drop-in replacement for the legacy
+ * #notifyDialog modal. Renders a single horizontal row: email input +
+ * submit arrow + push-bell toggle. Submission posts to /api/subscribe
+ * (handled by the global delegated submit handler in setupInlineNewsletter).
+ * Push toggle uses the existing pushSupported/subscribePush flow inline —
+ * no modal, no separate dialog, no flow break.
+ *
+ * `source` is a string slug ('album-desiiignare', 'more-menu', 'footer')
+ * recorded with each subscribe so we can A/B which placements convert
+ * via the /api/stats endpoint.
+ */
+function renderInlineNewsletter(source: string): string {
+  const safeSource = source.replace(/[^a-z0-9-]/gi, '').slice(0, 32);
+  return `
+    <form class="nl-inline" data-nl-source="${safeSource}" novalidate>
+      <input type="email" class="nl-inline__input" name="email" placeholder="email — first listen, every drop" autocomplete="email" required aria-label="Email for bZ drops" inputmode="email" spellcheck="false" autocapitalize="off" />
+      <button type="submit" class="nl-inline__submit" aria-label="Subscribe">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+      <button type="button" class="nl-inline__push" aria-label="Also enable push notifications" aria-pressed="false" title="Also push to my lock screen">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+      <span class="nl-inline__status" data-nl-status hidden></span>
+    </form>`;
+}
 function albumPath(albumId: string) { return `/${albumId}`; }
 
 type RouteMatch =
@@ -613,6 +659,10 @@ function setAlbumFilter(albumId: string | null, opts: { push?: boolean; render?:
     const host = $('#albums');
     if (host) renderAlbums(host);
   }
+  // Refresh the hero so the visualizer surface shows the album name +
+  // tagline while no track is playing yet.
+  const t = currentTrackId ? TRACK_BY_ID.get(currentTrackId) : null;
+  renderNowPlaying(t ?? null);
 }
 
 function showAutoplayPrompt(track: Track) {
@@ -644,6 +694,8 @@ interface ShareTarget {
   cover: string;
   shareUrl: string;
   embedPath: string;
+  /** 1200×630 og:image card for the link-preview surface */
+  ogImage: string;
 }
 type EmbedSize = 'small' | 'medium' | 'wide';
 const EMBED_DIMS: Record<EmbedSize, { w: string; h: number }> = {
@@ -652,7 +704,10 @@ const EMBED_DIMS: Record<EmbedSize, { w: string; h: number }> = {
   wide: { w: '100%', h: 220 }
 };
 let shareCurrent: ShareTarget | null = null;
-let shareEmbedSize: EmbedSize = 'small';
+// Embed surfaces always render at 'medium' (480×220) — single canonical
+// size per Brian's preference. Variable kept for legacy embedSnippet
+// signature compatibility but no UI surface flips it.
+const shareEmbedSize: EmbedSize = 'medium';
 
 function buildShareTarget(kind: 'track' | 'album', id: string): ShareTarget | null {
   if (kind === 'track') {
@@ -663,9 +718,10 @@ function buildShareTarget(kind: 'track' | 'album', id: string): ShareTarget | nu
       kind, id: t.id,
       title: t.title,
       sub: `${album?.name ?? 'bZ'} · bZ`,
-      cover: album?.cover ?? '/art/cover-panda-desiiignare.png',
+      cover: album?.cover ?? '/art/cover-panda-desiiignare.jpg',
       shareUrl: `${SITE_ORIGIN}${trackPath(t)}`,
-      embedPath: `/embed/${t.album}/${t.id}`
+      embedPath: `/embed/${t.album}/${t.id}`,
+      ogImage: trackOgUrl(t.id)
     };
   }
   const a = ALBUM_BY_ID.get(id);
@@ -676,7 +732,8 @@ function buildShareTarget(kind: 'track' | 'album', id: string): ShareTarget | nu
     sub: `${a.trackIds.length} tracks · bZ`,
     cover: a.cover,
     shareUrl: `${SITE_ORIGIN}${albumPath(a.id)}`,
-    embedPath: `/embed/${a.id}`
+    embedPath: `/embed/${a.id}`,
+    ogImage: albumOgUrl(a.id)
   };
 }
 
@@ -688,6 +745,128 @@ function embedSnippet(target: ShareTarget, size: EmbedSize): string {
   return `<iframe src="${src}" ${widthAttr} height="${h}" frameborder="0" allow="autoplay; clipboard-write; encrypted-media" loading="lazy" title="bZ — ${target.title}"${styleExtra}></iframe>`;
 }
 
+/** Lazy QR rendering. Avoids a bundle-bloat QR-encoder dep by drawing
+ *  the goqr.me PNG (160×160) onto the canvas via Image + drawImage —
+ *  zero added JS payload, zero round-trip until the user clicks the
+ *  QR chip. Falls back to a copy-link affordance if the fetch fails. */
+async function drawQrCanvas(canvas: HTMLCanvasElement, url: string): Promise<void> {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(url)}&color=060610&bgcolor=ffffff&margin=8`;
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  await new Promise<void>((resolve) => {
+    img.onload = () => {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve();
+    };
+    img.onerror = () => {
+      // Network blocked — paint a "scan failed" placeholder.
+      ctx.fillStyle = '#0a0a18';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#FF7AB8';
+      ctx.font = '12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('qr unavailable', canvas.width / 2, canvas.height / 2);
+      resolve();
+    };
+    img.src = qrUrl;
+  });
+}
+
+/** Generate a 1080×1080 quote-card PNG with cover + title + album +
+ *  accent halo + bZ branding, trigger browser download. Pure Canvas2D
+ *  — no external deps, no network round-trip beyond loading the cover
+ *  image. Designed for Instagram/Stories sharing. */
+async function downloadQuoteCardImage(t: ShareTarget): Promise<void> {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1080;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  // Dark background gradient — matches site canvas.
+  const bg = ctx.createRadialGradient(540, 540, 0, 540, 540, 760);
+  bg.addColorStop(0, '#0d0d22');
+  bg.addColorStop(1, '#060610');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 1080, 1080);
+  // Resolve album-accent from current site context (CSS var).
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#00FFFF';
+  // Load cover image
+  await new Promise<void>((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      // 720×720 cover, top-aligned, accent halo behind it.
+      ctx.save();
+      // Halo
+      const halo = ctx.createRadialGradient(540, 380, 100, 540, 380, 460);
+      halo.addColorStop(0, accent + '66');
+      halo.addColorStop(1, accent + '00');
+      ctx.fillStyle = halo;
+      ctx.fillRect(0, 0, 1080, 1080);
+      // Cover (rounded rect via path)
+      const x = 180, y = 80, size = 720, r = 24;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + size, y, x + size, y + size, r);
+      ctx.arcTo(x + size, y + size, x, y + size, r);
+      ctx.arcTo(x, y + size, x, y, r);
+      ctx.arcTo(x, y, x + size, y, r);
+      ctx.closePath();
+      ctx.save();
+      ctx.clip();
+      ctx.drawImage(img, x, y, size, size);
+      ctx.restore();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = accent + 'AA';
+      ctx.stroke();
+      ctx.restore();
+      resolve();
+    };
+    img.onerror = () => resolve();
+    img.src = t.cover.startsWith('http') ? t.cover : `${SITE_ORIGIN}${t.cover}`;
+  });
+  // Title + subline + branding
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 64px "Sora", system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  // Auto-shrink title to fit 920px max width
+  let titleSize = 64;
+  while (ctx.measureText(t.title).width > 920 && titleSize > 36) {
+    titleSize -= 4;
+    ctx.font = `800 ${titleSize}px "Sora", system-ui, sans-serif`;
+  }
+  ctx.fillText(t.title, 540, 880);
+  // Subline (album · vibe)
+  ctx.fillStyle = accent;
+  ctx.font = '500 22px "JetBrains Mono", monospace';
+  ctx.fillText(t.sub.toUpperCase().slice(0, 60), 540, 925);
+  // Branding line
+  ctx.fillStyle = 'rgba(244,244,255,0.6)';
+  ctx.font = '600 18px "JetBrains Mono", monospace';
+  ctx.fillText('▶  MUSIC.MEGABYTE.SPACE', 540, 985);
+  // Trigger download
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bz-${t.kind}-${t.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, 'image/png');
+}
+
+/** Lazy QR rendering. Avoids a bundle-bloat QR-encoder dep by drawing
+ *  the goqr.me PNG (160×160) onto the canvas via Image + drawImage —
+ *  zero added JS payload, zero round-trip until the user clicks the
+ *  QR chip. Falls back to a copy-link affordance if the fetch fails. */
 function refreshShareDialog() {
   if (!shareCurrent) return;
   const t = shareCurrent;
@@ -701,21 +880,80 @@ function refreshShareDialog() {
   if (eyebrow) eyebrow.textContent = t.kind === 'track' ? 'share song' : 'share album';
   const link = $('#shareLink') as HTMLInputElement | null;
   if (link) link.value = t.shareUrl;
-  const tweet = $('#shareTweet') as HTMLAnchorElement | null;
-  if (tweet) {
-    const text = `${t.title} — bZ`;
-    tweet.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(t.shareUrl)}`;
+
+  // Pre-compose share text — used across every social network so the
+  // post copy stays consistent. Per-network referral tracking via
+  // `?ref=share-<network>` so we can see in /api/stats which platforms
+  // actually drive traffic vs which just collect impressions.
+  const baseUrl = t.shareUrl;
+  const refUrl = (network: string) => {
+    const sep = baseUrl.includes('?') ? '&' : '?';
+    return `${baseUrl}${sep}ref=share-${network}`;
+  };
+  const text = `${t.title} — bZ`;
+  const longTextFor = (network: string) => `${t.title} — bZ. Listen: ${refUrl(network)}`;
+  const coverUrl = t.cover.startsWith('http') ? t.cover : `${SITE_ORIGIN}${t.cover}`;
+  const textEnc = encodeURIComponent(text);
+
+  // Wire each network's share-intent URL with per-network referral tag.
+  const setHref = (id: string, href: string) => {
+    const el = $('#' + id) as HTMLAnchorElement | null;
+    if (el) el.href = href;
+  };
+  setHref('shareXTwitter', `https://twitter.com/intent/tweet?text=${textEnc}&url=${encodeURIComponent(refUrl('x'))}`);
+  setHref('shareThreads', `https://www.threads.net/intent/post?text=${encodeURIComponent(longTextFor('threads'))}`);
+  setHref('shareBluesky', `https://bsky.app/intent/compose?text=${encodeURIComponent(longTextFor('bluesky'))}`);
+  // Mastodon "share via toot" routes to the user's home instance via toot.kytta.dev
+  // (canonical share-router that prompts for the user's instance, then forwards).
+  setHref('shareMastodon', `https://toot.kytta.dev/?text=${encodeURIComponent(longTextFor('mastodon'))}`);
+  setHref('shareFacebook', `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(refUrl('facebook'))}`);
+  setHref('shareLinkedIn', `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(refUrl('linkedin'))}`);
+  setHref('shareReddit', `https://www.reddit.com/submit?url=${encodeURIComponent(refUrl('reddit'))}&title=${textEnc}`);
+  setHref('shareHN', `https://news.ycombinator.com/submitlink?u=${encodeURIComponent(refUrl('hn'))}&t=${textEnc}`);
+  setHref('shareTelegram', `https://t.me/share/url?url=${encodeURIComponent(refUrl('telegram'))}&text=${textEnc}`);
+  setHref('shareWhatsApp', `https://wa.me/?text=${encodeURIComponent(longTextFor('whatsapp'))}`);
+  setHref('shareSignal', `https://signal.me/#${encodeURIComponent(refUrl('signal'))}`);
+  setHref('shareSMS', `sms:?&body=${encodeURIComponent(longTextFor('sms'))}`);
+  setHref('shareEmail', `mailto:?subject=${encodeURIComponent(`bZ — ${t.title}`)}&body=${encodeURIComponent(`${t.title} — listen here:\n${refUrl('email')}`)}`);
+  // 3 new networks (best recs): Pinterest (highly visual, music-friendly),
+  // Tumblr (cult-followings + reblogs), Pocket (read-later that converts).
+  setHref('sharePinterest', `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(refUrl('pinterest'))}&media=${encodeURIComponent(coverUrl)}&description=${textEnc}`);
+  setHref('shareTumblr', `https://www.tumblr.com/widgets/share/tool?canonicalUrl=${encodeURIComponent(refUrl('tumblr'))}&title=${textEnc}&caption=${encodeURIComponent(longTextFor('tumblr'))}`);
+  setHref('sharePocket', `https://getpocket.com/edit?url=${encodeURIComponent(refUrl('pocket'))}&title=${textEnc}`);
+
+  // Link preview = the actual og:image for this track/album. What the
+  // recipient sees in their feed when the link unfurls.
+  const previewImg = $('#sharePreviewImg') as HTMLImageElement | null;
+  if (previewImg) {
+    previewImg.src = t.ogImage;
+    previewImg.alt = `${t.title} — link preview card`;
   }
-  const mail = $('#shareEmail') as HTMLAnchorElement | null;
-  if (mail) {
-    mail.href = `mailto:?subject=${encodeURIComponent(`bZ — ${t.title}`)}&body=${encodeURIComponent(`${t.title} — listen here:\n${t.shareUrl}`)}`;
-  }
+  // Embed iframe code + live iframe preview at the BOTTOM next to the code
   const code = $('#shareEmbedCode') as HTMLTextAreaElement | null;
   if (code) code.value = embedSnippet(t, shareEmbedSize);
-  const preview = $('#shareEmbedPreview') as HTMLAnchorElement | null;
-  if (preview) preview.href = `${SITE_ORIGIN}${t.embedPath}`;
+  const embedIframe = $('#shareEmbedIframe') as HTMLIFrameElement | null;
+  if (embedIframe) {
+    const newSrc = `${SITE_ORIGIN}${t.embedPath}`;
+    if (embedIframe.src !== newSrc) embedIframe.src = newSrc;
+  }
+  const embedFrame = $('#shareEmbedFrame') as HTMLElement | null;
+  if (embedFrame) {
+    // Single canonical medium size — 480×220
+    embedFrame.style.setProperty('--share-preview-w', '480px');
+    embedFrame.style.setProperty('--share-preview-h', '220px');
+  }
   const native = $('#shareNative') as HTMLButtonElement | null;
   if (native) native.hidden = !nativeShareSupported();
+  // QR auto-renders for every song. Always visible — no "click to reveal"
+  // toggle. Per-song re-render driven by the new shareCurrent.shareUrl.
+  const qrBox = $('#shareQRBox');
+  const qrCanvas = $('#shareQRCanvas') as HTMLCanvasElement | null;
+  if (qrCanvas) {
+    const ctx = qrCanvas.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, qrCanvas.width, qrCanvas.height);
+    void drawQrCanvas(qrCanvas, t.shareUrl);
+  }
+  if (qrBox) qrBox.hidden = false;
 }
 
 function openShare(kind: 'track' | 'album', id: string) {
@@ -753,27 +991,92 @@ async function copyText(value: string, btn?: HTMLElement | null) {
 function setupShell(root: HTMLElement) {
   root.innerHTML = `
     <canvas id="bg" aria-hidden="true"></canvas>
+    <a class="skip-link" href="#contentpageScroll">Skip to content</a>
+    <!-- Release-prep checklist banner — shows for ≤14 days before NEXT_RELEASE,
+         hides on dismiss, auto-vanishes once date passes. Empty when no
+         release is queued in data.ts NEXT_RELEASE. -->
+    <aside class="release-banner" id="releaseBanner" hidden aria-label="Upcoming release checklist"></aside>
 
     <header class="topbar">
       <a class="brand" href="/" aria-label="bZ home">
-        <span class="brand__text">bZ</span>
+        <img class="brand__logo" src="/art/bz-icon.png" alt="bZ" width="220" height="148" decoding="async" />
       </a>
       <div class="topbar__title" aria-hidden="true">
         <span class="topbar__title-mute">now playing —</span>
         <span class="topbar__title-text" id="npChrome">press play</span>
       </div>
-      <nav class="topbar__nav" aria-label="Site">
-        <button id="btnSearch" class="topbar__search" type="button" aria-label="Search tracks (⌘K)">
+      <!-- Story-mode chip rail. Replaces the normal topbar nav when the
+           Story button is engaged. Page chips for direct navigation; click
+           the ✕ to exit story-mode and restore the normal topbar. -->
+      <nav class="topbar__story-nav" id="topbarStoryNav" aria-label="Story pages" hidden>
+        <!-- Mobile (≤768px): single trigger that opens the dropdown sheet
+             below. Desktop (>768px): chip rail is the nav. CSS toggles
+             which one is visible. -->
+        <button id="btnStoryNavMobile" class="topbar__story-mobile-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="topbarStoryNavSheet">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span id="topbarStoryNavMobileLabel">Story</span>
+          <svg class="topbar__story-mobile-caret" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+        </button>
+        <a href="/" class="topbar__story-home" id="btnStoryHome" data-story-home aria-label="Back to home">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12 12 4l9 8"/><path d="M5 10v10h14V10"/></svg>
+          <span>Home</span>
+        </a>
+        <div class="topbar__story-nav-chips" id="topbarStoryNavChips"></div>
+        <div class="topbar__story-sheet" id="topbarStoryNavSheet" role="menu" aria-labelledby="btnStoryNavMobile" hidden></div>
+        <button id="btnStoryNavClose" class="topbar__story-nav-close" type="button" aria-label="Exit story mode">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </nav>
+      <nav class="topbar__nav" id="topbarMainNav" aria-label="Site">
+        <button id="btnSearch" class="topbar__search" type="button" aria-label="Search tracks (⌘/)">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <span>Search</span>
-          <kbd>⌘K</kbd>
+          <kbd>⌘/</kbd>
         </button>
-        <button id="btnLyricsOverlay" class="topbar__lyrics" type="button" aria-label="Toggle live lyrics overlay" aria-pressed="false" title="Live lyrics overlay (Shift+L)">
+        <button id="btnLyricsOverlay" class="topbar__lyrics" type="button" aria-label="Toggle live lyrics overlay (⇧L)" aria-pressed="false" title="Live lyrics overlay (Shift+L)">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
           <span>Lyrics</span>
+          <kbd>⇧L</kbd>
         </button>
-        <a id="lnkAppeal" href="/ashton/">appeal</a>
-        <a href="https://mission.megabyte.space" target="_blank" rel="noopener noreferrer">mission</a>
+        <a id="btnSpotifyFollow" class="topbar__spotify" href="${SPOTIFY_ARTIST_URL}" target="_blank" rel="noopener noreferrer" aria-label="Follow bZ on Spotify" title="Follow on Spotify">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.41a.7.7 0 0 1-.96.23c-2.63-1.61-5.94-1.97-9.84-1.08a.7.7 0 0 1-.31-1.36c4.27-.97 7.94-.56 10.88 1.25.33.2.43.65.23.96zm1.23-2.74a.87.87 0 0 1-1.2.29c-3.01-1.85-7.6-2.39-11.16-1.31a.87.87 0 0 1-.51-1.66c4.07-1.24 9.13-.64 12.59 1.48.41.25.54.79.28 1.2zm.1-2.86c-3.61-2.14-9.57-2.34-13.02-1.29a1.05 1.05 0 1 1-.61-2.01c3.96-1.2 10.55-.97 14.7 1.49a1.05 1.05 0 1 1-1.07 1.81z"/></svg>
+          <span>Follow</span>
+          <span class="topbar__spotify-count" id="spotifyFollowerCount" aria-hidden="true"></span>
+        </a>
+        <div class="topbar__menu" data-topbar-menu>
+          <button id="btnPagesMenu" class="topbar__menu-trigger" type="button"
+                  aria-haspopup="menu" aria-expanded="false" aria-controls="topbarPagesMenu">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span>Story</span>
+            <svg class="topbar__menu-caret" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+          </button>
+          <div id="topbarPagesMenu" class="topbar__menu-list" role="menu" aria-label="Story pages" hidden>
+            <a href="/about" data-content-page="about" role="menuitem">
+              <strong>About</strong>
+              <span>Bio · theology · process · support · connect</span>
+            </a>
+            <a href="/credits" data-content-page="credits" role="menuitem">
+              <strong>Credits</strong>
+              <span>Per-track Suno DNA + BPM/key sources</span>
+            </a>
+            <a href="/press" data-content-page="press" role="menuitem">
+              <strong>Press kit</strong>
+              <span>Bio · covers · brand voice · booking</span>
+            </a>
+            <a href="/merch" data-content-page="merch" role="menuitem">
+              <strong>Merch</strong>
+              <span>FREE SATAN apparel suite</span>
+            </a>
+            <a id="lnkAppeal" href="/ashton/" role="menuitem">
+              <strong>Appeal</strong>
+              <span>Open letter to Ashton + Mila</span>
+            </a>
+            <a href="https://mission.megabyte.space" target="_blank" rel="noopener noreferrer" role="menuitem">
+              <strong>Mission ↗</strong>
+              <span>What bZ is building + why</span>
+            </a>
+          </div>
+        </div>
       </nav>
     </header>
 
@@ -851,11 +1154,18 @@ function setupShell(root: HTMLElement) {
     <footer class="transport" aria-label="Playback transport">
       <div id="transportBgFill" aria-hidden="true"></div>
       <div class="transport__np" id="transportNp">
-        <img class="transport__np-cover" id="transportNpCover" src="/art/cover-panda-desiiignare.png" alt="Now playing — click for details" width="68" height="68" style="cursor:pointer" title="Open now-playing panel" />
+        <img class="transport__np-cover" id="transportNpCover" src="/art/cover-panda-desiiignare.jpg" alt="Now playing — click for details" width="68" height="68" style="cursor:pointer" title="Open now-playing panel" />
         <div class="transport__np-meta">
           <span class="transport__np-album" id="transportNpAlbum">bZ</span>
           <span class="transport__np-title" id="transportNpTitle">Press play</span>
           <span class="transport__np-sub" id="transportNpSub">bZ</span>
+          <span class="transport__np-suno" id="transportNpSuno" aria-hidden="true"></span>
+          <span class="transport__np-spotify" id="transportNpSpotify" hidden>
+            <a id="transportNpSpotifyLink" href="#" target="_blank" rel="noopener noreferrer" aria-label="Stream on Spotify">
+              <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.41a.7.7 0 0 1-.96.23c-2.63-1.61-5.94-1.97-9.84-1.08a.7.7 0 0 1-.31-1.36c4.27-.97 7.94-.56 10.88 1.25.33.2.43.65.23.96zm1.23-2.74a.87.87 0 0 1-1.2.29c-3.01-1.85-7.6-2.39-11.16-1.31a.87.87 0 0 1-.51-1.66c4.07-1.24 9.13-.64 12.59 1.48.41.25.54.79.28 1.2zm.1-2.86c-3.61-2.14-9.57-2.34-13.02-1.29a1.05 1.05 0 1 1-.61-2.01c3.96-1.2 10.55-.97 14.7 1.49a1.05 1.05 0 1 1-1.07 1.81z"/></svg>
+              <span id="transportNpSpotifyText">Stream</span>
+            </a>
+          </span>
         </div>
       </div>
       <div class="transport__controls">
@@ -900,11 +1210,12 @@ function setupShell(root: HTMLElement) {
       </div>
       <div class="transport__actions">
         <span class="transport__cast-wrap" style="position:relative;display:inline-flex;">
-          <button id="btnCast" class="link-btn link-btn--icon transport__cast" type="button" aria-label="Cast to device" title="Cast to TV / speaker (Chromecast)">
-            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16v-2a8 8 0 0 1 8 8H8"/><path d="M2 12V9a11 11 0 0 1 11 11h-3"/><path d="M2 8V5a14 14 0 0 1 14 14h-3"/><line x1="2" y1="20" x2="2" y2="20"/><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
-            <span id="btnCastLabel" hidden></span>
+          <button id="btnCast" class="link-btn transport__cast" type="button" aria-label="Cast to device" title="Cast to TV / speaker (Chromecast)">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M2 14v3a3 3 0 0 0 3 3"/><path d="M2 10v3a7 7 0 0 1 7 7"/><path d="M2 7v3a10 10 0 0 1 10 10"/></svg>
+            <span class="transport__cast-text">Cast</span>
+            <span id="btnCastLabel" class="transport__cast-device" hidden></span>
           </button>
-          <google-cast-launcher id="castLauncher" aria-hidden="true" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;cursor:pointer;"></google-cast-launcher>
+          <google-cast-launcher id="castLauncher" aria-label="Cast to a device" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;cursor:pointer;"></google-cast-launcher>
         </span>
         <button id="btnAirplay" class="link-btn link-btn--icon transport__airplay" type="button" aria-label="AirPlay" title="AirPlay (Safari/macOS)" hidden>
           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h-1a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-1"/><polygon points="12 15 17 21 7 21 12 15"/></svg>
@@ -920,24 +1231,44 @@ function setupShell(root: HTMLElement) {
       </div>
     </footer>
 
-    <dialog class="notify" id="notifyDialog" aria-labelledby="notifyTitle">
-      <form class="notify__card" id="notifyForm" method="dialog" novalidate>
-        <button class="notify__close" type="button" id="notifyCloseBtn" aria-label="Close">✕</button>
-        <header class="notify__head">
-          <p class="notify__eyebrow">bZ · drops</p>
-          <h3 class="notify__title" id="notifyTitle">First listen, every drop.</h3>
-          <p class="notify__sub">No ads. No spam. One email when a song lands.</p>
+    <!-- Newsletter modal removed in favor of inline .nl-inline widgets
+         placed directly where the CTA lives (album footers, more-menu).
+         See renderInlineNewsletter() in this file. -->
+
+    <!-- Unified content-page dialog — non-modal sheet over the main shell.
+         Music keeps playing across page-to-page navigation. -->
+    <dialog class="contentpage" id="contentpage" aria-labelledby="contentpageTitle">
+      <button class="contentpage__close" id="contentpageClose" type="button" aria-label="Close">✕</button>
+      <!-- The page-switcher nav lives in the TOPBAR (#topbarStoryNav) while
+           a content page is open, so the dialog body has no in-dialog nav.
+           The dialog itself is the scroll container — scrollbar sits at the
+           far right of the viewport. Title + body live inside a single
+           centered 720px column so they scroll together like a real page. -->
+      <!-- Reading-progress hairline pinned to the top edge of the dialog.
+           Width animates with scrollTop/scrollHeight so users see they
+           have more to read. -->
+      <div class="contentpage__progress" id="contentpageProgress" aria-hidden="true"></div>
+      <div class="contentpage__scroll" id="contentpageScroll">
+        <header class="contentpage__head">
+          <p class="contentpage__eyebrow" id="contentpageEyebrow"></p>
+          <h2 class="contentpage__title" id="contentpageTitle"></h2>
+          <p class="contentpage__sub" id="contentpageSub"></p>
+          <div class="contentpage__head-actions">
+            <button id="contentpageShare" class="contentpage__share" type="button" aria-label="Share this page" data-slug="">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              <span>Share</span>
+            </button>
+            <a class="contentpage__share contentpage__share--print" href="javascript:window.print()" aria-label="Print this page">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>Print</span>
+            </a>
+          </div>
         </header>
-        <label class="notify__label" for="notifyEmail">Email</label>
-        <input class="notify__input" id="notifyEmail" name="email" type="email" autocomplete="email" required placeholder="you@domain.com" inputmode="email" spellcheck="false" autocapitalize="off" />
-        <p class="notify__error" id="notifyError" role="alert" hidden></p>
-        <label class="notify__check" id="notifyPushRow" hidden>
-          <input class="notify__checkbox" id="notifyPushOpt" type="checkbox" />
-          <span>Also push to my lock screen <em class="notify__hint" id="notifyPushHint"></em></span>
-        </label>
-        <button class="notify__submit" id="notifySubmit" type="submit">Subscribe</button>
-        <p class="notify__legal">Unsubscribe anytime. Stored on listmonk.megabyte.space.</p>
-      </form>
+        <!-- Floating right-rail TOC, populated from <h4> headings post-render.
+             Sticky positioned on desktop, hidden on mobile. -->
+        <nav class="contentpage__toc" id="contentpageToc" aria-label="On this page" hidden></nav>
+        <div class="contentpage__body" id="contentpageBody"></div>
+      </div>
     </dialog>
 
     <dialog class="appeal" id="appeal" aria-labelledby="appealTitle">
@@ -949,8 +1280,8 @@ function setupShell(root: HTMLElement) {
     <dialog class="share" id="share" aria-labelledby="shareTitle">
       <div class="share__card">
         <header class="share__head">
-          <img class="share__cover" id="shareCover" src="" alt="" width="64" height="64" />
-          <div>
+          <img class="share__cover" id="shareCover" src="" alt="" width="72" height="72" />
+          <div class="share__head-text">
             <p class="share__eyebrow" id="shareEyebrow">share</p>
             <h3 class="share__title" id="shareTitle">—</h3>
             <p class="share__sub" id="shareSub">—</p>
@@ -958,37 +1289,127 @@ function setupShell(root: HTMLElement) {
           <button class="share__close" id="shareClose" type="button" aria-label="Close share">✕</button>
         </header>
 
+        <!-- Live preview = the actual og:image card that recipients see
+             when the link unfurls on X/Discord/iMessage/Slack/etc.
+             More honest than the embed iframe preview — what they see
+             in their feed IS what shows up here. -->
+        <section class="share__section share__section--preview">
+          <div class="share__preview-label">
+            <span class="share__label">Link preview</span>
+            <span class="share__preview-hint" id="sharePreviewHint">og · 1200×630</span>
+          </div>
+          <div class="share__preview-frame" id="sharePreviewFrame">
+            <img class="share__preview-img" id="sharePreviewImg" alt="" loading="lazy" />
+          </div>
+        </section>
+
         <section class="share__section">
           <label class="share__label" for="shareLink">Direct link</label>
           <div class="share__row">
             <input class="share__input" id="shareLink" type="url" readonly />
             <button class="share__act" id="shareCopyLink" type="button">Copy</button>
           </div>
-          <div class="share__btn-row">
-            <button class="share__chip" id="shareNative" type="button" hidden>
-              <span aria-hidden="true">↗</span> Share via…
-            </button>
-            <a class="share__chip" id="shareTweet" target="_blank" rel="noopener">
-              <span aria-hidden="true">𝕏</span> Post
-            </a>
-            <a class="share__chip" id="shareEmail" target="_blank" rel="noopener">
-              <span aria-hidden="true">✉</span> Email
-            </a>
-          </div>
         </section>
 
         <section class="share__section">
+          <label class="share__label">Share to</label>
+          <!-- Inline branded SVG icon grid — compact, gorgeous, each icon
+               sets its own --share-brand var for branded hover color. -->
+          <div class="share__networks" id="shareNetworks">
+            <button class="share__icon share__icon--native" id="shareNative" type="button" hidden style="--share-brand:#00E5FF">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              <span>Share</span>
+            </button>
+            <a class="share__icon" id="shareXTwitter" target="_blank" rel="noopener" data-network="x" title="Post on X" style="--share-brand:#ffffff">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              <span>X</span>
+            </a>
+            <a class="share__icon" id="shareThreads" target="_blank" rel="noopener" data-network="threads" title="Threads" style="--share-brand:#ffffff">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.598.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.781 3.631 2.695 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.74-1.757-.504-.582-1.279-.878-2.305-.88h-.029c-.825 0-1.946.227-2.66 1.273L7.32 8.467c.95-1.401 2.498-2.179 4.348-2.179h.044c3.084.019 4.92 1.915 5.105 5.227.106.045.211.092.314.141 1.46.687 2.527 1.728 3.087 3.012.78 1.79.851 4.708-1.522 7.041-1.812 1.785-4.013 2.595-7.103 2.617Zm1.187-11.665c-.247 0-.499.007-.755.022-1.834.103-2.974.946-2.91 2.147.064 1.193 1.347 1.749 2.74 1.671 1.323-.072 3.067-.586 3.388-3.815a10.555 10.555 0 0 0-2.463-.025Z"/></svg>
+              <span>Threads</span>
+            </a>
+            <a class="share__icon" id="shareBluesky" target="_blank" rel="noopener" data-network="bluesky" title="Bluesky" style="--share-brand:#0085FF">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M5.8 3.4c2.7 2 5.7 6.1 6.8 8.3 1.1-2.2 4.1-6.3 6.8-8.3 2-1.5 5.1-2.6 5.1.9 0 .7-.4 5.9-.6 6.7-.7 3-3.8 3.7-6.5 3.3 4.7.8 5.9 3.4 3.3 6.1-5 5-7.2-1.3-7.8-2.9-.1-.3-.2-.4-.2-.3 0-.1-.1 0-.2.3-.6 1.6-2.8 7.9-7.8 2.9-2.6-2.7-1.4-5.3 3.3-6.1-2.7.4-5.8-.3-6.5-3.3C.8 10.2.4 5 .4 4.3c0-3.5 3.1-2.4 5.4-.9Z"/></svg>
+              <span>Bluesky</span>
+            </a>
+            <a class="share__icon" id="shareMastodon" target="_blank" rel="noopener" data-network="mastodon" title="Mastodon" style="--share-brand:#6364FF">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M23.268 5.313c-.35-2.578-2.617-4.61-5.304-5.004C17.51.242 15.792 0 11.813 0h-.03c-3.98 0-4.835.242-5.288.309C3.882.692 1.496 2.518.917 5.127.64 6.412.61 7.837.661 9.143c.074 1.874.088 3.745.26 5.611.118 1.24.325 2.47.62 3.68.55 2.237 2.777 4.098 4.96 4.857 2.336.792 4.849.923 7.256.38.265-.061.527-.132.786-.213.585-.184 1.27-.39 1.774-.753a.057.057 0 0 0 .023-.043v-1.809a.052.052 0 0 0-.02-.041.053.053 0 0 0-.046-.012c-1.546.367-3.135.55-4.728.55-2.74 0-3.477-1.297-3.688-1.836a5.69 5.69 0 0 1-.32-1.464.05.05 0 0 1 .062-.052c1.51.36 3.06.546 4.62.546.366 0 .73 0 1.097-.01 1.59-.044 3.27-.124 4.836-.43.04-.008.077-.014.114-.024 2.471-.473 4.823-1.96 5.063-5.74.008-.148.029-1.555.029-1.71.001-.531.181-3.736-.013-5.706zm-3.823 9.795h-2.43V9.219c0-1.243-.523-1.873-1.577-1.873-1.162 0-1.745.748-1.745 2.225v3.235h-2.416V9.572c0-1.477-.581-2.225-1.745-2.225-1.044 0-1.577.63-1.577 1.873v5.889H5.512V9.039c0-1.243.323-2.232.972-2.965.626-.731 1.448-1.106 2.474-1.106 1.184 0 2.097.491 2.722 1.471l.624 1.046.624-1.046c.625-.98 1.538-1.471 2.722-1.471 1.026 0 1.848.375 2.474 1.106.649.733.972 1.722.972 2.965Z"/></svg>
+              <span>Mastodon</span>
+            </a>
+            <a class="share__icon" id="shareReddit" target="_blank" rel="noopener" data-network="reddit" title="Reddit" style="--share-brand:#FF4500">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M12 0a12 12 0 1 0 12 12A12.014 12.014 0 0 0 12 0Zm5.01 4.744a1.535 1.535 0 0 1 1.512 1.501 1.518 1.518 0 0 1-1.49 1.524 1.526 1.526 0 0 1-1.523-1.504 1.523 1.523 0 0 1 1.5-1.521ZM12 19.43c-3.21 0-5.812-2.046-5.812-4.57 0-2.526 2.602-4.571 5.812-4.571 3.211 0 5.813 2.045 5.813 4.572 0 2.526-2.602 4.569-5.813 4.569ZM18.978 13c.027.123.044.247.044.371 0 2.521-2.825 4.563-6.31 4.563-3.484 0-6.31-2.042-6.31-4.563 0-.124.017-.248.045-.371-.733-.34-1.241-1.084-1.241-1.949 0-1.184.957-2.143 2.139-2.143.585 0 1.114.234 1.502.612 1.464-.972 3.42-1.594 5.588-1.652l1.144-3.39a.516.516 0 0 1 .65-.331l3.106 1.045a1.422 1.422 0 1 1 .48 1.378l-3.083-1.043-.97 2.875c2.211.04 4.21.66 5.696 1.62a2.13 2.13 0 0 1 1.471-.591 2.142 2.142 0 0 1 .85 4.107"/><path d="M15.232 15.451a1.087 1.087 0 1 1-1.539-1.535 1.087 1.087 0 0 1 1.539 1.535Zm-3.83 0a1.085 1.085 0 1 1-1.532-1.538 1.085 1.085 0 0 1 1.532 1.538Z" opacity="0.25"/></svg>
+              <span>Reddit</span>
+            </a>
+            <a class="share__icon" id="shareHN" target="_blank" rel="noopener" data-network="hn" title="Hacker News" style="--share-brand:#FF6600">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M0 24V0h24v24H0zM6.951 5.896l4.112 7.708v5.064h1.583v-4.972l4.148-7.799h-1.749l-2.457 4.875c-.372.745-.688 1.434-.688 1.434s-.297-.708-.651-1.434L8.831 5.896h-1.88Z"/></svg>
+              <span>HN</span>
+            </a>
+            <a class="share__icon" id="shareFacebook" target="_blank" rel="noopener" data-network="facebook" title="Facebook" style="--share-brand:#1877F2">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073Z"/></svg>
+              <span>Facebook</span>
+            </a>
+            <a class="share__icon" id="shareLinkedIn" target="_blank" rel="noopener" data-network="linkedin" title="LinkedIn" style="--share-brand:#0A66C2">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286ZM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.063 2.063 0 1 1 2.063 2.065Zm1.782 13.019H3.555V9h3.564v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003Z"/></svg>
+              <span>LinkedIn</span>
+            </a>
+            <a class="share__icon" id="shareWhatsApp" target="_blank" rel="noopener" data-network="whatsapp" title="WhatsApp" style="--share-brand:#25D366">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.297-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+              <span>WhatsApp</span>
+            </a>
+            <a class="share__icon" id="shareTelegram" target="_blank" rel="noopener" data-network="telegram" title="Telegram" style="--share-brand:#26A5E4">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0Zm4.962 7.224c.1-.002.321.023.464.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635Z"/></svg>
+              <span>Telegram</span>
+            </a>
+            <a class="share__icon" id="shareSignal" target="_blank" rel="noopener" data-network="signal" title="Signal" style="--share-brand:#3A76F0">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M9.12.35a.749.749 0 1 1 .36 1.456A10.501 10.501 0 0 0 1.807 9.48a.749.749 0 1 1-1.455-.36A12 12 0 0 1 9.12.35Zm5.76 0a12 12 0 0 1 8.768 8.77.749.749 0 1 1-1.455.36A10.5 10.5 0 0 0 14.52 1.807.749.749 0 1 1 14.88.35ZM.35 14.88a.749.749 0 0 1 .91.546 10.5 10.5 0 0 0 6.456 7.225.75.75 0 0 1-.526 1.404 12 12 0 0 1-7.386-8.263.749.749 0 0 1 .546-.911Zm23.302 0a.749.749 0 0 1 .546.91 12 12 0 0 1-7.388 8.263.75.75 0 0 1-.524-1.404 10.5 10.5 0 0 0 6.455-7.224.749.749 0 0 1 .911-.546ZM12 1.5a10.5 10.5 0 0 1 10.5 10.5 10.45 10.45 0 0 1-2.083 6.293L21.747 23.7l-1.486-.379a13.05 13.05 0 0 0-3.293-.428A10.5 10.5 0 1 1 12 1.5Z" opacity="0.25"/></svg>
+              <span>Signal</span>
+            </a>
+            <a class="share__icon" id="shareSMS" data-network="sms" title="SMS" style="--share-brand:#34C759">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              <span>SMS</span>
+            </a>
+            <a class="share__icon" id="shareEmail" target="_blank" rel="noopener" data-network="email" title="Email" style="--share-brand:#EA4335">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <span>Email</span>
+            </a>
+            <a class="share__icon" id="sharePinterest" target="_blank" rel="noopener" data-network="pinterest" title="Pinterest" style="--share-brand:#BD081C">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
+              <span>Pinterest</span>
+            </a>
+            <a class="share__icon" id="shareTumblr" target="_blank" rel="noopener" data-network="tumblr" title="Tumblr" style="--share-brand:#35465C">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.815v7.47c.016 1.001.375 2.371 2.207 2.371h.09c.631-.02 1.486-.205 1.936-.419l1.156 3.425c-.436.636-2.4 1.374-4.156 1.404h-.172z"/></svg>
+              <span>Tumblr</span>
+            </a>
+            <a class="share__icon" id="sharePocket" target="_blank" rel="noopener" data-network="pocket" title="Pocket" style="--share-brand:#EF3F56">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M18.813 10.259l-5.646 5.419c-.32.305-.73.458-1.141.458-.41 0-.821-.153-1.141-.458l-5.646-5.419c-.657-.628-.677-1.671-.049-2.326.63-.657 1.671-.679 2.326-.05l4.51 4.326 4.51-4.326c.658-.628 1.699-.607 2.326.049.631.658.611 1.699-.049 2.327zm5.187-7.984v6.91c0 6.706-5.435 12.142-12.142 12.142h-3.716C1.435 21.327 0 15.891 0 9.185v-6.91c0-1.257 1.019-2.275 2.275-2.275h19.45C22.981 0 24 1.019 24 2.275z"/></svg>
+              <span>Pocket</span>
+            </a>
+            <button class="share__icon" id="shareCopyMd" type="button" data-network="markdown" title="Copy as Markdown" style="--share-brand:#7C3AED">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M22.27 19.385H1.73A1.73 1.73 0 0 1 0 17.655V6.345a1.73 1.73 0 0 1 1.73-1.73h20.54A1.73 1.73 0 0 1 24 6.345v11.308a1.73 1.73 0 0 1-1.73 1.731zM5.769 15.923v-4.5l2.308 2.885 2.307-2.885v4.5h2.308V8.078h-2.308l-2.307 2.885L5.77 8.077H3.46v7.846zM21.232 12h-2.309V8.077h-2.307V12h-2.308l3.461 4.039z"/></svg>
+              <span>MD</span>
+            </button>
+            <button class="share__icon" id="shareQuoteCard" type="button" data-network="quote-card" title="Quote card PNG" style="--share-brand:#F472B6">
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>Card</span>
+            </button>
+          </div>
+          <div class="share__qr" id="shareQRBox" hidden>
+            <canvas id="shareQRCanvas" width="160" height="160" aria-label="QR code"></canvas>
+            <p class="share__qr-hint">Scan to open · or screenshot to share</p>
+          </div>
+        </section>
+
+        <section class="share__section share__section--embed">
           <label class="share__label">Embed widget</label>
-          <div class="share__sizes" role="radiogroup" aria-label="Embed size">
-            <button class="share__size is-active" data-size="small" type="button" role="radio" aria-checked="true">Small · 320×180</button>
-            <button class="share__size" data-size="medium" type="button" role="radio" aria-checked="false">Medium · 480×220</button>
-            <button class="share__size" data-size="wide" type="button" role="radio" aria-checked="false">Wide · 100%×220</button>
+          <!-- Live embed iframe — what the embed code actually renders.
+               Single fixed size (medium 480×220) — no size picker. -->
+          <div class="share__embed-frame" id="shareEmbedFrame">
+            <iframe class="share__embed-iframe" id="shareEmbedIframe" title="Embed preview" loading="lazy"></iframe>
           </div>
-          <textarea class="share__embed-code" id="shareEmbedCode" readonly rows="3" aria-label="Embed iframe HTML"></textarea>
-          <div class="share__row">
-            <a class="share__chip" id="shareEmbedPreview" target="_blank" rel="noopener">Preview</a>
-            <button class="share__act" id="shareCopyEmbed" type="button">Copy embed</button>
-          </div>
+          <!-- Click anywhere in the code box to copy — no separate Copy
+               button needed. Visual hint on hover. -->
+          <textarea class="share__embed-code share__embed-code--copy" id="shareEmbedCode" readonly rows="3" aria-label="Embed iframe HTML — click to copy" title="Click to copy"></textarea>
+          <p class="share__embed-hint" id="shareEmbedHint">Click code to copy</p>
         </section>
       </div>
     </dialog>
@@ -1014,44 +1435,128 @@ function setupShell(root: HTMLElement) {
     <!-- Now-playing detail panel -->
     <div class="np-panel" id="npPanel" role="dialog" aria-label="Now playing details" aria-modal="true">
       <div class="np-panel__backdrop" id="npPanelBackdrop"></div>
+      <!-- Blurred cover lives behind the card for cinematic depth -->
+      <div class="np-panel__art-bg" id="npPanelArtBg" aria-hidden="true"></div>
       <div class="np-panel__card" id="npPanelCard">
         <button class="np-panel__close" id="npPanelClose" type="button" aria-label="Close panel">✕</button>
         <div class="np-panel__hero">
-          <img class="np-panel__cover" id="npPanelCover" src="/art/cover-panda-desiiignare.png" alt="" width="90" height="90" />
-          <div>
+          <!-- Cover ring: SVG progress + spinning album cover at center -->
+          <div class="np-panel__cover-ring" id="npPanelCoverRing">
+            <svg class="np-panel__progress" viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="np-panel__progress-track" cx="50" cy="50" r="46" />
+              <circle class="np-panel__progress-bar" id="npPanelProgress" cx="50" cy="50" r="46"
+                pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" />
+            </svg>
+            <img class="np-panel__cover" id="npPanelCover" src="/art/cover-panda-desiiignare.jpg" alt="" width="160" height="160" />
+          </div>
+          <div class="np-panel__hero-meta">
             <p class="np-panel__label" id="npPanelLabel">bZ</p>
             <h3 class="np-panel__title" id="npPanelTitle">Press play</h3>
-            <p class="np-panel__bpm" id="npPanelBpm">— BPM</p>
+            <div class="np-panel__time" id="npPanelTime"><span id="npPanelElapsed">0:00</span> <span class="np-panel__time-sep">/</span> <span id="npPanelDur">—:—</span></div>
+            <div class="np-panel__stats" id="npPanelStats" aria-label="Track stats">
+              <span class="np-panel__stat" id="npPanelStatBpm" hidden><strong>—</strong> bpm</span>
+              <span class="np-panel__stat" id="npPanelStatKey" hidden><strong>—</strong> key</span>
+              <span class="np-panel__stat" id="npPanelStatPlays" hidden><strong>0</strong> plays</span>
+            </div>
+            <div class="np-panel__tags" id="npPanelTags" aria-label="Track tags"></div>
           </div>
         </div>
+
+        <!-- Quick-action toolbar -->
+        <div class="np-panel__actions" role="toolbar" aria-label="Track actions">
+          <button class="np-panel__action" data-np-action="share" type="button" title="Share track">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            <span>Share</span>
+          </button>
+          <button class="np-panel__action" data-np-action="copy-link" type="button" title="Copy permalink">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span>Copy</span>
+          </button>
+          <button class="np-panel__action" data-np-action="fs-lyrics" type="button" title="Full-screen lyrics">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            <span>Lyrics</span>
+          </button>
+          <button class="np-panel__action" data-np-action="fs-viz" type="button" title="Fullscreen visualizer">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>
+            <span>Viz</span>
+          </button>
+          <button class="np-panel__action" data-np-action="ai" type="button" title="Ask bZ about this track">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Ask</span>
+          </button>
+        </div>
+
+        <!-- Wisdom: track tagline / artist note -->
         <blockquote class="np-panel__wisdom" id="npPanelWisdom">Play a track to see its wisdom.</blockquote>
-        <p class="np-panel__section-label">EQ</p>
-        <div class="np-panel__eq">
-          <div class="np-panel__eq-knob">
-            <label class="np-panel__eq-label" for="eqBass">Bass</label>
-            <input class="np-panel__eq-range" id="eqBass" type="range" min="-12" max="12" step="0.5" value="3" aria-label="Bass EQ" />
-            <span class="np-panel__eq-val" id="eqBassVal">+3 dB</span>
-          </div>
-          <div class="np-panel__eq-knob">
-            <label class="np-panel__eq-label" for="eqMid">Mid</label>
-            <input class="np-panel__eq-range" id="eqMid" type="range" min="-12" max="12" step="0.5" value="1" aria-label="Mid EQ" />
-            <span class="np-panel__eq-val" id="eqMidVal">+1 dB</span>
-          </div>
-          <div class="np-panel__eq-knob">
-            <label class="np-panel__eq-label" for="eqTreb">Treble</label>
-            <input class="np-panel__eq-range" id="eqTreb" type="range" min="-12" max="12" step="0.5" value="2" aria-label="Treble EQ" />
-            <span class="np-panel__eq-val" id="eqTrebVal">+2 dB</span>
-          </div>
+
+        <!-- Live lyric preview: previous + active + next line. Mirrors the
+             karaoke overlay's word-perfect sync via the same activeLyrics
+             bundle, but in a static 3-line view inside the modal. -->
+        <div class="np-panel__lyricbox" id="npPanelLyricBox" hidden aria-label="Lyric preview">
+          <p class="np-panel__lyric np-panel__lyric--prev" id="npPanelLyricPrev"></p>
+          <p class="np-panel__lyric np-panel__lyric--now" id="npPanelLyricNow"></p>
+          <p class="np-panel__lyric np-panel__lyric--next" id="npPanelLyricNext"></p>
         </div>
-        <p class="np-panel__section-label">Reverb</p>
-        <div class="np-panel__reverb">
-          <button class="np-panel__reverb-btn" data-preset="dry" type="button">Dry</button>
-          <button class="np-panel__reverb-btn is-active" data-preset="room" type="button">Room</button>
-          <button class="np-panel__reverb-btn" data-preset="hall" type="button">Hall</button>
-          <button class="np-panel__reverb-btn" data-preset="cathedral" type="button">Cathedral</button>
-          <button class="np-panel__reverb-btn" data-preset="spring" type="button">Spring</button>
-          <button class="np-panel__reverb-btn" data-preset="plate" type="button">Plate</button>
+
+        <!-- Smart-links row: opens the track on external platforms when
+             a same-id-or-title match exists on Spotify/Apple/YouTube/Suno. -->
+        <div class="np-panel__platforms" id="npPanelPlatforms" hidden aria-label="Open on platform"></div>
+
+        <!-- Related tracks: top 3 by shared-tag cosine similarity. Click a
+             cover to jump straight to it without leaving the modal. -->
+        <div class="np-panel__related" id="npPanelRelated" hidden aria-label="Related tracks">
+          <p class="np-panel__section-label">If you like this, try</p>
+          <div class="np-panel__related-grid" id="npPanelRelatedGrid"></div>
         </div>
+
+        <!-- Lyric download row — .txt plain + .lrc with timing -->
+        <div class="np-panel__downloads" id="npPanelDownloads" hidden>
+          <button class="np-panel__dl-btn" data-np-dl="txt" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Lyrics .txt</span>
+          </button>
+          <button class="np-panel__dl-btn" data-np-dl="lrc" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span>Timed .lrc</span>
+          </button>
+        </div>
+
+        <!-- Playback rate slider — quick speed adjust without leaving the modal -->
+        <div class="np-panel__rate">
+          <label class="np-panel__rate-label" for="npRate">Speed <span class="np-panel__rate-val" id="npRateVal">1.00×</span></label>
+          <input class="np-panel__rate-range" id="npRate" type="range" min="0.5" max="2" step="0.05" value="1" aria-label="Playback speed" />
+        </div>
+
+        <details class="np-panel__more" id="npPanelMore" open>
+          <summary>Audio shaping <span class="np-panel__more-hint">EQ · Reverb</span></summary>
+          <p class="np-panel__section-label">EQ</p>
+          <div class="np-panel__eq">
+            <div class="np-panel__eq-knob">
+              <label class="np-panel__eq-label" for="eqBass">Bass</label>
+              <input class="np-panel__eq-range" id="eqBass" type="range" min="-12" max="12" step="0.5" value="3" aria-label="Bass EQ" />
+              <span class="np-panel__eq-val" id="eqBassVal">+3 dB</span>
+            </div>
+            <div class="np-panel__eq-knob">
+              <label class="np-panel__eq-label" for="eqMid">Mid</label>
+              <input class="np-panel__eq-range" id="eqMid" type="range" min="-12" max="12" step="0.5" value="1" aria-label="Mid EQ" />
+              <span class="np-panel__eq-val" id="eqMidVal">+1 dB</span>
+            </div>
+            <div class="np-panel__eq-knob">
+              <label class="np-panel__eq-label" for="eqTreb">Treble</label>
+              <input class="np-panel__eq-range" id="eqTreb" type="range" min="-12" max="12" step="0.5" value="2" aria-label="Treble EQ" />
+              <span class="np-panel__eq-val" id="eqTrebVal">+2 dB</span>
+            </div>
+          </div>
+          <p class="np-panel__section-label">Reverb</p>
+          <div class="np-panel__reverb">
+            <button class="np-panel__reverb-btn" data-preset="dry" type="button">Dry</button>
+            <button class="np-panel__reverb-btn is-active" data-preset="room" type="button">Room</button>
+            <button class="np-panel__reverb-btn" data-preset="hall" type="button">Hall</button>
+            <button class="np-panel__reverb-btn" data-preset="cathedral" type="button">Cathedral</button>
+            <button class="np-panel__reverb-btn" data-preset="spring" type="button">Spring</button>
+            <button class="np-panel__reverb-btn" data-preset="plate" type="button">Plate</button>
+          </div>
+        </details>
       </div>
     </div>
 
@@ -1099,11 +1604,9 @@ function setupShell(root: HTMLElement) {
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         <span>Smart link · all platforms</span>
       </button>
-      <button class="more-menu__item more-menu__item--push" id="notifyToggle" data-action="notify" type="button" role="menuitem" aria-pressed="false">
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span id="notifyLabel">Notify me on new drops</span>
-        <span class="more-menu__dot" id="notifyDot" aria-hidden="true"></span>
-      </button>
+      <div class="more-menu__item more-menu__item--newsletter" role="menuitem" aria-label="Subscribe to bZ drops">
+        ${renderInlineNewsletter('more-menu')}
+      </div>
       ${SPOTIFY_ARTIST_ID ? `<a class="more-menu__item more-menu__item--link" data-action="spotify" href="https://open.spotify.com/artist/${SPOTIFY_ARTIST_ID}" target="_blank" rel="noopener" role="menuitem">
         <svg role="img" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
         <span>Open on Spotify</span>
@@ -1121,13 +1624,16 @@ function setupShell(root: HTMLElement) {
       <p class="karaoke__now" id="karaokeNow">Press play to see the lyrics.</p>
       <p class="karaoke__next" id="karaokeNext"></p>
       <p class="karaoke__next karaoke__next--2" id="karaokeNext2"></p>
+      <!-- Chord hint row — shows the I→V→vi→IV progression for the
+           current track's detected key. Hidden when no key data. -->
+      <div class="karaoke__chords" id="karaokeChords" aria-label="Chord hints" hidden></div>
     </aside>
 
     <!-- Full-screen karaoke -->
     <div class="lyrics-fs" id="lyricsFs" role="dialog" aria-label="Full-screen lyrics" aria-modal="true">
       <button class="lyrics-fs__close" id="lyricsFsClose" type="button" aria-label="Close">✕</button>
       <div class="lyrics-fs__head">
-        <img class="lyrics-fs__cover" id="lyricsFsCover" src="/art/cover-panda-desiiignare.png" alt="" width="48" height="48" />
+        <img class="lyrics-fs__cover" id="lyricsFsCover" src="/art/cover-panda-desiiignare.jpg" alt="" width="48" height="48" />
         <div>
           <p class="lyrics-fs__eyebrow" id="lyricsFsAlbum">bZ</p>
           <h3 class="lyrics-fs__title" id="lyricsFsTitle">—</h3>
@@ -1219,10 +1725,6 @@ function setupShell(root: HTMLElement) {
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V18h6v-1.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>
               <span id="castHueIndicatorLabel">Hue</span>
             </button>
-            <button id="castVizMode" class="cast-sheet__chip" type="button" aria-label="Cycle visualizer mode">
-              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
-              <span id="castVizModeLabel">Bars</span>
-            </button>
             <button id="castSettingsBtn" class="cast-sheet__chip" type="button" aria-label="Open settings" aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8h0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
               <span>Settings</span>
@@ -1236,7 +1738,7 @@ function setupShell(root: HTMLElement) {
 
         <div class="cast-tv">
           <figure class="cast-tv__art">
-            <img class="cast-tv__cover" id="castCover" src="/art/cover-panda-desiiignare.png" alt="" width="640" height="640" decoding="async" />
+            <img class="cast-tv__cover" id="castCover" src="/art/cover-panda-desiiignare.jpg" alt="" width="640" height="640" decoding="async" />
             <div class="cast-tv__art-glow" aria-hidden="true"></div>
             <div class="cast-tv__art-pulse" id="castArtPulse" aria-hidden="true"></div>
           </figure>
@@ -1372,7 +1874,13 @@ function setupShell(root: HTMLElement) {
                 <span>Branded TV UI <span class="cast-settings__hint-inline">(custom 228565CB)</span></span>
               </label>
             </div>
-            <p class="cast-settings__hint">Off: stock Google Media Receiver — works on any Cast device. On: custom 10-foot UI with synced lyrics, palette, queue. Requires a device registered to <code>228565CB</code>; falls back automatically if not.</p>
+            <p class="cast-settings__hint">On (default): gorgeous 10-foot UI — synced karaoke lyrics, live visualizer, album-art palette, navigable queue — on any Chromecast. Off: stock Google Media Receiver (plain player). The app auto-falls back to the stock receiver if a device ever fails to appear, so your TV is never stranded.</p>
+            <div class="cast-settings__row">
+              <a class="link-btn cast-settings__preview" href="/cast-receiver/?test" target="_blank" rel="noopener noreferrer" aria-label="Preview the branded TV receiver in a new tab">
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                <span>Preview branded receiver</span>
+              </a>
+            </div>
           </section>
 
           <section class="cast-settings__group">
@@ -1445,6 +1953,34 @@ function mandalaSVG(): string {
   `;
 }
 
+/**
+ * "Listen on" link row — every platform URL set on album.links gets a chip.
+ * Renders nothing when no links are defined so existing albums stay clean.
+ * External links open in a new tab with `noopener noreferrer` per always.md.
+ */
+function renderListenOn(album: Album): string {
+  const l = album.links;
+  if (!l) return '';
+  const entries: Array<[string, string | undefined, string]> = [
+    ['Spotify', l.spotify, 'spotify'],
+    ['Apple Music', l.appleMusic, 'apple'],
+    ['YouTube Music', l.youtubeMusic, 'youtube'],
+    ['Tidal', l.tidal, 'tidal'],
+    ['Amazon Music', l.amazonMusic, 'amazon'],
+    ['Bandcamp', l.bandcamp, 'bandcamp'],
+    ['SoundCloud', l.soundcloud, 'soundcloud']
+  ];
+  const present = entries.filter((entry): entry is [string, string, string] => Boolean(entry[1]));
+  if (!present.length && !l.preSave) return '';
+  const preSaveChip = l.preSave
+    ? `<a class="album__platform album__platform--presave" href="${l.preSave}" target="_blank" rel="noopener noreferrer">★ Pre-save</a>`
+    : '';
+  const chips = present
+    .map(([label, href, key]) => `<a class="album__platform album__platform--${key}" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="Listen on ${label}">${label}</a>`)
+    .join('');
+  return `<div class="album__platforms" aria-label="Listen on">${preSaveChip}${chips}</div>`;
+}
+
 function renderAlbums(host: HTMLElement) {
   const savedTop = host.scrollTop;
   const isFeatured = Boolean(currentAlbumFilter);
@@ -1455,15 +1991,12 @@ function renderAlbums(host: HTMLElement) {
     ? `<a class="albums__back" data-albums-back href="/" aria-label="Back to all albums"><svg class="albums__back-arrow" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg><span>all albums</span></a>`
     : '';
   const aiPlaylistModule = currentAlbumFilter ? '' : `
-    <aside class="ai-playlist ai-playlist--rail" aria-label="AI's Choice — top picks for you" id="aiPlaylistWrap">
+    <aside class="ai-playlist ai-playlist--rail" aria-label="Aeon's Choice — pre-cast picks tuned for now" id="aiPlaylistWrap">
       <header class="ai-playlist__head">
-        <span class="ai-playlist__eyebrow">AI's Choice</span>
+        <span class="ai-playlist__eyebrow">Aeon's Choice</span>
       </header>
       <div class="ai-playlist__list" id="aiPlaylist" role="list"></div>
     </aside>`;
-  const spotifyEmbed = SPOTIFY_ARTIST_ID
-    ? `<div class="album__spotify"><iframe src="https://open.spotify.com/follow/1/?uri=spotify:artist:${SPOTIFY_ARTIST_ID}&size=detail&theme=dark&show-count=0" width="100%" height="56" scrolling="no" frameborder="0" allowtransparency="true" allow="encrypted-media" title="Follow bZ on Spotify"></iframe></div>`
-    : '';
   host.innerHTML = back + aiPlaylistModule + visible.map(album => {
     const tracks = album.trackIds.map(id => TRACK_BY_ID.get(id)).filter(Boolean) as Track[];
     return `
@@ -1487,9 +2020,9 @@ function renderAlbums(host: HTMLElement) {
             <h3 class="album__title">${album.name}</h3>
             <p class="album__tagline">${album.tagline}</p>
             <p class="album__count">${tracks.length} tracks · bZ</p>
+            ${renderListenOn(album)}
           </div>
         </header>
-        ${isFeatured ? spotifyEmbed : ''}
         <ol class="album__tracks" role="list">
           ${tracks.map((t, idx) => {
             const plays = playCounts.get(t.id) ?? 0;
@@ -1513,18 +2046,52 @@ function renderAlbums(host: HTMLElement) {
           `;
           }).join('')}
         </ol>
-        <button class="album__subscribe" type="button" data-action="notify" aria-label="Get notified when bZ drops a new track">
-          <span class="album__subscribe-eyebrow">bZ · drops</span>
-          <span class="album__subscribe-line">First listen, every drop. <em>Subscribe →</em></span>
-        </button>
       </section>
     `;
   }).join('');
+  // Single newsletter widget at the END of the album list (or end of the
+  // single album when filtered). Per Brian: remove per-album widgets,
+  // keep just one. Source key includes album-or-all so we can attribute
+  // conversions by surface.
+  const nlSource = currentAlbumFilter ? `end-of-album-${currentAlbumFilter}` : 'end-of-all-albums';
+  host.innerHTML += `
+    <section class="album-list-end">
+      <div class="album-list-end__eyebrow">bZ · drops</div>
+      <div class="album-list-end__copy">First listen, every drop. One email when a track lands.</div>
+      ${renderInlineNewsletter(nlSource)}
+    </section>
+  `;
   host.scrollTop = savedTop;
   if (!currentAlbumFilter) {
     bindAiPlaylist();
     refreshAiPlaylist();
   }
+}
+
+// Batch-hydrate Spotify badges across every track row after render.
+// 51 tracks × 24h KV cache = one slow uncached pass per session, then
+// instant for every subsequent visitor. Concurrency-limited (4 in flight)
+// so we don't blast the Worker on a cold cache.
+async function hydrateTrackRowSpotifyBadges(root: HTMLElement | Document = document) {
+  const targets = Array.from(root.querySelectorAll<HTMLElement>('.trackrow__spotify[data-spotify-title]:not([data-resolved])'));
+  if (!targets.length) return;
+  const concurrency = 4;
+  let cursor = 0;
+  async function worker() {
+    while (cursor < targets.length) {
+      const el = targets[cursor++];
+      const title = el.dataset.spotifyTitle;
+      if (!title) continue;
+      el.dataset.resolved = '1';
+      const info = await resolveSpotifyTrack(title);
+      if (!info?.spotifyUrl) continue;
+      const pop = typeof info.popularity === 'number' ? info.popularity : 0;
+      el.innerHTML = `<a href="${info.spotifyUrl}" target="_blank" rel="noopener noreferrer" aria-label="Stream ${escapeHtml(title)} on Spotify"${pop > 0 ? ` title="Spotify popularity ${pop}/100"` : ''}>
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.41a.7.7 0 0 1-.96.23c-2.63-1.61-5.94-1.97-9.84-1.08a.7.7 0 0 1-.31-1.36c4.27-.97 7.94-.56 10.88 1.25.33.2.43.65.23.96zm1.23-2.74a.87.87 0 0 1-1.2.29c-3.01-1.85-7.6-2.39-11.16-1.31a.87.87 0 0 1-.51-1.66c4.07-1.24 9.13-.64 12.59 1.48.41.25.54.79.28 1.2zm.1-2.86c-3.61-2.14-9.57-2.34-13.02-1.29a1.05 1.05 0 1 1-.61-2.01c3.96-1.2 10.55-.97 14.7 1.49a1.05 1.05 0 1 1-1.07 1.81z"/></svg>${pop > 0 ? `<span>${pop}</span>` : ''}</a>`;
+      el.hidden = false;
+    }
+  }
+  await Promise.all(Array.from({ length: concurrency }, worker));
 }
 
 type TagChip = { kind: 'mood' | 'theme' | 'genre' | 'place' | 'tempo' | 'energy'; label: string };
@@ -1549,14 +2116,26 @@ function trackTagsAttr(trackId: string): string {
 }
 
 function renderNowPlaying(track: Track | null) {
-  const album = track ? ALBUM_BY_ID.get(track.album) : null;
+  // When the user has filtered to a single album but hasn't pressed play yet,
+  // surface THAT album in the hero (name + tagline) instead of the generic
+  // "PRESS PLAY" stub. Makes /<album> feel like a real album page.
+  const filteredAlbum = !track && currentAlbumFilter ? ALBUM_BY_ID.get(currentAlbumFilter) : null;
+  const album = track ? ALBUM_BY_ID.get(track.album) : filteredAlbum;
   const heroAlbum = $('#heroAlbum');
   const heroTitle = $('#heroTitle');
   const heroVibe = $('#heroVibe');
   const npChrome = $('#npChrome');
   if (heroAlbum) heroAlbum.textContent = (album?.name || 'bZ · Cyan Flag').toUpperCase();
-  if (heroTitle) heroTitle.textContent = (track ? track.title : 'PRESS PLAY').toUpperCase();
-  if (heroVibe) heroVibe.textContent = track?.vibe || 'Web Audio API live. Hard but holy.';
+  if (heroTitle) {
+    heroTitle.textContent = track
+      ? track.title.toUpperCase()
+      : (filteredAlbum ? filteredAlbum.name.toUpperCase() : 'PRESS PLAY');
+  }
+  if (heroVibe) {
+    heroVibe.textContent = track?.vibe
+      || filteredAlbum?.tagline
+      || 'Web Audio API live. Hard but holy.';
+  }
   const heroTags = $('#heroTags');
   if (heroTags) {
     const tags = track ? getTrackTags(track.id) : undefined;
@@ -1574,10 +2153,27 @@ function renderNowPlaying(track: Track | null) {
   const npAlbum = $('#transportNpAlbum');
   const npTitle = $('#transportNpTitle');
   const npSub = $('#transportNpSub');
-  if (npCover) npCover.src = album?.cover ?? '/art/cover-panda-desiiignare.png';
+  if (npCover) npCover.src = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
   if (npAlbum) npAlbum.textContent = album?.name ?? 'bZ';
   if (npTitle) npTitle.textContent = track?.title ?? 'Press play';
   if (npSub) npSub.textContent = track ? (track.vibe ?? 'bZ') : 'bZ';
+  // Render BPM / key in the now-playing chrome — only visible when a track
+  // is actually playing, so empty-state stays clean. Inline span layout
+  // keeps the playbar height unchanged.
+  const npSuno = $('#transportNpSuno');
+  if (npSuno) {
+    const meta = track ? SUNO_META[track.id] : null;
+    if (meta?.sunoBpm || meta?.sunoKey) {
+      const bpm = meta.sunoBpm ? `<span class="transport__np-suno__bpm">${Math.round(meta.sunoBpm)} BPM</span>` : '';
+      const key = meta.sunoKey ? `<span class="transport__np-suno__key">${meta.sunoKey}</span>` : '';
+      const sep = bpm && key ? '<span class="transport__np-suno__sep">·</span>' : '';
+      npSuno.innerHTML = `${bpm}${sep}${key}`;
+      npSuno.hidden = false;
+    } else {
+      npSuno.innerHTML = '';
+      npSuno.hidden = true;
+    }
+  }
   if (track && album) {
     document.documentElement.style.setProperty('--accent', album.accent);
     visualizer?.setAccent(album.accent);
@@ -1710,6 +2306,56 @@ function fitLyricsLines() {
   }));
 }
 
+/**
+ * Last-start-passed word lookup with end-of-line catch-all.
+ * Returns the index of the word the time pointer is sitting on, or the
+ * latest word whose start has passed if we're in a between-word gap.
+ * Returns -1 only when t is before the first word's start.
+ */
+function findWordIdx(t: number, words: WhisperWord[]): number {
+  if (!words.length) return -1;
+  if (t < words[0].s) return -1;
+  for (let i = words.length - 1; i >= 0; i--) {
+    if (t >= words[i].s) return i;
+  }
+  return -1;
+}
+
+/**
+ * Reset all per-frame lyric trackers AND brute-force restore every line to
+ * its plain bundle text so the next RAF tick re-discovers the correct line
+ * + word from scratch with zero stale word-spans or active-class leakage.
+ *
+ * Why brute-force? Natural playback transitions clean only the previous
+ * line via `restoreLyricsLine(prev)`. But across a seek, rapid line changes
+ * (e.g. scrubbing the timeline) can leave several "previously activated"
+ * lines holding stale `.lyrics-fs__w--active` spans — those are never
+ * cleaned because the tracker only remembers ONE prior line. Iterating
+ * every line on seek is O(n=30-40) per song and guarantees a clean slate.
+ */
+function forceLyricsResync() {
+  if (lyricsLineEls.length && lyricsRenderedBundle) {
+    const lines = lyricsRenderedBundle.lines;
+    for (let i = 0; i < lyricsLineEls.length; i++) {
+      const el = lyricsLineEls[i];
+      // textContent assignment removes all child elements, killing leftover
+      // .lyrics-fs__w spans + their --active class. Cheap one-shot reset.
+      el.textContent = lines[i]?.text ?? '';
+      el.classList.remove('lyrics-fs__line--past', 'lyrics-fs__line--active');
+      el.classList.add('lyrics-fs__line--future');
+    }
+  }
+  lyricsCurLineWords = [];
+  lyricsCurWordSpans = [];
+  lyricsLastLineIdx = -2;
+  lyricsLastWordIdx = -2;
+  lyricsLastScrollIdx = -2;
+  karaokeLastIdx = -2;
+  karaokeOverlayWordIdx = -2;
+  karaokeOverlayWords = [];
+  karaokeOverlayWordSpans = [];
+}
+
 function activateLyricsLine(idx: number, bundle: LyricsBundle) {
   const el = lyricsLineEls[idx];
   if (!el) return;
@@ -1782,11 +2428,17 @@ function startKaraoke() {
 
     const t = engine.audio.currentTime;
     const lines = activeLyrics.lines;
+    // Last-start-passed semantics: more robust than start-and-end checks because
+    // adjacent lines often have e < next.s (gaps), and seek-jumps land in those
+    // gaps. We pick the line whose start <= t, and "before line 0" stays on 0
+    // as a future-line preview rather than collapsing to -1.
     let idx = 0;
-    for (let i = 0; i < lines.length; i++) {
-      if (t >= lines[i].s && t < lines[i].e) { idx = i; break; }
-      if (t < lines[i].s) { idx = Math.max(0, i - 1); break; }
-      idx = i;
+    if (t < lines[0].s) {
+      idx = 0;
+    } else {
+      for (let i = lines.length - 1; i >= 0; i--) {
+        if (t >= lines[i].s) { idx = i; break; }
+      }
     }
 
     if (idx !== lyricsLastLineIdx) {
@@ -1812,13 +2464,7 @@ function startKaraoke() {
     }
 
     if (lyricsCurWordSpans.length && lyricsCurLineWords.length) {
-      let active = -1;
-      for (let i = 0; i < lyricsCurLineWords.length; i++) {
-        const w = lyricsCurLineWords[i];
-        if (t >= w.s && t < w.e) { active = i; break; }
-        if (t < w.s) { active = i - 1; break; }
-      }
-      if (active === -1 && t >= lyricsCurLineWords[lyricsCurLineWords.length - 1].e) active = lyricsCurLineWords.length - 1;
+      const active = findWordIdx(t, lyricsCurLineWords);
       if (active !== lyricsLastWordIdx) {
         for (let i = 0; i < lyricsCurWordSpans.length; i++) {
           lyricsCurWordSpans[i].classList.toggle('lyrics-fs__w--past', i < active);
@@ -1829,13 +2475,7 @@ function startKaraoke() {
     }
 
     if (karaokeOverlayOn && karaokeOverlayWordSpans.length && karaokeOverlayWords.length) {
-      let oa = -1;
-      for (let i = 0; i < karaokeOverlayWords.length; i++) {
-        const w = karaokeOverlayWords[i];
-        if (t >= w.s && t < w.e) { oa = i; break; }
-        if (t < w.s) { oa = i - 1; break; }
-      }
-      if (oa === -1 && t >= karaokeOverlayWords[karaokeOverlayWords.length - 1].e) oa = karaokeOverlayWords.length - 1;
+      const oa = findWordIdx(t, karaokeOverlayWords);
       if (oa !== karaokeOverlayWordIdx) {
         for (let i = 0; i < karaokeOverlayWordSpans.length; i++) {
           karaokeOverlayWordSpans[i].classList.toggle('karaoke__w--past', i < oa);
@@ -1913,6 +2553,75 @@ function paintKaraokeOverlay(idx: number, bundle: LyricsBundle) {
   }
   host.classList.add('is-pulse');
   setTimeout(() => host.classList.remove('is-pulse'), 360);
+  updateChordHints(idx);
+}
+
+// ── Chord hints overlay ─────────────────────────────────────────────
+// Given a detected musical key, build the four most-common pop chord
+// scale degrees (I, V, vi, IV — "the four chords") and display them in
+// rotation per line. This is a heuristic, not a transcription — it
+// gives the listener a starting point to play along, nothing more.
+const MAJOR_SCALES: Record<string, string[]> = {
+  // Major key root → I, ii, iii, IV, V, vi, vii°
+  C:  ['C',  'Dm', 'Em', 'F',  'G',  'Am', 'Bdim'],
+  G:  ['G',  'Am', 'Bm', 'C',  'D',  'Em', 'F#dim'],
+  D:  ['D',  'Em', 'F#m','G',  'A',  'Bm', 'C#dim'],
+  A:  ['A',  'Bm', 'C#m','D',  'E',  'F#m','G#dim'],
+  E:  ['E',  'F#m','G#m','A',  'B',  'C#m','D#dim'],
+  B:  ['B',  'C#m','D#m','E',  'F#', 'G#m','A#dim'],
+  F:  ['F',  'Gm', 'Am', 'Bb', 'C',  'Dm', 'Edim'],
+  Bb: ['Bb', 'Cm', 'Dm', 'Eb', 'F',  'Gm', 'Adim'],
+  Eb: ['Eb', 'Fm', 'Gm', 'Ab', 'Bb', 'Cm', 'Ddim'],
+  Ab: ['Ab', 'Bbm','Cm', 'Db', 'Eb', 'Fm', 'Gdim'],
+};
+function chordsForKey(key: string | undefined): { I: string; V: string; vi: string; IV: string } | null {
+  if (!key) return null;
+  // Accept "C", "C major", "Cm", "C minor". Default to major.
+  const norm = key.trim().replace(/\s+/g, ' ');
+  const m = norm.match(/^([A-G][#b]?)(?:\s*(major|minor|m))?$/i);
+  if (!m) return null;
+  const root = m[1].charAt(0).toUpperCase() + m[1].slice(1).replace('B', 'b').replace('S', '#');
+  // For minor keys, use the relative major's chords with vi as the tonic.
+  const isMinor = /minor|m$/i.test(norm) && !/major/i.test(norm);
+  const RELATIVE_MAJ: Record<string, string> = {
+    Am: 'C', Em: 'G', Bm: 'D', 'F#m': 'A', 'C#m': 'E', 'G#m': 'B',
+    Dm: 'F', Gm: 'Bb', Cm: 'Eb', Fm: 'Ab', Bbm: 'Db', Ebm: 'Gb',
+  };
+  let scaleRoot = root;
+  if (isMinor) scaleRoot = RELATIVE_MAJ[root + 'm'] ?? root;
+  const scale = MAJOR_SCALES[scaleRoot];
+  if (!scale) return null;
+  return { I: scale[0], V: scale[4], vi: scale[5], IV: scale[3] };
+}
+function parseKeyFromSunoStyle(style?: string): string | undefined {
+  if (!style) return undefined;
+  // "key of d minor" / "D minor key" / "minor key" / "d# minor"
+  let m = style.match(/key\s+of\s+([a-g][#b]?)\s*(major|minor)?/i);
+  if (m) return `${m[1].toUpperCase()}${m[2] ? ' ' + m[2].toLowerCase() : ''}`;
+  m = style.match(/([a-g][#b]?)\s+(major|minor)\s+key/i);
+  if (m) return `${m[1].toUpperCase()} ${m[2].toLowerCase()}`;
+  return undefined;
+}
+function updateChordHints(lineIdx: number) {
+  const el = $('#karaokeChords');
+  if (!el) return;
+  const t = currentTrackId ? TRACK_BY_ID.get(currentTrackId) : null;
+  if (!t) { el.hidden = true; return; }
+  const key = parseKeyFromSunoStyle(SUNO_META[t.id]?.sunoStyle) || parseKeyFromSunoStyle(SUNO_META[t.id]?.sunoStyleFull);
+  const chords = chordsForKey(key);
+  if (!chords) { el.hidden = true; return; }
+  // 4-chord loop: I → V → vi → IV (the "Axis of Awesome" progression that
+  // underpins most modern pop, and ~half of bZ's hooks)
+  const loop = [chords.I, chords.V, chords.vi, chords.IV];
+  const cur = loop[lineIdx % 4];
+  const next = loop[(lineIdx + 1) % 4];
+  el.hidden = false;
+  el.innerHTML = `
+    <span class="karaoke__chord karaoke__chord--cur">${escapeHtml(cur)}</span>
+    <span class="karaoke__chord-sep">→</span>
+    <span class="karaoke__chord karaoke__chord--next">${escapeHtml(next)}</span>
+    <span class="karaoke__chord-key">key · ${escapeHtml(key ?? '')}</span>
+  `;
 }
 
 let karaokeDragBound = false;
@@ -1977,6 +2686,10 @@ function bindKaraokeDrag() {
     host.style.right = 'auto';
     host.style.bottom = 'auto';
     host.style.transform = 'none';
+    // Once dragged, the karaokeIn enter animation must use opacity-only
+    // on subsequent opens — otherwise it slides from CSS-center, not
+    // from the dragged location.
+    host.classList.add('is-positioned');
     origLeft = rect.left;
     origTop = rect.top;
     startX = e.clientX;
@@ -1995,6 +2708,7 @@ function bindKaraokeDrag() {
     host.style.removeProperty('right');
     host.style.removeProperty('bottom');
     host.style.removeProperty('transform');
+    host.classList.remove('is-positioned');
     try { localStorage.removeItem('bz:karaoke:pos'); } catch { /* noop */ }
   });
 }
@@ -2004,8 +2718,36 @@ function bindKaraokeDrag() {
  */
 function setKaraokeOverlay(on: boolean) {
   karaokeOverlayOn = on;
+  // CSS hook: body[data-karaoke-open] auto-dims #bg canvas so lyric
+  // text reads against a calmer backdrop (CSS rule lives in style.css).
+  document.body.dataset.karaokeOpen = on ? '1' : '0';
   try { localStorage.setItem('bz:karaoke:overlay', on ? '1' : '0'); } catch { /* private mode */ }
   const host = $('#karaoke') as HTMLElement | null;
+  // Restore saved position BEFORE unhiding so the element never paints
+  // at its default CSS-center before snapping to the user's last drag
+  // location. Also toggle `is-positioned` so the CSS karaokeIn animation
+  // (which forces `transform: translate(-50%, -50%)`) is replaced with an
+  // opacity-only fade — otherwise the animation overrides our inline
+  // `transform: none` for 220ms and the panel slides from center to
+  // saved-coords, which is the flash Brian flagged.
+  if (host && on) {
+    let restored = false;
+    try {
+      const raw = localStorage.getItem('bz:karaoke:pos');
+      if (raw) {
+        const p = JSON.parse(raw) as { x: number; y: number };
+        if (Number.isFinite(p.x) && Number.isFinite(p.y)) {
+          host.style.left = `${p.x}px`;
+          host.style.top = `${p.y}px`;
+          host.style.right = 'auto';
+          host.style.bottom = 'auto';
+          host.style.transform = 'none';
+          restored = true;
+        }
+      }
+    } catch { /* private mode */ }
+    host.classList.toggle('is-positioned', restored);
+  }
   if (host) host.hidden = !on;
   const btn = $('#btnLyricsOverlay') as HTMLButtonElement | null;
   if (btn) btn.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -2050,30 +2792,44 @@ function capitalizeLyricLine(s: string): string {
 async function play(track: Track) {
   pushTrackUrl(track);
   recordPlayStart(track.id);
-  const doUpdate = () => {
-    currentTrackId = track.id;
-    renderAlbums($('#albums')!);
-    renderNowPlaying(track);
-    refreshShareLabel();
-    refreshAiPlaylist();
-  };
-  const doc = document as Document & { startViewTransition?: (fn: () => void) => unknown };
-  if (doc.startViewTransition) {
-    doc.startViewTransition(doUpdate);
-  } else {
-    doUpdate();
-  }
+  currentTrackId = track.id;
+  updateTransportSpotifyChip(track);
+  // Wake the visualizer if it deferred its start (mobile / low-power)
+  document.dispatchEvent(new CustomEvent('panda-track-play', { detail: { id: track.id } }));
+  // 260ms visualizer cross-fade hook — body[data-track-changing] is CSS-
+  // listened to dim the #bg canvas briefly so consecutive tracks feel
+  // like a single continuous experience instead of a jarring viz cut.
+  document.body.dataset.trackChanging = '1';
+  setTimeout(() => { document.body.dataset.trackChanging = '0'; }, 280);
+  // Class-swap instead of full innerHTML rebuild — preserves the user's scroll
+  // position in `.albums` (innerHTML reset forces scrollTop to 0 mid-frame,
+  // which View Transitions then snapshot as the "after" state, causing a jump)
+  // and keeps mobile off the GC churn of re-creating ~70 <li> nodes per click.
+  document
+    .querySelectorAll<HTMLAnchorElement>('.trackrow.is-current')
+    .forEach(el => el.classList.remove('is-current'));
+  document
+    .querySelector<HTMLAnchorElement>(`.trackrow[data-track="${track.id}"]`)
+    ?.classList.add('is-current');
+  document
+    .querySelectorAll<HTMLButtonElement>('.ai-pick.is-current')
+    .forEach(el => el.classList.remove('is-current'));
+  document
+    .querySelector<HTMLButtonElement>(`.ai-pick[data-ai-pick="${track.id}"]`)
+    ?.classList.add('is-current');
+  renderNowPlaying(track);
+  refreshShareLabel();
   if (cast.active) {
     if (cast.customChannelOpen) {
       // Receiver owns the queue; just tell it which track to play. Falls back
       // to standard CAF loadMedia if the custom message fails.
       cast.selectItem(track.id, 0).catch(() => {
         const album = ALBUM_BY_ID.get(track.album);
-        cast.loadTrack(track, album?.cover ?? '/art/cover-panda-desiiignare.png', album?.name ?? 'bZ', 0).catch(() => engine.play(track));
+        cast.loadTrack(track, album?.cover ?? '/art/cover-panda-desiiignare.jpg', album?.name ?? 'bZ', 0).catch(() => engine.play(track));
       });
     } else {
       const album = ALBUM_BY_ID.get(track.album);
-      cast.loadTrack(track, album?.cover ?? '/art/cover-panda-desiiignare.png', album?.name ?? 'bZ', 0).catch(() => engine.play(track));
+      cast.loadTrack(track, album?.cover ?? '/art/cover-panda-desiiignare.jpg', album?.name ?? 'bZ', 0).catch(() => engine.play(track));
     }
     startCastMirror(track);
   } else {
@@ -2118,6 +2874,19 @@ function updateMediaSession(track: Track) {
       type: 'image/png'
     }))
   });
+  seedTempoFromMeta(track);
+}
+
+/** Seed engine.bpm from authoritative SUNO_META so every visualizer that
+ *  reads tempoPhase() snaps to the correct musical clock immediately
+ *  instead of waiting ~20s for the adaptive beat detector to converge.
+ *  Audio-analysis-measured BPM (via aubio FFT beat tracker) outranks the
+ *  Suno-tag-parsed value upstream in build-suno-meta.mjs. */
+function seedTempoFromMeta(track: Track) {
+  const meta = SUNO_META[track.id];
+  if (!meta?.sunoBpm) return;
+  // Engine treats bpm as a smoothed observable; nudging it directly is safe.
+  engine.bpm = meta.sunoBpm;
 }
 
 function bindMediaSession() {
@@ -2147,10 +2916,24 @@ function bindMediaSession() {
     engine.audio.currentTime = d.seekTime;
     if (cast.active) cast.seek(d.seekTime);
   });
-  engine.audio.addEventListener('play', () => setMediaSessionPlaybackState(true));
-  engine.audio.addEventListener('pause', () => setMediaSessionPlaybackState(false));
-  engine.audio.addEventListener('loadedmetadata', () => setMediaSessionPosition(engine.audio));
-  engine.audio.addEventListener('seeked', () => setMediaSessionPosition(engine.audio));
+  engine.audio.addEventListener('play', () => {
+    setMediaSessionPlaybackState(true);
+    void acquireWakeLock();
+  });
+  engine.audio.addEventListener('pause', () => {
+    setMediaSessionPlaybackState(false);
+    void releaseWakeLock();
+  });
+  engine.audio.addEventListener('ended', () => { void releaseWakeLock(); });
+  engine.audio.addEventListener('loadedmetadata', () => {
+    setMediaSessionPosition(engine.audio);
+    forceLyricsResync();
+  });
+  engine.audio.addEventListener('seeked', () => {
+    setMediaSessionPosition(engine.audio);
+    forceLyricsResync();
+  });
+  engine.audio.addEventListener('seeking', () => forceLyricsResync());
   engine.audio.addEventListener('ratechange', () => setMediaSessionPosition(engine.audio));
   let lastPosWrite = 0;
   engine.audio.addEventListener('timeupdate', () => {
@@ -2188,20 +2971,34 @@ function bindIntegrations() {
       if (!castBtn) return;
       castBtn.classList.toggle('is-active', e.active);
       castBtn.setAttribute('aria-pressed', e.active ? 'true' : 'false');
-      if (castLbl) castLbl.textContent = e.active ? (e.deviceName ? `→ ${e.deviceName}` : 'casting') : 'cast';
+      if (castLbl) {
+        // Device pill is the chip after the "Cast" wordmark — only visible
+        // mid-session. Empty + hidden between sessions so the button reads
+        // as the single-word "Cast" action.
+        if (e.active) {
+          castLbl.textContent = e.deviceName ?? 'Connected';
+          castLbl.hidden = false;
+        } else {
+          castLbl.textContent = '';
+          castLbl.hidden = true;
+        }
+      }
       castBtn.setAttribute('title', e.active ? `Casting to ${e.deviceName ?? 'device'} — click for remote` : 'Cast to TV / speaker (Chromecast)');
       document.body.classList.toggle('is-casting', e.active);
       if (e.active) {
+        const customReceiver = cast.getReceiverMode() === 'custom';
         if (currentTrackId) {
           const t = TRACK_BY_ID.get(currentTrackId);
           const album = t ? ALBUM_BY_ID.get(t.album) : null;
-          if (t && album) cast.loadTrack(t, album.cover, album.name, engine.audio.currentTime || 0).catch(() => { /* noop */ });
           if (t) startCastMirror(t);
+          // CAF loadMedia is the DEFAULT Media Receiver path. On the custom
+          // receiver, queue:load (below) drives playback — calling loadMedia too
+          // double-loads + fights the custom protocol, so gate it to default.
+          if (!customReceiver && t && album) cast.loadTrack(t, album.cover, album.name, engine.audio.currentTime || 0).catch(() => { /* noop */ });
         }
-        // Push the full TRACKS list so the receiver can render+navigate the
-        // identical playlist with the TV remote. Runs after openCustomChannel
-        // resolves; sendCustom queues until then so this is safe to call here.
-        pushCastQueue(currentTrackId, engine.audio.currentTime || 0, !engine.audio.paused);
+        // Push the full TRACKS list so the custom receiver renders + plays the
+        // playlist. sendCustom buffers until openCustomChannel resolves.
+        if (customReceiver) pushCastQueue(currentTrackId, engine.audio.currentTime || 0, !engine.audio.paused);
         openCastSheet();
       } else {
         stopCastMirror();
@@ -2390,7 +3187,7 @@ function refreshPipState(): void {
     pipController.syncTrack({
       title: t.title,
       artist: t.artist,
-      cover: album?.cover ?? '/art/cover-panda-desiiignare.png',
+      cover: album?.cover ?? '/art/cover-panda-desiiignare.jpg',
       album: album?.name ?? 'bZ'
     });
   }
@@ -2452,7 +3249,10 @@ function stopCastMirror(): void {
 function tracksToCastItems(list: Track[]): ReceiverQueueItem[] {
   return list.map(t => {
     const album = ALBUM_BY_ID.get(t.album);
-    const cover = album?.cover ?? '/art/cover-panda-desiiignare.png';
+    const cover = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
+    const meta = SUNO_META[t.id];
+    const bpm = meta?.sunoBpm != null && meta.sunoBpm > 0 ? Math.round(meta.sunoBpm) : undefined;
+    const musicalKey = meta?.sunoKey ?? undefined;
     return {
       id: t.id,
       title: t.title,
@@ -2460,13 +3260,19 @@ function tracksToCastItems(list: Track[]): ReceiverQueueItem[] {
       album: album?.name ?? 'bZ',
       cover: new URL(cover, location.href).toString(),
       audio: new URL(t.file, location.href).toString(),
-      vibe: t.vibe
+      vibe: t.vibe,
+      ...(bpm != null ? { bpm } : {}),
+      ...(musicalKey ? { musicalKey } : {})
     };
   });
 }
 
 function pushCastQueue(startTrackId: string | null, startPosition = 0, autoplay = true): void {
-  if (!cast.customChannelOpen) return;
+  // Don't bail when the channel isn't open yet — cast.loadQueue() → sendCustom()
+  // buffers in outboundQueue and flushes on channel-open. The session 'active'
+  // event fires BEFORE openCustomChannel() runs, so a customChannelOpen guard
+  // here would drop the queue:load entirely → receiver stays idle (QR) and a
+  // later queue:select hits an empty queue (select_unknown_id).
   const items = tracksToCastItems(TRACKS);
   const startIndex = startTrackId
     ? Math.max(0, TRACKS.findIndex(x => x.id === startTrackId))
@@ -2654,11 +3460,12 @@ async function refreshCastLyrics(track: Track): Promise<void> {
   try {
     const bundle = await loadLyrics(track);
     castLyricsLines = bundle.lines.map((l, i) => {
-      const words: CastWord[] = bundle.words
-        ? bundle.words
-            .filter(w => (w.line ?? -1) === i)
-            .map(w => ({ w: w.w, s: w.s, e: w.e }))
-        : [];
+      // Prefer the per-word `line` field; fall back to TIME windowing when it's
+      // absent (11/72 lyrics files omit it — without this they push word-less
+      // lines to the receiver). Mirrors the in-app display grouping.
+      let lw = bundle.words ? bundle.words.filter(w => (w.line ?? -1) === i) : [];
+      if (!lw.length && bundle.words) lw = bundle.words.filter(w => w.s >= l.s - 0.2 && w.s < (l.e ?? Infinity) + 0.2);
+      const words: CastWord[] = lw.map(w => ({ w: w.w, s: w.s, e: w.e }));
       return { t: l.s, e: l.e, text: capitalizeLyricLine(l.text), words };
     });
     renderCastLyricsList();
@@ -2740,7 +3547,7 @@ function renderCastQueue(): void {
     li.className = i === 0 ? 'cast-tv__queue-item is-now' : 'cast-tv__queue-item';
     li.dataset.id = t.id;
     li.innerHTML = `
-      <img class="cast-tv__queue-cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="44" height="44" loading="lazy" />
+      <img class="cast-tv__queue-cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.jpg'}" alt="" width="44" height="44" loading="lazy" />
       <div class="cast-tv__queue-text">
         <strong>${escapeHtml(t.title)}</strong>
         <span>${escapeHtml(t.artist)}${album ? ' · ' + escapeHtml(album.name) : ''}</span>
@@ -3362,7 +4169,8 @@ function bindCastSheet(): void {
   // Settings drawer + chips
   $('#castSettingsBtn')?.addEventListener('click', () => openCastSettings());
   $('#castSettingsClose')?.addEventListener('click', () => closeCastSettings());
-  $('#castVizMode')?.addEventListener('click', () => cycleCastVizMode());
+  // Visualizer-mode chip removed from the cast-sheet header (the in-cast viz
+  // mode is fixed); the cast-seg controls in settings still drive it if present.
   $$('.cast-seg').forEach(b => {
     b.addEventListener('click', () => {
       const m = (b as HTMLElement).dataset.viz as CastVizMode | undefined;
@@ -3378,21 +4186,22 @@ function bindCastSheet(): void {
     } catch { /* noop */ }
   });
 
-  // Branded TV UI (custom receiver App ID 228565CB) — persisted opt-in.
-  // Off by default so first-time users land on Default Media Receiver, which
-  // is registered on every Cast device. Toggle re-applies CastContext options
-  // so the next requestSession() lands on the chosen receiver.
+  // Branded TV UI (custom receiver App ID 228565CB) — ON by default now that the
+  // receiver is PUBLISHED (Brian confirmed 2026-06-08), so every Cast device shows
+  // AND boots the branded UI. Honor an explicit opt-out ('default'); the SDK-side
+  // watchCastState() auto-reverts if a device ever gets filtered, so this is safe.
   const modeToggle = $('#castReceiverMode') as HTMLInputElement | null;
   if (modeToggle) {
-    const saved = (() => { try { return localStorage.getItem(CAST_MODE_KEY) === 'custom'; } catch { return false; } })();
-    modeToggle.checked = saved;
-    if (saved) cast.enableCustomReceiver();
+    const useCustom = (() => { try { return localStorage.getItem(CAST_MODE_KEY) !== 'default'; } catch { return true; } })();
+    modeToggle.checked = useCustom;
+    if (useCustom) cast.enableCustomReceiver();
+    else cast.disableCustomReceiver();
     modeToggle.addEventListener('change', () => {
       const on = modeToggle.checked;
       try { localStorage.setItem(CAST_MODE_KEY, on ? 'custom' : 'default'); } catch { /* swallow */ }
       if (on) cast.enableCustomReceiver();
       else cast.disableCustomReceiver();
-      showToast(on ? 'Branded TV UI on — pick a device registered to 228565CB' : 'Default receiver — works on any Cast device');
+      showToast(on ? 'Branded TV UI on — your TV boots the bZ receiver' : 'Default receiver on — standard Cast player');
     });
   }
 
@@ -3414,133 +4223,138 @@ function showToast(message: string): void {
 const NOTIFY_LOCAL_KEY = 'bz:notify:email';
 const CAST_MODE_KEY = 'bz:cast:receiver-mode';
 
+/** Reflect subscribed-state on `<body data-subscribed>` so CSS hooks
+ *  (e.g., hiding cold-call CTAs for already-subscribed users) can read
+ *  the state without JS. Replaces the legacy #notifyToggle refresh. */
 async function refreshNotifyToggle(): Promise<void> {
-  const btn = $('#notifyToggle') as HTMLButtonElement | null;
-  const label = $('#notifyLabel');
-  const dot = $('#notifyDot');
-  if (!btn || !label) return;
-  btn.hidden = false;
   const savedEmail = (() => { try { return localStorage.getItem(NOTIFY_LOCAL_KEY) || ''; } catch { return ''; } })();
   const pushOn = pushSupported() ? (await pushState()) === 'subscribed' : false;
-  const subscribed = Boolean(savedEmail) || pushOn;
-  btn.disabled = false;
-  btn.setAttribute('aria-pressed', subscribed ? 'true' : 'false');
-  btn.classList.toggle('is-active', subscribed);
-  label.textContent = subscribed
-    ? (pushOn ? 'On the list · push on' : 'On the list · manage')
-    : 'Notify me on new drops';
-  if (dot) dot.classList.toggle('is-on', subscribed);
-  document.body.dataset.subscribed = subscribed ? '1' : '0';
+  document.body.dataset.subscribed = (Boolean(savedEmail) || pushOn) ? '1' : '0';
 }
 
-function openNotifyDialog(): void {
-  const dlg = $('#notifyDialog') as HTMLDialogElement | null;
-  const input = $('#notifyEmail') as HTMLInputElement | null;
-  const err = $('#notifyError') as HTMLParagraphElement | null;
-  const pushRow = $('#notifyPushRow') as HTMLLabelElement | null;
-  const pushOpt = $('#notifyPushOpt') as HTMLInputElement | null;
-  const pushHint = $('#notifyPushHint') as HTMLElement | null;
-  if (!dlg || !input) return;
-  if (err) { err.hidden = true; err.textContent = ''; }
+/**
+ * Inline newsletter widget binding — delegates submit + push-toggle across
+ * every `.nl-inline` instance in the document. One handler, every widget.
+ * Replaces the legacy openNotifyDialog/closeNotifyDialog/submitNotifySubscribe
+ * modal flow with a single inline interaction surface.
+ */
+function setupInlineNewsletter(): void {
+  // Email submit — delegated so dynamically-rendered widgets (album rows,
+  // more-menu open) all flow through here.
+  document.addEventListener('submit', (e) => {
+    const form = e.target as HTMLElement | null;
+    if (!form || !(form instanceof HTMLFormElement) || !form.classList.contains('nl-inline')) return;
+    e.preventDefault();
+    void submitInlineNewsletter(form);
+  });
+  // Push-bell button — toggles browser push subscription inline.
+  document.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement | null)?.closest('.nl-inline__push');
+    if (!btn) return;
+    e.preventDefault();
+    void togglePushFromInline(btn as HTMLButtonElement);
+  });
+  // Restore last-used email across all visible widgets.
   try {
     const saved = localStorage.getItem(NOTIFY_LOCAL_KEY);
-    if (saved) input.value = saved;
-  } catch { /* ignore */ }
-  if (pushRow && pushOpt && pushHint) {
-    if (pushSupported()) {
-      pushRow.hidden = false;
-      void pushState().then(state => {
-        const denied = state === 'denied';
-        pushOpt.checked = state === 'subscribed';
-        pushOpt.disabled = denied;
-        pushHint.textContent = denied ? '· browser blocks push' : (state === 'subscribed' ? '· already on' : '');
-      });
-    } else {
-      pushRow.hidden = true;
+    if (saved) {
+      document.querySelectorAll<HTMLInputElement>('.nl-inline__input').forEach(i => { i.value = saved; });
     }
+  } catch { /* private mode */ }
+  // Reflect current push state on every push-bell button.
+  if (pushSupported()) {
+    void pushState().then(state => {
+      const on = state === 'subscribed';
+      document.querySelectorAll<HTMLButtonElement>('.nl-inline__push').forEach(b => {
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (state === 'denied') {
+          b.disabled = true;
+          b.title = 'Push blocked by browser settings';
+        }
+      });
+    });
+  } else {
+    // No PushAPI — hide every push bell so the widget collapses to 2 elements.
+    document.querySelectorAll<HTMLButtonElement>('.nl-inline__push').forEach(b => { b.hidden = true; });
   }
-  if (typeof dlg.showModal === 'function' && !dlg.open) dlg.showModal();
-  else if (!dlg.open) dlg.setAttribute('open', '');
-  setTimeout(() => input.focus({ preventScroll: true }), 30);
 }
 
-function closeNotifyDialog(): void {
-  const dlg = $('#notifyDialog') as HTMLDialogElement | null;
-  if (dlg?.open) dlg.close();
-}
-
-async function submitNotifySubscribe(): Promise<void> {
-  const input = $('#notifyEmail') as HTMLInputElement | null;
-  const err = $('#notifyError') as HTMLParagraphElement | null;
-  const submit = $('#notifySubmit') as HTMLButtonElement | null;
-  const pushOpt = $('#notifyPushOpt') as HTMLInputElement | null;
+async function submitInlineNewsletter(form: HTMLFormElement): Promise<void> {
+  const input = form.querySelector<HTMLInputElement>('.nl-inline__input');
+  const submit = form.querySelector<HTMLButtonElement>('.nl-inline__submit');
+  const pushBtn = form.querySelector<HTMLButtonElement>('.nl-inline__push');
+  const status = form.querySelector<HTMLElement>('[data-nl-status]');
   if (!input) return;
   const email = input.value.trim().toLowerCase();
-  const showError = (msg: string) => { if (err) { err.textContent = msg; err.hidden = false; } };
+  const showStatus = (msg: string, kind: 'ok' | 'err' = 'err') => {
+    if (!status) return;
+    status.textContent = msg;
+    status.dataset.kind = kind;
+    status.hidden = false;
+  };
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-    showError('Enter a valid email.');
+    showStatus('valid email please', 'err');
     input.focus();
     return;
   }
-  if (err) err.hidden = true;
-  if (submit) { submit.disabled = true; submit.textContent = 'Subscribing…'; }
+  if (submit) submit.disabled = true;
+  // Capture push if the bell is already pressed (user opted in pre-submit).
   let pushPayload: { endpoint: string; keys: { p256dh: string; auth: string } } | undefined;
-  if (pushOpt?.checked && pushSupported()) {
-    const res = await subscribePush();
-    if (res.ok) {
-      try {
-        const reg = await navigator.serviceWorker.ready;
-        const sub = await reg.pushManager.getSubscription();
-        if (sub) {
-          const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
-          if (json.endpoint && json.keys?.p256dh && json.keys?.auth) {
-            pushPayload = { endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } };
-          }
+  if (pushBtn?.getAttribute('aria-pressed') === 'true' && pushSupported()) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        const json = sub.toJSON() as { endpoint?: string; keys?: { p256dh?: string; auth?: string } };
+        if (json.endpoint && json.keys?.p256dh && json.keys?.auth) {
+          pushPayload = { endpoint: json.endpoint, keys: { p256dh: json.keys.p256dh, auth: json.keys.auth } };
         }
-      } catch { /* push payload optional */ }
-    } else if (res.reason === 'denied') {
-      showToast('Push blocked by browser. Email sub still works.');
-    }
+      }
+    } catch { /* push payload optional */ }
   }
+  const source = `site:${form.dataset.nlSource || 'unknown'}`;
   try {
     const resp = await fetch('/api/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, source: 'site:more-menu', pushSubscription: pushPayload })
+      body: JSON.stringify({ email, source, pushSubscription: pushPayload })
     });
     const data = await resp.json().catch(() => ({})) as { ok?: boolean; error?: string; listmonk?: string };
     if (!resp.ok || !data.ok) {
-      showError(data?.error === 'throttled' ? 'Slow down — try again in a minute.' : 'Subscribe failed. Try again in a moment.');
-      if (submit) { submit.disabled = false; submit.textContent = 'Subscribe'; }
+      showStatus(data?.error === 'throttled' ? 'slow down' : 'try again', 'err');
+      if (submit) submit.disabled = false;
       return;
     }
     try { localStorage.setItem(NOTIFY_LOCAL_KEY, email); } catch { /* ignore */ }
-    closeNotifyDialog();
-    showToast(data.listmonk === 'already' ? 'Already on the list. Push synced.' : 'You’re in. New drops hit your inbox.');
-    await refreshNotifyToggle();
+    form.classList.add('is-done');
+    showStatus(data.listmonk === 'already' ? 'already in.' : "you're in.", 'ok');
+    // Collapse the form 1.6s after success — keeps the row sparse.
+    setTimeout(() => { form.classList.remove('is-done'); if (status) status.hidden = true; }, 3600);
   } catch {
-    showError('Network error. Try again.');
+    showStatus('network error', 'err');
   } finally {
-    if (submit) { submit.disabled = false; submit.textContent = 'Subscribe'; }
+    if (submit) submit.disabled = false;
   }
 }
 
-async function toggleNotifications(): Promise<void> {
-  let savedEmail = '';
-  try { savedEmail = localStorage.getItem(NOTIFY_LOCAL_KEY) || ''; } catch { /* ignore */ }
-  const pushOn = pushSupported() ? (await pushState()) === 'subscribed' : false;
-  if (savedEmail || pushOn) {
-    if (pushOn) {
-      await unsubscribePush();
-      showToast('Push off. You still get email drops.');
-    } else {
-      try { localStorage.removeItem(NOTIFY_LOCAL_KEY); } catch { /* ignore */ }
-      showToast('Local email cleared. Use the unsubscribe link in our emails to stop sends.');
-    }
-    await refreshNotifyToggle();
+async function togglePushFromInline(btn: HTMLButtonElement): Promise<void> {
+  if (!pushSupported()) return;
+  const isOn = btn.getAttribute('aria-pressed') === 'true';
+  if (isOn) {
+    await unsubscribePush();
+    document.querySelectorAll<HTMLButtonElement>('.nl-inline__push').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    showToast('push off');
     return;
   }
-  openNotifyDialog();
+  const res = await subscribePush();
+  if (res.ok) {
+    document.querySelectorAll<HTMLButtonElement>('.nl-inline__push').forEach(b => b.setAttribute('aria-pressed', 'true'));
+    showToast('push on');
+  } else if (res.reason === 'denied') {
+    btn.disabled = true;
+    btn.title = 'Push blocked by browser settings';
+    showToast('browser blocks push');
+  }
 }
 
 async function consumeShareTarget(): Promise<boolean> {
@@ -3600,6 +4414,435 @@ function closeAppeal({ popHistory = true }: { popHistory?: boolean } = {}) {
       ? `${t.title} — bZ`
       : 'bZ — live Web Audio gospel';
   }
+}
+
+// ── Content pages (About / Process / Credits / Press) ────────────────────
+// Same pattern as Appeal — opens a <dialog> sheet over the main shell so
+// the audio engine + visualizer keep running across nav. Routed by URL
+// path via the History API.
+let contentPageReturnUrl: string | null = null;
+// Exposed for AI chat context — the AI knows which page the user is
+// reading so "explain this section" / "summarize this" works without
+// copy-paste. Cleared on closeContentPage.
+let currentContentPageSlug: string | null = null;
+export function getOpenContentPageSlug(): string | null { return currentContentPageSlug; }
+// Exposed on window so AI chat (separate module) can read it without
+// circular import.
+(window as typeof window & { getOpenContentPageSlug?: () => string | null }).getOpenContentPageSlug = getOpenContentPageSlug;
+
+function openContentPage(slug: string, { pushHistory = true }: { pushHistory?: boolean } = {}) {
+  const page = CONTENT_PAGE_BY_SLUG.get(slug);
+  if (!page) return;
+  const dialog = $('#contentpage') as HTMLDialogElement | null;
+  if (!dialog) return;
+  currentContentPageSlug = slug;
+  const eyebrow = $('#contentpageEyebrow');
+  const title = $('#contentpageTitle');
+  const sub = $('#contentpageSub');
+  const body = $('#contentpageBody');
+  const shareBtn = $('#contentpageShare') as HTMLButtonElement | null;
+  const nav = $('#contentpageNav');
+  if (eyebrow) eyebrow.textContent = page.eyebrow;
+  if (title) title.textContent = page.title;
+  if (sub) sub.textContent = page.description;
+  if (shareBtn) shareBtn.dataset.slug = slug;
+  // Sequential page transition — OLD content fades out (220 ms), then
+  // the inner column is swapped, then NEW content fades in (220 ms).
+  // Scoped strictly to .contentpage__scroll so the topbar chip rail,
+  // dialog backdrop, transport, and the rest of the app stay mounted
+  // and untouched — no document-level View Transition that would
+  // capture and re-render the navbar.
+  const scrollInner = $('#contentpageScroll');
+  const scrollOuter = dialog;
+  const doSwap = () => {
+    if (body) body.innerHTML = page.render();
+    if (scrollOuter) scrollOuter.scrollTop = 0;
+    renderContentPageTOC();
+    setupContentPageScrollIn();
+    bootIfMerchPage(slug);
+  };
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dialogAlreadyOpen = dialog.open;
+  if (!scrollInner || !body || reduced || !dialogAlreadyOpen) {
+    // First open or reduced motion: paint immediately, let the dialog's
+    // own entrance animation handle the fade-in.
+    doSwap();
+  } else {
+    // Sequential page swap inside an already-open dialog:
+    //   1. Fade OLD content fully out (220ms).
+    //   2. Swap innerHTML once invisible.
+    //   3. Fade NEW content in (220ms).
+    scrollInner.classList.add('is-swapping');
+    window.setTimeout(() => {
+      doSwap();
+      requestAnimationFrame(() => scrollInner.classList.remove('is-swapping'));
+    }, 230);
+  }
+  // Build the sub-nav once per page open — active chip highlights current.
+  // Audio engine stays alive across these navigations since the parent
+  // dialog never closes; we just swap the inner content.
+  if (nav) {
+    nav.innerHTML = CONTENT_PAGES.map(p =>
+      `<a href="/${p.slug}" data-content-page="${p.slug}"${p.slug === slug ? ' aria-current="page"' : ''}>${p.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '')}</a>`
+    ).join('');
+  }
+  // Use show() (non-modal) instead of showModal() so the dialog stays in
+  // the normal stacking context. showModal() puts it in the top layer
+  // which would cover the transport bar (Brian's rule: playbar must stay
+  // visible across all content pages so music is always controllable).
+  if (!dialog.open) dialog.show();
+  document.documentElement.classList.add('is-contentpage-open');
+  // Swap document title + meta tags so per-page link unfurls and tab title
+  // reflect the open page. Restored to defaults on closeContentPage().
+  const metaTitle = page.metaTitle || `${page.title} — bZ`;
+  const metaDesc = page.metaDescription || page.description;
+  const ogImg = page.ogImage ? `${location.origin}${page.ogImage}` : null;
+  document.title = metaTitle;
+  setMeta('meta[name="description"]', 'content', metaDesc);
+  setMeta('meta[property="og:title"]', 'content', metaTitle);
+  setMeta('meta[property="og:description"]', 'content', metaDesc);
+  setMeta('meta[name="twitter:title"]', 'content', metaTitle);
+  setMeta('meta[name="twitter:description"]', 'content', metaDesc);
+  setMeta('link[rel="canonical"]', 'href', `${SITE_ORIGIN}/${slug}`);
+  setMeta('meta[property="og:url"]', 'content', `${SITE_ORIGIN}/${slug}`);
+  if (ogImg) {
+    setMeta('meta[property="og:image"]', 'content', ogImg);
+    setMeta('meta[property="og:image:secure_url"]', 'content', ogImg);
+    setMeta('meta[name="twitter:image"]', 'content', ogImg);
+  }
+  // Per-page JSON-LD — emits a single <script id="contentpage-jsonld">
+  // block per open. Replaced (not appended) on every page swap so the
+  // crawler sees exactly one schema per route.
+  const ldType = page.jsonLdType || 'WebPage';
+  const url = `${SITE_ORIGIN}/${slug}`;
+  const ld: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': ldType,
+    name: metaTitle,
+    headline: metaTitle,
+    description: metaDesc,
+    url,
+    inLanguage: 'en-US',
+    isPartOf: { '@type': 'WebSite', name: 'bZ', url: SITE_ORIGIN },
+    author: { '@type': 'Person', name: 'Brian Zalewski', url: 'https://megabyte.space' },
+    publisher: { '@type': 'Organization', name: 'Megabyte Labs', url: 'https://megabyte.space' },
+  };
+  if (ogImg) ld.image = ogImg;
+  if (ldType === 'Article') {
+    ld.mainEntityOfPage = { '@type': 'WebPage', '@id': url };
+  }
+  let ldEl = document.getElementById('contentpage-jsonld') as HTMLScriptElement | null;
+  if (!ldEl) {
+    ldEl = document.createElement('script');
+    ldEl.type = 'application/ld+json';
+    ldEl.id = 'contentpage-jsonld';
+    document.head.appendChild(ldEl);
+  }
+  ldEl.textContent = JSON.stringify(ld);
+  if (pushHistory && location.pathname !== `/${slug}`) {
+    contentPageReturnUrl = location.pathname + location.search + location.hash;
+    history.pushState({ contentpage: slug, returnUrl: contentPageReturnUrl }, '', `/${slug}`);
+  }
+  // Notify the topbar story-mode wiring so the chip rail engages + the
+  // active chip updates as the user clicks between pages.
+  document.dispatchEvent(new CustomEvent('panda-contentpage-open', { detail: { slug } }));
+}
+
+function closeContentPage({ popHistory = true }: { popHistory?: boolean } = {}) {
+  const dialog = $('#contentpage') as HTMLDialogElement | null;
+  if (dialog?.open) dialog.close();
+  document.documentElement.classList.remove('is-contentpage-open');
+  currentContentPageSlug = null;
+  document.dispatchEvent(new CustomEvent('panda-contentpage-close'));
+  // Restore default meta (og:image was sticking to last opened page after
+  // close — bug fix). If a track is playing, prefer its meta; else fall
+  // back to the homepage defaults.
+  const t = currentTrackId ? TRACK_BY_ID.get(currentTrackId) : null;
+  if (t) applyTrackMetadata(t);
+  else applyDefaultMetadata();
+  // Drop the per-page JSON-LD so the crawler doesn't see stale schema on
+  // routes that are not content pages.
+  document.getElementById('contentpage-jsonld')?.remove();
+  if (popHistory && CONTENT_PAGE_BY_SLUG.has(location.pathname.slice(1))) {
+    if (contentPageReturnUrl) {
+      history.replaceState({}, '', contentPageReturnUrl);
+      contentPageReturnUrl = null;
+    } else {
+      history.replaceState({}, '', '/');
+    }
+  }
+}
+
+// Reveal-on-scroll observer for content-page rich blocks. Applied per
+// render so a page switch re-animates the entrances.
+let contentScrollInObserver: IntersectionObserver | null = null;
+function setupContentPageScrollIn() {
+  const body = $('#contentpageBody');
+  const dialog = $('#contentpage') as HTMLDialogElement | null;
+  if (!body || !dialog) return;
+  if (contentScrollInObserver) contentScrollInObserver.disconnect();
+  contentScrollInObserver = new IntersectionObserver(entries => {
+    for (const en of entries) {
+      if (en.isIntersecting) {
+        en.target.classList.add('is-in');
+        contentScrollInObserver?.unobserve(en.target);
+      }
+    }
+  }, { root: dialog, rootMargin: '0px 0px -10% 0px', threshold: 0 });
+  const targets = body.querySelectorAll('.contentpage__figure, .contentpage__pullquote, .contentpage__highlight, .contentpage__stats, .contentpage__cards, .contentpage__divider');
+  targets.forEach(el => contentScrollInObserver?.observe(el));
+}
+
+// ── Content page: floating right-rail TOC ────────────────────────────
+// Generated from <h4> headings inside .contentpage__body after every
+// render. Clicking a TOC entry scrolls the dialog to that section.
+// IntersectionObserver highlights the active section while reading.
+let tocObserver: IntersectionObserver | null = null;
+function renderContentPageTOC() {
+  const toc = $('#contentpageToc');
+  const body = $('#contentpageBody');
+  const dialog = $('#contentpage') as HTMLDialogElement | null;
+  if (!toc || !body || !dialog) return;
+  // Pages that ship their own in-content nav (e.g. Merch) opt out so the
+  // auto-TOC doesn't duplicate it.
+  const page = currentContentPageSlug ? CONTENT_PAGE_BY_SLUG.get(currentContentPageSlug) : null;
+  if (page?.hideToc) { toc.hidden = true; toc.innerHTML = ''; return; }
+  // Find section headings + assign ids if missing. Exclude product-card titles
+  // (Merch's `.merch-card__title` h4s) so the rail lists real sections, not
+  // every product.
+  const headings = Array.from(body.querySelectorAll<HTMLElement>('h4:not(.merch-card__title)'));
+  if (headings.length < 3) { toc.hidden = true; toc.innerHTML = ''; return; }
+  toc.hidden = false;
+  toc.innerHTML = headings.map((h, i) => {
+    if (!h.id) h.id = `toc-${i}-${(h.textContent || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}`;
+    return `<a href="#${h.id}" data-toc="${h.id}">${escapeHtml(h.textContent || '')}</a>`;
+  }).join('');
+  // Smooth-scroll on click — dialog is the scroll container
+  toc.querySelectorAll<HTMLAnchorElement>('a').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const id = a.dataset.toc!;
+      const el = document.getElementById(id);
+      if (!el) return;
+      const top = el.getBoundingClientRect().top - dialog.getBoundingClientRect().top + dialog.scrollTop - 24;
+      dialog.scrollTo({ top, behavior: 'smooth' });
+    });
+  });
+  // IntersectionObserver to highlight the section that's currently in
+  // the upper third of the viewport
+  if (tocObserver) tocObserver.disconnect();
+  tocObserver = new IntersectionObserver(entries => {
+    for (const en of entries) {
+      if (!en.isIntersecting) continue;
+      toc.querySelectorAll<HTMLAnchorElement>('a').forEach(a => {
+        a.toggleAttribute('aria-current', a.dataset.toc === en.target.id);
+        if (a.dataset.toc === en.target.id) a.setAttribute('aria-current', 'location');
+      });
+      break;
+    }
+  }, { root: dialog, rootMargin: '0px 0px -65% 0px', threshold: [0, 1] });
+  headings.forEach(h => tocObserver?.observe(h));
+}
+
+// ── Content page: reading progress hairline ─────────────────────────
+// Updates the width of #contentpageProgress as the dialog scrolls.
+function setupContentPageProgress() {
+  const dialog = $('#contentpage') as HTMLDialogElement | null;
+  const bar = $('#contentpageProgress');
+  if (!dialog || !bar) return;
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const max = Math.max(1, dialog.scrollHeight - dialog.clientHeight);
+    const pct = Math.min(100, Math.max(0, (dialog.scrollTop / max) * 100));
+    bar.style.transform = `scaleX(${pct / 100})`;
+  };
+  dialog.addEventListener('scroll', () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }, { passive: true });
+  // Reset on every open
+  document.addEventListener('panda-contentpage-open', () => { bar.style.transform = 'scaleX(0)'; });
+}
+
+// ── Content page: share button (Web Share API + clipboard fallback) ─
+function setupContentPageShare() {
+  const btn = $('#contentpageShare') as HTMLButtonElement | null;
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    const slug = btn.dataset.slug || '';
+    const page = CONTENT_PAGE_BY_SLUG.get(slug);
+    if (!page) return;
+    const url = `${SITE_ORIGIN}/${slug}`;
+    const title = page.metaTitle || page.title;
+    const text = page.metaDescription || page.description;
+    type NavShare = Navigator & { share?: (d: { title: string; text: string; url: string }) => Promise<void> };
+    const nav = navigator as NavShare;
+    if (typeof nav.share === 'function') {
+      try { await nav.share({ title, text, url }); return; } catch { /* user cancelled or denied */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      btn.querySelector('span')!.textContent = 'Copied';
+      setTimeout(() => { const s = btn.querySelector('span'); if (s) s.textContent = 'Share'; }, 1600);
+    } catch { /* clipboard blocked */ }
+  });
+}
+
+// ── Release-prep checklist banner ───────────────────────────────────
+// When NEXT_RELEASE in data.ts has a date within 14 days, render a
+// dismissable banner above the topbar with the day-countdown + a quick
+// link to the full checklist. Auto-dismiss is persisted per release
+// date in localStorage so closing it once doesn't re-prompt.
+function setupReleaseBanner() {
+  if (!NEXT_RELEASE?.date) return;
+  const banner = document.getElementById('releaseBanner');
+  if (!banner) return;
+  const release = new Date(NEXT_RELEASE.date + 'T00:00:00Z');
+  const today = new Date();
+  const daysLeft = Math.ceil((release.getTime() - today.getTime()) / 86400000);
+  if (daysLeft > 14 || daysLeft < -1) return;
+  try {
+    if (localStorage.getItem(`bz:release-dismissed:${NEXT_RELEASE.date}`) === '1') return;
+  } catch { /* ignore */ }
+  const title = NEXT_RELEASE.title;
+  const presave = NEXT_RELEASE.preSaveUrl;
+  const daysText = daysLeft <= 0 ? 'OUT NOW' : `${daysLeft}d`;
+  const milestones: Array<{ days: number; label: string; href: string }> = [
+    { days: 10, label: 'Pitch S4A editorial (≥7 d early)', href: 'https://artists.spotify.com/c/song/pitch' },
+    { days: 10, label: 'Submit to Groover / SubmitHub', href: 'https://groover.co' },
+    { days: 7,  label: 'TikTok teaser × 3 (hook clip)', href: 'https://www.tiktok.com/upload' },
+    { days: 3,  label: 'Pre-save campaign live', href: presave || 'https://distrokid.com/hyperfollow' },
+    { days: 0,  label: 'Drop day: Marquee / Showcase ad', href: 'https://ads.spotify.com' },
+  ];
+  const checklist = milestones.map(m => {
+    const status = daysLeft > m.days ? '○' : daysLeft <= m.days ? '●' : '○';
+    const done = daysLeft <= m.days;
+    return `<a class="release-banner__step${done ? ' is-active' : ''}" href="${m.href}" target="_blank" rel="noopener noreferrer">${status} ${m.label}</a>`;
+  }).join('');
+  banner.innerHTML = `
+    <div class="release-banner__inner">
+      <span class="release-banner__pulse" aria-hidden="true"></span>
+      <span class="release-banner__count">${daysText}</span>
+      <strong class="release-banner__title">${title}</strong>
+      <span class="release-banner__steps">${checklist}</span>
+      <button class="release-banner__close" type="button" aria-label="Dismiss">✕</button>
+    </div>`;
+  banner.hidden = false;
+  banner.querySelector<HTMLButtonElement>('.release-banner__close')?.addEventListener('click', () => {
+    banner.hidden = true;
+    try { localStorage.setItem(`bz:release-dismissed:${NEXT_RELEASE!.date}`, '1'); } catch { /* ignore */ }
+  });
+}
+
+// ── Spotify: per-track resolver + transport chip ────────────────────
+// In-memory cache so we don't re-hit the Worker for tracks we've seen
+// this session. Worker also KV-caches for 24h, but skipping the fetch
+// entirely is still cheaper.
+interface SpotifyTrackInfo {
+  id: string | null;
+  spotifyUrl?: string | null;
+  popularity?: number;
+  previewUrl?: string | null;
+  albumArt?: string | null;
+  albumName?: string | null;
+}
+const spotifyTrackCache = new Map<string, SpotifyTrackInfo>();
+async function resolveSpotifyTrack(title: string): Promise<SpotifyTrackInfo | null> {
+  if (spotifyTrackCache.has(title)) return spotifyTrackCache.get(title)!;
+  try {
+    const r = await fetch(`/api/spotify/track?title=${encodeURIComponent(title)}`);
+    if (!r.ok) return null;
+    const info = await r.json() as SpotifyTrackInfo;
+    spotifyTrackCache.set(title, info);
+    return info;
+  } catch { return null; }
+}
+async function updateTransportSpotifyChip(track: Track) {
+  const wrap = $('#transportNpSpotify');
+  const link = $('#transportNpSpotifyLink') as HTMLAnchorElement | null;
+  const text = $('#transportNpSpotifyText');
+  if (!wrap || !link) return;
+  wrap.hidden = true;
+  const info = await resolveSpotifyTrack(track.title);
+  if (!info || !info.id || !info.spotifyUrl) return;
+  link.href = info.spotifyUrl;
+  if (text) {
+    if (typeof info.popularity === 'number' && info.popularity > 0) {
+      text.textContent = `Stream · ${info.popularity}`;
+      text.title = `Spotify popularity ${info.popularity}/100`;
+    } else {
+      text.textContent = 'Stream';
+    }
+  }
+  wrap.hidden = false;
+}
+// Resolve once at boot — the follower count + cover image render in the
+// topbar Follow button. Cached server-side for 1h so calling on every
+// page load is cheap.
+async function loadSpotifyArtistStats() {
+  const countEl = $('#spotifyFollowerCount');
+  if (!countEl) return;
+  try {
+    const r = await fetch('/api/spotify/artist');
+    if (!r.ok) return;
+    const d = await r.json() as { followers?: number; spotifyUrl?: string };
+    if (typeof d.followers === 'number' && d.followers > 0) {
+      const fmt = d.followers >= 1000 ? `${(d.followers / 1000).toFixed(1)}k` : `${d.followers}`;
+      countEl.textContent = fmt;
+    }
+  } catch { /* swallow — non-critical */ }
+}
+
+// ── Topbar story chip rail: prefetch + arrow-key nav ────────────────
+function setupStoryChipEnhancements() {
+  const rail = $('#topbarStoryNavChips');
+  if (!rail) return;
+  // Prefetch the page render result on hover. Since each page render is a
+  // pure function of the registry (no network), the win is JS warming: the
+  // browser has the bundle in memory, GC is quiet, click feels instant.
+  const prefetched = new Set<string>();
+  rail.addEventListener('pointerover', e => {
+    const a = (e.target as Element | null)?.closest?.('a[data-content-page]') as HTMLAnchorElement | null;
+    if (!a) return;
+    const slug = a.dataset.contentPage;
+    if (!slug || prefetched.has(slug)) return;
+    prefetched.add(slug);
+    const page = CONTENT_PAGE_BY_SLUG.get(slug);
+    if (!page) return;
+    // Pre-call render() to JIT-warm the template strings + cache any
+    // figure() URLs into the browser image cache by creating offscreen
+    // <link rel="prefetch as=image"> for each <img src>.
+    const html = page.render();
+    const matches = html.matchAll(/<img[^>]+src="([^"]+)"/g);
+    for (const m of matches) {
+      const link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.as = 'image';
+      link.href = m[1];
+      document.head.appendChild(link);
+      // Don't accumulate — drop after the browser fires the prefetch
+      setTimeout(() => link.remove(), 2000);
+    }
+  });
+  // Arrow-key navigation between chips. Tab moves OUT of the rail; ←/→
+  // move focus between chips; Enter activates (default link behavior).
+  rail.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End') return;
+    const chips = Array.from(rail.querySelectorAll<HTMLAnchorElement>('a[data-content-page]'));
+    if (!chips.length) return;
+    const current = document.activeElement as HTMLElement | null;
+    let idx = chips.findIndex(c => c === current);
+    if (idx < 0) idx = chips.findIndex(c => c.hasAttribute('aria-current'));
+    if (idx < 0) idx = 0;
+    if (e.key === 'ArrowLeft') idx = (idx - 1 + chips.length) % chips.length;
+    else if (e.key === 'ArrowRight') idx = (idx + 1) % chips.length;
+    else if (e.key === 'Home') idx = 0;
+    else if (e.key === 'End') idx = chips.length - 1;
+    e.preventDefault();
+    chips[idx].focus();
+  });
 }
 
 /**
@@ -3796,8 +5039,30 @@ function bindUi() {
   const bg = $('#bg') as HTMLCanvasElement;
   visualizer = new Visualizer(bg, engine);
   visualizer.setAccent(ALBUMS[0].accent);
-  visualizer.start();
-  visualizer.setAutoCycle(true);
+  // Defer visualizer start on low-power surfaces:
+  //  - small viewport (<768px) + coarse pointer  → wait for first user
+  //    interaction so initial paint / scroll is buttery
+  //  - prefers-reduced-motion                    → start in 'wave' mode only
+  //                                                 (cheapest viz, no auto-cycle)
+  //  - low core count (≤ 4 logical CPUs)         → start with auto-cycle off
+  const isTouch = matchMedia('(max-width: 768px) and (pointer: coarse)').matches;
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cores = (navigator as Navigator & { hardwareConcurrency?: number }).hardwareConcurrency || 8;
+  const heavy = isTouch || reducedMotion || cores <= 4;
+  if (heavy) {
+    if (reducedMotion) visualizer.setMode('wave');
+    // Wait for the FIRST audio play or explicit visualizer click before
+    // starting the RAF loop — saves 60fps CPU on a static idle phone.
+    const startOnce = () => { visualizer.start(); visualizer.setAutoCycle(!reducedMotion && !isTouch); };
+    document.addEventListener('panda-track-play', startOnce, { once: true });
+    document.addEventListener('click', e => {
+      const t = e.target as Element | null;
+      if (t?.closest?.('[data-viz-trigger], #bg, .topbar__viz, #modeBtn')) startOnce();
+    }, { once: true });
+  } else {
+    visualizer.start();
+    visualizer.setAutoCycle(true);
+  }
 
   const modeBtnLabel = $('#modeBtnLabel');
   const vizGrid = $('#vizGrid') as HTMLDivElement | null;
@@ -3929,13 +5194,6 @@ function bindUi() {
       openShare('track', shareTrackBtn.dataset.shareTrack!);
       return;
     }
-    const subscribeBtn = target.closest('.album__subscribe[data-action="notify"]') as HTMLButtonElement | null;
-    if (subscribeBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      void toggleNotifications();
-      return;
-    }
     const shareAlbumBtn = target.closest('[data-share-album]') as HTMLButtonElement | null;
     if (shareAlbumBtn) {
       e.preventDefault();
@@ -3967,6 +5225,55 @@ function bindUi() {
     if (t) play(t);
   });
 
+  // ── Asset pre-fetch on DWELL ────────────────────────────────────────────────
+  // Hover-over a trackrow → after a 280ms dwell, prefetch the small lyrics JSON
+  // so the karaoke snaps on play. We deliberately DO NOT prefetch the MP3 on
+  // hover: each track is 5-6 MB and the worker buffers the full file, so a mouse
+  // sweep across the playlist used to fire ~10 concurrent full-file fetches →
+  // subrequest/CPU pressure → cascade of 503s (the errors in the console). The
+  // MP3 streams fast via Range on actual click; lyrics are tiny + safe to warm.
+  // Dwell-gated (not raw pointerover) so passing the cursor over rows costs
+  // nothing; skipped on Save-Data / metered / low-mem.
+  const lyricsPrefetched = new Set<string>();
+  let dwellTimer: ReturnType<typeof setTimeout> | null = null;
+  let dwellTrackId: string | null = null;
+  const navConn = navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string }; deviceMemory?: number };
+  const skipPrefetch = () =>
+    navConn.connection?.saveData === true ||
+    /(^|-)2g$/.test(navConn.connection?.effectiveType ?? '') ||
+    (navConn.deviceMemory ?? 8) <= 4;
+  const prefetchLyrics = (trackId: string) => {
+    if (lyricsPrefetched.has(trackId) || skipPrefetch()) return;
+    const t = TRACK_BY_ID.get(trackId);
+    if (!t) return;
+    lyricsPrefetched.add(trackId);
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = `/lyrics/${t.id}.json`;
+    link.as = 'fetch';
+    link.crossOrigin = 'anonymous';
+    link.onload = link.onerror = () => link.remove();
+    document.head.appendChild(link);
+  };
+  document.addEventListener('pointerover', e => {
+    const target = e.target as Element | null;
+    if (!target || typeof target.closest !== 'function') return;
+    const row = target.closest('[data-track]') as HTMLElement | null;
+    const id = row?.dataset.track;
+    if (!id || id === dwellTrackId) return;
+    dwellTrackId = id;
+    if (dwellTimer) clearTimeout(dwellTimer);
+    dwellTimer = setTimeout(() => { prefetchLyrics(id); }, 280);
+  }, { passive: true });
+  document.addEventListener('pointerout', e => {
+    const target = e.target as Element | null;
+    if (target?.closest?.('[data-track]') && dwellTimer) {
+      clearTimeout(dwellTimer);
+      dwellTimer = null;
+      dwellTrackId = null;
+    }
+  }, { passive: true });
+
   $('#btnShare')?.addEventListener('click', () => {
     if (currentTrackId) openShare('track', currentTrackId);
     else if (TRACKS[0]) openShare('album', TRACKS[0].album);
@@ -3982,9 +5289,27 @@ function bindUi() {
     if (!shareCurrent) return;
     copyText(shareCurrent.shareUrl, e.currentTarget as HTMLElement);
   });
-  $('#shareCopyEmbed')?.addEventListener('click', e => {
+  // Embed code textarea — click anywhere to copy. Visual feedback via
+  // the .share__embed-hint sibling ("Click code to copy" → "Copied!").
+  $('#shareEmbedCode')?.addEventListener('click', async () => {
     if (!shareCurrent) return;
-    copyText(embedSnippet(shareCurrent, shareEmbedSize), e.currentTarget as HTMLElement);
+    const code = $('#shareEmbedCode') as HTMLTextAreaElement | null;
+    const hint = $('#shareEmbedHint');
+    if (!code) return;
+    code.select();
+    try {
+      await navigator.clipboard.writeText(embedSnippet(shareCurrent, shareEmbedSize));
+      if (hint) {
+        hint.textContent = 'Copied ✓';
+        hint.classList.add('is-copied');
+        setTimeout(() => {
+          hint.textContent = 'Click code to copy';
+          hint.classList.remove('is-copied');
+        }, 1800);
+      }
+    } catch {
+      // Clipboard blocked — selection acts as the visual cue
+    }
   });
   $('#shareNative')?.addEventListener('click', async () => {
     if (!shareCurrent) return;
@@ -3992,19 +5317,53 @@ function bindUi() {
       { title: `${shareCurrent.title} — bZ`, text: `${shareCurrent.title} — bZ`, url: shareCurrent.shareUrl },
       () => { /* dialog already open */ }
     );
+    if (shareCurrent.kind === 'track') reportShare(shareCurrent.id);
   });
-  document.querySelectorAll<HTMLButtonElement>('.share__size').forEach(btn => {
-    btn.addEventListener('click', () => {
-      shareEmbedSize = (btn.dataset.size as EmbedSize) || 'small';
-      document.querySelectorAll<HTMLButtonElement>('.share__size').forEach(b => {
-        const active = b === btn;
-        b.classList.toggle('is-active', active);
-        b.setAttribute('aria-checked', active ? 'true' : 'false');
-      });
-      const code = $('#shareEmbedCode') as HTMLTextAreaElement | null;
-      if (code && shareCurrent) code.value = embedSnippet(shareCurrent, shareEmbedSize);
+  // QR code generation — lazy, only when the user clicks the chip.
+  // QR auto-renders via refreshShareDialog — no toggle needed.
+  // Click on the QR canvas itself downloads the PNG for easy sharing.
+  $('#shareQRCanvas')?.addEventListener('click', () => {
+    if (!shareCurrent) return;
+    const canvas = $('#shareQRCanvas') as HTMLCanvasElement | null;
+    if (!canvas) return;
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${shareCurrent!.id}-qr.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }, 'image/png');
+  });
+  // Copy-as-Markdown — drops a ready-to-paste blockquote into Discord/Slack/
+  // Notion/Obsidian/etc. with cover, title, deep link. One of the most
+  // requested formats across creator-economy share patterns.
+  $('#shareCopyMd')?.addEventListener('click', async (e) => {
+    if (!shareCurrent) return;
+    const t = shareCurrent;
+    const md = `![${t.title} cover](${t.cover.startsWith('http') ? t.cover : SITE_ORIGIN + t.cover})\n\n**${t.title}** — bZ\n${t.sub}\n\n[▶ Listen on music.megabyte.space](${t.shareUrl}?ref=share-markdown)`;
+    await copyText(md, e.currentTarget as HTMLElement);
+    if (t.kind === 'track') reportShare(t.id);
+  });
+  // Quote-card PNG — generates a 1080×1080 social-card image with the
+  // track cover + title + accent halo + bZ branding, triggers a download.
+  // Visual viral hook — shareable as an image on Instagram/Stories.
+  $('#shareQuoteCard')?.addEventListener('click', async () => {
+    if (!shareCurrent) return;
+    await downloadQuoteCardImage(shareCurrent);
+    if (shareCurrent.kind === 'track') reportShare(shareCurrent.id);
+  });
+  // Network-chip share-tracking — every social click counts toward
+  // reportShare so we can see which networks convert.
+  document.querySelectorAll<HTMLElement>('#shareNetworks [data-network]').forEach(el => {
+    el.addEventListener('click', () => {
+      if (shareCurrent?.kind === 'track') reportShare(shareCurrent.id);
     });
   });
+  // (.share__size buttons removed — single medium size only per Brian.)
 
   $('#apPlay')?.addEventListener('click', () => {
     const t = autoplayPromptTrack;
@@ -4052,7 +5411,9 @@ function bindUi() {
     moreMenu.style.bottom = `${window.innerHeight - r.top + 10}px`;
     moreMenu.hidden = false;
     moreBtn.setAttribute('aria-expanded', 'true');
-    mountSpotifyConnect(moreMenu);
+    // Lazy-load the Spotify Connect surface — only the small fraction of
+    // users who open the more-menu ever need this bundle (~14KB gzipped).
+    void import('./spotify-connect').then(m => m.mountSpotifyConnect(moreMenu));
   };
   moreBtn?.addEventListener('click', e => {
     e.stopPropagation();
@@ -4079,7 +5440,6 @@ function bindUi() {
         if (album) openSmartLink(`${SITE_ORIGIN}${trackPath(t)}`);
       }
     }
-    else if (action === 'notify') { void toggleNotifications(); return; }
     if (action !== 'spotify') closeMoreMenu();
   });
   document.addEventListener('click', e => {
@@ -4129,12 +5489,9 @@ function bindUi() {
   });
   $('#shortcuts')?.addEventListener('cancel', e => { e.preventDefault(); closeShortcuts(); });
 
-  $('#notifyCloseBtn')?.addEventListener('click', () => closeNotifyDialog());
-  $('#notifyDialog')?.addEventListener('click', e => {
-    if ((e.target as HTMLElement).id === 'notifyDialog') closeNotifyDialog();
-  });
-  $('#notifyDialog')?.addEventListener('cancel', e => { e.preventDefault(); closeNotifyDialog(); });
-  $('#notifyForm')?.addEventListener('submit', e => { e.preventDefault(); void submitNotifySubscribe(); });
+  // Modal newsletter dialog event wiring removed — inline `.nl-inline` widgets
+  // handle subscribe + push via setupInlineNewsletter() global delegation.
+  setupInlineNewsletter();
   ($('#vol') as HTMLInputElement)?.addEventListener('input', e => {
     const v = Number((e.target as HTMLInputElement).value);
     engine.setVolume(v);
@@ -4233,6 +5590,38 @@ function bindUi() {
     e.preventDefault();
     closeAppeal();
   });
+
+  // Content-page dialog wiring
+  $('#contentpageClose')?.addEventListener('click', () => closeContentPage());
+  setupContentPageProgress();
+  setupContentPageShare();
+  setupStoryChipEnhancements();
+  void loadSpotifyArtistStats();
+  setupReleaseBanner();
+  $('#contentpage')?.addEventListener('click', e => {
+    if ((e.target as HTMLElement).id === 'contentpage') closeContentPage();
+  });
+  $('#contentpage')?.addEventListener('cancel', e => {
+    e.preventDefault();
+    closeContentPage();
+  });
+  // Intercept Story dropdown content-page links to use SPA history nav
+  // instead of full page-load (which would tear down the audio engine)
+  document.addEventListener('click', e => {
+    const link = (e.target as Element | null)?.closest?.('a[data-content-page]') as HTMLAnchorElement | null;
+    if (!link) return;
+    const slug = link.dataset.contentPage;
+    if (!slug || !CONTENT_PAGE_BY_SLUG.has(slug)) return;
+    e.preventDefault();
+    openContentPage(slug);
+    // Close the dropdown after click
+    const list = $('#topbarPagesMenu') as HTMLElement | null;
+    if (list) list.hidden = true;
+    $('#btnPagesMenu')?.setAttribute('aria-expanded', 'false');
+  });
+  // Boot-time route detection deferred — see end of setupShell (the
+  // story-mode wiring needs to be registered FIRST so the
+  // panda-contentpage-open event has a listener when boot fires it).
   window.addEventListener('message', e => {
     if (e.origin !== location.origin) return;
     if ((e.data as { type?: string } | null)?.type === 'panda-appeal-close') closeAppeal();
@@ -4240,6 +5629,151 @@ function bindUi() {
 
   // Live lyrics overlay
   $('#btnLyricsOverlay')?.addEventListener('click', () => setKaraokeOverlay(!karaokeOverlayOn));
+
+  // Topbar Story button — engages "story mode": the normal topbar nav
+  // (Search / Lyrics / Story / menu) is hidden and replaced inline by a
+  // chip rail of all content-page links. Click a chip to open that page;
+  // click the ✕ at the right of the rail to exit story mode and restore
+  // the normal nav. Music keeps playing through the whole flow.
+  const pagesMenuTrigger = $('#btnPagesMenu') as HTMLButtonElement | null;
+  const pagesMenuList = $('#topbarPagesMenu') as HTMLElement | null;
+  const storyNav = $('#topbarStoryNav') as HTMLElement | null;
+  const storyNavChips = $('#topbarStoryNavChips') as HTMLElement | null;
+  // Populate the story-mode chip rail from CONTENT_PAGES so the link set
+  // stays in sync with the page registry. Each chip carries the same
+  // data-content-page hook the existing click delegate already handles.
+  if (storyNavChips) {
+    storyNavChips.innerHTML = CONTENT_PAGES.map(p => {
+      const label = p.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '');
+      return `<a href="/${p.slug}" data-content-page="${p.slug}" class="topbar__story-chip">${escapeHtml(label)}</a>`;
+    }).join('');
+  }
+  // Mobile dropdown — same link set, vertical bottom sheet. Click the
+  // trigger to open; click a link to navigate (delegate handles it);
+  // click outside or Esc to close.
+  const storySheet = $('#topbarStoryNavSheet') as HTMLElement | null;
+  const storyMobileTrigger = $('#btnStoryNavMobile') as HTMLButtonElement | null;
+  const storyMobileLabel = $('#topbarStoryNavMobileLabel');
+  if (storySheet) {
+    storySheet.innerHTML = CONTENT_PAGES.map(p => {
+      const label = p.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '');
+      const sub = p.eyebrow;
+      return `<a href="/${p.slug}" data-content-page="${p.slug}" class="topbar__story-sheet-item" role="menuitem">
+        <strong>${escapeHtml(label)}</strong>
+        <span>${escapeHtml(sub)}</span>
+      </a>`;
+    }).join('');
+  }
+  function setMobileSheetOpen(on: boolean) {
+    if (storySheet) storySheet.hidden = !on;
+    storyMobileTrigger?.setAttribute('aria-expanded', on ? 'true' : 'false');
+    document.documentElement.classList.toggle('is-story-sheet-open', on);
+  }
+  storyMobileTrigger?.addEventListener('click', e => {
+    e.stopPropagation();
+    const next = storySheet?.hidden ?? true;
+    setMobileSheetOpen(next);
+  });
+  document.addEventListener('click', e => {
+    if (!storySheet || storySheet.hidden) return;
+    const t = e.target as Element | null;
+    if (t?.closest('#topbarStoryNavSheet') || t?.closest('#btnStoryNavMobile')) return;
+    setMobileSheetOpen(false);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && storySheet && !storySheet.hidden) setMobileSheetOpen(false);
+  });
+  // Sync mobile trigger label to the open page
+  document.addEventListener('panda-contentpage-open', e => {
+    const slug = (e as CustomEvent<{ slug: string }>).detail?.slug;
+    const page = slug ? CONTENT_PAGE_BY_SLUG.get(slug) : null;
+    if (page && storyMobileLabel) {
+      storyMobileLabel.textContent = page.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '');
+    }
+    setMobileSheetOpen(false);
+    // Highlight the active row in the sheet
+    storySheet?.querySelectorAll<HTMLAnchorElement>('[data-content-page]').forEach(a => {
+      const active = a.dataset.contentPage === slug;
+      a.toggleAttribute('aria-current', active);
+      if (active) a.setAttribute('aria-current', 'page');
+    });
+  });
+  let storyCloseTimer: ReturnType<typeof setTimeout> | null = null;
+  function setStoryMode(on: boolean) {
+    pagesMenuTrigger?.setAttribute('aria-expanded', on ? 'true' : 'false');
+    if (pagesMenuList) pagesMenuList.hidden = true; // never use the old dropdown again
+    if (storyCloseTimer) { clearTimeout(storyCloseTimer); storyCloseTimer = null; }
+    if (on) {
+      document.documentElement.classList.remove('is-story-closing');
+      document.documentElement.classList.add('is-story-mode');
+      if (storyNav) storyNav.hidden = false;
+      return;
+    }
+    // Closing: play the reverse cascade-out, THEN hide. Reduced-motion users
+    // (or environments without the API) skip straight to hidden.
+    const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced || !storyNav || storyNav.hidden) {
+      document.documentElement.classList.remove('is-story-mode', 'is-story-closing');
+      if (storyNav) storyNav.hidden = true;
+      return;
+    }
+    document.documentElement.classList.add('is-story-closing');
+    storyCloseTimer = setTimeout(() => {
+      document.documentElement.classList.remove('is-story-mode', 'is-story-closing');
+      if (storyNav) storyNav.hidden = true;
+      storyCloseTimer = null;
+    }, 260);
+  }
+  pagesMenuTrigger?.addEventListener('click', e => {
+    e.stopPropagation();
+    const on = !document.documentElement.classList.contains('is-story-mode');
+    setStoryMode(on);
+  });
+  $('#btnStoryNavClose')?.addEventListener('click', () => {
+    setStoryMode(false);
+    closeContentPage();
+  });
+  // Home pill — same behavior as ✕ but explicit/labeled. Intercept the
+  // navigation so we don't full-page-reload (preserves audio engine).
+  $('#btnStoryHome')?.addEventListener('click', e => {
+    e.preventDefault();
+    setStoryMode(false);
+    closeContentPage();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.documentElement.classList.contains('is-story-mode')) {
+      setStoryMode(false);
+    }
+  });
+  // When a content page opens via any path (URL boot, story chip, deep
+  // link), make sure story mode is engaged so the chip rail is visible.
+  // When the page closes (Esc / close button / popstate), drop story mode.
+  document.addEventListener('panda-contentpage-open', () => setStoryMode(true));
+  document.addEventListener('panda-contentpage-close', () => setStoryMode(false));
+  // Sync active chip on every page open
+  document.addEventListener('panda-contentpage-open', e => {
+    const slug = (e as CustomEvent<{ slug: string }>).detail?.slug;
+    if (!storyNavChips || !slug) return;
+    storyNavChips.querySelectorAll<HTMLAnchorElement>('[data-content-page]').forEach(a => {
+      const isActive = a.dataset.contentPage === slug;
+      a.toggleAttribute('aria-current', isActive);
+      if (isActive) a.setAttribute('aria-current', 'page');
+    });
+  });
+  // Boot-time route detection — runs AFTER the story-mode listeners are
+  // attached so a direct hit to /about engages the chip rail immediately.
+  const bootSlug = location.pathname.replace(/^\//, '').replace(/\/$/, '');
+  // Retired content pages (process / theology / support / contact|connect) were
+  // merged into /about. The worker 301s a hard hit, but a stale-cached SPA shell
+  // could still boot here — fold them to /about client-side so the slug never
+  // dead-ends on a blank dialog.
+  const RETIRED_CONTENT_SLUGS = new Set(['process', 'theology', 'support', 'contact', 'connect']);
+  if (RETIRED_CONTENT_SLUGS.has(bootSlug)) {
+    history.replaceState(null, '', '/about');
+    openContentPage('about', { pushHistory: false });
+  } else if (CONTENT_PAGE_BY_SLUG.has(bootSlug)) {
+    openContentPage(bootSlug, { pushHistory: false });
+  }
   $('#karaokeClose')?.addEventListener('click', () => setKaraokeOverlay(false));
   setKaraokeOverlay(karaokeOverlayOn);
 
@@ -4262,6 +5796,9 @@ function bindUi() {
   $('#cmdkResults')?.addEventListener('click', e => {
     const item = (e.target as HTMLElement).closest('.cmdk__item') as HTMLElement | null;
     if (!item) return;
+    // Content page hit?
+    const pageSlug = item.dataset.page;
+    if (pageSlug) { closeSearch(); openContentPage(pageSlug); return; }
     const idx = Number(item.dataset.idx ?? -1);
     const input = $('#cmdkInput') as HTMLInputElement | null;
     const tracks = filterTracks(input?.value ?? '');
@@ -4303,10 +5840,92 @@ function bindUi() {
     });
   });
 
+  // NP-Panel action toolbar (fav, share, copy-link, fs-lyrics, fs-viz, ai)
+  document.querySelectorAll<HTMLButtonElement>('.np-panel__action').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.npAction;
+      if (!action) return;
+      if (action === 'fav') {
+        if (!currentTrackId) return;
+        if (npFavs.has(currentTrackId)) npFavs.delete(currentTrackId);
+        else npFavs.add(currentTrackId);
+        saveFavs(npFavs);
+        btn.setAttribute('aria-pressed', npFavs.has(currentTrackId) ? 'true' : 'false');
+      } else if (action === 'share') {
+        if (currentTrackId) openShare('track', currentTrackId);
+      } else if (action === 'copy-link') {
+        if (!currentTrackId) return;
+        const track = TRACK_BY_ID.get(currentTrackId);
+        const album = track ? ALBUM_BY_ID.get(track.album) : null;
+        if (track && album) {
+          const url = `${location.origin}/${album.id}/${track.id}`;
+          navigator.clipboard?.writeText(url).then(() => {
+            btn.querySelector('span')!.textContent = 'Copied';
+            setTimeout(() => { btn.querySelector('span')!.textContent = 'Copy'; }, 1600);
+          });
+        }
+      } else if (action === 'fs-lyrics') {
+        closeNpPanel();
+        if (lyricsFsOpen) closeLyricsFs(); else openLyricsFs();
+      } else if (action === 'fs-viz') {
+        closeNpPanel();
+        if (document.fullscreenElement) document.exitFullscreen?.();
+        else $('#viz')?.requestFullscreen?.();
+      } else if (action === 'ai') {
+        closeNpPanel();
+        const fab = document.querySelector('[data-aichat="fab"]') as HTMLElement | null;
+        if (fab) fab.click();
+      }
+    });
+  });
+
+  // Playback rate slider — always 2 decimal places (Brian wants stable column width)
+  const npRate = $('#npRate') as HTMLInputElement | null;
+  if (npRate) {
+    npRate.addEventListener('input', () => {
+      const v = parseFloat(npRate.value);
+      engine.audio.playbackRate = v;
+      const valEl = $('#npRateVal');
+      if (valEl) valEl.textContent = `${v.toFixed(2)}×`;
+    });
+  }
+
+  // Related-track click — jumps straight to the new track and refreshes
+  // the modal in-place (no close + reopen). Event-delegated since the
+  // related grid re-renders on every refreshNpPanel.
+  $('#npPanelRelatedGrid')?.addEventListener('click', e => {
+    const btn = (e.target as Element | null)?.closest('[data-related-track]') as HTMLButtonElement | null;
+    if (!btn) return;
+    const t = TRACK_BY_ID.get(btn.dataset.relatedTrack!);
+    if (t) { play(t); refreshNpPanel(); }
+  });
+
+  // Lyric downloads — .txt + .lrc
+  document.querySelectorAll<HTMLButtonElement>('.np-panel__dl-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!currentTrackId || !activeLyrics) return;
+      const track = TRACK_BY_ID.get(currentTrackId);
+      const album = track ? ALBUM_BY_ID.get(track.album) : undefined;
+      if (!track) return;
+      const slug = track.id;
+      if (btn.dataset.npDl === 'txt') {
+        downloadString(buildLyricsTxt(), `${slug}.txt`, 'text/plain');
+      } else if (btn.dataset.npDl === 'lrc') {
+        downloadString(buildLyricsLrc(track, album), `${slug}.lrc`, 'application/x-subrip');
+      }
+    });
+  });
+
   document.addEventListener('keydown', e => {
-    const inField = e.target && (e.target as HTMLElement).matches('input, textarea, select');
-    // Cmd+K / Ctrl+K: open search regardless of focus
-    if ((e.metaKey || e.ctrlKey) && e.code === 'KeyK') { e.preventDefault(); openSearch(); return; }
+    // Defensive: document-level keydown targets can be HTMLDocument or other
+    // non-Element nodes (no .matches). Only run the form-field check on
+    // real Elements so global shortcuts never crash on edge cases.
+    const t = e.target as Element | null;
+    const inField = !!(t && typeof (t as Element).matches === 'function' &&
+      (t as Element).matches('input, textarea, select'));
+    // Cmd+K / Ctrl+K: open AI chat (matches the FAB's visible ⌘K label).
+    // Search moved to Cmd+/ — a common alternative when Cmd+K is the AI/command surface.
+    if ((e.metaKey || e.ctrlKey) && e.code === 'Slash') { e.preventDefault(); openSearch(); return; }
     if (e.key === 'Escape') {
       if (searchOpen) { closeSearch(); return; }
       if (lyricsFsOpen) { closeLyricsFs(); return; }
@@ -4315,7 +5934,40 @@ function bindUi() {
       if (npPanelOpen) { closeNpPanel(); return; }
     }
     if (inField) return;
+    // Global `/` → focus AI chat composer (open chat first if closed).
+    // Mirrors GitHub/Slack/Linear `/` slash convention.
+    if (e.code === 'Slash' && !e.shiftKey) {
+      e.preventDefault();
+      const fab = document.querySelector<HTMLButtonElement>('[data-aichat="fab"]');
+      if (fab && document.body.dataset.aichatOpen !== '1') fab.click();
+      requestAnimationFrame(() => {
+        const input = document.querySelector<HTMLTextAreaElement>('[data-aichat="input"]');
+        input?.focus({ preventScroll: true });
+      });
+      return;
+    }
+    // `?` (Shift+Slash) → open AI chat composer pre-typed with /help to
+    // surface the slash-command palette.
+    if (e.code === 'Slash' && e.shiftKey) {
+      e.preventDefault();
+      const fab = document.querySelector<HTMLButtonElement>('[data-aichat="fab"]');
+      if (fab && document.body.dataset.aichatOpen !== '1') fab.click();
+      requestAnimationFrame(() => {
+        const input = document.querySelector<HTMLTextAreaElement>('[data-aichat="input"]');
+        if (input) { input.value = '/help'; input.focus({ preventScroll: true }); input.dispatchEvent(new Event('input', { bubbles: true })); }
+      });
+      return;
+    }
     if (e.code === 'Space') { e.preventDefault(); $('#btnPlay')?.click(); }
+    // Cmd+P / Ctrl+P → play a random track (great for "surprise me" mode).
+    else if ((e.metaKey || e.ctrlKey) && e.code === 'KeyP') {
+      e.preventDefault();
+      const pool = TRACKS;
+      if (pool.length) {
+        const next = pool[Math.floor(Math.random() * pool.length)];
+        if (next.id !== currentTrackId) void play(next);
+      }
+    }
     else if (e.code === 'ArrowRight' && !e.shiftKey) nextTrack(1);
     else if (e.code === 'ArrowLeft' && !e.shiftKey) nextTrack(-1);
     else if (e.code === 'ArrowUp') {
@@ -4405,6 +6057,16 @@ function bindUi() {
     }
     if (path !== '/ashton/' && appealOpen) {
       closeAppeal({ popHistory: false });
+    }
+    // Content-page popstate handling
+    const cpOpen = ($('#contentpage') as HTMLDialogElement | null)?.open ?? false;
+    const slug = path.replace(/^\//, '').replace(/\/$/, '');
+    if (CONTENT_PAGE_BY_SLUG.has(slug) && !cpOpen) {
+      openContentPage(slug, { pushHistory: false });
+      return;
+    }
+    if (cpOpen && !CONTENT_PAGE_BY_SLUG.has(slug)) {
+      closeContentPage({ popHistory: false });
     }
     const route = parseRouteFromUrl(path);
     if (route?.kind === 'track') {
@@ -4504,13 +6166,32 @@ function setActiveSleepChip(value: string | null) {
   });
 }
 
+function ensureSleepChip(): HTMLButtonElement {
+  const existing = document.getElementById('sleepChip') as HTMLButtonElement | null;
+  if (existing) return existing;
+  const chip = document.createElement('button');
+  chip.id = 'sleepChip';
+  chip.type = 'button';
+  chip.className = 'sleep-chip';
+  chip.setAttribute('aria-label', 'Sleep timer — tap to cancel');
+  chip.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg><span class="sleep-chip__label">--:--</span>`;
+  chip.addEventListener('click', () => setSleepTimer(0));
+  chip.hidden = true;
+  document.body.appendChild(chip);
+  return chip;
+}
+
 function setSleepTimer(mins: number | 'track') {
   if (sleepTimerHandle) { clearTimeout(sleepTimerHandle); sleepTimerHandle = null; }
   if (sleepTickHandle) { clearInterval(sleepTickHandle); sleepTickHandle = null; }
   sleepTimerEndAt = 0;
   const label = $('#sleepLabel');
   const moreBtn = $('#btnMore');
+  const chip = ensureSleepChip();
+  const chipLabel = chip.querySelector('.sleep-chip__label') as HTMLElement | null;
   moreBtn?.classList.remove('has-sleep');
+  chip.hidden = true;
+  chip.classList.remove('is-warning');
   if (label) label.textContent = 'off';
   if (mins === 0) { setActiveSleepChip('0'); return; }
   if (mins === 'track') {
@@ -4519,11 +6200,14 @@ function setSleepTimer(mins: number | 'track') {
       fadeOutAndPause();
       moreBtn?.classList.remove('has-sleep');
       if (label) label.textContent = 'off';
+      chip.hidden = true;
       setActiveSleepChip('0');
     };
     engine.audio.addEventListener('ended', onEnd, { once: true });
     moreBtn?.classList.add('has-sleep');
     if (label) label.textContent = 'end of track';
+    if (chipLabel) chipLabel.textContent = 'end of track';
+    chip.hidden = false;
     setActiveSleepChip('track');
     return;
   }
@@ -4531,12 +6215,17 @@ function setSleepTimer(mins: number | 'track') {
   sleepTimerHandle = setTimeout(() => fadeOutAndPause(), mins * 60_000);
   moreBtn?.classList.add('has-sleep');
   setActiveSleepChip(String(mins));
+  chip.hidden = false;
   const tickLabel = () => {
-    if (!sleepTimerEndAt || !label) return;
+    if (!sleepTimerEndAt) return;
     const remaining = Math.max(0, sleepTimerEndAt - Date.now());
     const m = Math.floor(remaining / 60000);
     const s = Math.floor((remaining % 60000) / 1000);
-    label.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    const txt = `${m}:${s.toString().padStart(2, '0')}`;
+    if (label) label.textContent = txt;
+    if (chipLabel) chipLabel.textContent = txt;
+    // Pulse the chip under 60s so the user has a visual heads-up.
+    chip.classList.toggle('is-warning', remaining > 0 && remaining < 60_000);
   };
   tickLabel();
   sleepTickHandle = setInterval(tickLabel, 1000);
@@ -4606,7 +6295,7 @@ function refreshLyricsFs() {
   const cover = $('#lyricsFsCover') as HTMLImageElement | null;
   const title = $('#lyricsFsTitle');
   const albumEl = $('#lyricsFsAlbum');
-  if (cover) cover.src = album?.cover ?? '/art/cover-panda-desiiignare.png';
+  if (cover) cover.src = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
   if (title) title.textContent = t?.title ?? '—';
   if (albumEl) albumEl.textContent = album?.name ?? 'bZ';
 }
@@ -4744,7 +6433,7 @@ function renderQueueRow(t: Track, showRank: boolean): string {
   const album = ALBUM_BY_ID.get(t.album);
   const plays = playCounts.get(t.id) ?? 0;
   const isCurrent = t.id === currentTrackId;
-  const cover = album?.cover ?? '/art/cover-panda-desiiignare.png';
+  const cover = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
   const rankAttr = showRank ? `data-q-rank="1"` : '';
   return `<li><button class="queue-row${isCurrent ? ' is-current' : ''}" data-q-track="${escapeHtml(t.id)}" type="button" ${rankAttr}>
     <img src="${cover}" alt="" width="44" height="44" loading="lazy" />
@@ -4818,9 +6507,13 @@ interface BeforeInstallPromptEvent extends Event {
 
 function bindInstallPrompt() {
   window.addEventListener('beforeinstallprompt', (e) => {
+    // Only suppress Chrome's default mini-infobar when we're actually going to
+    // show our own banner — otherwise let the browser handle it (and skip the
+    // "preventDefault() called but prompt() never called" console notice).
+    if (installSnoozeActive() || isStandalone()) return;
     e.preventDefault();
     installPromptEvent = e;
-    if (!installSnoozeActive() && !isStandalone()) showInstallBanner('pwa');
+    showInstallBanner('pwa');
   });
   window.addEventListener('appinstalled', () => {
     persist(LS_KEYS.installDismissed, '1');
@@ -4850,18 +6543,28 @@ function preloadNextTrack() {
   if (idx < 0) return;
   const next = TRACKS[(idx + 1) % TRACKS.length];
   if (!next) return;
-  const link = document.createElement('link');
-  link.rel = 'prefetch';
-  link.as = 'audio';
-  link.href = next.file;
-  document.head.appendChild(link);
-  setTimeout(() => link.remove(), 8000);
-  // also prefetch lyrics
-  const ll = document.createElement('link');
-  ll.rel = 'prefetch';
-  ll.href = `/lyrics/${next.id}.json`;
-  document.head.appendChild(ll);
-  setTimeout(() => ll.remove(), 8000);
+  // Warm the edge cache via fetch().catch() instead of <link rel="prefetch">:
+  // a transient ASSETS cold-start 503 on a prefetch link logs an uncatchable
+  // console error, whereas a caught fetch swallows it. Same cache-warming
+  // effect (the request still flows through the worker → caches.default).
+  fetch(`/lyrics/${next.id}.json`, { priority: 'low' } as RequestInit).catch(() => { /* prefetch best-effort */ });
+  // The next MP3 is ~5-6 MB. On low-power / metered / Save-Data connections,
+  // speculatively pulling it every track wastes bandwidth + memory and can
+  // starve the CURRENTLY-playing stream's buffer. Skip the heavy audio prefetch
+  // there; the on-demand range fetch at play time is fast enough.
+  const nav = navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string }; deviceMemory?: number };
+  const saveData = nav.connection?.saveData === true;
+  const slowNet = /(^|-)2g$/.test(nav.connection?.effectiveType ?? '');
+  const lowMem = (nav.deviceMemory ?? 8) <= 4;
+  const coarseSmall = typeof matchMedia === 'function' && matchMedia('(max-width: 768px) and (pointer: coarse)').matches;
+  if (saveData || slowNet || lowMem || coarseSmall) return;
+  // Stagger the audio warm a beat after the lyrics so the two don't burst ASSETS
+  // together (the concurrent burst is what tips cold-start into 503). A Range:0-1
+  // request makes the worker buffer + edge-cache the FULL file server-side while
+  // the client downloads ~2 bytes — warms next-play without pulling 5 MB here.
+  setTimeout(() => {
+    fetch(next.file, { headers: { Range: 'bytes=0-1' }, priority: 'low' } as RequestInit).catch(() => { /* best-effort */ });
+  }, 1200);
 }
 
 const paletteCache = new Map<string, { accent: string; violet: string }>();
@@ -4869,12 +6572,19 @@ const paletteCache = new Map<string, { accent: string; violet: string }>();
 function applyAlbumPalette(track: Track) {
   const album = ALBUM_BY_ID.get(track.album);
   if (!album) return;
+  // Brian's rule: the album's CANONICAL accent (data.ts album.accent) is
+  // the source of truth for every text/ui surface. The cover-extracted
+  // color is a secondary palette only — used for visualizer particle hues
+  // + the --violet decorative secondary, NEVER for the primary --accent.
+  // Otherwise Panda Desiiignare reads as orange (its cover is mostly
+  // orange/pink) when the album is explicitly defined as cyan.
+  document.documentElement.style.setProperty('--accent', album.accent);
+  document.documentElement.style.setProperty('--album-accent', album.accent);
+  visualizer?.setAccent(album.accent);
   const cover = album.cover;
   if (paletteCache.has(cover)) {
     const p = paletteCache.get(cover)!;
-    document.documentElement.style.setProperty('--accent', p.accent);
     document.documentElement.style.setProperty('--violet', p.violet);
-    visualizer?.setAccent(p.accent);
     return;
   }
   const img = new Image();
@@ -4903,15 +6613,13 @@ function applyAlbumPalette(track: Track) {
       }
       const arr = [...buckets.values()].sort((a, b) => b.n * (1 + b.sat) - a.n * (1 + a.sat));
       if (arr.length === 0) return;
-      const top = arr[0];
-      const accent = `rgb(${Math.round(top.r / top.n)}, ${Math.round(top.g / top.n)}, ${Math.round(top.b / top.n)})`;
-      const second = arr[1] ?? top;
+      // Use extracted dominant color ONLY for the decorative secondary.
+      // The canonical --accent stays the album's data-defined color.
+      const second = arr[1] ?? arr[0];
       const violet = `rgb(${Math.round(second.r / second.n)}, ${Math.round(second.g / second.n)}, ${Math.round(second.b / second.n)})`;
-      paletteCache.set(cover, { accent, violet });
-      document.documentElement.style.setProperty('--accent', accent);
+      paletteCache.set(cover, { accent: album.accent, violet });
       document.documentElement.style.setProperty('--violet', violet);
-      visualizer?.setAccent(accent);
-    } catch { /* tainted canvas — fallback to album.accent */ }
+    } catch { /* tainted canvas — keep prior violet */ }
   };
   img.src = cover;
 }
@@ -4931,35 +6639,64 @@ function filterTracks(query: string): Track[] {
   });
 }
 
+function filterContentPages(query: string): Array<{ slug: string; title: string; sub: string; ogImage?: string }> {
+  const q = query.toLowerCase().trim();
+  if (!q) return [];
+  return CONTENT_PAGES.filter(p => {
+    const haystack = [p.title, p.eyebrow, p.description, p.metaTitle ?? '', p.metaDescription ?? '']
+      .join(' ').toLowerCase();
+    return haystack.includes(q);
+  }).map(p => ({ slug: p.slug, title: p.title, sub: p.description, ogImage: p.ogImage }));
+}
+
 function renderSearchResults(tracks: Track[]) {
   const results = $('#cmdkResults');
   const empty = $('#cmdkEmpty') as HTMLElement | null;
   const count = $('#cmdkCount');
   if (!results || !empty || !count) return;
-  if (!tracks.length) {
+  const input = $('#cmdkInput') as HTMLInputElement | null;
+  const pages = filterContentPages(input?.value ?? '');
+  if (!tracks.length && !pages.length) {
     results.innerHTML = '';
     empty.hidden = false;
-    count.textContent = '0 tracks';
+    count.textContent = '0 results';
     searchActiveIdx = -1;
     return;
   }
   empty.hidden = true;
-  count.textContent = `${tracks.length} track${tracks.length !== 1 ? 's' : ''}`;
+  const parts: string[] = [];
+  parts.push(`${tracks.length} track${tracks.length !== 1 ? 's' : ''}`);
+  if (pages.length) parts.push(`${pages.length} page${pages.length !== 1 ? 's' : ''}`);
+  count.textContent = parts.join(' · ');
   if (searchActiveIdx < 0) searchActiveIdx = 0;
   searchActiveIdx = Math.min(searchActiveIdx, tracks.length - 1);
-  results.innerHTML = tracks.map((t, i) => {
+  // Content pages first (so a user typing "theology" hits the page, not
+  // a track that happens to mention it)
+  const pagesHtml = pages.length
+    ? `<div class="cmdk__group">pages</div>` + pages.map(p =>
+      `<div class="cmdk__item cmdk__item--page" data-page="${escapeHtml(p.slug)}" role="option" tabindex="-1">
+         <img class="cmdk__item-cover" src="${escapeHtml(p.ogImage ?? '/og/og-about.jpg')}" alt="" width="40" height="40" loading="lazy" />
+         <div class="cmdk__item-body">
+           <div class="cmdk__item-title"><span class="cmdk__item-title-text">${escapeHtml(p.title)}</span></div>
+           <div class="cmdk__item-sub">${escapeHtml(p.sub)}</div>
+         </div>
+         <span class="cmdk__item-badge cmdk__item-badge--inline">page</span>
+       </div>`).join('') + (tracks.length ? `<div class="cmdk__group">tracks</div>` : '')
+    : '';
+  results.innerHTML = pagesHtml + tracks.map((t, i) => {
     const album = ALBUM_BY_ID.get(t.album);
-    const badge = t.id === currentTrackId ? '<span class="cmdk__item-badge">playing</span>' : '';
+    // Playing badge moved INLINE next to the title (was floating at the
+    // far-right of the row, visually orphaned from the track it labels).
+    const playingBadge = t.id === currentTrackId ? '<span class="cmdk__item-badge cmdk__item-badge--inline">playing</span>' : '';
     const plays = playCounts.get(t.id) ?? 0;
     const playsBadge = `<span class="cmdk__item-plays" data-plays="${t.id}" aria-label="${plays} plays"${plays === 0 ? ' hidden' : ''}><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span data-plays-num="${t.id}">${plays}</span></span>`;
     return `<div class="cmdk__item${i === searchActiveIdx ? ' cmdk__item--active' : ''}" data-idx="${i}" role="option" aria-selected="${i === searchActiveIdx ? 'true' : 'false'}" tabindex="-1">
-      <img class="cmdk__item-cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.png'}" alt="" width="40" height="40" loading="lazy" />
+      <img class="cmdk__item-cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.jpg'}" alt="" width="40" height="40" loading="lazy" />
       <div class="cmdk__item-body">
-        <div class="cmdk__item-title">${escapeHtml(t.title)}</div>
+        <div class="cmdk__item-title"><span class="cmdk__item-title-text">${escapeHtml(t.title)}</span>${playingBadge}</div>
         <div class="cmdk__item-sub">${escapeHtml(album?.name ?? 'bZ')} · ${escapeHtml(t.vibe)}</div>
       </div>
       ${playsBadge}
-      ${badge}
     </div>`;
   }).join('');
 }
@@ -5008,35 +6745,339 @@ function showWisdomToast(track: Track) {
   }, 4400);
 }
 
+// ─── NP Panel state ─────────────────────────────────────────────────────────
+// Local favorites persist in localStorage. Heart toggle reflects this set.
+const NP_FAV_KEY = 'bz:favorites';
+function loadFavs(): Set<string> {
+  try {
+    const raw = localStorage.getItem(NP_FAV_KEY);
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch { return new Set(); }
+}
+function saveFavs(set: Set<string>) {
+  try { localStorage.setItem(NP_FAV_KEY, JSON.stringify(Array.from(set))); } catch { /* noop */ }
+}
+let npFavs = loadFavs();
+
+let npPanelRaf: number | null = null;
+
+function npFormatTime(sec: number): string {
+  if (!Number.isFinite(sec) || sec < 0) sec = 0;
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function npRefreshProgress() {
+  if (!npPanelOpen) return;
+  const bar = $('#npPanelProgress') as SVGCircleElement | null;
+  const elapsed = $('#npPanelElapsed');
+  const dur = $('#npPanelDur');
+  const t = engine.audio.currentTime || 0;
+  const d = engine.audio.duration && Number.isFinite(engine.audio.duration)
+    ? engine.audio.duration : 0;
+  if (bar) {
+    const pct = d > 0 ? Math.min(100, (t / d) * 100) : 0;
+    bar.style.strokeDashoffset = String(100 - pct);
+  }
+  if (elapsed) elapsed.textContent = npFormatTime(t);
+  if (dur) dur.textContent = d > 0 ? npFormatTime(d) : '—:—';
+}
+
+// NP-panel lyric state — track last-rendered line + word so we only mutate
+// the DOM when the active line changes (full re-render) or the active word
+// changes (class flip on existing spans). Mirrors the karaoke + fullscreen
+// pattern so all three surfaces are word-perfect in lockstep.
+let npLastLineIdx = -2;
+let npLastWordIdx = -2;
+let npNowLineWords: WhisperWord[] = [];
+let npNowWordSpans: HTMLSpanElement[] = [];
+
+function npRefreshLyrics() {
+  if (!npPanelOpen) return;
+  const box = $('#npPanelLyricBox') as HTMLElement | null;
+  if (!box) return;
+  if (!activeLyrics || !activeLyrics.lines.length) {
+    box.hidden = true;
+    npLastLineIdx = -2;
+    return;
+  }
+  box.hidden = false;
+  const t = engine.audio.currentTime || 0;
+  const lines = activeLyrics.lines;
+  let idx = 0;
+  if (t < lines[0].s) idx = 0;
+  else {
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (t >= lines[i].s) { idx = i; break; }
+    }
+  }
+  const prev = $('#npPanelLyricPrev');
+  const now = $('#npPanelLyricNow');
+  const next = $('#npPanelLyricNext');
+
+  if (idx !== npLastLineIdx) {
+    // Full re-render of current-line word spans
+    if (prev) prev.textContent = idx > 0 ? lines[idx - 1].text : '';
+    if (next) next.textContent = idx + 1 < lines.length ? lines[idx + 1].text : '';
+    if (now) {
+      const ln = lines[idx];
+      const words = activeLyrics.words ?? [];
+      let lineWords = words.filter(w => (w.line ?? -1) === idx);
+      if (!lineWords.length && words.length) {
+        lineWords = words.filter(w => w.s >= ln.s - 0.2 && w.s < ln.e + 0.2);
+      }
+      if (lineWords.length) {
+        npNowLineWords = lineWords;
+        now.innerHTML = lineWords
+          .map((w, i) => `<span class="np-panel__lyric-w" data-idx="${i}">${escapeHtml(i === 0 ? w.w.charAt(0).toUpperCase() + w.w.slice(1) : w.w)}</span>`)
+          .join(' ');
+        npNowWordSpans = Array.from(now.querySelectorAll<HTMLSpanElement>('.np-panel__lyric-w'));
+      } else {
+        npNowLineWords = [];
+        npNowWordSpans = [];
+        now.textContent = ln.text;
+      }
+    }
+    npLastLineIdx = idx;
+    npLastWordIdx = -2;
+  }
+
+  // Word-by-word: find latest word whose start <= t, toggle classes only
+  // when the active word index changes so we're not thrashing the DOM.
+  if (npNowWordSpans.length && npNowLineWords.length) {
+    let active = -1;
+    if (t >= npNowLineWords[0].s) {
+      for (let i = npNowLineWords.length - 1; i >= 0; i--) {
+        if (t >= npNowLineWords[i].s) { active = i; break; }
+      }
+    }
+    if (active !== npLastWordIdx) {
+      for (let i = 0; i < npNowWordSpans.length; i++) {
+        npNowWordSpans[i].classList.toggle('np-panel__lyric-w--past', i < active);
+        npNowWordSpans[i].classList.toggle('np-panel__lyric-w--active', i === active);
+      }
+      npLastWordIdx = active;
+    }
+  }
+}
+
 function refreshNpPanel() {
   if (!npPanelOpen) return;
+  // Reset lyric trackers so the next tick re-paints the active line + word
+  // from scratch. Without this, switching tracks would leave the previous
+  // track's word spans on the same line index pretending to be current.
+  npLastLineIdx = -2;
+  npLastWordIdx = -2;
+  npNowLineWords = [];
+  npNowWordSpans = [];
   const track = currentTrackId ? (TRACK_BY_ID.get(currentTrackId) ?? null) : null;
   const album = track ? ALBUM_BY_ID.get(track.album) : null;
+  const meta = track ? SUNO_META[track.id] : null;
+  const coverUrl = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
+
   const cover = $('#npPanelCover') as HTMLImageElement | null;
+  const artBg = $('#npPanelArtBg') as HTMLElement | null;
   const label = $('#npPanelLabel');
   const title = $('#npPanelTitle');
   const wisdom = $('#npPanelWisdom');
-  const bpmEl = $('#npPanelBpm');
-  if (cover) cover.src = album?.cover ?? '/art/cover-panda-desiiignare.png';
+  if (cover) cover.src = coverUrl;
+  if (artBg) artBg.style.backgroundImage = `url("${coverUrl}")`;
   if (label) label.textContent = album?.name ?? 'bZ';
   if (title) title.textContent = track?.title ?? 'Press play';
   if (wisdom) wisdom.textContent = track?.wisdom ?? 'Play a track to see its wisdom.';
-  const b = Math.round(engine.bpm);
-  if (bpmEl) bpmEl.textContent = b > 30 ? `${b} BPM · ${hzToNote(engine.bpm)}` : '— BPM';
+
+  // Stat chips — BPM/KEY/PLAYS, hidden when data unavailable
+  const bpmChip = $('#npPanelStatBpm') as HTMLElement | null;
+  const keyChip = $('#npPanelStatKey') as HTMLElement | null;
+  const playsChip = $('#npPanelStatPlays') as HTMLElement | null;
+  const bpmVal = meta?.sunoBpm ? Math.round(meta.sunoBpm) : (engine.bpm > 30 ? Math.round(engine.bpm) : null);
+  if (bpmChip) {
+    if (bpmVal) { bpmChip.hidden = false; (bpmChip.querySelector('strong') as HTMLElement).textContent = String(bpmVal); }
+    else bpmChip.hidden = true;
+  }
+  if (keyChip) {
+    if (meta?.sunoKey) { keyChip.hidden = false; (keyChip.querySelector('strong') as HTMLElement).textContent = meta.sunoKey; }
+    else keyChip.hidden = true;
+  }
+  if (playsChip) {
+    const plays = track ? (playCounts.get(track.id) ?? 0) : 0;
+    if (plays > 0) { playsChip.hidden = false; (playsChip.querySelector('strong') as HTMLElement).textContent = String(plays); }
+    else playsChip.hidden = true;
+  }
+
+  // Tags from getTrackTags — flatten the structured shape into a single
+  // ordered chip list (moods → themes → places → genres). Energy + tempo
+  // are surface-level descriptors that read well in the chip strip too.
+  const tagsEl = $('#npPanelTags');
+  if (tagsEl) {
+    const tt = track ? getTrackTags(track.id) : undefined;
+    if (tt) {
+      const flat = [
+        tt.energy,
+        tt.tempo,
+        ...tt.moods,
+        ...tt.themes,
+        ...tt.genres,
+        ...tt.places,
+      ].filter(Boolean) as string[];
+      const unique = Array.from(new Set(flat)).slice(0, 7);
+      tagsEl.innerHTML = unique.map(tag =>
+        `<span class="np-panel__tag">${escapeHtml(tag)}</span>`).join('');
+    } else {
+      tagsEl.innerHTML = '';
+    }
+  }
+
+  // Favorite button reflects local fav state
+  const favBtn = document.querySelector('.np-panel__action[data-np-action="fav"]') as HTMLButtonElement | null;
+  if (favBtn && track) {
+    favBtn.setAttribute('aria-pressed', npFavs.has(track.id) ? 'true' : 'false');
+  }
+
+  // Smart-link platforms — Spotify/Apple/YouTube/Suno when known
+  const platformsEl = $('#npPanelPlatforms') as HTMLElement | null;
+  if (platformsEl) {
+    const links: Array<{ label: string; url: string }> = [];
+    if (SPOTIFY_ARTIST_ID) links.push({ label: 'Spotify', url: `https://open.spotify.com/artist/${SPOTIFY_ARTIST_ID}` });
+    if (meta?.sunoId) links.push({ label: 'Suno', url: `https://suno.com/song/${meta.sunoId}` });
+    if (track?.title) {
+      const q = encodeURIComponent(`bZ ${track.title}`);
+      links.push({ label: 'YouTube', url: `https://www.youtube.com/results?search_query=${q}` });
+      links.push({ label: 'Apple Music', url: `https://music.apple.com/us/search?term=${q}` });
+    }
+    if (links.length) {
+      platformsEl.hidden = false;
+      platformsEl.innerHTML = links.map(l =>
+        `<a class="np-panel__platform" href="${l.url}" target="_blank" rel="noopener">${escapeHtml(l.label)} ↗</a>`
+      ).join('');
+    } else {
+      platformsEl.hidden = true;
+    }
+  }
+
+  // Reverb preset highlight
   document.querySelectorAll<HTMLButtonElement>('.np-panel__reverb-btn').forEach(btn => {
     btn.classList.toggle('is-active', btn.dataset.preset === activeReverb);
   });
+
+  // Sync playback rate display to actual audio rate (2 decimal places always)
+  const rateInput = $('#npRate') as HTMLInputElement | null;
+  const rateVal = $('#npRateVal');
+  const currentRate = engine.audio.playbackRate || 1;
+  if (rateInput) rateInput.value = String(currentRate);
+  if (rateVal) rateVal.textContent = `${currentRate.toFixed(2)}×`;
+
+  // Related tracks — top 3 by shared-tag count (simple Jaccard-like score)
+  const relatedEl = $('#npPanelRelated') as HTMLElement | null;
+  const relatedGrid = $('#npPanelRelatedGrid');
+  if (relatedEl && relatedGrid && track) {
+    const myTags = getTrackTags(track.id);
+    if (myTags) {
+      const mySet = new Set([...myTags.moods, ...myTags.themes, ...myTags.genres, ...myTags.places]);
+      const scored = TRACKS
+        .filter(t => t.id !== track.id)
+        .map(t => {
+          const tags = getTrackTags(t.id);
+          if (!tags) return { t, score: 0 };
+          const theirs = [...tags.moods, ...tags.themes, ...tags.genres, ...tags.places];
+          let score = theirs.filter(x => mySet.has(x)).length;
+          // Same-album bonus so the cluster reads as a curated mini-playlist
+          if (t.album === track.album) score += 1;
+          return { t, score };
+        })
+        .filter(x => x.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3);
+      if (scored.length) {
+        relatedEl.hidden = false;
+        relatedGrid.innerHTML = scored.map(({ t }) => {
+          const a = ALBUM_BY_ID.get(t.album);
+          return `<button class="np-panel__related-item" data-related-track="${t.id}" type="button" title="Play ${escapeHtml(t.title)}">
+            <img class="np-panel__related-cover" src="${a?.cover ?? '/art/cover-panda-desiiignare.jpg'}" alt="" width="56" height="56" loading="lazy" />
+            <div class="np-panel__related-meta">
+              <span class="np-panel__related-title">${escapeHtml(t.title)}</span>
+              <span class="np-panel__related-album">${escapeHtml(a?.name ?? 'bZ')}</span>
+            </div>
+          </button>`;
+        }).join('');
+      } else {
+        relatedEl.hidden = true;
+      }
+    }
+  }
+
+  // Lyric downloads — only show when activeLyrics has timing data
+  const dlEl = $('#npPanelDownloads') as HTMLElement | null;
+  if (dlEl) dlEl.hidden = !activeLyrics || !activeLyrics.lines.length;
+
+  npRefreshProgress();
+  npRefreshLyrics();
+}
+
+// Build .txt + .lrc strings from activeLyrics for download
+function buildLyricsTxt(): string {
+  if (!activeLyrics) return '';
+  return activeLyrics.lines.map(l => l.text).join('\n');
+}
+function buildLyricsLrc(track: Track, album: { name: string } | undefined): string {
+  if (!activeLyrics) return '';
+  const head = [
+    `[ti:${track.title}]`,
+    `[ar:bZ]`,
+    `[al:${album?.name ?? 'bZ'}]`,
+    `[length:${npFormatTime(engine.audio.duration || 0)}]`,
+    `[by:bzmusic.win]`,
+  ].join('\n');
+  const body = activeLyrics.lines.map(l => {
+    const m = Math.floor(l.s / 60);
+    const s = (l.s % 60).toFixed(2).padStart(5, '0');
+    return `[${m.toString().padStart(2, '0')}:${s}]${l.text}`;
+  }).join('\n');
+  return `${head}\n${body}\n`;
+}
+function downloadString(content: string, filename: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function npTick() {
+  if (!npPanelOpen) { npPanelRaf = null; return; }
+  npRefreshProgress();
+  npRefreshLyrics();
+  // Beat-sync — drive a CSS custom-property pulse on the modal so the
+  // cover ring + accent edges flash with the kick drum. Reads the same
+  // analyzer meters the topbar accent line uses.
+  const card = document.querySelector('.np-panel__card') as HTMLElement | null;
+  if (card) {
+    const meters = visualizer?.audioMeters();
+    const beat = meters?.beat ?? 0;
+    const energy = meters ? Math.min(1, (meters.mid ?? 0) * 0.5 + (meters.bass ?? 0) * 0.6 + beat * 0.4) : 0;
+    card.style.setProperty('--np-beat', beat.toFixed(3));
+    card.style.setProperty('--np-energy', energy.toFixed(3));
+  }
+  npPanelRaf = requestAnimationFrame(npTick);
 }
 
 function openNpPanel() {
   npPanelOpen = true;
   $('#npPanel')?.classList.add('is-open');
   refreshNpPanel();
+  if (npPanelRaf === null) npPanelRaf = requestAnimationFrame(npTick);
 }
 
 function closeNpPanel() {
   npPanelOpen = false;
   $('#npPanel')?.classList.remove('is-open');
+  if (npPanelRaf !== null) { cancelAnimationFrame(npPanelRaf); npPanelRaf = null; }
 }
 
 function registerServiceWorker() {
@@ -5086,6 +7127,12 @@ function bootstrapInitialRoute() {
     openAppeal({ pushHistory: false });
     return;
   }
+  // Content-page slugs (/about, /process, /credits, …) are routed by the
+  // content-page dialog wiring above. openContentPage sets its own meta —
+  // do NOT fall through to applyDefaultMetadata or we'll clobber the
+  // per-page og:image + title.
+  const slugCandidate = location.pathname.replace(/^\//, '').replace(/\/$/, '');
+  if (CONTENT_PAGE_BY_SLUG.has(slugCandidate)) return;
   if (location.pathname === '/share-target') {
     void consumeShareTarget();
     applyDefaultMetadata();
@@ -5111,6 +7158,10 @@ function bootstrapInitialRoute() {
 window.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('app')!;
   loadPersisted();
+  // Pre-saturate Aeon's Choice from the cached stats snapshot BEFORE any render
+  // so the first paint shows the real ranking — no multi-second catalog-order
+  // flash that reshuffles when /api/stats lands.
+  seedStatsFromCache();
   setupShell(root);
   renderAlbums($('#albums')!);
   renderNowPlaying(null);
@@ -5119,15 +7170,21 @@ window.addEventListener('DOMContentLoaded', () => {
   refreshLoopBtn();
   refreshShuffleBtn();
   bindInstallPrompt();
-  void handleSpotifyCallback();
+  // Only load the Spotify OAuth callback handler when the URL actually
+  // matches the callback route — saves ~14KB on every other route.
+  if (location.pathname.startsWith('/spotify/callback')) {
+    void import('./spotify-connect').then(m => m.handleAuthCallback());
+  }
   bootstrapInitialRoute();
   registerServiceWorker();
   void refreshNotifyToggle();
   bindAiPlaylist();
   refreshAiPlaylist();
-  mountAIChat({
-    engine,
-    onCommand: (cmd, args) => {
+
+  // Lazy-mount the AI chat (~132KB gzipped) on idle. Pre-warmed by the first
+  // user interaction so the FAB renders within a few hundred ms of any tap
+  // or keypress — invisible to the user, ~145KB lighter LCP-critical bundle.
+  const aiChatOnCommand = (cmd: string, args: string[]): boolean | void => {
       const lc = cmd.toLowerCase();
       const parseTime = (s: string) => {
         if (!s) return NaN;
@@ -5269,8 +7326,26 @@ window.addEventListener('DOMContentLoaded', () => {
         return true;
       }
       return false;
-    }
-  });
+  };
+  let aiChatMounted = false;
+  const mountAIChatLazy = async () => {
+    if (aiChatMounted) return;
+    aiChatMounted = true;
+    const { mountAIChat } = await import('./ai-chat');
+    mountAIChat({ engine, onCommand: aiChatOnCommand });
+  };
+  // Pre-warm on first user interaction so the bundle is ready by the time
+  // the user actually hits Cmd+I / Cmd+K / clicks the FAB area.
+  const warm = () => { void mountAIChatLazy(); };
+  ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+    window.addEventListener(ev, warm, { once: true, passive: true } as AddEventListenerOptions)
+  );
+  // Idle fallback — mount within 2s of paint even if the user never interacts,
+  // so the FAB always shows up. rIC where supported, setTimeout otherwise.
+  const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+  if (idle) idle(warm, { timeout: 2000 });
+  else setTimeout(warm, 1500);
+
   loadGlobalStats().then(() => refreshAiPlaylist());
   engine.audio.addEventListener('timeupdate', () => {
     if (!currentTrackId) return;

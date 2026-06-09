@@ -6,6 +6,7 @@
 // unregistered or unreachable.
 
 import type { Track } from './types';
+import { asScriptURL } from './trusted-types';
 import {
   CAST_NAMESPACE, CAST_APP_ID, RECEIVER_FALLBACK, PROTOCOL_VERSION, SENDER_TICK_HZ, STALE_MS,
   packMsg, isCastMsg,
@@ -79,13 +80,25 @@ export class CastBridge {
   private outboundQueue: PendingMessage[] = [];
   private senderTickTimer = 0;
   private staleWatchTimer = 0;
-  // Custom branded receiver (228565CB) is the primary App ID — full bZ UI w/
-  // playlist sidebar, real-FFT visualizer, palette-synced lyrics, queue control.
-  // Devices that aren't bound to it return select_unknown_id:905 from
-  // requestSession() — we transparently retry with Default Media Receiver
-  // (CC1AD845) so unbound TVs still play audio with Google's stock 10-foot UI.
+  // DEFAULT = custom branded receiver (228565CB). Brian confirmed it is PUBLISHED
+  // in the Cast SDK Developer Console (2026-06-08), so it no longer filters the
+  // picker — every Chromecast (incl. the Living Room TV) shows AND boots the
+  // gorgeous branded TV UI. Users can opt out to the Default Media Receiver via
+  // the "Branded TV UI" toggle.
+  //
+  // SAFETY NET: watchCastState() auto-reverts to RECEIVER_FALLBACK if the SDK
+  // reports NO_DEVICES_AVAILABLE for >6s (the filtered-picker symptom) — so even
+  // if the publication ever regresses, ordinary TVs reappear automatically rather
+  // than vanishing (the 2026-06-08 incident where an assumed-published status hid
+  // the Living Room TV). Flipping the default is reversible at runtime + per-user.
   private appId = CAST_APP_ID;
   private fallbackTried = false;
+  // Auto-heal a filtered picker: an unpublished custom App ID makes the SDK
+  // report NO_DEVICES_AVAILABLE even when ordinary Chromecasts ARE on the network
+  // (they're filtered out of the picker). If that persists in custom mode we
+  // revert to the Default Media Receiver so the TV reappears — see watchCastState.
+  private filteredPickerTimer = 0;
+  private pickerHealed = false;
   private get usesCustomReceiver(): boolean { return this.appId !== RECEIVER_FALLBACK; }
 
   /** Switch to the custom branded receiver. Only call after the device is known
@@ -95,6 +108,7 @@ export class CastBridge {
     if (this.appId === CAST_APP_ID) return;
     this.appId = CAST_APP_ID;
     this.fallbackTried = false;
+    this.pickerHealed = false;
     const ctx = window.cast?.framework?.CastContext?.getInstance?.();
     if (ctx) this.applyOptions(ctx);
   }
@@ -129,7 +143,10 @@ export class CastBridge {
       this.bindRemotePlayer();
     };
     const s = document.createElement('script');
-    s.src = CAST_FRAMEWORK_URL;
+    // Trusted Types: wrap the gstatic Cast SDK URL — the default policy
+    // installed at boot already permits this, but explicit wrap avoids
+    // the report-only TrustedScriptURL violation log.
+    s.src = asScriptURL(CAST_FRAMEWORK_URL);
     s.async = true;
     s.dataset.cast = '1';
     s.onerror = () => this.emit({ type: 'error', message: 'cast framework script failed to load' });
@@ -172,6 +189,7 @@ export class CastBridge {
 
   private bindContextEvents(ctx: any) {
     const SessionEventType = window.cast.framework.CastContextEventType;
+    this.watchCastState(ctx);
     ctx.addEventListener(SessionEventType.SESSION_STATE_CHANGED, (ev: any) => {
       const stateName = ev.sessionState as string;
       const session = ctx.getCurrentSession();
@@ -199,6 +217,38 @@ export class CastBridge {
         this.stopStaleWatch();
         this.setStatus('idle');
         this.emit({ type: 'session', active: false });
+      }
+    });
+  }
+
+  /** Auto-heal a filtered cast picker. In custom-receiver mode an unpublished
+   * App ID (228565CB) makes the SDK report NO_DEVICES_AVAILABLE even when
+   * ordinary Chromecasts are present — they're filtered out, so the user "loses"
+   * their TV. If that state persists past a 6s grace (covers the SDK's device
+   * discovery window), revert to the Default Media Receiver so every device
+   * reappears in the picker. Runtime-only — never erases the saved preference,
+   * so a genuinely-published receiver re-engages on the next load. */
+  private watchCastState(ctx: any) {
+    const EvType = window.cast.framework.CastContextEventType;
+    if (!EvType?.CAST_STATE_CHANGED) return;
+    ctx.addEventListener(EvType.CAST_STATE_CHANGED, (ev: any) => {
+      const cs = String(ev?.castState ?? '');
+      if (this.usesCustomReceiver && !this.pickerHealed && cs === 'NO_DEVICES_AVAILABLE') {
+        if (!this.filteredPickerTimer) {
+          this.filteredPickerTimer = window.setTimeout(() => {
+            this.filteredPickerTimer = 0;
+            const cur = String(ctx.getCastState?.() ?? '');
+            if (this.usesCustomReceiver && !this.pickerHealed && cur === 'NO_DEVICES_AVAILABLE') {
+              this.pickerHealed = true;
+              this.appId = RECEIVER_FALLBACK;
+              this.applyOptions(ctx);
+              this.emit({ type: 'error', message: 'No cast devices found with the branded receiver — switched to the default so your TV reappears.' });
+            }
+          }, 6000);
+        }
+      } else if (this.filteredPickerTimer && cs !== 'NO_DEVICES_AVAILABLE') {
+        clearTimeout(this.filteredPickerTimer);
+        this.filteredPickerTimer = 0;
       }
     });
   }

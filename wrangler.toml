@@ -4,7 +4,9 @@ compatibility_date = "2025-04-01"
 main = "worker/index.ts"
 
 routes = [
-  { pattern = "music.megabyte.space", custom_domain = true }
+  { pattern = "music.megabyte.space", custom_domain = true },
+  { pattern = "bzmusic.win", custom_domain = true },
+  { pattern = "www.bzmusic.win", custom_domain = true }
 ]
 
 [assets]
@@ -12,6 +14,7 @@ directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = [
+  "/",
   "/audio/*",
   "/lyrics/*",
   "/canopy",
@@ -31,6 +34,16 @@ run_worker_first = [
   "/embed/*",
   "/ashton/*",
   "/ashton-letter/*",
+  "/clip/*",
+  "/press/*",
+  "/about",
+  "/process",
+  "/credits",
+  "/press",
+  "/theology",
+  "/contact",
+  "/support",
+  "/merch",
   "/api/*",
   "/health"
 ]
@@ -44,5 +57,17 @@ LISTMONK_LIST_NAME = "music.megabyte.space"
 binding = "COUNTERS"
 id = "2a9973599d5c453c984cdb69758f9bde"
 
+# Workers AI binding — drives /api/ai/chat via Llama 3.3 70B (FP8-fast).
+# No API key needed; included in the free tier for typical chat volume.
+[ai]
+binding = "AI"
+
 [observability]
 enabled = true
+
+# Daily 09:00 UTC trigger for the Listmonk Foundation flows orchestrator
+# (worker/index.ts → runFoundationFlowsCron). Scans subscribers + fires
+# first-month day-3/10/21 + 90-day winback transactional emails. Manual
+# backfill available at GET /api/listmonk/foundation-cron?token=<admin>.
+[triggers]
+crons = ["0 9 * * *"]
