@@ -51,6 +51,7 @@ interface StandaloneApi {
   audio: HTMLAudioElement | null;
   loadQueue: (items: ReceiverQueueItem[], startIndex?: number) => void;
   setLyrics: (trackId: string, lines: ReceiverLine[]) => void;
+  setVolume: (v: number) => void;
   play: () => void;
   pause: () => void;
   seek: (s: number) => void;
@@ -314,6 +315,16 @@ if (!standaloneMode) {
     // Larger queue cache for gapless skips
     queueRequestHandler: undefined
   });
+  // Real TV remote volume → on-screen OSD. The CAF system fires SYSTEM_VOLUME_CHANGED
+  // with { level, muted } whenever the hardware/remote volume moves.
+  try {
+    const sys = window.cast!.framework.system;
+    const evType = sys?.EventType?.SYSTEM_VOLUME_CHANGED;
+    if (evType) ctx.addEventListener(evType, (e: any) => {
+      const lvl = typeof e?.data?.level === 'number' ? e.data.level : (e?.level ?? 1);
+      showVolumeOsd(lvl, !!(e?.data?.muted ?? e?.muted));
+    });
+  } catch { /* older CAF without the system-volume event → sender-driven OSD still works */ }
 }
 
 // Visualizer module state — MUST be declared before init() (which calls
@@ -385,6 +396,7 @@ function exposeStandaloneApi() {
     audio: standaloneAudio,
     loadQueue: (items, startIndex = 0) => onQueueLoad({ items, startIndex, autoplay: true }),
     setLyrics: (trackId, lines) => applyLyrics({ trackId, lines }),
+    setVolume: (v: number) => { onVolume({ level: v } as VolumePayload); },
     play: () => playerManager.play(),
     pause: () => playerManager.pause(),
     seek: (s: number) => playerManager.seek(s),
@@ -623,10 +635,37 @@ function onSeek(p: SeekPayload) {
 function onVolume(p: VolumePayload) {
   const lvl = clamp(p.level, 0, 1);
   safe(() => playerManager.setVolume(lvl));
+  showVolumeOsd(lvl, false);
 }
 
 function onMute(p: MutePayload) {
   safe(() => playerManager.setMediaElement?.()?.mute?.(p.muted));
+  showVolumeOsd(playerManager.getCurrentVolume?.()?.level ?? 1, p.muted);
+}
+
+// Transient on-screen volume bar — TV remotes + sender volume changes get visible
+// feedback instead of silently moving. Auto-hides ~1.6s after the last change.
+let volOsdTimer = 0;
+function showVolumeOsd(level: number, muted: boolean) {
+  const osd = $('#volOsd');
+  const fill = $('#volOsdFill') as HTMLElement | null;
+  const pct = $('#volOsdPct');
+  const icon = $('#volOsdIcon');
+  if (!osd || !fill || !pct) return;
+  const v = muted ? 0 : clamp(level, 0, 1);
+  fill.style.width = `${Math.round(v * 100)}%`;
+  pct.textContent = muted ? 'Muted' : `${Math.round(v * 100)}%`;
+  osd.classList.toggle('is-muted', muted);
+  icon?.classList.toggle('is-muted', muted);
+  osd.classList.add('is-visible');
+  osd.setAttribute('aria-hidden', 'false');
+  wakeUI();
+  if (volOsdTimer) clearTimeout(volOsdTimer);
+  volOsdTimer = window.setTimeout(() => {
+    osd.classList.remove('is-visible');
+    osd.setAttribute('aria-hidden', 'true');
+    volOsdTimer = 0;
+  }, 1600);
 }
 
 function stepTrack(dir: 1 | -1) {
