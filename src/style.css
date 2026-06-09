@@ -9163,6 +9163,9 @@ body.cast-tv-open .transport {
   flex-direction: column;
   gap: 8px;
   padding: 14px var(--aichat-pad) 10px;
+  /* Context rail follows the SITE's primary/album accent (not the per-DJ-persona
+     hue) so the now-playing card, pins, and search match everything else. */
+  --aichat-accent: var(--album-accent, var(--accent, #00e5ff));
 }
 .aichat__context:empty {
   padding: 0;

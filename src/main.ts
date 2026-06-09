@@ -352,6 +352,19 @@ function aiPicks(limit = 5): AiPickScore[] {
   return scored.sort((a, b) => b.score - a.score).slice(0, limit);
 }
 
+/** The full catalog ordered by the live AI ranking (Aeon's Choice). This is the
+ *  default play order: pressing PLAY from the PRESS-PLAY state starts the
+ *  top-ranked track and next/prev walk down the ranking. Recomputed each call so
+ *  it tracks live /api/stats refreshes. Falls back to catalog order if a track
+ *  somehow isn't scored. */
+function aiOrderedTracks(): Track[] {
+  const order = aiPicks(TRACKS.length);
+  const ranked = order.map(p => TRACK_BY_ID.get(p.trackId)).filter((t): t is Track => !!t);
+  // Append any track missing from the ranking (defensive) so the queue is whole.
+  for (const t of TRACKS) if (!ranked.includes(t)) ranked.push(t);
+  return ranked;
+}
+
 function refreshAiPlaylist() {
   const wrap = document.getElementById('aiPlaylistWrap');
   const host = document.getElementById('aiPlaylist');
@@ -5388,7 +5401,8 @@ function bindUi() {
   $('#btnNext')?.addEventListener('click', () => nextTrack(1));
   $('#btnPlay')?.addEventListener('click', () => {
     if (!currentTrackId) {
-      play(TRACKS[0]);
+      // PRESS PLAY → start the AI-ranked playlist (top pick first).
+      play(aiOrderedTracks()[0] ?? TRACKS[0]);
       return;
     }
     if (cast.active) cast.togglePlayPause();
@@ -6129,8 +6143,11 @@ function nextTrack(dir: 1 | -1) {
     if (next) play(next);
     return;
   }
-  const idx = TRACKS.findIndex(t => t.id === currentTrackId);
-  const next = TRACKS[(idx + dir + TRACKS.length) % TRACKS.length];
+  // Walk the AI-ranked play order (Aeon's Choice) so the playlist flows in
+  // ranking order, not raw catalog order.
+  const order = aiOrderedTracks();
+  const idx = order.findIndex(t => t.id === currentTrackId);
+  const next = order[(idx + dir + order.length) % order.length];
   if (next) play(next);
 }
 
