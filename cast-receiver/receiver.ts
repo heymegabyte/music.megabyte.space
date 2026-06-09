@@ -915,13 +915,18 @@ function hideUpNext() {
 
 function tickLyrics(now: number) {
   if (!runtime.lyrics.length || !lyricLineEls.length) return;
-  // Active line via binary search on line start times.
+  // Active line via binary search on line start times. Clamp to 0 so the FIRST
+  // line is selected the moment the song starts — a long instrumental intro
+  // (e.g. chef-lu-stew's vocal enters ~21s in) otherwise leaves no line selected
+  // and reads as a broken/unsynced screen. The first line's words stay unfilled
+  // (--fill 0) until their own timestamps, so it's highlighted-but-not-yet-sung.
   let active = -1, lo = 0, hi = runtime.lyrics.length - 1;
   while (lo <= hi) {
     const mid = (lo + hi) >> 1;
     if (runtime.lyrics[mid].t <= now) { active = mid; lo = mid + 1; }
     else hi = mid - 1;
   }
+  if (active < 0) active = 0;
   if (active !== lastLyricsActiveIdx) {
     lastLyricsActiveIdx = active;
     for (let i = 0; i < lyricLineEls.length; i++) {
@@ -930,15 +935,9 @@ function tickLyrics(now: number) {
       el.classList.toggle('is-past', i < active);
       el.classList.toggle('is-soon', i === active + 1);
     }
-    activeWordEls = active >= 0
-      ? Array.from(lyricLineEls[active].querySelectorAll<HTMLSpanElement>('.lyrics__w'))
-      : [];
-    // During the instrumental intro (no line active yet) center on the upcoming
-    // first line + flag #lyrics so it pulses "loaded, waiting for the vocal" —
-    // otherwise a long lead-in reads as a broken/unsynced screen.
+    activeWordEls = Array.from(lyricLineEls[active].querySelectorAll<HTMLSpanElement>('.lyrics__w'));
     const wrap = $('#lyrics') as HTMLElement | null;
-    const target = active >= 0 ? lyricLineEls[active] : lyricLineEls[0];
-    wrap?.classList.toggle('is-intro', active < 0 && runtime.lyrics.length > 1);
+    const target = lyricLineEls[active];
     const inner = $('#lyricsInner') as HTMLElement | null;
     if (target && inner && wrap) {
       const offset = (target.offsetTop + target.offsetHeight / 2) - (wrap.clientHeight / 2);
