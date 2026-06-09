@@ -528,6 +528,26 @@ img { -webkit-user-drag: none; user-select: none; }
 .lyrics__line.is-past { opacity: 0.28; }
 .lyrics__line.is-soon { color: var(--ink-soft); opacity: 0.7; }
 
+/* Instrumental intro: no line is active yet, so the upcoming first line gets a
+   soft breathing pulse + a ♪ cue — signals "lyrics are loaded, waiting for the
+   vocal" instead of reading as a frozen/unsynced screen during a long lead-in. */
+#lyrics.is-intro .lyrics__line.is-soon {
+  color: var(--ink);
+  opacity: 0.9;
+  animation: lyricIntroPulse 1.8s ease-in-out infinite;
+}
+#lyrics.is-intro .lyrics__line.is-soon::before {
+  content: '♪ ';
+  color: var(--ink-accent, var(--accent));
+}
+@keyframes lyricIntroPulse {
+  0%, 100% { opacity: 0.55; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #lyrics.is-intro .lyrics__line.is-soon { animation: none; opacity: 0.9; }
+}
+
 .lyrics__line.is-active {
   color: var(--ink);
   opacity: 1;
