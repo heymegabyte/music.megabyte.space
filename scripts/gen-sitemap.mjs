@@ -69,6 +69,20 @@ function main() {
     lines.push(url(`${ORIGIN}/${t.album}/${t.id}`, albumDate, 0.7));
   }
 
+  // Content pages — sourced from src/content-pages.ts so the sitemap stays in
+  // sync as pages are added/removed (about/credits/press/merch as of 2026-06).
+  let contentSlugs = [];
+  try {
+    const cp = readFileSync(resolve(ROOT, 'src/content-pages.ts'), 'utf8');
+    const re = /\bslug:\s*'([a-z0-9-]+)'/g;
+    let m;
+    while ((m = re.exec(cp)) !== null) contentSlugs.push(m[1]);
+    contentSlugs = [...new Set(contentSlugs)];
+  } catch { /* fall back to none */ }
+  for (const slug of contentSlugs) {
+    lines.push(url(`${ORIGIN}/${slug}`, today, 0.6));
+  }
+
   // Static one-off routes.
   lines.push(url(`${ORIGIN}/ashton`, today, 0.6));
 

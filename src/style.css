@@ -14727,28 +14727,42 @@ select:focus-visible,
   transform: translateY(-1px);
 }
 
-/* ── Floating LEFT-rail TOC (wide desktop only; hidden below 1280 so the
-      rail never overlaps the centered 720px reading column) ─────────── */
+/* ── Sticky LEFT-rail TOC (wide screens; stacks away on mobile) ──────────
+   At >=1100px, when a TOC is present, the content column becomes a 2-col grid:
+   a sticky "On this page" rail on the LEFT + the 720px reading column. The rail
+   scrolls with the page, then pins under the topbar (position: sticky). Pages
+   with no TOC (e.g. Merch, or <3 sections) keep the centered single column via
+   the :has() gate. Below 1100px the rail is hidden (the reading-progress
+   hairline carries wayfinding on mobile). */
 .contentpage__toc { display: none; }
-@media (min-width: 1280px) {
+@media (min-width: 1100px) {
+  .contentpage__scroll:has(.contentpage__toc:not([hidden])) {
+    max-width: 1004px;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 720px);
+    grid-template-areas: 'head head' 'toc body';
+    column-gap: 44px;
+    justify-content: center;
+    align-items: start;
+  }
+  .contentpage__scroll:has(.contentpage__toc:not([hidden])) .contentpage__head { grid-area: head; }
+  .contentpage__scroll:has(.contentpage__toc:not([hidden])) .contentpage__body { grid-area: body; }
   .contentpage__toc:not([hidden]) {
+    grid-area: toc;
     display: flex;
     flex-direction: column;
     gap: 6px;
-    position: fixed;
-    top: calc(var(--topbar-h, 60px) + 80px);
-    left: 36px;
-    width: 180px;
-    max-height: calc(100vh - var(--topbar-h, 60px) - var(--transport-h, 120px) - 120px);
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    max-height: calc(100vh - var(--topbar-h, 60px) - var(--transport-h, 120px) - 56px);
     overflow-y: auto;
-    padding: 14px 18px 14px 14px;
+    padding: 2px 14px 2px 16px;
     border-left: 2px solid color-mix(in srgb, var(--album-accent, var(--accent)) 25%, var(--line));
     font-family: var(--font-mono);
     font-size: 0.62rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    z-index: 41;
-    pointer-events: auto;
   }
   .contentpage__toc a {
     color: var(--ink-mute);
