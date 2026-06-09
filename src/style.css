@@ -14748,6 +14748,12 @@ select:focus-visible,
     justify-content: center;
     align-items: start;
   }
+  /* Merch is a storefront — give it a wider body column so the hero + product
+     grid breathe (the reading pages stay at 720px). */
+  .contentpage__scroll:has(.merch-page) {
+    max-width: 1240px;
+    grid-template-columns: 200px minmax(0, 980px);
+  }
   .contentpage__scroll:has(.contentpage__toc:not([hidden])) .contentpage__head { grid-area: head; }
   .contentpage__scroll:has(.contentpage__toc:not([hidden])) .contentpage__body { grid-area: body; }
   .contentpage__toc:not([hidden]) {
@@ -15204,10 +15210,10 @@ select:focus-visible,
   max-width: min(1240px, 94vw);
 }
 .merch-page {
-  display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  gap: 40px;
-  align-items: start;
+  /* Single column — merch now uses the shared content-page left TOC rail, so its
+     old internal [merch-toc][main] 2-col grid is gone (it was reserving a 190px
+     empty gutter that squished the store into a narrow column). */
+  display: block;
 }
 .merch-toc {
   position: sticky;
@@ -15567,8 +15573,10 @@ select:focus-visible,
 /* ── Floating cart FAB ─────────────────────────────────────────────── */
 .merch-fab {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
-  right: 22px;
+  /* Stack ABOVE the Ask-AI fab (which sits at transport-h + 20) so the two
+     never overlap. Right-aligned to match. */
+  bottom: calc(var(--transport-h, 120px) + 88px);
+  right: 20px;
   z-index: 9990;
   width: 54px;
   height: 54px;
@@ -15589,7 +15597,14 @@ select:focus-visible,
   opacity: 1;
   transform: scale(1);
   pointer-events: auto;
+  /* Subtle attention-grabber pulse so a filled cart is noticed. */
+  animation: merchFabPulse 2.4s ease-in-out infinite;
 }
+@keyframes merchFabPulse {
+  0%, 100% { box-shadow: 0 14px 32px -10px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+  50% { box-shadow: 0 14px 32px -10px color-mix(in srgb, var(--accent) 70%, transparent), 0 0 0 9px color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) { .merch-fab.merch-fab--has-items { animation: none; } }
 .merch-fab:hover { background: color-mix(in srgb, var(--accent) 82%, white); transform: scale(1.06); }
 .merch-fab__badge {
   position: absolute;
@@ -15623,10 +15638,11 @@ select:focus-visible,
 .merch-drawer__scrim {
   position: absolute;
   inset: 0;
-  /* Clean dim, NO backdrop-filter: the full-viewport blur made the entire
-     page look blurry the moment the cart opened / checkout ran. A solid-ish
-     dim reads as "drawer is modal" without the smeared GPU blur. */
-  background: rgba(4, 4, 12, 0.78);
+  /* Transparent click-catcher — the cart is a side drawer, so it must NOT
+     darken the whole page (the heavy 0.78 dim read as "the site went dark" on
+     open + checkout). The drawer panel's own shadow provides separation; this
+     layer only catches outside-clicks to close. */
+  background: transparent;
   opacity: 0;
   transition: opacity 240ms ease;
   pointer-events: none;
