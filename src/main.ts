@@ -12,13 +12,15 @@ import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID, SPOTIFY_ARTIST_ID, SPOTIFY_AR
 import { SUNO_META } from './suno-meta';
 import { TRACK_TAGS, getTrackTags } from './tags';
 import { CONTENT_PAGE_BY_SLUG, CONTENT_PAGES } from './content-pages';
+import { bootIfMerchPage } from './merch-cart';
+import { fmtTime, fmtClock, fmtHz, hzToNote } from './format';
 import type { Track, Album } from './types';
 import { cast } from './cast';
 import type { ReceiverQueueItem, ReceiverLine, ReceiverState, PalettePayload } from './cast-protocol';
 import { extractPalette, type Palette } from './palette';
 interface CastWord { w: string; s: number; e: number; }
 interface CastLine { t: number; e: number; text: string; words: CastWord[]; }
-import { hue, type HueGroup } from './hue';
+import { hue } from './hue';
 import {
   airplayAvailable,
   showAirPlayPicker,
@@ -105,7 +107,8 @@ const LS_KEYS = {
   installDismissed: 'bz:installDismissed',
   installSnoozeUntil: 'bz:installSnoozeUntil',
   crossfade: 'bz:crossfade',
-  listenStats: 'bz:listenStats'
+  listenStats: 'bz:listenStats',
+  statsCache: 'bz:statsCache'
 };
 
 interface LocalListenStat {
@@ -210,9 +213,29 @@ function recordTrackEnded() {
   persistListenStats();
 }
 
+/** Synchronously seed playCounts/shareCounts from the last-known /api/stats
+ *  snapshot in localStorage so Aeon's Choice paints the REAL ranking on the
+ *  first frame instead of the catalog-order fallback (which then visibly
+ *  reshuffled seconds later when the network fetch landed). Returns true if a
+ *  usable snapshot was applied. */
+function seedStatsFromCache(): boolean {
+  try {
+    const raw = localStorage.getItem(LS_KEYS.statsCache);
+    if (!raw) return false;
+    const cached = JSON.parse(raw) as { tracks?: Record<string, { plays?: number; shares?: number }> };
+    if (!cached?.tracks) return false;
+    let any = false;
+    for (const [id, c] of Object.entries(cached.tracks)) {
+      if (typeof c.plays === 'number') { playCounts.set(id, c.plays); any = true; }
+      if (typeof c.shares === 'number') { shareCounts.set(id, c.shares); any = true; }
+    }
+    return any;
+  } catch { return false; }
+}
+
 async function loadGlobalStats() {
   try {
-    const res = await fetch('/api/stats', { cache: 'no-store' });
+    const res = await fetch('/api/stats');
     if (!res.ok) return;
     const data = await res.json() as { tracks?: Record<string, { plays?: number; shares?: number }> };
     if (data.tracks) {
@@ -220,6 +243,8 @@ async function loadGlobalStats() {
         if (typeof c.plays === 'number') playCounts.set(id, c.plays);
         if (typeof c.shares === 'number') shareCounts.set(id, c.shares);
       }
+      // Persist the snapshot so the NEXT visit pre-saturates instantly.
+      try { localStorage.setItem(LS_KEYS.statsCache, JSON.stringify(data)); } catch { /* quota */ }
     }
     statsLoaded = true;
     document.querySelectorAll<HTMLElement>('[data-plays]').forEach(el => {
@@ -392,17 +417,7 @@ function refreshShareLabel() {
   }
 }
 
-function fmtTime(s: number) {
-  if (!Number.isFinite(s) || s < 0) return '0:00';
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  return `${m}:${sec.toString().padStart(2, '0')}`;
-}
-function fmtHz(hz: number) {
-  if (!Number.isFinite(hz) || hz <= 0) return '— Hz';
-  if (hz >= 1000) return `${(hz / 1000).toFixed(2)} kHz`;
-  return `${Math.round(hz)} Hz`;
-}
+// fmtTime / fmtHz / fmtClock / hzToNote now live in ./format (shared, de-duped).
 
 const VIZ_GROUPS: Array<{ label: string; tagline: string; modes: VizMode[] }> = [
   { label: 'Cosmos',   tagline: 'Stars, galaxies, deep space',  modes: ['starfield', 'constellation', 'galaxy', 'supernova', 'aurora', 'nebula'] },
@@ -485,22 +500,6 @@ function filterVizGrid(grid: HTMLElement | null, q: string) {
     if (visible > 0) groupHits++;
   });
   grid.dataset.empty = groupHits === 0 ? '1' : '';
-}
-
-const NOTE_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
-function hzToNote(hz: number): string {
-  if (!Number.isFinite(hz) || hz <= 20) return '—';
-  const midi = Math.round(69 + 12 * Math.log2(hz / 440));
-  const name = NOTE_NAMES[((midi % 12) + 12) % 12];
-  const oct = Math.floor(midi / 12) - 1;
-  return `${name}${oct}`;
-}
-
-function fmtClock(s: number): string {
-  if (!Number.isFinite(s) || s < 0) s = 0;
-  const m = Math.floor(s / 60);
-  const r = Math.floor(s % 60);
-  return `${m}:${r.toString().padStart(2, '0')}`;
 }
 
 function trackPath(track: Track) { return `/${track.album}/${track.id}`; }
@@ -1228,7 +1227,7 @@ function setupShell(root: HTMLElement) {
             <span class="transport__cast-text">Cast</span>
             <span id="btnCastLabel" class="transport__cast-device" hidden></span>
           </button>
-          <google-cast-launcher id="castLauncher" aria-hidden="true" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;cursor:pointer;"></google-cast-launcher>
+          <google-cast-launcher id="castLauncher" aria-label="Cast to a device" tabindex="-1" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;cursor:pointer;"></google-cast-launcher>
         </span>
         <button id="btnAirplay" class="link-btn link-btn--icon transport__airplay" type="button" aria-label="AirPlay" title="AirPlay (Safari/macOS)" hidden>
           <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h-1a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-1"/><polygon points="12 15 17 21 7 21 12 15"/></svg>
@@ -1738,10 +1737,6 @@ function setupShell(root: HTMLElement) {
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V18h6v-1.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>
               <span id="castHueIndicatorLabel">Hue</span>
             </button>
-            <button id="castVizMode" class="cast-sheet__chip" type="button" aria-label="Cycle visualizer mode">
-              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
-              <span id="castVizModeLabel">Bars</span>
-            </button>
             <button id="castSettingsBtn" class="cast-sheet__chip" type="button" aria-label="Open settings" aria-haspopup="dialog">
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8h0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
               <span>Settings</span>
@@ -1891,7 +1886,13 @@ function setupShell(root: HTMLElement) {
                 <span>Branded TV UI <span class="cast-settings__hint-inline">(custom 228565CB)</span></span>
               </label>
             </div>
-            <p class="cast-settings__hint">Off: stock Google Media Receiver — works on any Cast device. On: custom 10-foot UI with synced lyrics, palette, queue. Requires a device registered to <code>228565CB</code>; falls back automatically if not.</p>
+            <p class="cast-settings__hint">Off (default): stock Google Media Receiver — every Cast device shows in the picker &amp; plays. On: gorgeous 10-foot UI (synced lyrics, live visualizer, palette, navigable queue) — but only devices registered to <code>228565CB</code> appear until it's published. Turn off if your TV vanishes from the picker.</p>
+            <div class="cast-settings__row">
+              <a class="link-btn cast-settings__preview" href="/cast-receiver/?test" target="_blank" rel="noopener noreferrer" aria-label="Preview the branded TV receiver in a new tab">
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+                <span>Preview branded receiver</span>
+              </a>
+            </div>
           </section>
 
           <section class="cast-settings__group">
@@ -2997,16 +2998,19 @@ function bindIntegrations() {
       castBtn.setAttribute('title', e.active ? `Casting to ${e.deviceName ?? 'device'} — click for remote` : 'Cast to TV / speaker (Chromecast)');
       document.body.classList.toggle('is-casting', e.active);
       if (e.active) {
+        const customReceiver = cast.getReceiverMode() === 'custom';
         if (currentTrackId) {
           const t = TRACK_BY_ID.get(currentTrackId);
           const album = t ? ALBUM_BY_ID.get(t.album) : null;
-          if (t && album) cast.loadTrack(t, album.cover, album.name, engine.audio.currentTime || 0).catch(() => { /* noop */ });
           if (t) startCastMirror(t);
+          // CAF loadMedia is the DEFAULT Media Receiver path. On the custom
+          // receiver, queue:load (below) drives playback — calling loadMedia too
+          // double-loads + fights the custom protocol, so gate it to default.
+          if (!customReceiver && t && album) cast.loadTrack(t, album.cover, album.name, engine.audio.currentTime || 0).catch(() => { /* noop */ });
         }
-        // Push the full TRACKS list so the receiver can render+navigate the
-        // identical playlist with the TV remote. Runs after openCustomChannel
-        // resolves; sendCustom queues until then so this is safe to call here.
-        pushCastQueue(currentTrackId, engine.audio.currentTime || 0, !engine.audio.paused);
+        // Push the full TRACKS list so the custom receiver renders + plays the
+        // playlist. sendCustom buffers until openCustomChannel resolves.
+        if (customReceiver) pushCastQueue(currentTrackId, engine.audio.currentTime || 0, !engine.audio.paused);
         openCastSheet();
       } else {
         stopCastMirror();
@@ -3258,6 +3262,9 @@ function tracksToCastItems(list: Track[]): ReceiverQueueItem[] {
   return list.map(t => {
     const album = ALBUM_BY_ID.get(t.album);
     const cover = album?.cover ?? '/art/cover-panda-desiiignare.jpg';
+    const meta = SUNO_META[t.id];
+    const bpm = meta?.sunoBpm != null && meta.sunoBpm > 0 ? Math.round(meta.sunoBpm) : undefined;
+    const musicalKey = meta?.sunoKey ?? undefined;
     return {
       id: t.id,
       title: t.title,
@@ -3265,13 +3272,19 @@ function tracksToCastItems(list: Track[]): ReceiverQueueItem[] {
       album: album?.name ?? 'bZ',
       cover: new URL(cover, location.href).toString(),
       audio: new URL(t.file, location.href).toString(),
-      vibe: t.vibe
+      vibe: t.vibe,
+      ...(bpm != null ? { bpm } : {}),
+      ...(musicalKey ? { musicalKey } : {})
     };
   });
 }
 
 function pushCastQueue(startTrackId: string | null, startPosition = 0, autoplay = true): void {
-  if (!cast.customChannelOpen) return;
+  // Don't bail when the channel isn't open yet — cast.loadQueue() → sendCustom()
+  // buffers in outboundQueue and flushes on channel-open. The session 'active'
+  // event fires BEFORE openCustomChannel() runs, so a customChannelOpen guard
+  // here would drop the queue:load entirely → receiver stays idle (QR) and a
+  // later queue:select hits an empty queue (select_unknown_id).
   const items = tracksToCastItems(TRACKS);
   const startIndex = startTrackId
     ? Math.max(0, TRACKS.findIndex(x => x.id === startTrackId))
@@ -3459,11 +3472,12 @@ async function refreshCastLyrics(track: Track): Promise<void> {
   try {
     const bundle = await loadLyrics(track);
     castLyricsLines = bundle.lines.map((l, i) => {
-      const words: CastWord[] = bundle.words
-        ? bundle.words
-            .filter(w => (w.line ?? -1) === i)
-            .map(w => ({ w: w.w, s: w.s, e: w.e }))
-        : [];
+      // Prefer the per-word `line` field; fall back to TIME windowing when it's
+      // absent (11/72 lyrics files omit it — without this they push word-less
+      // lines to the receiver). Mirrors the in-app display grouping.
+      let lw = bundle.words ? bundle.words.filter(w => (w.line ?? -1) === i) : [];
+      if (!lw.length && bundle.words) lw = bundle.words.filter(w => w.s >= l.s - 0.2 && w.s < (l.e ?? Infinity) + 0.2);
+      const words: CastWord[] = lw.map(w => ({ w: w.w, s: w.s, e: w.e }));
       return { t: l.s, e: l.e, text: capitalizeLyricLine(l.text), words };
     });
     renderCastLyricsList();
@@ -4167,7 +4181,8 @@ function bindCastSheet(): void {
   // Settings drawer + chips
   $('#castSettingsBtn')?.addEventListener('click', () => openCastSettings());
   $('#castSettingsClose')?.addEventListener('click', () => closeCastSettings());
-  $('#castVizMode')?.addEventListener('click', () => cycleCastVizMode());
+  // Visualizer-mode chip removed from the cast-sheet header (the in-cast viz
+  // mode is fixed); the cast-seg controls in settings still drive it if present.
   $$('.cast-seg').forEach(b => {
     b.addEventListener('click', () => {
       const m = (b as HTMLElement).dataset.viz as CastVizMode | undefined;
@@ -4183,21 +4198,21 @@ function bindCastSheet(): void {
     } catch { /* noop */ }
   });
 
-  // Branded TV UI (custom receiver App ID 228565CB) — persisted opt-in.
-  // Off by default so first-time users land on Default Media Receiver, which
-  // is registered on every Cast device. Toggle re-applies CastContext options
-  // so the next requestSession() lands on the chosen receiver.
+  // Branded TV UI (custom receiver App ID 228565CB) — OFF by default so EVERY
+  // Cast device (incl. the Living Room TV) shows in the picker via the Default
+  // Media Receiver. The custom App ID filters the picker to test-registered
+  // serials until it's verifiably published, so it's strictly opt-in here.
   const modeToggle = $('#castReceiverMode') as HTMLInputElement | null;
   if (modeToggle) {
-    const saved = (() => { try { return localStorage.getItem(CAST_MODE_KEY) === 'custom'; } catch { return false; } })();
-    modeToggle.checked = saved;
-    if (saved) cast.enableCustomReceiver();
+    const optedIn = (() => { try { return localStorage.getItem(CAST_MODE_KEY) === 'custom'; } catch { return false; } })();
+    modeToggle.checked = optedIn;
+    if (optedIn) cast.enableCustomReceiver();
     modeToggle.addEventListener('change', () => {
       const on = modeToggle.checked;
       try { localStorage.setItem(CAST_MODE_KEY, on ? 'custom' : 'default'); } catch { /* swallow */ }
       if (on) cast.enableCustomReceiver();
       else cast.disableCustomReceiver();
-      showToast(on ? 'Branded TV UI on — pick a device registered to 228565CB' : 'Default receiver — works on any Cast device');
+      showToast(on ? 'Branded TV UI on — only devices registered to 228565CB will appear' : 'Default receiver on — every Cast device shows');
     });
   }
 
@@ -4455,6 +4470,7 @@ function openContentPage(slug: string, { pushHistory = true }: { pushHistory?: b
     if (scrollOuter) scrollOuter.scrollTop = 0;
     renderContentPageTOC();
     setupContentPageScrollIn();
+    bootIfMerchPage(slug);
   };
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const dialogAlreadyOpen = dialog.open;
@@ -5214,34 +5230,53 @@ function bindUi() {
     if (t) play(t);
   });
 
-  // ── Audio pre-fetch on hover ───────────────────────────────────────────────
-  // Hover-over a trackrow → prefetch the MP3 + lyrics JSON in parallel so
-  // click→play feels instant. We only prefetch once per track per session
-  // (set dedupes), and we use the browser's native prefetch via a one-shot
-  // <link rel="prefetch"> tag that gets garbage-collected after the fetch
-  // resolves. Saves 200-400ms of perceived latency on first play.
-  const audioPrefetched = new Set<string>();
-  const prefetchTrackAssets = (trackId: string) => {
-    if (audioPrefetched.has(trackId)) return;
-    audioPrefetched.add(trackId);
+  // ── Asset pre-fetch on DWELL ────────────────────────────────────────────────
+  // Hover-over a trackrow → after a 280ms dwell, prefetch the small lyrics JSON
+  // so the karaoke snaps on play. We deliberately DO NOT prefetch the MP3 on
+  // hover: each track is 5-6 MB and the worker buffers the full file, so a mouse
+  // sweep across the playlist used to fire ~10 concurrent full-file fetches →
+  // subrequest/CPU pressure → cascade of 503s (the errors in the console). The
+  // MP3 streams fast via Range on actual click; lyrics are tiny + safe to warm.
+  // Dwell-gated (not raw pointerover) so passing the cursor over rows costs
+  // nothing; skipped on Save-Data / metered / low-mem.
+  const lyricsPrefetched = new Set<string>();
+  let dwellTimer: ReturnType<typeof setTimeout> | null = null;
+  let dwellTrackId: string | null = null;
+  const navConn = navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string }; deviceMemory?: number };
+  const skipPrefetch = () =>
+    navConn.connection?.saveData === true ||
+    /(^|-)2g$/.test(navConn.connection?.effectiveType ?? '') ||
+    (navConn.deviceMemory ?? 8) <= 4;
+  const prefetchLyrics = (trackId: string) => {
+    if (lyricsPrefetched.has(trackId) || skipPrefetch()) return;
     const t = TRACK_BY_ID.get(trackId);
     if (!t) return;
-    const head = document.head;
-    for (const href of [t.file, `/lyrics/${t.id}.json`]) {
-      const link = document.createElement('link');
-      link.rel = 'prefetch';
-      link.href = href;
-      link.as = href.endsWith('.mp3') ? 'audio' : 'fetch';
-      if (!href.endsWith('.mp3')) link.crossOrigin = 'anonymous';
-      link.onload = link.onerror = () => link.remove();
-      head.appendChild(link);
-    }
+    lyricsPrefetched.add(trackId);
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = `/lyrics/${t.id}.json`;
+    link.as = 'fetch';
+    link.crossOrigin = 'anonymous';
+    link.onload = link.onerror = () => link.remove();
+    document.head.appendChild(link);
   };
   document.addEventListener('pointerover', e => {
     const target = e.target as Element | null;
     if (!target || typeof target.closest !== 'function') return;
     const row = target.closest('[data-track]') as HTMLElement | null;
-    if (row?.dataset.track) prefetchTrackAssets(row.dataset.track);
+    const id = row?.dataset.track;
+    if (!id || id === dwellTrackId) return;
+    dwellTrackId = id;
+    if (dwellTimer) clearTimeout(dwellTimer);
+    dwellTimer = setTimeout(() => { prefetchLyrics(id); }, 280);
+  }, { passive: true });
+  document.addEventListener('pointerout', e => {
+    const target = e.target as Element | null;
+    if (target?.closest?.('[data-track]') && dwellTimer) {
+      clearTimeout(dwellTimer);
+      dwellTimer = null;
+      dwellTrackId = null;
+    }
   }, { passive: true });
 
   $('#btnShare')?.addEventListener('click', () => {
@@ -5668,11 +5703,31 @@ function bindUi() {
       if (active) a.setAttribute('aria-current', 'page');
     });
   });
+  let storyCloseTimer: ReturnType<typeof setTimeout> | null = null;
   function setStoryMode(on: boolean) {
-    document.documentElement.classList.toggle('is-story-mode', on);
-    if (storyNav) storyNav.hidden = !on;
     pagesMenuTrigger?.setAttribute('aria-expanded', on ? 'true' : 'false');
     if (pagesMenuList) pagesMenuList.hidden = true; // never use the old dropdown again
+    if (storyCloseTimer) { clearTimeout(storyCloseTimer); storyCloseTimer = null; }
+    if (on) {
+      document.documentElement.classList.remove('is-story-closing');
+      document.documentElement.classList.add('is-story-mode');
+      if (storyNav) storyNav.hidden = false;
+      return;
+    }
+    // Closing: play the reverse cascade-out, THEN hide. Reduced-motion users
+    // (or environments without the API) skip straight to hidden.
+    const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced || !storyNav || storyNav.hidden) {
+      document.documentElement.classList.remove('is-story-mode', 'is-story-closing');
+      if (storyNav) storyNav.hidden = true;
+      return;
+    }
+    document.documentElement.classList.add('is-story-closing');
+    storyCloseTimer = setTimeout(() => {
+      document.documentElement.classList.remove('is-story-mode', 'is-story-closing');
+      if (storyNav) storyNav.hidden = true;
+      storyCloseTimer = null;
+    }, 260);
   }
   pagesMenuTrigger?.addEventListener('click', e => {
     e.stopPropagation();
@@ -6449,9 +6504,13 @@ interface BeforeInstallPromptEvent extends Event {
 
 function bindInstallPrompt() {
   window.addEventListener('beforeinstallprompt', (e) => {
+    // Only suppress Chrome's default mini-infobar when we're actually going to
+    // show our own banner — otherwise let the browser handle it (and skip the
+    // "preventDefault() called but prompt() never called" console notice).
+    if (installSnoozeActive() || isStandalone()) return;
     e.preventDefault();
     installPromptEvent = e;
-    if (!installSnoozeActive() && !isStandalone()) showInstallBanner('pwa');
+    showInstallBanner('pwa');
   });
   window.addEventListener('appinstalled', () => {
     persist(LS_KEYS.installDismissed, '1');
@@ -6481,18 +6540,28 @@ function preloadNextTrack() {
   if (idx < 0) return;
   const next = TRACKS[(idx + 1) % TRACKS.length];
   if (!next) return;
-  const link = document.createElement('link');
-  link.rel = 'prefetch';
-  link.as = 'audio';
-  link.href = next.file;
-  document.head.appendChild(link);
-  setTimeout(() => link.remove(), 8000);
-  // also prefetch lyrics
-  const ll = document.createElement('link');
-  ll.rel = 'prefetch';
-  ll.href = `/lyrics/${next.id}.json`;
-  document.head.appendChild(ll);
-  setTimeout(() => ll.remove(), 8000);
+  // Warm the edge cache via fetch().catch() instead of <link rel="prefetch">:
+  // a transient ASSETS cold-start 503 on a prefetch link logs an uncatchable
+  // console error, whereas a caught fetch swallows it. Same cache-warming
+  // effect (the request still flows through the worker → caches.default).
+  fetch(`/lyrics/${next.id}.json`, { priority: 'low' } as RequestInit).catch(() => { /* prefetch best-effort */ });
+  // The next MP3 is ~5-6 MB. On low-power / metered / Save-Data connections,
+  // speculatively pulling it every track wastes bandwidth + memory and can
+  // starve the CURRENTLY-playing stream's buffer. Skip the heavy audio prefetch
+  // there; the on-demand range fetch at play time is fast enough.
+  const nav = navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string }; deviceMemory?: number };
+  const saveData = nav.connection?.saveData === true;
+  const slowNet = /(^|-)2g$/.test(nav.connection?.effectiveType ?? '');
+  const lowMem = (nav.deviceMemory ?? 8) <= 4;
+  const coarseSmall = typeof matchMedia === 'function' && matchMedia('(max-width: 768px) and (pointer: coarse)').matches;
+  if (saveData || slowNet || lowMem || coarseSmall) return;
+  // Stagger the audio warm a beat after the lyrics so the two don't burst ASSETS
+  // together (the concurrent burst is what tips cold-start into 503). A Range:0-1
+  // request makes the worker buffer + edge-cache the FULL file server-side while
+  // the client downloads ~2 bytes — warms next-play without pulling 5 MB here.
+  setTimeout(() => {
+    fetch(next.file, { headers: { Range: 'bytes=0-1' }, priority: 'low' } as RequestInit).catch(() => { /* best-effort */ });
+  }, 1200);
 }
 
 const paletteCache = new Map<string, { accent: string; violet: string }>();
@@ -7086,6 +7155,10 @@ function bootstrapInitialRoute() {
 window.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('app')!;
   loadPersisted();
+  // Pre-saturate Aeon's Choice from the cached stats snapshot BEFORE any render
+  // so the first paint shows the real ranking — no multi-second catalog-order
+  // flash that reshuffles when /api/stats lands.
+  seedStatsFromCache();
   setupShell(root);
   renderAlbums($('#albums')!);
   renderNowPlaying(null);

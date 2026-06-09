@@ -1,6 +1,30 @@
 /* bZ — Panda Desiiignare. Zune-grade typography. Visualizer-dominant. */
 
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Rubik+Spray+Paint&family=Permanent+Marker&family=Caesar+Dressing&display=swap');
+/* Only Sora (display), Space Grotesk (body), JetBrains Mono (chrome/HUD) are
+   actually applied. Rubik Spray Paint / Permanent Marker / Caesar Dressing were
+   imported but never used by any template (only a stray --font-spray token) —
+   dropped 2026-06 to shrink the render-blocking font request + downloads. */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ── Global reduced-motion safety net ────────────────────────────────
+   Catch-all so ANY animation/transition we didn't individually gate still
+   collapses for motion-sensitive users (WCAG 2.3.3 + our motion mandate).
+   Per-component `@media (prefers-reduced-motion: reduce)` rules elsewhere
+   still win where they need finer control. The visualizer <canvas> (#bg)
+   is exempt — it's informational audio-reactive output, not decorative
+   chrome, and main.ts already starts it in a calm 'wave' mode + disables
+   auto-cycle under reduced-motion. `scroll-behavior: auto` kills smooth
+   scroll jumps too. */
+@media (prefers-reduced-motion: reduce) {
+  *:not(#bg):not(canvas),
+  *:not(#bg):not(canvas)::before,
+  *:not(#bg):not(canvas)::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 @property --accent {
   syntax: '<color>';
@@ -632,6 +656,87 @@ a {
   outline: none;
   transform: rotate(90deg);
 }
+
+/* ── Story-mode entrance choreography ────────────────────────────────
+   When the Story button engages, the chip rail doesn't just fade as a
+   block — the home pill leads, the page chips cascade in left-to-right,
+   and the ✕ drops in last. Motion-gated; reduced-motion users get the
+   instant cross-fade the .topbar__story-nav opacity transition already
+   provides. Keyframes use `both` so children hold their from-state until
+   their delay elapses (no flash-of-final-state on reveal). */
+@media (prefers-reduced-motion: no-preference) {
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-home {
+    animation: story-pill-in 380ms cubic-bezier(0.2, 0.85, 0.25, 1) both;
+  }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-chip {
+    animation: story-chip-in 440ms cubic-bezier(0.2, 0.85, 0.25, 1) both;
+  }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-nav-close {
+    animation: story-close-in 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  /* Left-to-right cascade — each chip waits a beat longer than the last,
+     starting just after the home pill clears. Caps at the realistic page
+     count; extra chips share the final delay rather than dragging on.
+     Selectors MUST match the specificity of the `animation` shorthand rule
+     above, else its shorthand resets animation-delay back to 0. */
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-child(1) { animation-delay: 80ms; }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-child(2) { animation-delay: 120ms; }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-child(3) { animation-delay: 160ms; }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-child(4) { animation-delay: 200ms; }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-child(5) { animation-delay: 240ms; }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-child(6) { animation-delay: 280ms; }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-child(7) { animation-delay: 320ms; }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-child(8) { animation-delay: 360ms; }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-child(n + 9) { animation-delay: 400ms; }
+  .is-story-mode .topbar__story-nav:not([hidden]) .topbar__story-nav-close {
+    animation-delay: 380ms;
+  }
+}
+@keyframes story-pill-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes story-chip-in {
+  from { opacity: 0; transform: translateY(-8px) scale(0.92); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes story-close-in {
+  from { opacity: 0; transform: scale(0.4) rotate(-90deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0); }
+}
+/* ── Story-mode EXIT cascade ──────────────────────────────────────────
+   On close, html gains .is-story-closing for 260ms (JS holds the [hidden]
+   toggle until it elapses). Items reverse the entrance: ✕ leaves first,
+   chips collapse right-to-left, home pill slides back out. Motion-gated;
+   reduced-motion users get the instant hide (JS skips the timer). */
+@media (prefers-reduced-motion: no-preference) {
+  .is-story-closing .topbar__story-nav:not([hidden]) .topbar__story-home {
+    animation: story-pill-out 220ms cubic-bezier(0.4, 0, 1, 1) both;
+    animation-delay: 120ms;
+  }
+  .is-story-closing .topbar__story-nav:not([hidden]) .topbar__story-chip {
+    animation: story-chip-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  .is-story-closing .topbar__story-nav:not([hidden]) .topbar__story-nav-close {
+    animation: story-chip-out 180ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  /* Right-to-left collapse — later chips leave first. Mirrors the 8-chip
+     entrance cap; the close is quicker so delays are tighter. */
+  .is-story-closing .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-last-child(1) { animation-delay: 20ms; }
+  .is-story-closing .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-last-child(2) { animation-delay: 40ms; }
+  .is-story-closing .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-last-child(3) { animation-delay: 60ms; }
+  .is-story-closing .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-last-child(4) { animation-delay: 80ms; }
+  .is-story-closing .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-last-child(5) { animation-delay: 100ms; }
+  .is-story-closing .topbar__story-nav:not([hidden]) .topbar__story-chip:nth-last-child(n + 6) { animation-delay: 110ms; }
+}
+@keyframes story-chip-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-6px) scale(0.9); }
+}
+@keyframes story-pill-out {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-10px); }
+}
 /* ── Desktop (>768px): chip rail is the nav, mobile trigger hides ──── */
 .topbar__story-mobile-trigger { display: none; }
 .topbar__story-sheet { display: none; }
@@ -692,13 +797,36 @@ a {
     -webkit-backdrop-filter: blur(24px) saturate(150%);
     max-height: calc(100vh - var(--topbar-h, 60px) - var(--transport-h, 120px) - 24px);
     overflow-y: auto;
-    animation: story-sheet-in 200ms cubic-bezier(0.2, 0.85, 0.25, 1);
+    transform-origin: top center;
+    animation: story-sheet-in 240ms cubic-bezier(0.2, 0.85, 0.25, 1);
   }
   @keyframes story-sheet-in {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
   .topbar__story-sheet[hidden] { display: none; }
+  /* Rows cascade down after the sheet lands — gated so reduced-motion
+     users get the sheet instantly with static rows. */
+  @media (prefers-reduced-motion: no-preference) {
+    .topbar__story-sheet:not([hidden]) .topbar__story-sheet-item {
+      animation: story-sheet-row-in 320ms cubic-bezier(0.2, 0.85, 0.25, 1) both;
+    }
+    /* Delay selectors match the shorthand rule's specificity so it doesn't
+       reset animation-delay to 0. */
+    .topbar__story-sheet:not([hidden]) .topbar__story-sheet-item:nth-child(1) { animation-delay: 90ms; }
+    .topbar__story-sheet:not([hidden]) .topbar__story-sheet-item:nth-child(2) { animation-delay: 125ms; }
+    .topbar__story-sheet:not([hidden]) .topbar__story-sheet-item:nth-child(3) { animation-delay: 160ms; }
+    .topbar__story-sheet:not([hidden]) .topbar__story-sheet-item:nth-child(4) { animation-delay: 195ms; }
+    .topbar__story-sheet:not([hidden]) .topbar__story-sheet-item:nth-child(5) { animation-delay: 230ms; }
+    .topbar__story-sheet:not([hidden]) .topbar__story-sheet-item:nth-child(6) { animation-delay: 265ms; }
+    .topbar__story-sheet:not([hidden]) .topbar__story-sheet-item:nth-child(7) { animation-delay: 300ms; }
+    .topbar__story-sheet:not([hidden]) .topbar__story-sheet-item:nth-child(8) { animation-delay: 335ms; }
+    .topbar__story-sheet:not([hidden]) .topbar__story-sheet-item:nth-child(n + 9) { animation-delay: 370ms; }
+  }
+  @keyframes story-sheet-row-in {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
   .topbar__story-sheet-item {
     display: grid;
     grid-template-columns: 1fr auto;
@@ -1456,7 +1584,13 @@ body[data-subscribed='1'] .album-list-end {
   font-family: var(--font-display);
   font-weight: 900;
   font-size: clamp(2rem, min(9vw, 14vh), 9rem);
-  line-height: 0.86;
+  /* line-height ≥ 1 + small vertical padding so the 900-weight glyphs (tall
+     ascenders + descenders) clear the hero's overflow:hidden. A sub-1
+     line-height makes the line box shorter than the actual letters, which
+     shaved the tops/bottoms off wide titles like "SOUP KITCHEN SKY". */
+  line-height: 1.02;
+  padding-top: 0.06em;
+  padding-bottom: 0.1em;
   letter-spacing: -0.04em;
   text-transform: uppercase;
   /* Pure white text — no scrim. Heavy halo + accent glow handles
@@ -2033,6 +2167,10 @@ html.is-playing .ai-playlist--rail {
     transform: translateY(-8px) scale(0.98);
   }
 }
+
+/* Mobile HUD-left + viz-picker-right placement lives in the @media
+   (max-width: 760px) block alongside the other mobile HUD overrides, so the
+   later, more-specific rule there wins cleanly. */
 .viz-picker__header {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -2158,15 +2296,22 @@ html.is-playing .ai-playlist--rail {
   outline: none;
   transition:
     border-color 0.18s ease,
-    background 0.18s ease;
+    background 0.18s ease,
+    box-shadow 0.18s ease;
 }
 .viz-picker__search::placeholder {
   color: var(--ink-mute);
   opacity: 0.7;
 }
-.viz-picker__search:focus {
+/* Focus ring follows the input's pill radius (box-shadow, not outline — a
+   rectangular outline would break the rounded shape). Cyan glow + halo. */
+.viz-picker__search:focus,
+.viz-picker__search:focus-visible {
   border-color: var(--accent);
   background: rgba(0, 229, 255, 0.06);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 32%, transparent),
+    0 0 18px -4px color-mix(in srgb, var(--accent) 60%, transparent);
 }
 .viz-picker__grid {
   overflow-y: auto;
@@ -2389,10 +2534,25 @@ html.is-playing .ai-playlist--rail {
     var(--shadow-ring);
 }
 @media (max-width: 1100px) {
+  /* Not enough room for np · controls · progress · actions on one row — drop the
+     cast button + the actions after it to a SECOND row, left-aligned to the
+     start of the progress bar (same column), so they line up under it. */
   .transport {
-    grid-template-columns: minmax(150px, 200px) auto minmax(160px, 1fr) auto;
+    grid-template-columns: minmax(150px, 200px) auto minmax(160px, 1fr);
+    grid-template-areas:
+      'np controls progress'
+      '.  .        actions';
+    row-gap: 8px;
     gap: 12px;
     padding: 12px 16px;
+    align-items: center;
+  }
+  .transport__np { grid-area: np; }
+  .transport__controls { grid-area: controls; }
+  .transport__progress { grid-area: progress; }
+  .transport__actions {
+    grid-area: actions;
+    justify-self: start; /* lines up with the progress bar's left edge */
   }
   .transport__vol-wrap {
     display: none;
@@ -2548,6 +2708,7 @@ html.is-playing .transport__np-title {
 .transport__actions {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 .round--sm {
@@ -4718,14 +4879,23 @@ html.is-appeal-open {
   .ai-pick__score {
     font-size: 0.64rem;
   }
+  /* HUD pinned 10px in from the LEFT edge; the visualizer-mode picker opens
+     10px in from the RIGHT (rule below) so they sit on opposite edges and
+     never collide on a phone. */
   .hud {
     position: absolute;
     top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 10px;
+    right: auto;
+    transform: none;
     flex-wrap: nowrap;
     border-radius: 999px;
     margin: 0;
+  }
+  .viz-picker {
+    right: 10px;
+    left: auto;
+    width: min(560px, calc(100vw - 20px));
   }
   .hud__cell {
     padding: 3px 7px;
@@ -8250,6 +8420,29 @@ body.cast-tv-open .transport {
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
+}
+.cast-settings__preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 40%, var(--line-strong));
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 10%, transparent);
+  color: var(--ink-accent, var(--accent));
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.333s ease, transform 0.333s ease, box-shadow 0.333s ease;
+}
+.cast-settings__preview:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 18%, transparent);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--album-accent, var(--accent)) 22%, transparent);
+}
+.cast-settings__preview:focus-visible {
+  outline: 2px solid var(--album-accent, var(--accent));
+  outline-offset: 2px;
 }
 .cast-settings__row--seg {
   gap: 6px;
@@ -14969,4 +15162,643 @@ select:focus-visible,
 }
 .contentpage__article a:hover {
   text-decoration-color: var(--album-accent, var(--accent));
+}
+
+/* ── FREE SATAN merch hero + grid ──────────────────────────────────────
+ * Drives the /merch page. Cards link out to bz-music.printful.me.
+ * Cover backgrounds use the catalog variant hex so the composited
+ * mockup sits on the actual product color. */
+/* ── Merch real-estate breakout + sticky TOC ──────────────────────────────
+   Content pages live in a 720px column (.contentpage__scroll). The merch page
+   breaks out to a wide 2-column layout: a sticky left TOC rail + the main
+   content. Scoped via :has() so NO other content page is affected. */
+.contentpage__scroll:has(.merch-page) {
+  max-width: min(1240px, 94vw);
+}
+.merch-page {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+.merch-toc {
+  position: sticky;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 0;
+}
+.merch-toc__label {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 10px;
+  padding-left: 14px;
+}
+.merch-toc__link {
+  position: relative;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-mute);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+.merch-toc__link:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.merch-toc__link.is-active {
+  color: var(--ink-accent-neon, var(--accent));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-left-color: var(--accent);
+}
+.merch-toc__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.merch-main { min-width: 0; }
+@media (max-width: 900px) {
+  .contentpage__scroll:has(.merch-page) { max-width: 720px; }
+  .merch-page { grid-template-columns: 1fr; gap: 12px; }
+  /* TOC collapses to a horizontal scroll strip on mobile. */
+  .merch-toc {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+    padding: 4px 0 12px;
+    scrollbar-width: none;
+  }
+  .merch-toc::-webkit-scrollbar { display: none; }
+  .merch-toc__label { display: none; }
+  .merch-toc__link {
+    flex: 0 0 auto;
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .merch-toc__link.is-active { border-left: 0; border-bottom-color: var(--accent); }
+}
+
+.merch-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 28px;
+  align-items: center;
+  margin: 8px 0 32px;
+  padding: 28px;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 58%),
+    radial-gradient(100% 80% at 100% 100%, color-mix(in srgb, var(--violet) 14%, transparent) 0%, transparent 60%),
+    color-mix(in srgb, var(--bg) 90%, var(--ink) 6%);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 30px 80px -30px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.merch-hero__art {
+  position: relative;
+  aspect-ratio: 1 / 1.18;
+  background: #0a0a14;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 26px 60px -22px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+.merch-hero__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  padding: 16px;
+}
+.merch-hero__eyebrow {
+  margin: 0 0 8px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-accent-neon, var(--accent));
+}
+.merch-hero__head {
+  margin: 0 0 14px;
+  font-size: clamp(1.6rem, 3.2vw, 2.6rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.merch-hero__head span {
+  display: inline-block;
+  margin-top: 6px;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 0.55em;
+  color: color-mix(in srgb, var(--ink) 80%, transparent);
+}
+.merch-hero__blurb {
+  margin: 0 0 16px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--ink) 84%, transparent);
+}
+.merch-hero__stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.merch-hero__stats li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 75%, var(--accent) 6%);
+  border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.merch-hero__stats strong {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink-accent-neon, var(--accent));
+  letter-spacing: -0.01em;
+}
+.merch-hero__stats span {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+@media (max-width: 720px) {
+  .merch-hero { grid-template-columns: 1fr; padding: 18px; gap: 18px; }
+  .merch-hero__art { aspect-ratio: 1 / 1; max-width: 70%; margin: 0 auto; }
+  .merch-hero__stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+.merch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+  margin: 16px 0 28px;
+}
+.merch-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--bg) 90%, var(--accent) 6%);
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none !important;
+  color: var(--ink) !important;
+  transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1),
+              border-color 200ms ease,
+              box-shadow 240ms ease;
+}
+.merch-card:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow:
+    0 24px 50px -20px rgba(0,0,0,0.6),
+    0 0 44px -12px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .merch-card { transition: border-color 200ms ease, box-shadow 200ms ease; }
+  .merch-card:hover { transform: none; }
+}
+.merch-card__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  background: var(--accent);
+  color: var(--bg);
+  pointer-events: none;
+}
+.merch-card__badge--live {
+  top: 10px;
+  left: auto;
+  right: 10px;
+  background: #00e5ff;
+  color: #060610;
+}
+.merch-card .merch-card__badge + .merch-card__badge--live {
+  /* No-op — distinct positions ensure they never overlap. */
+}
+.merch-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.merch-card__art {
+  aspect-ratio: 1 / 1;
+  background:
+    radial-gradient(80% 60% at 50% 40%, color-mix(in srgb, var(--ink) 5%, transparent) 0%, transparent 70%),
+    color-mix(in srgb, var(--bg) 70%, var(--ink) 30%);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.merch-card__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.merch-card__body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.merch-card__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.merch-card__meta {
+  margin: 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.merch-card__blurb {
+  margin: 4px 0 8px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--ink) 78%, transparent);
+}
+.merch-card__cta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.merch-card__price {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink-accent-neon, var(--accent));
+}
+.merch-card__buy {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-accent-neon, var(--accent));
+}
+@media (max-width: 600px) {
+  .merch-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .merch-card__body { padding: 10px 12px 12px; }
+  .merch-card__title { font-size: 0.9rem; }
+  .merch-card__blurb { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .merch-card { transition: none; }
+  .merch-card:hover { transform: none; }
+}
+
+/* ── Cart: size-picker + Add button (replaces View-link CTA on interactive cards) ── */
+.merch-card--interactive { cursor: zoom-in; }
+.merch-card__cta:has(.merch-card__size-picker) {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  padding-top: 10px;
+}
+.merch-card__size-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.merch-card__size {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  min-width: 36px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 120ms, color 120ms, background 120ms;
+}
+.merch-card__size:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  color: var(--ink);
+}
+.merch-card__size.is-active {
+  border-color: var(--accent);
+  color: var(--bg);
+  background: var(--accent);
+}
+.merch-card__add {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--accent);
+  color: var(--bg);
+  border: 0;
+  border-radius: 8px;
+  font-family: 'Sora', 'JetBrains Mono', system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 160ms, transform 100ms;
+}
+.merch-card__add:hover { background: color-mix(in srgb, var(--accent) 80%, white); }
+.merch-card__add:active { transform: scale(0.985); }
+.merch-card__add--added { background: #16c784; color: #060610; }
+
+/* ── Floating cart FAB ─────────────────────────────────────────────── */
+.merch-fab {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
+  right: 22px;
+  z-index: 9990;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  border: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 14px 32px -10px color-mix(in srgb, var(--accent) 70%, transparent), 0 4px 8px rgba(0,0,0,0.25);
+  transition: transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1), background 160ms;
+  opacity: 0;
+  transform: scale(0.7);
+  pointer-events: none;
+}
+.merch-fab.merch-fab--has-items {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+.merch-fab:hover { background: color-mix(in srgb, var(--accent) 82%, white); transform: scale(1.06); }
+.merch-fab__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: #ff3b30;
+  color: white;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--bg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .merch-fab { transition: opacity 160ms; }
+  .merch-fab:hover { transform: none; }
+}
+
+/* ── Cart drawer ───────────────────────────────────────────────────── */
+.merch-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 9991;
+  pointer-events: none;
+}
+.merch-drawer__scrim {
+  position: absolute;
+  inset: 0;
+  /* Clean dim, NO backdrop-filter: the full-viewport blur made the entire
+     page look blurry the moment the cart opened / checkout ran. A solid-ish
+     dim reads as "drawer is modal" without the smeared GPU blur. */
+  background: rgba(4, 4, 12, 0.78);
+  opacity: 0;
+  transition: opacity 240ms ease;
+  pointer-events: none;
+}
+.merch-drawer__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(440px, 90vw);
+  background: color-mix(in srgb, var(--bg) 96%, var(--ink) 4%);
+  border-left: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  pointer-events: auto;
+}
+.merch-drawer--open .merch-drawer__scrim { opacity: 1; pointer-events: auto; }
+.merch-drawer--open .merch-drawer__panel { transform: translateX(0); }
+.merch-drawer__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+}
+.merch-drawer__head h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.merch-drawer__close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 140ms;
+}
+.merch-drawer__close:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.merch-drawer__lines {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.merch-drawer__empty {
+  text-align: center;
+  color: var(--ink-mute);
+  font-size: 0.9rem;
+  padding: 40px 16px;
+}
+.merch-drawer__line {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--bg) 84%, var(--accent) 4%);
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.merch-drawer__line img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  background: color-mix(in srgb, var(--bg) 70%, var(--ink) 30%);
+  border-radius: 6px;
+}
+.merch-drawer__line-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.merch-drawer__line-title { font-size: 0.88rem; font-weight: 700; line-height: 1.25; }
+.merch-drawer__line-meta { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.7rem; color: var(--ink-mute); letter-spacing: 0.06em; text-transform: uppercase; }
+.merch-drawer__line-qty {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+}
+.merch-drawer__line-qty button {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: border-color 140ms;
+}
+.merch-drawer__line-qty button:hover { border-color: var(--accent); }
+.merch-drawer__line-qty span {
+  min-width: 22px;
+  text-align: center;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.8rem;
+}
+.merch-drawer__line-rm {
+  margin-left: auto;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  width: auto !important;
+  height: auto !important;
+  padding: 4px 8px;
+  color: color-mix(in srgb, var(--ink) 60%, transparent) !important;
+  border: 0 !important;
+}
+.merch-drawer__line-rm:hover { color: #ff3b30 !important; }
+.merch-drawer__line-price {
+  align-self: start;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink-accent-neon, var(--accent));
+}
+.merch-drawer__foot {
+  padding: 16px 20px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  border-top: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.merch-drawer__totals {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.9rem;
+  color: var(--ink-mute);
+}
+.merch-drawer__totals strong {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+.merch-drawer__shipnote {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--ink-mute);
+  letter-spacing: 0.02em;
+}
+.merch-drawer__checkout {
+  padding: 14px 18px;
+  background: var(--accent);
+  color: var(--bg);
+  border: 0;
+  border-radius: 10px;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 160ms;
+}
+.merch-drawer__checkout:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 82%, white); }
+.merch-drawer__checkout:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Success banner ────────────────────────────────────────────────── */
+.merch-success {
+  margin: 0 0 28px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, color-mix(in srgb, #16c784 14%, transparent), color-mix(in srgb, var(--accent) 8%, transparent));
+  border: 1px solid color-mix(in srgb, #16c784 40%, transparent);
+}
+.merch-success__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.merch-success__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #16c784;
+  color: #060610;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.merch-success__title { margin: 0; font-size: 1.1rem; font-weight: 800; }
+.merch-success__sub { margin: 2px 0 0; font-size: 0.85rem; color: var(--ink-mute); }
+.merch-success__body ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  font-size: 0.88rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .merch-drawer__panel, .merch-drawer__scrim { transition: opacity 160ms ease; }
 }
