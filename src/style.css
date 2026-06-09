@@ -1129,6 +1129,34 @@ html.is-playing .brand__logo {
   overflow: hidden;
   transition: background 0.9s ease;
 }
+/* Tiny site-links footer pinned below the scrolling album list. */
+.rail__foot {
+  flex: 0 0 auto;
+  padding: 9px 12px 11px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rail__foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 9px;
+}
+.rail__foot-links a {
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-mute);
+  text-decoration: none;
+  transition: color 0.333s ease;
+}
+.rail__foot-links a:hover { color: var(--ink-accent, var(--accent)); }
+.rail__foot-links a:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.rail__foot-copy {
+  font-size: 0.54rem;
+  color: color-mix(in srgb, var(--ink-mute) 70%, transparent);
+  letter-spacing: 0.03em;
+}
 .albums {
   flex: 1 1 auto;
   min-height: 0;

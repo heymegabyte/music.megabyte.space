@@ -808,6 +808,116 @@ export const CONTENT_PAGES: ContentPage[] = [
     `,
   },
 
+  // ═══ PRIVACY ══════════════════════════════════════════════════════════
+  {
+    slug: 'privacy',
+    title: 'Privacy',
+    eyebrow: 'what we collect (barely anything)',
+    description: 'music.megabyte.space is stateless. No accounts, no ad trackers. Plays are anonymous counts; email is opt-in only.',
+    metaTitle: 'Privacy — music.megabyte.space',
+    metaDescription: 'How music.megabyte.space handles data: anonymous play/share counts, opt-in newsletter, Stripe checkout, privacy-aware analytics. No accounts, no ad trackers, no sale of data.',
+    jsonLdType: 'WebPage',
+    render: () => `
+      <article class="contentpage__article">
+        <p class="contentpage__lead">
+          This site is intentionally stateless. There are no user accounts, no ad
+          trackers, and nothing about you is sold or shared. Here's the whole picture.
+        </p>
+
+        ${divider("what's stored")}
+        <ul>
+          <li><strong>Anonymous counts</strong> — total plays + shares per track, kept as numbers in Cloudflare KV. Not tied to you.</li>
+          <li><strong>Your browser only</strong> — playback prefs, volume, the merch cart, and recently-played live in <code>localStorage</code> on your device. Clear them anytime via your browser.</li>
+          <li><strong>Newsletter</strong> — only if you opt in: your email, stored in self-hosted Listmonk with double opt-in. One email per drop, unsubscribe in one click.</li>
+          <li><strong>Checkout</strong> — merch payments are handled entirely by Stripe; we never see or store card details. Fulfillment data goes to Printful to ship your order.</li>
+          <li><strong>Push</strong> — if you enable notifications, an anonymous push endpoint is stored so we can alert you to new drops. Revoke in browser settings.</li>
+        </ul>
+
+        ${divider('analytics')}
+        <p>
+          Product analytics run through PostHog in a privacy-aware, cookie-light mode
+          (memory persistence) plus Cloudflare's edge tracing. We look at aggregate
+          behavior — what gets played, what breaks — never individual identity.
+        </p>
+
+        ${divider('what we never do')}
+        <ul>
+          <li>No selling or renting of data — ever.</li>
+          <li>No third-party ad networks or cross-site tracking pixels.</li>
+          <li>No accounts, so no passwords to leak.</li>
+        </ul>
+
+        ${divider('your choices')}
+        <p>
+          Unsubscribe from any email via its one-click link. Delete local data by
+          clearing site storage. Email <a href="mailto:brian@megabyte.space">brian@megabyte.space</a>
+          for any data request — a real human answers within 48 hours.
+        </p>
+
+        ${divider('contact')}
+        <p>
+          Questions about privacy? <a href="mailto:brian@megabyte.space?subject=privacy">brian@megabyte.space</a>.
+          Full story on the <a href="/about" data-content-page="about">About</a> page.
+        </p>
+      </article>
+    `,
+  },
+
+  // ═══ TERMS ════════════════════════════════════════════════════════════
+  {
+    slug: 'terms',
+    title: 'Terms',
+    eyebrow: 'the short version',
+    description: 'Terms of use for music.megabyte.space — listen freely, music is © bZ, merch ships via Printful + Stripe, no warranties.',
+    metaTitle: 'Terms of Service — music.megabyte.space',
+    metaDescription: 'Plain-English terms: stream freely for personal use, music + lyrics are © Brian Zalewski, merch via Stripe + Printful, licensing on request, no warranties.',
+    jsonLdType: 'WebPage',
+    render: () => `
+      <article class="contentpage__article">
+        <p class="contentpage__lead">
+          Plain-English terms for using music.megabyte.space. By using the site you
+          agree to these.
+        </p>
+
+        ${divider('listening')}
+        <p>
+          Stream everything here for free, for personal enjoyment. Don't re-host the
+          audio, claim it as your own, or use it commercially (sync, sample, ads,
+          performance) without a license — those are easy to get, just
+          <a href="/about" data-content-page="about">ask</a>.
+        </p>
+
+        ${divider('ownership')}
+        <p>
+          All music, lyrics, artwork, and site code are © Brian Zalewski / Megabyte
+          Labs unless noted. The website engine is open-source; the recordings are not
+          public-domain. Scripture quotations are from public-domain translations.
+        </p>
+
+        ${divider('merch + payments')}
+        <p>
+          Apparel is printed and shipped by <a href="https://printful.com" target="_blank" rel="noopener">Printful</a>;
+          payments run through <a href="https://stripe.com" target="_blank" rel="noopener">Stripe</a>. Prices, sizes,
+          and availability can change. Returns + fulfillment timelines follow Printful's
+          policy (typically 5-7 business days to ship in the US).
+        </p>
+
+        ${divider('no warranty')}
+        <p>
+          The site is provided "as is," without warranties. It's a one-person studio —
+          things occasionally break and get fixed fast. We're not liable for indirect
+          damages from using the site.
+        </p>
+
+        ${divider('contact')}
+        <p>
+          Licensing, takedown, or terms questions:
+          <a href="mailto:brian@megabyte.space?subject=terms">brian@megabyte.space</a>.
+        </p>
+      </article>
+    `,
+  },
+
 ];
 
 export const CONTENT_PAGE_BY_SLUG = new Map(CONTENT_PAGES.map(p => [p.slug, p]));

@@ -1107,6 +1107,18 @@ function setupShell(root: HTMLElement) {
     <main class="zune" id="zune">
       <aside class="rail" aria-label="Albums">
         <div class="albums" id="albums"></div>
+        <footer class="rail__foot" aria-label="Site links">
+          <nav class="rail__foot-links">
+            <a href="/about" data-content-page="about">About</a>
+            <a href="/credits" data-content-page="credits">Tracks</a>
+            <a href="/press" data-content-page="press">Press</a>
+            <a href="/merch" data-content-page="merch">Merch</a>
+            <a href="/ashton/">Appeal</a>
+            <a href="/privacy" data-content-page="privacy">Privacy</a>
+            <a href="/terms" data-content-page="terms">Terms</a>
+          </nav>
+          <span class="rail__foot-copy">© bZ · Megabyte Labs · Newark, NJ</span>
+        </footer>
       </aside>
 
       <section class="viz" aria-label="Live audio visualizer">

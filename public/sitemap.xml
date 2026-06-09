@@ -367,6 +367,18 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://music.megabyte.space/privacy</loc>
+    <lastmod>2026-06-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://music.megabyte.space/terms</loc>
+    <lastmod>2026-06-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://music.megabyte.space/ashton</loc>
     <lastmod>2026-06-09</lastmod>
     <changefreq>weekly</changefreq>
