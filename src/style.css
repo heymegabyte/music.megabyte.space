@@ -14867,8 +14867,10 @@ select:focus-visible,
     align-items: start;
   }
   /* Merch is a storefront — give it a wider body column so the hero + product
-     grid breathe (the reading pages stay at 720px). */
-  .contentpage__scroll:has(.merch-page) {
+     grid breathe (the reading pages stay at 720px). The double :has() raises
+     specificity ABOVE the generic grid rule above (which is :has(toc) = 0,3,0),
+     otherwise that rule's minmax(0,720px) wins and the store stays narrow. */
+  .contentpage__scroll:has(.contentpage__toc:not([hidden])):has(.merch-page) {
     max-width: 1240px;
     grid-template-columns: 200px minmax(0, 980px);
   }

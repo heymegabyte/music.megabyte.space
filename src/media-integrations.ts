@@ -111,11 +111,6 @@ export async function fetchOdesliLinks(trackUrl: string, signal?: AbortSignal): 
   }
 }
 
-export function openSmartLink(trackUrl: string): void {
-  const target = `https://song.link/${encodeURIComponent(trackUrl)}`;
-  window.open(target, '_blank', 'noopener');
-}
-
 export function setMediaSessionPosition(audio: HTMLAudioElement): void {
   if (!('mediaSession' in navigator) || typeof navigator.mediaSession.setPositionState !== 'function') return;
   const duration = isFinite(audio.duration) ? audio.duration : 0;
