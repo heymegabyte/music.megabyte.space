@@ -109,11 +109,17 @@ test.describe('feature matrix — production', () => {
   });
 
   // ── Merch suite renders product cards ───────────────────────────────
-  test('merch shows product cards + no duplicate auto-TOC', async ({ page }) => {
+  test('merch shows product cards + a section TOC (not product titles)', async ({ page }, info) => {
     await page.goto('/merch', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2500);
     expect(await page.locator('.merch-card').count()).toBeGreaterThan(0);
-    expect(await page.locator('#contentpageToc').isHidden()).toBeTruthy();
+    // Merch now uses the shared left-rail TOC (≥1100px) built from its SECTION
+    // dividers — product-card titles must NOT appear in it.
+    if (info.project.name === 'desktop-1280') {
+      const tocLinks = (await page.locator('#contentpageToc a').allInnerTexts()).join(' | ').toLowerCase();
+      expect(tocLinks).not.toContain('free satan');
+      expect(await page.locator('#contentpageToc a').count()).toBeGreaterThanOrEqual(3);
+    }
   });
 
   // ── Spotify chip hidden on mobile, shown on desktop ─────────────────
