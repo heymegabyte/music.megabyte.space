@@ -13834,6 +13834,26 @@ a.aichat__widget:hover {
   color: color-mix(in srgb, var(--album-accent, var(--accent)) 75%, var(--ink-mute));
   white-space: nowrap;
 }
+/* Minor divider (sub-sections not in the TOC) — slightly quieter than majors. */
+.contentpage__divider--minor { margin: 24px 0 12px; }
+.contentpage__divider--minor span { color: var(--ink-mute); letter-spacing: 0.2em; }
+
+/* Live embed-player preview on the Press page. */
+.contentpage__embed-preview {
+  margin: 6px 0 18px;
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 30%, var(--line-strong));
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(6, 6, 16, 0.6);
+  box-shadow: 0 18px 48px -24px color-mix(in srgb, var(--album-accent, var(--accent)) 40%, transparent);
+  max-width: 480px;
+}
+.contentpage__embed-preview iframe {
+  display: block;
+  width: 100%;
+  height: 220px;
+  border: 0;
+}
 
 /* Pull-quote — heavy left-border + accent halo, italic display type */
 .contentpage__pullquote {

@@ -47,6 +47,12 @@ const esc = (s: string) =>
 const divider = (label: string) =>
   `<h4 class="contentpage__divider"><span>${esc(label)}</span></h4>`;
 
+// Minor divider — same look, but a <p> (not <h4>) so it does NOT feed the
+// left-rail TOC. Used to keep long pages (e.g. /about) navigable: only the major
+// sections appear in the rail, sub-sections still get a visual divider.
+const minorDivider = (label: string) =>
+  `<p class="contentpage__divider contentpage__divider--minor"><span>${esc(label)}</span></p>`;
+
 // Pull-quote — large italicized callout with album-accent left border
 const pullquote = (text: string, attribution = '') =>
   `<blockquote class="contentpage__pullquote">${esc(text)}${attribution ? `<cite>— ${esc(attribution)}</cite>` : ''}</blockquote>`;
@@ -147,7 +153,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           <div><strong>countless</strong><span>sites + apps shipped</span></div>
         </div>
 
-        ${divider('origin')}
+        ${minorDivider('origin')}
         <p>
           Born in Pennsylvania, raised between Pittsburgh and South Jersey, now anchored
           in Newark. The music started as catharsis — three decades of journaling that
@@ -156,7 +162,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           draft to the worker that's serving you these bytes.
         </p>
 
-        ${divider('what bZ believes')}
+        ${minorDivider('what bZ believes')}
         <ul class="contentpage__beliefs">
           <li><strong>The kingdom is now</strong> — the grind and the gospel are the same direction.</li>
           <li><strong>Family first</strong> — wife, kids, parents, in-laws referred to by name and protected by silence.</li>
@@ -165,7 +171,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           <li><strong>Open source as worship</strong> — code published in the open is its own act of generosity.</li>
         </ul>
 
-        ${divider('influences')}
+        ${minorDivider('influences')}
         <p>
           Lecrae · Andy Mineo · Beautiful Eulogy · NF · Tobe Nwigwe · Killer Mike ·
           Robert Greene's <em>48 Laws of Power</em> · the Psalms · the Sermon on the Mount ·
@@ -174,7 +180,7 @@ export const CONTENT_PAGES: ContentPage[] = [
 
         ${figure('/art/pages/about-studio-2.png', 'Hands writing lyrics in a leather notebook by warm desk-lamp light', "Lyric draft · the only stage of the pipeline that's 100% human.")}
 
-        ${divider('tools + setup')}
+        ${minorDivider('tools + setup')}
         <ul class="contentpage__stack">
           <li><strong>Music gen</strong>Suno v3.5 / v4 / v4.5</li>
           <li><strong>Lyric align</strong>OpenAI Whisper + Needleman-Wunsch</li>
@@ -186,13 +192,13 @@ export const CONTENT_PAGES: ContentPage[] = [
           <li><strong>Payments</strong>Square (donations) · Stripe (consulting)</li>
         </ul>
 
-        ${divider('the catalog')}
+        ${minorDivider('the catalog')}
         <p>Six albums to date. Click any cover to open it in the player.</p>
         <div class="contentpage__album-grid">
           ${ALBUMS.map(albumChip).join('')}
         </div>
 
-        ${divider('the journey')}
+        ${minorDivider('the journey')}
         ${timeline([
           { date: '2011', title: 'First public open-source commit', body: 'Cordova plugins, Stencil components. The Megabyte Labs corpus starts taking shape.' },
           { date: '2018', title: 'Megabyte Labs founded', body: 'Personal brand → open-source studio with hundreds of projects, millions of downloads.' },
@@ -201,7 +207,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           { date: '2026', title: "St. John's Canon + Mercy Drop", body: 'Six-album catalog. Whisper-aligned karaoke + Workers AI chat + cinematic visualizers all shipping from a one-person studio.' },
         ])}
 
-        ${divider('daily rhythm')}
+        ${minorDivider('daily rhythm')}
         ${cards([
           { title: 'Mornings · code', meta: '6am-12pm', body: 'Megabyte Labs consulting + open-source maintenance. Deep work block when caffeine + circadian focus peak.' },
           { title: 'Afternoons · family', meta: '12-6pm', body: 'Wife. Kids. Real life. No phone, no laptop, no Slack. The day-job hard-stops.' },
@@ -219,7 +225,7 @@ export const CONTENT_PAGES: ContentPage[] = [
         </p>
         ${pullquote(`Win through your actions, never through argument.`, 'Robert Greene · Law 9 — recurring lyric across the catalog')}
 
-        ${divider('what you will + won’t hear')}
+        ${minorDivider('what you will + won’t hear')}
         ${cards([
           { title: 'What you will hear', body: 'Reverence around family — by name and by silence. Discipline framed as freedom. Service of the poor as the throughline. Scripture quoted with chapter + verse. Robert Greene’s 48 Laws as wisdom literature.' },
           { title: 'What you won’t hear', body: 'Zero drug references, by editorial rule. No misogyny — every woman treated as image-bearer. No cheap grace, no triumphalism. Strong words only in service of weight, never edge.' },
@@ -239,7 +245,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           { title: 'Service', meta: 'Matthew 25:40', body: `"Whatever you did for the least of these, you did for me." St. John's Soup Kitchen of Newark is the throughline — not the marketing.` },
         ])}
 
-        ${divider('on AI in worship music')}
+        ${minorDivider('on AI in worship music')}
         <p>
           Suno is a tool, not a co-author. <strong>Every lyric is human-written.</strong> The
           model renders the take; the human decides what ships — no different from a vocalist
@@ -270,7 +276,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           <li><strong>Visual + UI</strong> — six WebGL visualizers, Web Audio FFT engine, per-album palette, cinematic transitions, plus a shareable embed widget per release.</li>
         </ol>
 
-        ${divider('editorial rules · non-negotiable')}
+        ${minorDivider('editorial rules · non-negotiable')}
         <ul>
           <li>Zero drug references. Discipline over dopamine.</li>
           <li>Family names handled with reverence — Brian, Laura, Adrian, CK.</li>
@@ -279,7 +285,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           <li>Service-of-poor-and-needy stays the throughline.</li>
         </ul>
 
-        ${divider('anatomy of one track')}
+        ${minorDivider('anatomy of one track')}
         <p>"Chef Lu Stew" from Panda Desiiignare, start to finish:</p>
         ${cards([
           { title: '1 · Verse caught me', meta: 'Mark 6:42', body: '"They all ate and were satisfied" — the feeding of the 5,000. Image of a chef feeding the line.' },
@@ -314,7 +320,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           First annual transparency report drops January 2027.
         `)}
 
-        ${divider('what shaped the thinking')}
+        ${minorDivider('what shaped the thinking')}
         <ul>
           <li><em>The 48 Laws of Power</em> — Robert Greene (read 3×, marked up)</li>
           <li><em>The Sermon on the Mount</em> — Matthew 5-7 (re-read annually)</li>
@@ -324,7 +330,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           <li>The Psalms — anchor when nothing else does</li>
         </ul>
 
-        ${divider("what's next")}
+        ${minorDivider("what's next")}
         ${highlight('Roadmap · 2026-2027', `
           New album every 2 months. First public live show pencilled for Q3 2026.
           The St. John's Canon fundraising hits $10K-give-back milestone. The
@@ -348,7 +354,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           <strong>4.</strong> Send one well-formed email instead of three fragments. NDAs signed on request.
         `)}
 
-        ${divider('social + studio')}
+        ${minorDivider('social + studio')}
         <ul class="contentpage__connect">
           <li><a href="https://megabyte.space" target="_blank" rel="noopener">megabyte.space — main studio site ↗</a></li>
           <li><a href="https://github.com/HeyMegabyte" target="_blank" rel="noopener">GitHub · @HeyMegabyte ↗</a></li>
@@ -661,6 +667,12 @@ export const CONTENT_PAGES: ContentPage[] = [
           </details>
 
           ${divider('embed the player on your site')}
+          <p>Here's exactly what your readers will see — a live, playable preview:</p>
+          <div class="contentpage__embed-preview">
+            <iframe src="/embed/desiiignare/chef-lu-stew" title="bZ embeddable player preview — Chef Lu Stew"
+              loading="lazy" width="480" height="220" frameborder="0"
+              allow="autoplay; encrypted-media; clipboard-write"></iframe>
+          </div>
           <p>Three lines of HTML — works on any site, no framework required:</p>
           <pre class="contentpage__code"><code>&lt;script src="https://bzmusic.win/embed.js" defer&gt;&lt;/script&gt;
 &lt;bzmusic-player track="chef-lu-stew"&gt;&lt;/bzmusic-player&gt;</code></pre>
