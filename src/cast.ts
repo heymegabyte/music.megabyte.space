@@ -80,19 +80,18 @@ export class CastBridge {
   private outboundQueue: PendingMessage[] = [];
   private senderTickTimer = 0;
   private staleWatchTimer = 0;
-  // DEFAULT = Default Media Receiver (CC1AD845). Every Chromecast runs it with
-  // zero registration, so EVERY device — including the Living Room TV — shows in
-  // the picker and plays audio immediately.
+  // DEFAULT = custom branded receiver (228565CB). Brian confirmed it is PUBLISHED
+  // in the Cast SDK Developer Console (2026-06-08), so it no longer filters the
+  // picker — every Chromecast (incl. the Living Room TV) shows AND boots the
+  // gorgeous branded TV UI. Users can opt out to the Default Media Receiver via
+  // the "Branded TV UI" toggle.
   //
-  // CRITICAL: do NOT make the custom App ID (228565CB) the default until it is
-  // VERIFIABLY published in the Cast SDK Developer Console (proof = the ordinary
-  // TV still appears in the picker after the switch). An unpublished/“Ready for
-  // Testing” app makes the framework FILTER the picker to test-registered
-  // serials only → ordinary TVs vanish. 2026-06-08: promoting 228565CB to the
-  // default on an assumed-published status hid the Living Room TV; reverted.
-  // The custom branded receiver stays opt-in via the "Branded TV UI" toggle
-  // (enableCustomReceiver()) for dev devices / once truly published.
-  private appId = RECEIVER_FALLBACK;
+  // SAFETY NET: watchCastState() auto-reverts to RECEIVER_FALLBACK if the SDK
+  // reports NO_DEVICES_AVAILABLE for >6s (the filtered-picker symptom) — so even
+  // if the publication ever regresses, ordinary TVs reappear automatically rather
+  // than vanishing (the 2026-06-08 incident where an assumed-published status hid
+  // the Living Room TV). Flipping the default is reversible at runtime + per-user.
+  private appId = CAST_APP_ID;
   private fallbackTried = false;
   // Auto-heal a filtered picker: an unpublished custom App ID makes the SDK
   // report NO_DEVICES_AVAILABLE even when ordinary Chromecasts ARE on the network

@@ -1886,7 +1886,7 @@ function setupShell(root: HTMLElement) {
                 <span>Branded TV UI <span class="cast-settings__hint-inline">(custom 228565CB)</span></span>
               </label>
             </div>
-            <p class="cast-settings__hint">Off (default): stock Google Media Receiver — every Cast device shows in the picker &amp; plays. On: gorgeous 10-foot UI (synced lyrics, live visualizer, palette, navigable queue) — but only devices registered to <code>228565CB</code> appear until it's published. Turn off if your TV vanishes from the picker.</p>
+            <p class="cast-settings__hint">On (default): gorgeous 10-foot UI — synced karaoke lyrics, live visualizer, album-art palette, navigable queue — on any Chromecast. Off: stock Google Media Receiver (plain player). The app auto-falls back to the stock receiver if a device ever fails to appear, so your TV is never stranded.</p>
             <div class="cast-settings__row">
               <a class="link-btn cast-settings__preview" href="/cast-receiver/?test" target="_blank" rel="noopener noreferrer" aria-label="Preview the branded TV receiver in a new tab">
                 <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
@@ -4198,21 +4198,22 @@ function bindCastSheet(): void {
     } catch { /* noop */ }
   });
 
-  // Branded TV UI (custom receiver App ID 228565CB) — OFF by default so EVERY
-  // Cast device (incl. the Living Room TV) shows in the picker via the Default
-  // Media Receiver. The custom App ID filters the picker to test-registered
-  // serials until it's verifiably published, so it's strictly opt-in here.
+  // Branded TV UI (custom receiver App ID 228565CB) — ON by default now that the
+  // receiver is PUBLISHED (Brian confirmed 2026-06-08), so every Cast device shows
+  // AND boots the branded UI. Honor an explicit opt-out ('default'); the SDK-side
+  // watchCastState() auto-reverts if a device ever gets filtered, so this is safe.
   const modeToggle = $('#castReceiverMode') as HTMLInputElement | null;
   if (modeToggle) {
-    const optedIn = (() => { try { return localStorage.getItem(CAST_MODE_KEY) === 'custom'; } catch { return false; } })();
-    modeToggle.checked = optedIn;
-    if (optedIn) cast.enableCustomReceiver();
+    const useCustom = (() => { try { return localStorage.getItem(CAST_MODE_KEY) !== 'default'; } catch { return true; } })();
+    modeToggle.checked = useCustom;
+    if (useCustom) cast.enableCustomReceiver();
+    else cast.disableCustomReceiver();
     modeToggle.addEventListener('change', () => {
       const on = modeToggle.checked;
       try { localStorage.setItem(CAST_MODE_KEY, on ? 'custom' : 'default'); } catch { /* swallow */ }
       if (on) cast.enableCustomReceiver();
       else cast.disableCustomReceiver();
-      showToast(on ? 'Branded TV UI on — only devices registered to 228565CB will appear' : 'Default receiver on — every Cast device shows');
+      showToast(on ? 'Branded TV UI on — your TV boots the bZ receiver' : 'Default receiver on — standard Cast player');
     });
   }
 
