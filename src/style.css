@@ -14672,6 +14672,12 @@ select:focus-visible,
   color: #fff;
   transform: translateY(-1px);
 }
+/* On smaller screens the play bar is cramped — drop the Spotify "Stream" chip so
+   the title + transport controls keep their room. (Overrides the inline-flex set
+   when JS removes the [hidden] attr; the chip still shows on desktop.) */
+@media (max-width: 768px) {
+  .transport__np-spotify { display: none !important; }
+}
 
 /* ── Reading progress hairline ──────────────────────────────────── */
 .contentpage__progress {
