@@ -358,6 +358,17 @@ function aiPicks(limit = 5): AiPickScore[] {
  *  it tracks live /api/stats refreshes. Falls back to catalog order if a track
  *  somehow isn't scored. */
 function aiOrderedTracks(): Track[] {
+  // Before any stats load, prefer the SSR ranking injected by the worker
+  // (window.__AEON_SSR — global popularity order) so the very first PRESS PLAY
+  // uses the server-known order, not raw catalog order.
+  if (playCounts.size === 0 && shareCounts.size === 0) {
+    const ssr = (window as unknown as { __AEON_SSR?: unknown }).__AEON_SSR;
+    if (Array.isArray(ssr) && ssr.length) {
+      const ranked = ssr.map(id => TRACK_BY_ID.get(String(id))).filter((t): t is Track => !!t);
+      for (const t of TRACKS) if (!ranked.includes(t)) ranked.push(t);
+      if (ranked.length) return ranked;
+    }
+  }
   const order = aiPicks(TRACKS.length);
   const ranked = order.map(p => TRACK_BY_ID.get(p.trackId)).filter((t): t is Track => !!t);
   // Append any track missing from the ranking (defensive) so the queue is whole.

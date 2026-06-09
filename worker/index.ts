@@ -639,12 +639,20 @@ class SeoBodyRewriter {
  */
 class TelemetryRewriter {
   constructor(private env: Env) {}
-  element(el: Element) {
+  async element(el: Element) {
     const key = (this.env.POSTHOG_PUBLIC_KEY || '').replace(/[^a-zA-Z0-9_-]/g, '');
     // We don't expose the full Sentry DSN — observability.ts only needs to
     // know "enabled" so it pipes events to /api/error. Worker keeps the DSN.
     const sentryEnabled = !!this.env.SENTRY_DSN;
-    const snippet = `<script>window.__POSTHOG_KEY__=${JSON.stringify(key)};window.__SENTRY_DSN__=${JSON.stringify(sentryEnabled ? 'configured' : '')};</script>`;
+    // SSR Aeon ranking: one guarded KV read injects the server-known play order
+    // so the playlist paints in AI-ranked order before /api/stats loads (and for
+    // crawlers). Malformed/missing → '[]' so the client falls back gracefully.
+    let aeon = '[]';
+    try {
+      const r = await this.env.COUNTERS.get('aeon:ranking');
+      if (r && /^\[[\w".,\s-]*\]$/.test(r)) aeon = r;
+    } catch { /* KV blip → client computes its own order */ }
+    const snippet = `<script>window.__POSTHOG_KEY__=${JSON.stringify(key)};window.__SENTRY_DSN__=${JSON.stringify(sentryEnabled ? 'configured' : '')};window.__AEON_SSR=${aeon};</script>`;
     el.append(snippet, { html: true });
   }
 }
@@ -1548,6 +1556,23 @@ export default {
         }
         const resp = jsonResponse({ tracks: out }, 200, { 'Cache-Control': 'public, max-age=60' }, request);
         ctx.waitUntil(edge.put(cacheKey, resp.clone()));
+        // SSR ranking: cache the global-popularity order (plays + 3×shares) to KV
+        // so the homepage <head> can inject window.__AEON_SSR for a correct
+        // first-paint order (incl. first-time visitors with no localStorage). The
+        // client refines this with its local signals once it boots. This IS the
+        // recommendation engine refreshing the server-side ranking live.
+        // Mirror the client's aiPicks() global:shares weighting (0.40:0.15 →
+        // 0.73:0.27 of the server-available signals), normalized, so the SSR
+        // first-paint order matches the order the client converges to once
+        // /api/stats loads — no visible re-shuffle. (completion/local/recency are
+        // client-only signals the client layers on afterward.)
+        const maxP = Math.max(1, ...Object.values(out).map(v => v.plays));
+        const maxS = Math.max(1, ...Object.values(out).map(v => v.shares));
+        const rankedIds = Object.entries(out)
+          .map(([id, v]) => [id, (v.plays / maxP) * 0.73 + (v.shares / maxS) * 0.27] as const)
+          .sort((a, b) => b[1] - a[1])
+          .map(([id]) => id);
+        ctx.waitUntil(env.COUNTERS.put('aeon:ranking', JSON.stringify(rankedIds), { expirationTtl: 3600 }));
         return resp;
       }
 
