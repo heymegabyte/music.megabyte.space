@@ -6406,6 +6406,12 @@ button:not(:disabled):active {
     transform: translateY(0) scale(1);
   }
 }
+.more-menu__item:disabled,
+.more-menu__item[aria-disabled='true'] {
+  opacity: 0.38;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .more-menu__item {
   display: flex;
   align-items: center;

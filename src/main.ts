@@ -5446,6 +5446,14 @@ function bindUi() {
     const r = moreBtn.getBoundingClientRect();
     moreMenu.style.right = `${Math.max(8, window.innerWidth - r.right)}px`;
     moreMenu.style.bottom = `${window.innerHeight - r.top + 10}px`;
+    // Share + smart-link only make sense with a track loaded — gray them out
+    // (with a hint) until one is playing/loaded.
+    const canShare = !!currentTrackId;
+    moreMenu.querySelectorAll<HTMLButtonElement>('[data-action="share"],[data-action="smart-link"]').forEach(el => {
+      el.disabled = !canShare;
+      el.setAttribute('aria-disabled', String(!canShare));
+      el.title = canShare ? '' : 'Play a track first';
+    });
     moreMenu.hidden = false;
     moreBtn.setAttribute('aria-expanded', 'true');
   };
