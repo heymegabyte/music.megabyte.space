@@ -26,7 +26,6 @@ import {
   showAirPlayPicker,
   acquireWakeLock,
   releaseWakeLock,
-  openSmartLink,
   setMediaSessionPosition,
   setMediaSessionPlaybackState
 } from './media-integrations';
@@ -5477,10 +5476,7 @@ function bindUi() {
     else if (action === 'shortcuts') openShortcuts();
     else if (action === 'smart-link') {
       const t = currentTrackId ? TRACK_BY_ID.get(currentTrackId) : null;
-      if (t) {
-        const album = ALBUM_BY_ID.get(t.album);
-        if (album) openSmartLink(`${SITE_ORIGIN}${trackPath(t)}`);
-      }
+      if (t) openSmartLinkModal(t);
     }
     if (action !== 'spotify') closeMoreMenu();
   });
@@ -6153,6 +6149,75 @@ function handleEnded() {
     if (idx === TRACKS.length - 1) { engine.audio.pause(); return; }
   }
   nextTrack(1);
+}
+
+// Smart-link modal — a Cmd+Tab-style grid of music platforms for the loaded
+// track. Direct per-track URLs aren't public yet (catalog distributing via
+// DistroKid), so each tile is a platform SEARCH for "bZ <title>" (always works);
+// the "All platforms" tile uses song.link (Odesli) to resolve direct links once
+// the track is indexed. Arrow-key navigable; Esc / backdrop closes.
+function openSmartLinkModal(t: Track): void {
+  const q = encodeURIComponent(`bZ ${t.title}`);
+  const universal = `https://song.link/${encodeURIComponent(`${SITE_ORIGIN}${trackPath(t)}`)}`;
+  const album = ALBUM_BY_ID.get(t.album);
+  const platforms: Array<{ name: string; url: string; brand: string }> = [
+    { name: 'Spotify', url: `https://open.spotify.com/search/${q}`, brand: '#1DB954' },
+    { name: 'Apple Music', url: `https://music.apple.com/us/search?term=${q}`, brand: '#FA243C' },
+    { name: 'YouTube Music', url: `https://music.youtube.com/search?q=${q}`, brand: '#FF0000' },
+    { name: 'YouTube', url: `https://www.youtube.com/results?search_query=${q}`, brand: '#FF0000' },
+    { name: 'TIDAL', url: `https://listen.tidal.com/search?q=${q}`, brand: '#00FFFF' },
+    { name: 'Amazon Music', url: `https://music.amazon.com/search/${q}`, brand: '#25D1DA' },
+    { name: 'Pandora', url: `https://www.pandora.com/search/${q}`, brand: '#3668FF' },
+    { name: 'All platforms', url: universal, brand: 'var(--accent)' },
+  ];
+  let modal = document.getElementById('smartLinkModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'smartLinkModal';
+    modal.className = 'smartlink';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Open on a music platform');
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeSmartLinkModal(); });
+  }
+  const cover = album?.cover ?? '';
+  modal.innerHTML = `
+    <div class="smartlink__card">
+      <button type="button" class="smartlink__close" aria-label="Close">✕</button>
+      <header class="smartlink__head">
+        ${cover ? `<img class="smartlink__cover" src="${cover}" alt="" />` : ''}
+        <div class="smartlink__head-text">
+          <span class="smartlink__eyebrow">open on</span>
+          <strong class="smartlink__title">${escapeHtml(t.title)}</strong>
+          <span class="smartlink__sub">bZ · ${escapeHtml(album?.name ?? '')}</span>
+        </div>
+      </header>
+      <div class="smartlink__grid" role="menu">
+        ${platforms.map((p, i) => `<a class="smartlink__tile" role="menuitem" tabindex="${i === 0 ? '0' : '-1'}" href="${p.url}" target="_blank" rel="noopener noreferrer" style="--plat:${p.brand}"><span class="smartlink__tile-dot" aria-hidden="true"></span>${escapeHtml(p.name)}</a>`).join('')}
+      </div>
+      <p class="smartlink__note">Catalog is rolling out across platforms — links open a search until each track is indexed.</p>
+    </div>`;
+  modal.querySelector('.smartlink__close')?.addEventListener('click', closeSmartLinkModal);
+  const tiles = Array.from(modal.querySelectorAll<HTMLAnchorElement>('.smartlink__tile'));
+  modal.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Escape') { closeSmartLinkModal(); return; }
+    const cur = tiles.indexOf(document.activeElement as HTMLAnchorElement);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault(); const n = tiles[(cur + 1 + tiles.length) % tiles.length]; n?.focus();
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey)) {
+      e.preventDefault(); const n = tiles[(cur - 1 + tiles.length) % tiles.length]; n?.focus();
+    }
+  });
+  modal.classList.add('is-open');
+  document.body.dataset.smartlinkOpen = '1';
+  requestAnimationFrame(() => tiles[0]?.focus());
+}
+function closeSmartLinkModal(): void {
+  const modal = document.getElementById('smartLinkModal');
+  if (!modal) return;
+  modal.classList.remove('is-open');
+  delete document.body.dataset.smartlinkOpen;
 }
 
 function nextTrack(dir: 1 | -1) {
