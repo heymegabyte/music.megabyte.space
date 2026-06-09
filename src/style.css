@@ -6750,12 +6750,14 @@ button:not(:disabled):active {
 }
 .queue-panel__card {
   position: absolute;
-  right: 20px;
-  bottom: calc(var(--transport-h) + 14px);
-  /* More room per Brian: widened from 420→480 and capped at 80dvh so the
-     panel breathes properly and tabs/content never feel crammed. */
-  width: min(480px, calc(100vw - 40px));
-  max-height: 80dvh;
+  /* Full-height right-docked drawer (per Brian): 100dvh, square corners, a bit
+     wider than the old floating card so Queue & Library has real room. */
+  right: 0;
+  top: 0;
+  bottom: 0;
+  height: 100dvh;
+  width: min(560px, 94vw);
+  max-height: 100dvh;
   background:
     radial-gradient(
       130% 80% at 100% 0%,
@@ -6769,9 +6771,7 @@ button:not(:disabled):active {
     ),
     linear-gradient(180deg, rgba(14, 14, 28, 0.98), rgba(7, 7, 18, 0.98));
   border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 38%, var(--line-strong));
-  /* Sharper architectural radii — matches the sharper 4-6px corners
-     used elsewhere in the app (AI chat redesign, embed surface). */
-  border-radius: 14px;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -6783,7 +6783,7 @@ button:not(:disabled):active {
     0 1px 0 rgba(255, 255, 255, 0.08) inset,
     /* Album-accent edge glow — pulses with the active track palette */
     0 0 64px -28px color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
-  transform: translateY(10px) scale(0.985);
+  transform: translateX(24px);
   opacity: 0;
   pointer-events: none;
   transition:
@@ -6806,7 +6806,7 @@ button:not(:disabled):active {
   pointer-events: none;
 }
 .queue-panel.is-open .queue-panel__card {
-  transform: translateY(0) scale(1);
+  transform: translateX(0);
   opacity: 1;
 }
 .queue-panel__head {
