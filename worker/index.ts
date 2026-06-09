@@ -1298,6 +1298,18 @@ export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
+    // Consolidated content pages — Process / Theology / Support / Connect were
+    // merged into /about (2026-06-09). 301 the retired slugs so old links, search
+    // index entries, and direct navigation all land on the hub.
+    const RETIRED_PAGES = new Set(['/process', '/theology', '/support', '/contact', '/connect']);
+    const cleanPath = url.pathname.replace(/\/+$/, '') || '/';
+    if (RETIRED_PAGES.has(cleanPath)) {
+      return new Response(null, {
+        status: 301,
+        headers: { Location: `${url.origin}/about`, 'Cache-Control': 'no-store' }
+      });
+    }
+
     if (url.pathname === '/health') {
       return Response.json({
         status: 'ok',

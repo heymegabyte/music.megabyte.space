@@ -1053,15 +1053,7 @@ function setupShell(root: HTMLElement) {
           <div id="topbarPagesMenu" class="topbar__menu-list" role="menu" aria-label="Story pages" hidden>
             <a href="/about" data-content-page="about" role="menuitem">
               <strong>About</strong>
-              <span>Hustle gospel — Newark, NJ. Hard but holy.</span>
-            </a>
-            <a href="/process" data-content-page="process" role="menuitem">
-              <strong>Process</strong>
-              <span>Suno + handwritten lyrics + visualizers</span>
-            </a>
-            <a href="/theology" data-content-page="theology" role="menuitem">
-              <strong>Theology</strong>
-              <span>Christian-gangster ethic in plain English</span>
+              <span>Bio · theology · process · support · connect</span>
             </a>
             <a href="/credits" data-content-page="credits" role="menuitem">
               <strong>Credits</strong>
@@ -1071,13 +1063,9 @@ function setupShell(root: HTMLElement) {
               <strong>Press kit</strong>
               <span>Bio · covers · brand voice · booking</span>
             </a>
-            <a href="/contact" data-content-page="contact" role="menuitem">
-              <strong>Connect</strong>
-              <span>Email · phone · social handles</span>
-            </a>
-            <a href="/support" data-content-page="support" role="menuitem">
-              <strong>Support</strong>
-              <span>Share · subscribe · tip the studio</span>
+            <a href="/merch" data-content-page="merch" role="menuitem">
+              <strong>Merch</strong>
+              <span>FREE SATAN apparel suite</span>
             </a>
             <a id="lnkAppeal" href="/ashton/" role="menuitem">
               <strong>Appeal</strong>
@@ -4615,6 +4603,10 @@ function renderContentPageTOC() {
   const body = $('#contentpageBody');
   const dialog = $('#contentpage') as HTMLDialogElement | null;
   if (!toc || !body || !dialog) return;
+  // Pages that ship their own in-content nav (e.g. Merch) opt out so the
+  // auto-TOC doesn't duplicate it.
+  const page = currentContentPageSlug ? CONTENT_PAGE_BY_SLUG.get(currentContentPageSlug) : null;
+  if (page?.hideToc) { toc.hidden = true; toc.innerHTML = ''; return; }
   // Find headings + assign ids if missing
   const headings = Array.from(body.querySelectorAll<HTMLElement>('h4'));
   if (headings.length < 3) { toc.hidden = true; toc.innerHTML = ''; return; }
@@ -5769,7 +5761,15 @@ function bindUi() {
   // Boot-time route detection — runs AFTER the story-mode listeners are
   // attached so a direct hit to /about engages the chip rail immediately.
   const bootSlug = location.pathname.replace(/^\//, '').replace(/\/$/, '');
-  if (CONTENT_PAGE_BY_SLUG.has(bootSlug)) {
+  // Retired content pages (process / theology / support / contact|connect) were
+  // merged into /about. The worker 301s a hard hit, but a stale-cached SPA shell
+  // could still boot here — fold them to /about client-side so the slug never
+  // dead-ends on a blank dialog.
+  const RETIRED_CONTENT_SLUGS = new Set(['process', 'theology', 'support', 'contact', 'connect']);
+  if (RETIRED_CONTENT_SLUGS.has(bootSlug)) {
+    history.replaceState(null, '', '/about');
+    openContentPage('about', { pushHistory: false });
+  } else if (CONTENT_PAGE_BY_SLUG.has(bootSlug)) {
     openContentPage(bootSlug, { pushHistory: false });
   }
   $('#karaokeClose')?.addEventListener('click', () => setKaraokeOverlay(false));

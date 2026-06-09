@@ -1,16 +1,21 @@
 /**
- * Content pages — About / Process / Theology / Credits / Press / Contact /
- *                 Support.
+ * Content pages — About / Credits / Press / Merch.
+ *
+ * About is the consolidated hub: it absorbs the former Process, Theology,
+ * Support, and Connect pages (those slugs 301 → /about in worker/index.ts).
+ * Long pages get an auto-built left-rail TOC from their <h4> section dividers
+ * (renderContentPageTOC in main.ts); Merch opts out via `hideToc` since it
+ * ships its own in-content nav.
  *
  * Each opens as a non-modal <dialog> over the main shell so the audio
  * element + visualizer keep playing across navigation. Routed by URL path.
- * 720px max-width per Brian's preference — narrow, centered, readable,
- * cinematic. Every page interleaves DALL-E supporting imagery so it reads
- * as a wonderful long-form article, not a wall of text.
+ * Every page interleaves supporting imagery so it reads as a long-form
+ * article, not a wall of text.
  */
 
 import { SUNO_META } from './suno-meta';
 import { TRACKS, ALBUMS } from './data';
+import merchSuite from '../public/merch/suite.json';
 
 export interface ContentPage {
   slug: string;
@@ -27,15 +32,20 @@ export interface ContentPage {
   /** Schema.org type for the per-page JSON-LD block. Defaults to 'WebPage'.
    *  Common choices: 'AboutPage' / 'ContactPage' / 'Article' / 'CollectionPage'. */
   jsonLdType?: 'AboutPage' | 'ContactPage' | 'Article' | 'CollectionPage' | 'WebPage';
+  /** Suppress the auto-generated left-rail "On this page" TOC. Set on pages that
+   *  ship their own in-content nav (e.g. Merch) so the two don't duplicate. */
+  hideToc?: boolean;
   render: () => string;
 }
 
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
-// Section divider — a thin accent rule with optional kicker text
+// Section divider — a thin accent rule with optional kicker text. Rendered as an
+// <h4> so the auto-built left-rail TOC (renderContentPageTOC, reads <h4>) picks up
+// every section as a jump link. The .contentpage__divider class keeps the styling.
 const divider = (label: string) =>
-  `<div class="contentpage__divider"><span>${esc(label)}</span></div>`;
+  `<h4 class="contentpage__divider"><span>${esc(label)}</span></h4>`;
 
 // Pull-quote — large italicized callout with album-accent left border
 const pullquote = (text: string, attribution = '') =>
@@ -91,8 +101,8 @@ export const CONTENT_PAGES: ContentPage[] = [
     eyebrow: 'who is this',
     description: 'Brian Zalewski — Newark-based solo artist. Hustle-gospel music. Megabyte Labs founder. Hard but holy.',
     ogImage: '/og/og-about.jpg',
-    metaTitle: 'About bZ — Newark-based hustle-gospel artist',
-    metaDescription: "Brian Zalewski is bZ — solo hustle-gospel artist out of Newark, NJ. 6 albums, 50+ tracks, Suno-assisted production. Christian-gangster ethic. Hard but holy.",
+    metaTitle: 'About bZ — artist, theology, process, support',
+    metaDescription: "Brian Zalewski is bZ — solo hustle-gospel artist out of Newark, NJ. The full story: bio, hard-but-holy theology, the 5-stage song-making process, how to support the studio, and how to connect. 6 albums, 50+ tracks.",
     jsonLdType: 'AboutPage',
     render: () => `
       <article class="contentpage__article">
@@ -199,6 +209,111 @@ export const CONTENT_PAGES: ContentPage[] = [
           { title: 'Sunday · church + reset', meta: 'all day', body: 'Sabbath proper. No code, no email. The week resets in a pew + at a soup kitchen.' },
         ])}
 
+        ${divider('the theology · hard but holy')}
+        <p>
+          "Hard but holy" isn't a brand line — it's the working theology behind every track.
+          The anchor is <strong>James 1:27</strong>: "Pure and undefiled religion before God
+          is this: to visit orphans and widows in their trouble, and to keep oneself unspotted
+          from the world." Visit orphans + widows = service. Unspotted from the world =
+          discipline. Hard but holy is just James 1:27 set to 808s.
+        </p>
+        ${pullquote(`Win through your actions, never through argument.`, 'Robert Greene · Law 9 — recurring lyric across the catalog')}
+
+        ${divider('what you will + won’t hear')}
+        ${cards([
+          { title: 'What you will hear', body: 'Reverence around family — by name and by silence. Discipline framed as freedom. Service of the poor as the throughline. Scripture quoted with chapter + verse. Robert Greene’s 48 Laws as wisdom literature.' },
+          { title: 'What you won’t hear', body: 'Zero drug references, by editorial rule. No misogyny — every woman treated as image-bearer. No cheap grace, no triumphalism. Strong words only in service of weight, never edge.' },
+        ])}
+        <p>
+          "Christian-gangster" isn't an oxymoron — it's lineage. David ran a Robin Hood
+          operation in the Judean wilderness before he was king. Jesus flipped the temple
+          tables. The cross is a hard place; holiness was never gentle. Weight in the
+          production, truth in the lyric, reverence in the family treatment — the only
+          triangle that holds.
+        </p>
+
+        ${divider('three pillars')}
+        ${cards([
+          { title: 'Mercy', meta: 'James 2:13', body: '"Mercy triumphs over judgment." Every track assumes the listener is hurting somehow, and meets that hurt without flinching, without exploiting.' },
+          { title: 'Discipline', meta: 'Hebrews 12:11', body: '"No discipline seems pleasant at the time." The kingdom + the grind point the same direction. The editorial rules are non-negotiable for a reason.' },
+          { title: 'Service', meta: 'Matthew 25:40', body: `"Whatever you did for the least of these, you did for me." St. John's Soup Kitchen of Newark is the throughline — not the marketing.` },
+        ])}
+
+        ${divider('on AI in worship music')}
+        <p>
+          Suno is a tool, not a co-author. <strong>Every lyric is human-written.</strong> The
+          model renders the take; the human decides what ships — no different from a vocalist
+          using a microphone they didn't engineer. If the model improvises a line that lands,
+          it gets written down, judged on its own merit, and re-prompted as a deliberate edit
+          or rejected. The human is always the last editor.
+        </p>
+        <details>
+          <summary>Is this safe to play in church?</summary>
+          <p>Halo + St. John's Canon are. Panda Desiiignare + Wormhole Tape lean experimental — vibe-check first. The Appeal is the open letter to family; listen before deciding.</p>
+        </details>
+        <details>
+          <summary>Is the AI-music thing a gimmick?</summary>
+          <p>No. AI is just the latest synthesizer. Multi-track tape, drum machines, autotune, DAWs, sampling — every generation of music tech was called a gimmick first. Suno makes solo full-band production accessible to one bedroom producer.</p>
+        </details>
+
+        ${divider('how a song gets made')}
+        <p>
+          Every bZ track is human-directed, AI-augmented. No prompt-and-pray. Each song ships
+          through a five-stage pipeline before it ever lands on the site.
+        </p>
+        ${figure('/art/pages/process-pipeline.png', 'The 5-stage pipeline visualization', 'Lyric → Suno → Whisper → audio analysis → visual. Five stages, one song.')}
+        <ol class="contentpage__steps">
+          <li><strong>Concept + lyric draft</strong> — handwritten, anchored on a verse, a vibe, or a single line that won't let go.</li>
+          <li><strong>Suno generation</strong> — refined lyrics + a tight style tag through Suno v3.5/v4/v4.5. Usually 4-12 takes until the vibe lands; full provenance saved per-track in <code>SUNO_META</code>.</li>
+          <li><strong>Whisper alignment</strong> — word-by-word timing via OpenAI Whisper-1, post-processed with Needleman-Wunsch so karaoke hits the right syllable.</li>
+          <li><strong>Audio analysis</strong> — aubio FFT extracts measured BPM + key so visualizer presets snap to tempo from frame zero.</li>
+          <li><strong>Visual + UI</strong> — six WebGL visualizers, Web Audio FFT engine, per-album palette, cinematic transitions, plus a shareable embed widget per release.</li>
+        </ol>
+
+        ${divider('editorial rules · non-negotiable')}
+        <ul>
+          <li>Zero drug references. Discipline over dopamine.</li>
+          <li>Family names handled with reverence — Brian, Laura, Adrian, CK.</li>
+          <li>Sharp + punchy. Active voice. Action-verb CTAs. Flesch ≥ 60.</li>
+          <li>Banned slop words (limitless, leverage, robust…) get rejected at edit.</li>
+          <li>Service-of-poor-and-needy stays the throughline.</li>
+        </ul>
+
+        ${divider('anatomy of one track')}
+        <p>"Chef Lu Stew" from Panda Desiiignare, start to finish:</p>
+        ${cards([
+          { title: '1 · Verse caught me', meta: 'Mark 6:42', body: '"They all ate and were satisfied" — the feeding of the 5,000. Image of a chef feeding the line.' },
+          { title: '2 · Lyric draft', meta: '~45min · pen + paper', body: 'Three verses, two-line chorus. Hook: "Chef Lu in the kitchen, fire in the pot." Repeats four times.' },
+          { title: '3 · Suno take', meta: '~2h · 7 takes', body: '<code>boom bap, jazz piano, vinyl crackle, 88 bpm, no autotune</code>. Take 5 nailed it; 1-4 drifted on tempo.' },
+          { title: '4 · Whisper align', meta: '~3min', body: '247 words mapped to timestamps; Needleman-Wunsch repaired 4 misalignments where Suno blurred syllables.' },
+          { title: '5 · BPM measure', meta: '~30s', body: 'aubio confirmed 87.4 bpm, C minor at 0.92 confidence. Visualizer locked to the tempo grid.' },
+          { title: '6 · Shipped', meta: '/desiiignare/chef-lu-stew', body: 'Most-shared track of the album. Played at a parish soup-kitchen benefit.' },
+        ])}
+        ${highlight('~$0.42 per shipped track', `
+          Suno credits ~$0.30 amortized across the monthly plan, Whisper-1 ~$0.02, aubio free,
+          Sharp + Cloudflare Workers ~$0.10/track for storage + delivery over its lifetime.
+        `)}
+
+        ${divider('support the studio')}
+        <p>
+          The studio runs lean — one person, open-source stack, no label deal. Five ways to
+          keep it independent, in ascending order of commitment. The free options matter most.
+        </p>
+        <ol class="contentpage__steps">
+          <li><strong>Share a track</strong> (free) — the highest-leverage move. Open any track, hit share, send to one friend who'd actually listen.</li>
+          <li><strong>Subscribe to drops</strong> (free) — one email per album. Open the AI chat (⌘K) or any album footer. Listmonk, double opt-in, never resold.</li>
+          <li><strong>Tip</strong> — one-time via <a href="https://www.paypal.me/HeyMegabyte" target="_blank" rel="noopener">paypal.me/HeyMegabyte ↗</a>. Every $5 ≈ 1,700 Spotify streams.</li>
+          <li><strong>Sponsor</strong> — recurring via <a href="https://github.com/sponsors/HeyMegabyte" target="_blank" rel="noopener">github.com/sponsors/HeyMegabyte ↗</a>. Predictable runway = committed drop dates.</li>
+          <li><strong>Hire the studio</strong> — TypeScript / Cloudflare / mobile work via <a href="https://megabyte.space/connect/" target="_blank" rel="noopener">megabyte.space/connect ↗</a>. The most direct way to fund the music.</li>
+        </ol>
+        ${highlight('Where the money goes', `
+          Studio cost stack runs ~$75/mo: Cloudflare Workers + R2 + KV (~$30), Suno + Whisper
+          (~$20), domain + email + DNS (~$15), Listmonk VPS (~$10). Any surplus routes to
+          <strong>St. John's Soup Kitchen of Newark</strong> — serving daily meals since 1981.
+          Donate directly at <a href="https://www.njsk.org/" target="_blank" rel="noopener">njsk.org ↗</a>.
+          First annual transparency report drops January 2027.
+        `)}
+
         ${divider('what shaped the thinking')}
         <ul>
           <li><em>The 48 Laws of Power</em> — Robert Greene (read 3×, marked up)</li>
@@ -217,345 +332,31 @@ export const CONTENT_PAGES: ContentPage[] = [
           Workers AI chat gains web-research deep-mode.
         `)}
 
-        ${divider('connect')}
+        ${divider('connect · best path by intent')}
+        <p>A real human reads every message. Replies within 48 hours unless travelling.</p>
+        <ul class="contentpage__connect">
+          <li><strong>Booking + licensing</strong> — <a href="mailto:brian@megabyte.space?subject=bZ%20booking">brian@megabyte.space</a></li>
+          <li><strong>Press + interviews</strong> — <a href="mailto:brian@megabyte.space?subject=bZ%20press">brian@megabyte.space</a> with "press" in the subject · full kit at <a href="/press" data-content-page="press">/press</a></li>
+          <li><strong>Time-sensitive</strong> — <a href="tel:+14696943696">+1 (469) 694-3696</a> (voicemail returned within 24h weekdays)</li>
+          <li><strong>Prayer requests</strong> — DM any social or email; handled privately, never published</li>
+          <li><strong>Tech consulting</strong> — via <a href="https://megabyte.space/connect/" target="_blank" rel="noopener">megabyte.space/connect ↗</a></li>
+        </ul>
+        ${highlight('Faster replies if you do these first', `
+          <strong>1.</strong> Skim this page — many answers live here.<br>
+          <strong>2.</strong> Include specifics (venue date, capacity, project link) instead of "let's hop on a call."<br>
+          <strong>3.</strong> For licensing, name the use case (sync, sample, cover, performance).<br>
+          <strong>4.</strong> Send one well-formed email instead of three fragments. NDAs signed on request.
+        `)}
+
+        ${divider('social + studio')}
         <ul class="contentpage__connect">
           <li><a href="https://megabyte.space" target="_blank" rel="noopener">megabyte.space — main studio site ↗</a></li>
-          <li><a href="mailto:brian@megabyte.space">brian@megabyte.space</a></li>
-          <li><a href="tel:+14696943696">+1 (469) 694-3696</a></li>
           <li><a href="https://github.com/HeyMegabyte" target="_blank" rel="noopener">GitHub · @HeyMegabyte ↗</a></li>
           <li><a href="https://www.linkedin.com/company/megabyte-labs" target="_blank" rel="noopener">LinkedIn · Megabyte Labs ↗</a></li>
           <li><a href="https://twitter.com/HeyMegabyte" target="_blank" rel="noopener">X / Twitter · @HeyMegabyte ↗</a></li>
           <li><a href="https://www.instagram.com/heymegabyteofficial/" target="_blank" rel="noopener">Instagram · @heymegabyteofficial ↗</a></li>
           <li><a href="https://www.youtube.com/@HeyMegabyte" target="_blank" rel="noopener">YouTube · @HeyMegabyte ↗</a></li>
         </ul>
-      </article>
-    `,
-  },
-
-  // ═══ PROCESS ══════════════════════════════════════════════════════════
-  {
-    slug: 'process',
-    title: 'How a bZ song gets made',
-    eyebrow: 'the workflow',
-    description: 'Five-stage pipeline. Human-directed, AI-augmented. No prompt-and-pray.',
-    ogImage: '/og/og-process.jpg',
-    metaTitle: 'Process — how a bZ song gets made',
-    metaDescription: '5-stage pipeline: lyric draft → Suno → Whisper align → audio analysis → visualizer engineering. Cost per track ~$0.42. Anatomy of one song included.',
-    jsonLdType: 'Article',
-    render: () => `
-      <article class="contentpage__article">
-        <p class="contentpage__lead">
-          Every bZ track is human-directed, AI-augmented. No prompt-and-pray. Each song
-          ships through a five-stage pipeline before it ever lands on the site.
-        </p>
-
-        ${figure('/art/pages/process-pipeline.png', 'The 5-stage pipeline visualization', 'Lyric → Suno → Whisper → audio analysis → visual. Five stages, one song.')}
-
-        ${pullquote(`Code that merely works is the floor. Code that makes the next iteration faster — that's the goal. Same rule applies to music.`)}
-
-        ${divider('pipeline')}
-        <ol class="contentpage__steps">
-          <li>
-            <strong>Concept + lyric draft</strong> — handwritten or typed lyric anchored on
-            a verse, a vibe, or a single line that won't let go. Robert Greene, the Bible,
-            Brooklyn slang, Spanish street idioms — same shelf.
-          </li>
-          <li>
-            <strong>Suno generation</strong> — refined lyrics + a tight style tag through
-            Suno v3.5/v4/v4.5. Usually 4-12 takes until the vibe lands. Full provenance
-            (model, style, BPM, key, audio URL) saved per-track in <code>SUNO_META</code>.
-          </li>
-          <li>
-            <strong>Whisper alignment</strong> — every track gets word-by-word timing via
-            OpenAI Whisper-1, post-processed with Needleman-Wunsch sequence alignment so
-            karaoke + fullscreen lyrics hit on the right syllable.
-          </li>
-          <li>
-            <strong>Audio analysis</strong> — aubio FFT extracts measured BPM + key for
-            tracks where Suno's tag-derived metadata isn't enough. Visualizer presets snap
-            to musical tempo from frame zero.
-          </li>
-          <li>
-            <strong>Visual + UI</strong> — six WebGL visualizers, Web Audio FFT engine,
-            per-album accent palette, cinematic transitions. Every release also gets a
-            shareable embed widget + smart-link card.
-          </li>
-        </ol>
-
-        ${divider('lyric craft principles')}
-        <ul>
-          <li>One song, one anchor verse. The chorus is the verse made hummable.</li>
-          <li>Specific over general. "Newark gravel under my boot" beats "the streets I walk on."</li>
-          <li>Verb-forward lines. The line should move even when you read it silent.</li>
-          <li>End-rhymes are scaffolding, not the structure. Internal rhyme carries the weight.</li>
-          <li>Repeat the hook three times — once to plant, once to bloom, once to harvest.</li>
-        </ul>
-
-        ${divider('editorial rules · non-negotiable')}
-        <ul>
-          <li>Zero drug references. Discipline over dopamine.</li>
-          <li>Family names handled with reverence — Brian, Laura, Adrian, CK.</li>
-          <li>Sharp + punchy. Active voice. Action-verb CTAs. Flesch ≥ 60.</li>
-          <li>Banned slop words (limitless, leverage, robust, etc.) get rejected at edit.</li>
-          <li>Service-of-poor-and-needy stays the throughline.</li>
-        </ul>
-
-        ${divider('how a song gets killed')}
-        <p>
-          Most Suno takes don't ship. The reject pile is bigger than the catalog. A take
-          gets killed when:
-        </p>
-        <ul>
-          <li>Suno mispronounces a name or street ("Yeshua" rendered as "yeesh-wa")</li>
-          <li>The vibe lands but lyrics drifted from the draft — Suno's own creative liberties</li>
-          <li>Tempo or key fights the next track in the album sequence</li>
-          <li>The chorus doesn't read as memorable on second listen</li>
-        </ul>
-
-        ${divider('Suno prompt patterns')}
-        <p>Style tags that have worked, in order of "rate of takes that ship":</p>
-        <ul>
-          <li><code>chrome trap, gospel choir, 808s, deep bass, rim shots, 90 bpm</code></li>
-          <li><code>cinematic worship, Coldplay anthemic, female backing vocals, A minor</code></li>
-          <li><code>griot folk, acoustic guitar, single male vocal, 120 bpm</code></li>
-          <li><code>boom bap, jazz piano, vinyl crackle, 88 bpm, no autotune</code></li>
-        </ul>
-
-        ${divider('tech stack')}
-        <ul class="contentpage__stack">
-          <li><strong>Edge</strong>Cloudflare Workers + Hono + D1 + KV</li>
-          <li><strong>Frontend</strong>Vanilla TypeScript + Vite v6 (no framework on purpose)</li>
-          <li><strong>Audio</strong>Web Audio API · 6 WebGL visualizers · MediaSession</li>
-          <li><strong>AI chat</strong>Cloudflare Workers AI · Llama 3.3 70B FP8-fast</li>
-          <li><strong>Lyrics</strong>Whisper-1 + Needleman-Wunsch alignment</li>
-          <li><strong>Music gen</strong>Suno v3.5 / v4 / v4.5</li>
-          <li><strong>Distribution</strong>oEmbed · Twitter Player · OG audio · <code>&lt;bzmusic-player&gt;</code></li>
-        </ul>
-
-        ${divider('visualizer engineering')}
-        <p>
-          Six WebGL visualizers — Constellation, Galaxy, Plasma, Liquid Metal, Aurora, Kaleidoscope.
-          Every preset reads from the same Web Audio FFT analyzer + a per-album accent palette
-          extracted from the cover. BPM-locked particle motion. Beat-detection drives
-          per-frame scale modulation. <code>prefers-reduced-motion</code> respected on every preset.
-        </p>
-
-        ${divider('quality gates · build-break')}
-        <ul>
-          <li><code>validate-production-copy.mjs</code> — bans placeholder bracket text + lorem ipsum + slop words at build</li>
-          <li><code>validate-timeline-photos.mjs</code> — no AI imagery on historical surfaces</li>
-          <li><code>validate-hyperlinks.mjs</code> — every email, phone, address linked</li>
-          <li>axe-core 0 violations across 6 breakpoints</li>
-          <li>Playwright E2E at 6 breakpoints — every feature has a test</li>
-        </ul>
-
-        ${divider('time per track')}
-        <p>
-          Wall-clock from first lyric draft to landed-on-site: ~4-8 hours per track on
-          average. Suno generation + curation is the long pole. The pipeline itself runs
-          in minutes once a take is approved.
-        </p>
-
-        ${divider('anatomy of one track')}
-        <p>Walk through "Chef Lu Stew" from the Panda Desiiignare album:</p>
-        ${cards([
-          { title: '1 · Verse caught me', meta: 'Mark 6:42', body: '"They all ate and were satisfied" — the feeding-of-the-5000. Image of a chef in a kitchen feeding the line.' },
-          { title: '2 · Lyric draft', meta: '~45min · pen + paper', body: 'Three verses, two-line chorus. Hook: "Chef Lu in the kitchen, fire in the pot." Repeats four times across the song.' },
-          { title: '3 · Suno take', meta: '~2 hours · 7 takes', body: 'Style tag: <code>boom bap, jazz piano, vinyl crackle, 88 bpm, no autotune</code>. Take 5 nailed the vibe. Takes 1-4 got rejected for tempo drift; takes 6-7 confirmed take 5 won.' },
-          { title: '4 · Whisper align', meta: '~3min', body: '247 words mapped to audio timestamps via Whisper-1. Needleman-Wunsch repaired 4 misalignments where Suno blurred syllables.' },
-          { title: '5 · BPM measure', meta: '~30sec', body: 'aubio confirmed 87.4 bpm (Suno tag said 88). C minor key detected with 0.92 confidence. Visualizer presets locked to 87 bpm tempo grid.' },
-          { title: '6 · Shipped', meta: 'live at /desiiignare/chef-lu-stew', body: '52 plays in first month. Most-shared track of Panda Desiiignare. Played at one parish soup-kitchen benefit so far.' },
-        ])}
-
-        ${figure('/art/pages/process-suno-takes.png', 'Twelve vinyl records arranged in a grid, most rejected', 'The reject pile. 7 of 12 takes get killed for tempo drift, lyric drift, or mispronunciation.')}
-
-        ${divider('cost per track')}
-        ${highlight('~$0.42 per shipped track', `
-          Suno credits ~$0.30 per generation × ~7 takes = ~$2.10 raw, but ~$0.30 amortized
-          since most albums share the same monthly Suno plan.
-          OpenAI Whisper-1 ~$0.006/min × ~3min = ~$0.02. aubio is free (Python). Sharp +
-          Cloudflare Workers ~$0.10/track for storage + delivery over the track's lifetime.
-        `)}
-
-        ${divider('failure modes by stage')}
-        ${cards([
-          { title: 'Stage 1 fails', meta: 'lyric draft', body: "When the verse anchor is weak — a lyric without a single line worth repeating won't survive Suno generation. Discard, find a new anchor." },
-          { title: 'Stage 2 fails', meta: 'Suno generation', body: 'Model mispronounces a name (most common: Spanish/Hebrew words rendered in English phonetics) OR drifts from the lyric. Re-prompt with phonetic spellings + tighter style tags.' },
-          { title: 'Stage 3 fails', meta: 'Whisper align', body: 'When Suno over-stylizes a take (autotune, vocal effects), Whisper transcription confidence drops. Realign with lower confidence threshold OR re-record the take cleaner.' },
-          { title: 'Stage 4 fails', meta: 'audio analysis', body: "aubio key detection fails on tracks with no clear tonal center (some experimental Wormhole Tape cuts). Fall back to Suno's tag-derived key." },
-          { title: 'Stage 5 fails', meta: 'visual + UI', body: 'Rare. The visualizer crashes when an album cover has zero saturated pixels (early covers). Auto-fallback to cyan default palette.' },
-        ])}
-
-        ${divider("tools that didn't ship")}
-        <p>The reject pile of the toolchain itself:</p>
-        <ul>
-          <li><strong>Stable Audio</strong> — quality was good, but no streaming API for the workflow. Killed.</li>
-          <li><strong>MusicGen (Meta)</strong> — open-source, free, but lyric coherence too weak for the brand. Killed.</li>
-          <li><strong>Audacity automation</strong> — tried scripting cleanup passes. Too brittle vs. just shipping the Suno take raw. Killed.</li>
-          <li><strong>Custom lyric model fine-tune</strong> — fine-tuned a Llama on Brian's journals. Output was uncanny — your own voice but slightly off. Killed.</li>
-        </ul>
-
-        ${divider('the podcast · coming 2026')}
-        ${highlight('Process Notes · monthly podcast', `
-          A monthly podcast where Brian walks through how a specific track got made,
-          plays the rejected takes, and talks shop with another solo musician using AI tools.
-          Audio-only, ~30min episodes. Drops first week of every month starting Q3 2026.
-          Subscribe to the newsletter to get the launch announcement.
-        `)}
-      </article>
-    `,
-  },
-
-  // ═══ THEOLOGY ═════════════════════════════════════════════════════════
-  {
-    slug: 'theology',
-    title: 'Theology',
-    eyebrow: 'hard but holy',
-    description: 'The Christian-gangster ethic in plain English. What this music is + what it isn\'t.',
-    ogImage: '/og/og-theology.jpg',
-    metaTitle: 'Theology — the hard-but-holy framework behind every bZ track',
-    metaDescription: 'James 1:27 set to 808s. Three pillars: mercy, discipline, service. No drug references, family-reverent, soup-kitchen-serving. FAQ for the curious.',
-    jsonLdType: 'Article',
-    render: () => `
-      <article class="contentpage__article">
-        <p class="contentpage__lead">
-          "Hard but holy" isn't a brand line. It's the working theology behind every track.
-          Plain-English version below — for listeners deciding whether bZ's music belongs
-          on their playlist or their pulpit.
-        </p>
-
-        ${figure('/art/pages/theology-stained-glass.png', 'Stained glass cross of soup ladles + bread', 'A modern liturgy · soup ladles + bread = the cross. Stainless steel + stained glass.')}
-
-        ${pullquote(`Win through your actions, never through argument.`, 'Robert Greene · Law 9 — recurring lyric across the catalog')}
-
-        ${divider('anchor verse')}
-        <p>
-          <strong>James 1:27</strong> — "Pure and undefiled religion before God and the Father
-          is this: to visit orphans and widows in their trouble, and to keep oneself unspotted
-          from the world."
-        </p>
-        <p>
-          That verse anchors the catalog. "Visit orphans + widows" = service. "Unspotted
-          from the world" = discipline. Hard but holy is just James 1:27 set to 808s.
-        </p>
-
-        ${divider('what you will hear')}
-        <ul>
-          <li>Reverence around the family — wife, kids, parents, in-laws — by name and by silence</li>
-          <li>Discipline framed as freedom; the kingdom and the grind as the same direction</li>
-          <li>Service of the poor and needy as the throughline, not the marketing</li>
-          <li>St. John's Canon as a literal soup-kitchen liturgy — "stainless steel and stained glass"</li>
-          <li>Scripture quoted directly, often with chapter + verse rapped in</li>
-          <li>Robert Greene's <em>48 Laws</em> as wisdom literature, not Machiavellian playbook</li>
-        </ul>
-
-        ${divider('what you will not hear')}
-        <ul>
-          <li>Drug references — zero, by editorial rule</li>
-          <li>Misogyny — every woman in the catalog is treated as image-bearer</li>
-          <li>Cheap grace — "hard but holy" means the holy part is non-negotiable</li>
-          <li>Triumphalism — Robert Greene's 48 Laws and Proverbs both make the shelf, but the Beatitudes win the tiebreaker</li>
-          <li>Profanity used as profanity — strong words appear in service of weight, not in service of edge</li>
-        </ul>
-
-        ${divider('the christian-gangster ethic')}
-        <p>
-          "Christian-gangster" isn't oxymoron — it's lineage. David before he was king ran
-          a Robin Hood operation in the Judean wilderness. Joshua took cities. Jesus called
-          the Pharisees a brood of vipers and flipped the temple tables before he was killed.
-          The cross is a hard place. Holiness was never gentle.
-        </p>
-        <p>
-          So the music carries weight in the production + truth in the lyric + reverence in
-          the family treatment. That's the only triangle that holds.
-        </p>
-
-        ${divider('on ai in worship music')}
-        <p>
-          Suno is a tool, not a co-author. Every lyric is human-written. The model renders the
-          take; the human decides what ships. That's not different from a producer using a
-          synth that someone else built, or a vocalist using a microphone they didn't engineer.
-        </p>
-        <p>
-          The line we hold: <strong>no AI-generated lyrics</strong> in production. If the
-          model improvises a line that lands, it gets written down, judged on its own merit,
-          and either re-prompted as a deliberate edit or rejected. The human is always the
-          last editor.
-        </p>
-
-        ${divider('service partners')}
-        <p>
-          <strong>St. John's Soup Kitchen of Newark</strong> — the namesake of the Canon
-          album — has been serving daily meals in Newark since 1981. The Canon album exists
-          as a tribute and as a fundraising pole. Direct donations at
-          <a href="https://www.njsk.org/" target="_blank" rel="noopener">njsk.org ↗</a>.
-        </p>
-
-        ${divider('frequently asked')}
-        <details>
-          <summary>Is this safe to play in church?</summary>
-          <p>
-            Halo + St. John's Canon are. Panda Desiiignare + Wormhole Tape lean experimental
-            and may need a vibe check first. The Appeal is the open letter to family — listen
-            before deciding.
-          </p>
-        </details>
-        <details>
-          <summary>Is this "Christian music" or "music made by a Christian"?</summary>
-          <p>
-            Both. The catalog explicitly references Jesus, Scripture, and the kingdom. It
-            also exists in a broader cultural conversation that doesn't require a doctrinal
-            statement to enter. Christians and non-Christians both listen.
-          </p>
-        </details>
-        <details>
-          <summary>Is the AI-music thing a gimmick?</summary>
-          <p>
-            No. AI is just the latest synthesizer. Every generation of music tech (multi-track
-            tape, drum machines, autotune, DAWs, sampling) was called a gimmick at first.
-            Suno makes solo, full-band production accessible to a single bedroom producer.
-          </p>
-        </details>
-        <details>
-          <summary>Why "hard but holy" specifically?</summary>
-          <p>
-            Because "soft and holy" is sentimental and "hard and unholy" is just noise. The
-            cross was hard. The empty tomb was holy. The combination is the gospel.
-          </p>
-        </details>
-
-        ${figure('/art/pages/theology-soup-kitchen.png', 'Soup kitchen interior with stainless steel serving counter', "Stainless steel and stained glass. St. John's of Newark, serving since 1981.")}
-
-        ${divider('three pillars')}
-        ${cards([
-          { title: 'Mercy', meta: 'James 2:13', body: '"Mercy triumphs over judgment." Every track ships with the assumption that the listener is hurting somehow. Lyrics meet that hurt without flinching, without exploiting.' },
-          { title: 'Discipline', meta: 'Hebrews 12:11', body: '"No discipline seems pleasant at the time, but painful." The kingdom + the grind point the same direction. Editorial rules are non-negotiable for a reason.' },
-          { title: 'Service', meta: 'Matthew 25:40', body: `"Whatever you did for one of the least of these brothers of mine, you did for me." St. John's Soup Kitchen of Newark is the throughline — not the marketing.` },
-        ])}
-
-        ${divider('daily practice')}
-        <ul>
-          <li><strong>Morning</strong> — Psalm of the day + a chapter of Proverbs (one per day of the month, 31 chapters)</li>
-          <li><strong>Midday</strong> — three-minute Examen prayer (Ignatian — what brought life, what drained it)</li>
-          <li><strong>Evening</strong> — read tomorrow's lectionary aloud, lyric draft if a line surfaces</li>
-          <li><strong>Sunday</strong> — Mass at Sacred Heart Cathedral in Newark, then service at the soup kitchen</li>
-        </ul>
-
-        ${divider('recommended reading')}
-        ${cards([
-          { title: 'The Imitation of Christ', meta: 'Thomas à Kempis (1418)', body: 'The medieval devotional that still wrecks me. Read 3-4 chapters a week, slowly.' },
-          { title: 'Mere Christianity', meta: 'C.S. Lewis (1952)', body: 'Apologetics for the doubting. Best intro for someone interested in faith but allergic to church-speak.' },
-          { title: 'Surprised by Hope', meta: 'N.T. Wright (2008)', body: 'The kingdom now, not later. Reframes most of what I thought I knew about heaven.' },
-          { title: 'The Pursuit of God', meta: 'A.W. Tozer (1948)', body: 'Hunger for God as the whole point. Counter to ten centuries of Christian comfort.' },
-        ])}
-
-        ${divider('on contemporary worship music')}
-        <p>
-          Most contemporary worship music optimizes for emotional uplift + congregational singability.
-          Both are valid. bZ optimizes for a third axis: <strong>narrative honesty</strong> — songs
-          that admit doubt + struggle + Newark grit + the actual mess of being a believer in 2026.
-          Not a replacement for Sunday-morning worship sets. A complement for the long week between.
-        </p>
       </article>
     `,
   },
@@ -879,294 +680,143 @@ export const CONTENT_PAGES: ContentPage[] = [
     },
   },
 
-  // ═══ CONTACT ══════════════════════════════════════════════════════════
-  {
-    slug: 'contact',
-    title: 'Connect',
-    eyebrow: 'reach out',
-    description: 'Booking, licensing, interviews, prayer requests, or just hey.',
-    ogImage: '/og/og-contact.jpg',
-    metaTitle: 'Connect — booking, press, prayer requests, consulting',
-    metaDescription: 'brian@megabyte.space · +1 (469) 694-3696 · response in 48 hours. Office hours, languages spoken, before-you-reach-out checklist, NDA available.',
-    jsonLdType: 'ContactPage',
-    render: () => `
-      <article class="contentpage__article">
-        <p class="contentpage__lead">
-          Real human reads every message. Replies within 48 hours unless travel.
-        </p>
-
-        ${figure('/art/pages/contact-newark.png', 'Newark skyline at twilight', 'Newark, NJ · home base · brian@megabyte.space')}
-
-        ${divider('best path by intent')}
-        <ul class="contentpage__connect">
-          <li><strong>Booking + licensing</strong> — <a href="mailto:brian@megabyte.space?subject=bZ%20booking">brian@megabyte.space</a></li>
-          <li><strong>Press + interviews</strong> — <a href="mailto:brian@megabyte.space?subject=bZ%20press">brian@megabyte.space</a> with "press" in subject</li>
-          <li><strong>Time-sensitive</strong> — <a href="tel:+14696943696">+1 (469) 694-3696</a></li>
-          <li><strong>Prayer requests</strong> — DM on any social, or email — handled privately, never published</li>
-          <li><strong>Tech consulting</strong> — via <a href="https://megabyte.space/connect/" target="_blank" rel="noopener">megabyte.space/connect ↗</a></li>
-        </ul>
-
-        ${divider('response time')}
-        <ul>
-          <li><strong>Email</strong> — replied within 48 hours, often same-day weekdays</li>
-          <li><strong>Phone</strong> — voicemail returned within 24 hours weekdays</li>
-          <li><strong>Social DMs</strong> — checked every 3-5 days, slower than email</li>
-          <li><strong>Time zones</strong> — Eastern (Newark, NJ) for replies during work hours</li>
-        </ul>
-
-        ${divider('social')}
-        <ul class="contentpage__connect">
-          <li><a href="https://twitter.com/HeyMegabyte" target="_blank" rel="noopener">X / Twitter · @HeyMegabyte ↗</a></li>
-          <li><a href="https://www.instagram.com/heymegabyteofficial/" target="_blank" rel="noopener">Instagram · @heymegabyteofficial ↗</a></li>
-          <li><a href="https://www.youtube.com/@HeyMegabyte" target="_blank" rel="noopener">YouTube · @HeyMegabyte ↗</a></li>
-          <li><a href="https://www.linkedin.com/company/megabyte-labs" target="_blank" rel="noopener">LinkedIn · Megabyte Labs ↗</a></li>
-          <li><a href="https://github.com/HeyMegabyte" target="_blank" rel="noopener">GitHub · @HeyMegabyte ↗</a></li>
-        </ul>
-
-        ${divider('mailing list')}
-        <p>
-          First listen on every drop — open the AI chat (⌘K) or scroll any album footer
-          for the inline newsletter form. Listmonk, double opt-in, one email per drop.
-          No spam, ever.
-        </p>
-
-        ${divider('what gets a slower reply')}
-        <p>Honest list — so expectations stay set:</p>
-        <ul>
-          <li>Cold consulting pitches not related to bZ or Megabyte Labs</li>
-          <li>Generic "feature request" without a use case</li>
-          <li>Crypto / NFT / speculative-asset adjacent inquiries — not a fit</li>
-          <li>Anything that requires me to debug your code for free</li>
-        </ul>
-
-        ${figure('/art/pages/contact-phone-desk.png', 'Phone on a dark wooden desk with cyan accent', 'Real human reads every email. Reply within 48 hours unless travel.')}
-
-        ${divider('office hours')}
-        ${cards([
-          { title: 'Mon-Fri', meta: '9am-12pm ET', body: 'Email + phone replies happen here. Same-day turnaround during this window.' },
-          { title: 'Mon-Fri', meta: '8pm-11pm ET', body: 'Studio hours. Newsletter sends happen during this block too — bookings can also land here.' },
-          { title: 'Weekend', meta: 'family + church', body: "Phone off. Email checked Saturday evening + Sunday late afternoon. Don't expect a Sunday-morning reply." },
-          { title: 'Travel', meta: 'sporadic', body: 'Speaking engagements + soup-kitchen volunteer trips. Auto-responder fires; replies queue for next business day.' },
-        ])}
-
-        ${divider('languages spoken')}
-        <ul>
-          <li><strong>English</strong> · native (US-East dialect)</li>
-          <li><strong>Spanish</strong> · conversational (Newark-Latino slang preferred)</li>
-          <li><strong>Code</strong> · TypeScript, Bash, Python, Go, Rust, Angular, React, Cordova</li>
-        </ul>
-
-        ${divider('before you reach out · checklist')}
-        ${highlight('Faster replies if you do these first', `
-          <strong>1.</strong> Skim the <a href="/about" data-content-page="about">About</a> + <a href="/process" data-content-page="process">Process</a> pages — many answers live there.<br>
-          <strong>2.</strong> Include specifics in your email (venue date, expected capacity, project link) instead of "let's hop on a call to discuss."<br>
-          <strong>3.</strong> If asking about licensing, include the use case (sync, sample, cover, performance).<br>
-          <strong>4.</strong> Send one well-formed email instead of three fragments.
-        `)}
-
-        ${divider('NDA + confidentiality')}
-        <p>
-          Happy to sign NDAs for booking discussions, sync licensing, or consulting work.
-          Standard mutual NDA template available on request. Pre-public album info shared
-          with subscribers via Listmonk is handled with reasonable confidentiality but no
-          formal embargo by default — let me know if you need one.
-        </p>
-
-        ${divider('wedding + private events')}
-        <p>
-          Separate path from public booking: wedding + private-event performances accepted
-          on a case-by-case basis. Email with date + venue + ceremony vs. reception intent.
-          Catalog skews introspective — confirm the vibe fits before booking.
-        </p>
-      </article>
-    `,
-  },
-
   // ═══ MERCH ════════════════════════════════════════════════════════════
   {
     slug: 'merch',
     title: 'Merch',
-    eyebrow: 'wear the gospel',
-    description: 'One shirt. Hard, holy, black cotton.',
-    ogImage: '/merch/shirt-free-satan-1.jpg',
-    metaTitle: 'Merch — bZ · FREE SATAN tee',
-    metaDescription: 'Black cotton, bold cyan FREE SATAN graffiti print. The hustle-gospel ethic on a tee. Print-on-demand via Printful, ships worldwide.',
+    eyebrow: 'free satan · it’s animal abuse',
+    description: 'The full FREE SATAN apparel suite. Hoodies, tees, tanks, more.',
+    ogImage: '/merch/mockups/tee-1717-pepper.png',
+    metaTitle: 'Merch — bZ · FREE SATAN apparel suite',
+    metaDescription: 'The full FREE SATAN — It’s Animal Abuse apparel suite. Comfort Colors heavyweight tees, hoodies, long-sleeves, tanks. DTG print, ships worldwide via Printful.',
     jsonLdType: 'WebPage',
+    hideToc: true,
     render: () => `
-      <article class="contentpage__article">
-        <p class="contentpage__lead">
-          One shirt. Black cotton. Bold cyan <strong>FREE SATAN</strong> graffiti print
-          across the chest. Provocative on first read; theologically literal on the second
-          (Christ harrowed hell — that's the gospel). Wear it loud, explain it patient.
+      <article class="contentpage__article merch-page">
+       <nav class="merch-toc" aria-label="Merch sections">
+         <span class="merch-toc__label">On this page</span>
+         <a href="#merch-suite" class="merch-toc__link" data-merch-toc="merch-suite">The suite</a>
+         <a href="#merch-meaning" class="merch-toc__link" data-merch-toc="merch-meaning">What it means</a>
+         <a href="#merch-blanks" class="merch-toc__link" data-merch-toc="merch-blanks">The blanks</a>
+         <a href="#merch-integration" class="merch-toc__link" data-merch-toc="merch-integration">The integration</a>
+         <a href="#merch-money" class="merch-toc__link" data-merch-toc="merch-money">Where money goes</a>
+       </nav>
+       <div class="merch-main">
+
+        <div class="merch-hero">
+          <div class="merch-hero__art">
+            <img src="/merch/design-free-satan.png" alt="FREE SATAN — It’s Animal Abuse · cream graffiti headline, caged red devil, banner subtitle" loading="eager" decoding="async" fetchpriority="high" />
+          </div>
+          <div class="merch-hero__copy">
+            <p class="merch-hero__eyebrow">the design</p>
+            <h3 class="merch-hero__head">FREE SATAN<br/><span>it’s Animal Abuse</span></h3>
+            <p class="merch-hero__blurb">
+              Cream graffiti headline drop-shadowed in red. Caged devil in iron bars,
+              padlocked from the outside. Banner subtitle in italic script.
+              Reads punk on first scan; orthodox theology on the second
+              (Christ harrowed hell — 1 Peter 3:18-20). The shirt invites the
+              conversation; the conversation is the gospel.
+            </p>
+            <ul class="merch-hero__stats">
+              <li><strong>${merchSuite.items.filter((i: any) => i.mockup).length}</strong><span>products</span></li>
+              <li><strong>XS-3XL</strong><span>sizes</span></li>
+              <li><strong>DTG</strong><span>print method</span></li>
+              <li><strong>5-7d</strong><span>ships in</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="contentpage__divider" id="merch-suite"><span>the suite</span></div>
+        <div class="merch-grid">
+          ${merchSuite.items.filter((i: any) => i.mockup).map((item: any, idx: number) => `
+            <a class="merch-card" href="${esc(item.storefrontUrl)}" target="_blank" rel="noopener noreferrer" data-idx="${idx}">
+              ${idx === 0 ? '<span class="merch-card__badge">PRIMARY</span>' : ''}
+              ${item.productId ? '<span class="merch-card__badge merch-card__badge--live">LIVE</span>' : ''}
+              <div class="merch-card__art"${item.backgroundHex ? ` style="background:${esc(item.backgroundHex)}"` : ''}>
+                <img src="${esc(item.mockup)}" alt="${esc(item.title)} mockup on ${esc(item.blank)} in ${esc(item.color)}" loading="lazy" decoding="async" />
+              </div>
+              <div class="merch-card__body">
+                <h4 class="merch-card__title">${esc(item.title)}</h4>
+                <p class="merch-card__meta">${esc(item.blank)} · ${esc(item.color)}${item.variantCount ? ` · ${item.variantCount} sizes` : ''}</p>
+                <p class="merch-card__blurb">${esc(item.blurb)}</p>
+                <div class="merch-card__cta">
+                  <span class="merch-card__price">$${item.price}</span>
+                  <span class="merch-card__buy">View ↗</span>
+                </div>
+              </div>
+            </a>
+          `).join('')}
+        </div>
+
+        <p style="text-align:center; color:var(--ink-mute); font-size:0.85rem; margin-top:18px;">
+          Pick a size · tap <strong>Add</strong> · checkout right here. Payments by Stripe ·
+          fulfillment by Printful (5-7 day US ship). Prefer the storefront?
+          <a href="https://bz-music.printful.me" target="_blank" rel="noopener noreferrer">bz-music.printful.me ↗</a>.
         </p>
 
-        ${figure('/merch/shirt-free-satan-1.jpg', 'FREE SATAN tee — black cotton with cyan graffiti print', 'Premium black 100% cotton · screen-printed cyan ink · ships worldwide via Printful.')}
-
-        ${divider('the design')}
-        <ul>
-          <li><strong>Color</strong> — black premium cotton, ring-spun, midweight</li>
-          <li><strong>Print</strong> — bold cyan #00E5FF screen-print, slightly distressed</li>
-          <li><strong>Fit</strong> — unisex regular fit, runs true to size</li>
-          <li><strong>Sizes</strong> — XS through 3XL</li>
-          <li><strong>Print method</strong> — DTG (direct-to-garment), no peeling, washes well</li>
-        </ul>
-
-        ${divider('what it means')}
+        <div class="contentpage__divider" id="merch-meaning"><span>what it means</span></div>
         <p>
-          The phrase reads two ways. On the surface it's punk-rock provocation; closer up it's
-          orthodox theology — Christ descended into hell and emancipated the captives
-          (1 Peter 3:18-20, Apostles' Creed). The shirt invites the conversation.
-          If you don't want to have that conversation, this isn't the shirt.
+          “FREE SATAN” on the headline + “it’s Animal Abuse” on the banner
+          stages the joke that frames the gospel. Christ descended into hell and emancipated the
+          captives (1 Peter 3:18-20, Apostles’ Creed). The shirt invites the conversation.
+          If you don’t want to have that conversation, this isn’t the shirt.
         </p>
 
-        ${divider('order')}
-        <p style="text-align: center; padding: 24px 0;">
-          <a class="contentpage__share" id="merchBuyBtn" href="#" target="_blank" rel="noopener noreferrer" style="font-size: 0.78rem; padding: 14px 28px; background: var(--accent); color: var(--bg); border: 0;">
-            BUY · $28 USD ↗
-          </a>
+        <div class="contentpage__divider" id="merch-blanks"><span>the blanks</span></div>
+        <ul>
+          <li><strong>Comfort Colors 1717</strong> — 6.1oz garment-dyed heavyweight tee, ring-spun cotton</li>
+          <li><strong>Comfort Colors 6014</strong> — garment-dyed heavyweight long-sleeve</li>
+          <li><strong>Comfort Colors 1567</strong> — garment-dyed pullover hoodie</li>
+          <li><strong>Comfort Colors 1566</strong> — garment-dyed crewneck sweatshirt</li>
+          <li><strong>Comfort Colors 9360</strong> — garment-dyed tank</li>
+          <li><strong>Comfort Colors 6030</strong> — heavyweight pocket tee</li>
+          <li><strong>Comfort Colors 1469</strong> — garment-dyed fleece sweatpants</li>
+          <li><strong>All-Over Print Cotton Tote</strong> — heavy cotton, sublimated full surface</li>
+        </ul>
+        <p style="color:var(--ink-mute); font-size:0.85rem;">
+          Print method: DTG (direct-to-garment) for cotton blanks, sublimation for the tote.
+          No peeling, washes-in instead of washes-out, ships in 5–7 business days from
+          Printful US fulfillment centers.
         </p>
-        <p style="color: var(--ink-mute); font-size: 0.85rem; text-align: center;">
-          Fulfilled by Printful · ships in 5–7 days · 100% of profit funds the studio + St. John's Soup Kitchen.
+
+        <div class="contentpage__divider" id="merch-integration"><span>the integration</span></div>
+        <p>
+          End-to-end: <strong>add to cart on this page → Stripe Checkout →
+          Printful order auto-created on payment</strong>. The cart lives in
+          your browser (localStorage), the checkout session lives on Stripe,
+          the order ships from Printful. No clicks bounce off-site until you
+          intentionally redirect to pay.
+        </p>
+        <p>
+          Catalog is API-driven too:
+          <code>node scripts/printful-create-products.mjs</code> deletes any
+          existing FREE SATAN products, re-creates them with the design at
+          <a href="/merch/design-free-satan.png">/merch/design-free-satan.png</a>,
+          pulls real Printful mockups via <code>POST /v2/mockup-tasks</code>,
+          and writes the manifest at <a href="/merch/suite.json">/merch/suite.json</a>.
+          New design? Re-run the script; the whole catalog refreshes in ~3 minutes.
+        </p>
+
+        <div class="contentpage__divider" id="merch-money"><span>where the money goes</span></div>
+        <p>
+          100% of profit splits two ways: <strong>60% studio operating costs</strong>
+          (Cloudflare, Suno, OpenAI, mastering, distribution) and
+          <strong>40% St. John’s Soup Kitchen of Newark</strong>. Studio
+          financials and contribution receipts published on
+          <a href="/about" data-content-page="about">/about</a>.
         </p>
 
         ${divider('credits')}
         <p>
-          Design © Brian Zalewski / Megabyte Labs · Printful fulfillment · all
-          royalties split: 60% studio operating costs (servers, Suno, OpenAI, Cloudflare),
-          40% St. John's Soup Kitchen of Newark.
+          Design © Brian Zalewski / Megabyte Labs · Printful fulfillment ·
+          mockups composited from Printful catalog photography · storefront at
+          <a href="https://bz-music.printful.me" target="_blank" rel="noopener noreferrer">bz-music.printful.me</a>.
         </p>
+       </div>
       </article>
     `,
   },
 
-  // ═══ SUPPORT ══════════════════════════════════════════════════════════
-  {
-    slug: 'support',
-    title: 'Support bZ',
-    eyebrow: 'tip jar · subscribe · share',
-    description: 'Five ways to keep the studio independent. All free options work too.',
-    ogImage: '/og/og-support.jpg',
-    metaTitle: 'Support bZ — share, subscribe, tip, hire, donate',
-    metaDescription: "Five tiers from free (share + subscribe) to recurring ($1-$100/mo Sponsors). Every $5 tip = 1,700 Spotify streams. Surplus routes to St. John's Soup Kitchen of Newark.",
-    jsonLdType: 'WebPage',
-    render: () => `
-      <article class="contentpage__article">
-        <p class="contentpage__lead">
-          The bZ studio runs lean — one person, open-source stack, no label deal. Every
-          listener helps. Five ways to support, in ascending order of commitment.
-        </p>
-
-        ${figure('/art/pages/support-hands.png', 'Two hands exchanging cyan light', 'Generosity moves in both directions. Cyan light, hand to hand.')}
-
-        ${pullquote(`The kingdom is the grind. Both directions point to the same place.`)}
-
-        ${divider('1 · free · share a track')}
-        <p>
-          The single highest-leverage thing: open any track, hit the share button, send
-          to one friend who'd actually listen. The catalog discovers itself one person
-          at a time.
-        </p>
-
-        ${divider('2 · free · subscribe to drops')}
-        <p>
-          One email when a new album lands. Listmonk, double opt-in, never resold. Open
-          the AI chat (⌘K) or scroll any album footer.
-        </p>
-
-        ${divider('3 · tip — pay what feels right')}
-        <p>
-          Direct one-time tip via PayPal:
-          <a href="https://www.paypal.me/HeyMegabyte" target="_blank" rel="noopener">
-            paypal.me/HeyMegabyte ↗
-          </a>
-        </p>
-        <p>
-          GitHub Sponsors (recurring monthly):
-          <a href="https://github.com/sponsors/HeyMegabyte" target="_blank" rel="noopener">
-            github.com/sponsors/HeyMegabyte ↗
-          </a>
-        </p>
-
-        ${divider('4 · hire — for tech work')}
-        <p>
-          The day job is open. If you've got a TypeScript / Cloudflare Workers / mobile-app
-          project that needs a sharp full-stack pair of hands, reach out via
-          <a href="https://megabyte.space/connect/" target="_blank" rel="noopener">megabyte.space/connect ↗</a>.
-          Booking the studio for tech work is the most direct way to fund the music.
-        </p>
-
-        ${divider('5 · donate to the mission')}
-        <p>
-          A portion of every tip + Sponsor month routes to St. John's Soup Kitchen of
-          Newark — the namesake of the Canon album. To donate directly to the kitchen,
-          <a href="https://www.njsk.org/" target="_blank" rel="noopener">njsk.org ↗</a>.
-        </p>
-
-        ${divider('where every dollar goes')}
-        <p>Transparency on the studio's cost stack:</p>
-        <ul class="contentpage__stack">
-          <li><strong>~$30/mo</strong>Cloudflare Workers + R2 + KV (audio + lyrics + edge)</li>
-          <li><strong>~$10/mo</strong>Listmonk VPS (newsletter)</li>
-          <li><strong>~$20/mo</strong>Suno + OpenAI Whisper (music + lyric pipeline)</li>
-          <li><strong>~$15/mo</strong>Domain + email + DNS</li>
-          <li><strong>any extra</strong>routes to St. John's Soup Kitchen of Newark</li>
-        </ul>
-
-        ${divider('recurring vs one-time')}
-        <p>
-          <strong>Recurring (GitHub Sponsors)</strong> wins for studio planning — predictable
-          income means I can commit to specific album drop dates without worrying about runway.
-        </p>
-        <p>
-          <strong>One-time (PayPal)</strong> wins for impulse — heard a track you loved, want
-          to throw $5 right now, no commitment.
-        </p>
-        <p>Both are appreciated. Neither is required.</p>
-
-        ${divider('why supporting solo artists matters')}
-        <p>
-          Streaming royalties for solo artists round to zero. Spotify pays ~$0.003 per
-          play. A song with 10,000 plays nets ~$30. Direct support replaces that math
-          entirely — every $5 tip equals 1,700 Spotify streams.
-        </p>
-        <p>
-          When you fund a solo studio directly, you fund the next album. No label cut,
-          no platform middleware fees, no algorithmic gatekeeper.
-        </p>
-
-        ${figure('/art/pages/support-tipjar.png', 'Glass tip jar with a single glowing cyan coin', 'Every coin counts. Every $5 tip equals 1,700 Spotify streams.')}
-
-        ${divider('monthly tier perks')}
-        ${cards([
-          { title: '$1/mo · supporter', body: 'Inner-circle newsletter (track demos + lyric drafts before public release). Name on the credits page if you opt in.' },
-          { title: '$5/mo · patron', body: 'Everything above + early album access 7 days before public drop + monthly Process Notes podcast episode + bandcamp-equivalent downloads.' },
-          { title: '$25/mo · collaborator', body: 'Everything above + quarterly 1:1 voice memo from Brian on the studio + name in album liner notes + first dibs on house-show RSVPs.' },
-          { title: '$100/mo · benefactor', body: "Everything above + custom 60-second jingle for your project (one per year) + handwritten card from Brian. All proceeds above $50 route to St. John's Soup Kitchen." },
-        ])}
-
-        ${divider('impact so far')}
-        <div class="contentpage__stats">
-          <div><strong>6</strong><span>albums shipped</span></div>
-          <div><strong>50+</strong><span>tracks released</span></div>
-          <div><strong>~$0</strong><span>label advances taken</span></div>
-          <div><strong>100%</strong><span>solo-funded</span></div>
-        </div>
-
-        ${divider('donor wall')}
-        <p style="color: var(--ink-mute);">
-          Donor names + appreciation will surface here once subscribers opt in via
-          the next supporter newsletter. Privacy-respecting by default — opt-in only.
-        </p>
-
-        ${divider('year-end transparency')}
-        ${highlight('First annual transparency report drops January 2027', `
-          Total income · total cost · what got funded · what got donated to St. John's Soup
-          Kitchen of Newark · what the studio plans for the next 12 months. Published
-          publicly so every supporter sees exactly where their dollar went.
-        `)}
-      </article>
-    `,
-  },
 ];
 
 export const CONTENT_PAGE_BY_SLUG = new Map(CONTENT_PAGES.map(p => [p.slug, p]));
