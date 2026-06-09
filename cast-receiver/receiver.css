@@ -550,6 +550,33 @@ img { -webkit-user-drag: none; user-select: none; }
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+/* Confirmed-instrumental (no lyrics file): a tasteful ♪ + label instead of a
+   forever "syncing…". The note breathes so the screen still feels alive. */
+.lyrics__line.is-instrumental {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.lyrics__note {
+  font-size: 1.7em;
+  line-height: 1;
+  color: var(--ink-accent, var(--accent));
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--accent) 55%, transparent));
+  animation: instrumentalPulse 2.4s ease-in-out infinite;
+}
+@keyframes instrumentalPulse {
+  0%, 100% { opacity: 0.6; transform: translateY(0) scale(1); }
+  50% { opacity: 1; transform: translateY(-2px) scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lyrics__note { animation: none; opacity: 0.9; }
+}
 .lyrics__w { display: inline-block; }
 /* Karaoke word-fill: each word in the active line fills left→right (sung = white,
    unsung = dim) via --fill (0→1), driven per-frame by the rAF lyric tick. The

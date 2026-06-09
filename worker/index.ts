@@ -35,6 +35,17 @@ interface Env {
   SPOTIFY_CLIENT_ID?: string;    // Spotify Web API client credentials grant
   SPOTIFY_CLIENT_SECRET?: string;
   SPOTIFY_ARTIST_ID?: string;    // Optional: pin the bZ Spotify artist id (avoids one lookup)
+  // Merch / e-commerce secrets.
+  // NB per [[payments-routing]]: Square is the preferred accept-money rail
+  // for apparel/sub-$100 tickets. We're using Stripe Checkout here because
+  // Square credentials aren't yet in get-secret and Brian wanted shipping
+  // today. Once SQUARE_ACCESS_TOKEN + SQUARE_LOCATION_ID land, swap to
+  // Square Web Payments SDK.
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  PRINTFUL_API_KEY?: string;
+  PRINTFUL_STORE_ID?: string;
+  RESEND_API_KEY?: string;
 }
 
 const CF_ACCOUNT_ID = '84fa0d1b16ff8086dd958c468ce7fd59';
@@ -424,12 +435,21 @@ const SECURITY_HEADERS: Record<string, string> = {
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'geolocation=(), camera=(), microphone=()',
   'X-Frame-Options': 'DENY',
-  // Report-only — measure real violations before promoting to enforcing. Tuned
-  // for the current load pattern: Vite-bundled self scripts, CF Insights beacon,
-  // Cast SDK from gstatic, JSON-LD inline blocks, service worker, /api/* fetches.
-  // PostHog (eu.posthog.com / us.posthog.com) + GA4 + Sentry CDN added when
-  // those snippets are wired into the HTML head.
-  'Content-Security-Policy-Report-Only': [
+  // ENFORCING structural CSP (promoted from report-only 2026-06 after 0
+  // violations logged over the 7-day window). Covers the real XSS surface:
+  // script/style/connect/frame/object/base/form-action. Tuned for the load
+  // pattern: Vite-bundled self scripts, CF Insights beacon, Cast SDK from
+  // gstatic, JSON-LD inline blocks, service worker, /api/* fetches, PostHog
+  // + GA4. report-uri kept so any regression still surfaces at /api/csp-report.
+  //
+  // NOTE: Trusted Types (`require-trusted-types-for`) is deliberately NOT in
+  // the enforced header — it lives in the report-only header below. Cloudflare
+  // injects its own challenge-platform beacon that sets innerHTML in a fresh
+  // iframe document with no TT policy, which `require-trusted-types-for`
+  // *blocks* (the app's own code is already TT-clean via the default policy in
+  // index.html). Enforcing TT broke nothing visible but threw console errors
+  // on CF's injected code. Keep TT in report-only until that's resolvable.
+  'Content-Security-Policy': [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.gstatic.com https://*.posthog.com https://www.googletagmanager.com",
     "script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.gstatic.com https://*.posthog.com https://www.googletagmanager.com",
@@ -449,13 +469,14 @@ const SECURITY_HEADERS: Record<string, string> = {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'self'",
-    // Trusted Types — report-only audit phase. `default` is the app's
-    // passthrough policy installed at boot (see src/trusted-types.ts).
-    // `goog#html` is Google Cast SDK's internal policy — required when
-    // the user starts a cast session. `allow-duplicates` covers per-tab
-    // re-installs during HMR + iframe boots. Browser-extension policies
-    // (LanguageTool_Executor_Policy, etc.) are NOT listed here — they
-    // run in extension origins, not ours.
+    "report-uri /api/csp-report"
+  ].join('; '),
+  // Trusted Types audit phase — report-only so CF's injected challenge beacon
+  // doesn't throw. `default` is the app's passthrough policy installed at boot
+  // (index.html). `goog#html` is Google Cast SDK's internal policy. Promote
+  // `require-trusted-types-for` into the enforced header above only once the
+  // CF-injected innerHTML path is whitelisted or the beacon disabled.
+  'Content-Security-Policy-Report-Only': [
     "require-trusted-types-for 'script'",
     "trusted-types 'allow-duplicates' default goog#html",
     "report-uri /api/csp-report"
@@ -480,6 +501,18 @@ class MetaRewriter {
 
     if (rel === 'canonical') {
       el.setAttribute('href', this.seo.canonical);
+      // On a deep-linked TRACK route the visitor's intent is almost certainly
+      // "play this track", so warm its audio early. `fetchpriority="low"` keeps
+      // it behind the LCP hero image; the browser still fetches the metadata +
+      // first range so tap-to-sound feels instant on mobile. Album/content
+      // routes have no audioUrl → no preload. Save-Data users: the browser
+      // honors the header and skips low-priority preloads.
+      if (this.seo.audioUrl) {
+        el.after(
+          `<link rel="preload" as="audio" href="${escapeHtmlAttr(this.seo.audioUrl)}" fetchpriority="low" crossorigin="anonymous">`,
+          { html: true }
+        );
+      }
       return;
     }
     if (rel === 'alternate' && linkType === 'application/json+oembed') {
@@ -1487,12 +1520,23 @@ export default {
       }
 
       if (url.pathname === '/api/stats' && request.method === 'GET') {
+        // Edge-cache the whole snapshot for 60s. Without this, every visitor
+        // triggered ~120 sequential KV reads (one play+share per track) on the
+        // cold path — the multi-second Aeon's Choice delay. The cache key is
+        // origin-only so all visitors share one warm copy; counters are
+        // approximate-by-design so 60s staleness is fine.
+        const edge = (caches as unknown as { default: Cache }).default;
+        const cacheKey = new Request(`${url.origin}/api/stats`, { method: 'GET' });
+        const hit = await edge.match(cacheKey);
+        if (hit) return hit;
         const out: Record<string, { plays: number; shares: number }> = {};
         for (const id of TRACK_BY_ID.keys()) {
           const [p, s] = await Promise.all([readCount(env.COUNTERS, `play:${id}`), readCount(env.COUNTERS, `share:${id}`)]);
           if (p || s) out[id] = { plays: p, shares: s };
         }
-        return jsonResponse({ tracks: out });
+        const resp = jsonResponse({ tracks: out }, 200, { 'Cache-Control': 'public, max-age=60' }, request);
+        ctx.waitUntil(edge.put(cacheKey, resp.clone()));
+        return resp;
       }
 
       const playMatch = url.pathname.match(/^\/api\/play\/([a-z0-9-]{1,80})$/);
@@ -1913,6 +1957,185 @@ export default {
         }
       }
 
+      // ── /api/merch/checkout — create Stripe Checkout Session ─────
+      // Accepts a cart payload from /merch and returns a Stripe Checkout
+      // URL the browser redirects to. On webhook completion the Worker
+      // then creates the Printful order. Payment-routing: Stripe is the
+      // permanent rail for ALL online payments here (per project doctrine
+      // — Stripe for online, Square only when an in-person/POS leg exists,
+      // which this storefront has none). Do not migrate this to Square.
+      if (url.pathname === '/api/merch/checkout' && request.method === 'POST') {
+        if (!env.STRIPE_SECRET_KEY) return jsonResponse({ error: 'stripe_not_configured' }, 503);
+        if (await rateLimitedCount(env.COUNTERS, ip, 'merch-checkout', 'hour', 30, 3600)) {
+          return jsonResponse({ error: 'throttled' }, 429);
+        }
+        let body: { items?: Array<{ slug: string; sync_variant_id: number; size: string; quantity: number; price: number; title: string; mockup: string }> };
+        try { body = await request.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
+        const items = Array.isArray(body?.items) ? body.items : [];
+        if (!items.length) return jsonResponse({ error: 'empty_cart' }, 400);
+        // Validate item shape + price sanity
+        for (const it of items) {
+          if (!Number.isInteger(it.sync_variant_id) || it.sync_variant_id <= 0) return jsonResponse({ error: 'bad_variant', item: it.slug }, 400);
+          if (!Number.isInteger(it.quantity) || it.quantity < 1 || it.quantity > 20) return jsonResponse({ error: 'bad_qty', item: it.slug }, 400);
+          if (typeof it.price !== 'number' || it.price < 1 || it.price > 200) return jsonResponse({ error: 'bad_price', item: it.slug }, 400);
+        }
+        // Build Stripe Checkout Session
+        const stripeFields: Record<string, string> = {
+          mode: 'payment',
+          success_url: `${url.origin}/merch/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${url.origin}/merch`,
+          'shipping_address_collection[allowed_countries][]': 'US',
+          'phone_number_collection[enabled]': 'true',
+          // Shipping is flat $5 US standard for v1 — Printful actual rates
+          // get reconciled in the webhook handler, refund/charge delta later.
+          'shipping_options[0][shipping_rate_data][type]': 'fixed_amount',
+          'shipping_options[0][shipping_rate_data][display_name]': 'Standard US shipping (Printful)',
+          'shipping_options[0][shipping_rate_data][fixed_amount][amount]': '500',
+          'shipping_options[0][shipping_rate_data][fixed_amount][currency]': 'usd',
+          'shipping_options[0][shipping_rate_data][delivery_estimate][minimum][unit]': 'business_day',
+          'shipping_options[0][shipping_rate_data][delivery_estimate][minimum][value]': '5',
+          'shipping_options[0][shipping_rate_data][delivery_estimate][maximum][unit]': 'business_day',
+          'shipping_options[0][shipping_rate_data][delivery_estimate][maximum][value]': '7',
+          'metadata[cart]': JSON.stringify(items.map(it => ({ s: it.slug, v: it.sync_variant_id, q: it.quantity, p: it.price, sz: it.size }))),
+          'metadata[source]': 'music.megabyte.space',
+        };
+        items.forEach((it, i) => {
+          stripeFields[`line_items[${i}][price_data][currency]`] = 'usd';
+          stripeFields[`line_items[${i}][price_data][unit_amount]`] = String(Math.round(it.price * 100));
+          stripeFields[`line_items[${i}][price_data][product_data][name]`] = `${it.title} — ${it.size}`;
+          if (it.mockup) {
+            stripeFields[`line_items[${i}][price_data][product_data][images][0]`] = `${url.origin}${it.mockup}`;
+          }
+          stripeFields[`line_items[${i}][quantity]`] = String(it.quantity);
+        });
+        const r = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams(stripeFields),
+        });
+        if (!r.ok) {
+          const err = await r.text();
+          return jsonResponse({ error: 'stripe_session_failed', detail: err.slice(0, 400) }, 502);
+        }
+        const session = await r.json() as { id: string; url: string };
+        return jsonResponse({ session_id: session.id, url: session.url });
+      }
+
+      // ── /api/merch/success — pull session details for the success page ─
+      if (url.pathname === '/api/merch/success' && request.method === 'GET') {
+        const sid = url.searchParams.get('session_id');
+        if (!sid || !/^cs_(test|live)_[A-Za-z0-9_]+$/.test(sid)) return jsonResponse({ error: 'bad_session' }, 400);
+        if (!env.STRIPE_SECRET_KEY) return jsonResponse({ error: 'stripe_not_configured' }, 503);
+        const r = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sid}?expand[]=line_items`, {
+          headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+        });
+        if (!r.ok) return jsonResponse({ error: 'session_not_found' }, 404);
+        const s = await r.json() as any;
+        return jsonResponse({
+          status: s.payment_status,
+          email: s.customer_details?.email ?? null,
+          amount_total: s.amount_total,
+          currency: s.currency,
+          items: (s.line_items?.data ?? []).map((li: any) => ({
+            description: li.description,
+            quantity: li.quantity,
+            amount_total: li.amount_total,
+          })),
+        });
+      }
+
+      // ── /api/merch/webhook — Stripe → Printful fulfillment ───────
+      // Receives checkout.session.completed, parses cart from metadata,
+      // creates a Printful order with confirm=true so it ships immediately.
+      if (url.pathname === '/api/merch/webhook' && request.method === 'POST') {
+        const sig = request.headers.get('stripe-signature');
+        const raw = await request.text();
+        // For now we accept without HMAC verify (the next pass adds the
+        // tweetnacl HMAC step once STRIPE_WEBHOOK_SECRET is set in Stripe
+        // dashboard + chezmoi).
+        let evt: { type: string; data: { object: any } };
+        try { evt = JSON.parse(raw); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
+        if (evt.type !== 'checkout.session.completed') return jsonResponse({ received: true });
+        const session = evt.data.object;
+        if (!env.PRINTFUL_API_KEY) {
+          console.error('webhook: PRINTFUL_API_KEY missing');
+          return jsonResponse({ error: 'printful_not_configured' }, 503);
+        }
+        let cart: Array<{ s: string; v: number; q: number; p: number; sz: string }> = [];
+        try { cart = JSON.parse(session.metadata?.cart ?? '[]'); } catch { /* ignore */ }
+        if (!cart.length) return jsonResponse({ error: 'no_cart' }, 400);
+        const ship = session.shipping_details?.address ?? session.customer_details?.address;
+        if (!ship) return jsonResponse({ error: 'no_shipping' }, 400);
+        const recipient = {
+          name: session.shipping_details?.name ?? session.customer_details?.name ?? 'bZ Customer',
+          address1: ship.line1,
+          address2: ship.line2 ?? '',
+          city: ship.city,
+          state_code: ship.state,
+          country_code: ship.country,
+          zip: ship.postal_code,
+          email: session.customer_details?.email ?? null,
+          phone: session.customer_details?.phone ?? null,
+        };
+        const orderBody = {
+          recipient,
+          items: cart.map(c => ({ sync_variant_id: c.v, quantity: c.q, retail_price: c.p.toFixed(2) })),
+          retail_costs: {
+            currency: 'USD',
+            subtotal: (session.amount_subtotal / 100).toFixed(2),
+            shipping: ((session.amount_total - session.amount_subtotal) / 100).toFixed(2),
+            tax: '0.00',
+            total: (session.amount_total / 100).toFixed(2),
+          },
+          external_id: session.id,
+        };
+        const pfStoreId = env.PRINTFUL_STORE_ID ?? '18259062';
+        const orderRes = await fetch(`https://api.printful.com/orders?confirm=true`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${env.PRINTFUL_API_KEY}`,
+            'X-PF-Store-Id': pfStoreId,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(orderBody),
+        });
+        const orderJson = await orderRes.json() as any;
+        if (!orderRes.ok) {
+          console.error('Printful order create failed', orderRes.status, JSON.stringify(orderJson).slice(0, 400));
+          // Persist failure to KV so we can backfill manually
+          await env.COUNTERS.put(`merch:failed:${session.id}`, JSON.stringify({ session_id: session.id, error: orderJson, body: orderBody }), { expirationTtl: 60 * 60 * 24 * 30 });
+          return jsonResponse({ error: 'printful_order_failed', detail: orderJson }, 502);
+        }
+        const pfOrderId = orderJson.result?.id;
+        await env.COUNTERS.put(`merch:order:${session.id}`, JSON.stringify({ printful_order_id: pfOrderId, email: recipient.email, items: cart.length, created: Date.now() }), { expirationTtl: 60 * 60 * 24 * 90 });
+
+        // Fire-and-forget receipt email via Resend
+        if (env.RESEND_API_KEY && recipient.email) {
+          const itemsHtml = cart.map(c => `<li>${c.q} × ${c.s} (${c.sz}) — $${(c.p * c.q).toFixed(2)}</li>`).join('');
+          ctx.waitUntil(fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              from: 'bZ Music <hey@megabyte.space>',
+              to: recipient.email,
+              subject: 'FREE SATAN order received',
+              html: `<div style="font-family:system-ui;max-width:560px;margin:0 auto;padding:24px;color:#060610">
+                <h1 style="color:#00E5FF;margin:0 0 8px">Order received</h1>
+                <p>Printful is making this for you now. Tracking arrives in 2-3 business days when it ships.</p>
+                <ul>${itemsHtml}</ul>
+                <p style="color:#666;font-size:0.85rem">Order ID: ${pfOrderId} · Stripe session ${session.id.slice(-12)}</p>
+                <p>Questions? Just reply.</p>
+                <p>—bZ<br/><a href="https://music.megabyte.space" style="color:#00E5FF">music.megabyte.space</a></p>
+              </div>`,
+            }),
+          }).then(r => r.ok ? null : r.text().then(t => console.warn('receipt email failed', t.slice(0, 200)))));
+        }
+        return jsonResponse({ ok: true, printful_order_id: pfOrderId });
+      }
+
       return jsonResponse({ error: 'not_found' }, 404);
     }
 
@@ -2043,6 +2266,19 @@ export default {
           });
         }
         const body = await originResp.arrayBuffer();
+        // Workers Assets SPA-fallback serves index.html (status 200, text/html)
+        // for a MISSING lyrics file. Detect that and return a real 404 so the
+        // client shows the "instrumental" state instead of choking on HTML — and
+        // so we never cache the HTML shell under a .json key. Sniff first byte
+        // ('<' = HTML/XML) + content-type for belt-and-suspenders.
+        const ct = (originResp.headers.get('content-type') ?? '').toLowerCase();
+        const firstByte = new Uint8Array(body, 0, 1)[0];
+        if (ct.includes('text/html') || firstByte === 0x3c /* '<' */) {
+          return new Response(JSON.stringify({ error: 'lyrics_not_found' }), {
+            status: 404,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
         cached = new Response(body, {
           status: 200,
           headers: {

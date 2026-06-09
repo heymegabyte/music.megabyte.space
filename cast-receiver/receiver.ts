@@ -335,6 +335,11 @@ let castMetaPromise: Promise<Record<string, { bpm?: number; key?: string }>> | n
 // streams — so a self-fetch always wins and a sender push only fills the gap
 // when there's no JSON file. Reset to null on every track change.
 let lyricsSource: 'self' | 'sender' | null = null;
+// Set true once self-fetch confirms a track has NO lyrics file (404/empty) so
+// renderLyrics shows a gorgeous "instrumental" state instead of a perpetual
+// "Lyrics syncing…" (which falsely implies lyrics are still loading). Reset per
+// track in primeLyrics; cleared the moment real lyrics arrive (sender or self).
+let lyricsMissing = false;
 // Cached lyric DOM (rebuilt in renderLyrics) so the 60fps tick never re-queries
 // the document — keeps karaoke word-fill cheap on weak Android TVs.
 let lyricLineEls: HTMLElement[] = [];
@@ -841,7 +846,10 @@ function renderLyrics() {
   lyricLineEls = [];
   activeWordEls = [];
   if (!runtime.lyrics.length) {
-    inner.innerHTML = '<p class="lyrics__line is-empty">Lyrics syncing…</p>';
+    // No lyrics yet: distinguish "still loading" from "this track has none".
+    inner.innerHTML = lyricsMissing
+      ? '<p class="lyrics__line is-instrumental"><span class="lyrics__note">♪</span>Instrumental</p>'
+      : '<p class="lyrics__line is-empty">Lyrics syncing…</p>';
     return;
   }
   inner.innerHTML = runtime.lyrics.map((l, i) => {
@@ -1040,6 +1048,7 @@ function setLyricsLines(trackId: string, lines: ReceiverLine[], source: 'self' |
   runtime.lyricsTrackId = trackId;
   runtime.lyrics = lines.slice().sort((a, b) => a.t - b.t);
   lyricsSource = source;
+  lyricsMissing = false; // real lyrics arrived → clear any instrumental state
   lastLyricsActiveIdx = -2;
   lastLyricsActiveWordIdx = -2;
   renderLyrics();
@@ -1063,6 +1072,7 @@ function primeLyrics(item: ReceiverQueueItem | undefined) {
   runtime.lyricsTrackId = item.id;
   runtime.lyrics = [];
   lyricsSource = null;
+  lyricsMissing = false;
   lastLyricsActiveIdx = -2;
   lastLyricsActiveWordIdx = -2;
   renderLyrics();
@@ -1078,8 +1088,11 @@ async function selfFetchLyrics(item: ReceiverQueueItem) {
   const token = ++lyricsFetchToken;
   try {
     const r = await fetch(`/lyrics/${encodeURIComponent(item.id)}.json`, { cache: 'force-cache' });
-    if (!r.ok) return;
-    const data = await r.json() as { lines?: Array<{ s: number; e?: number; text: string }>; words?: Array<{ w: string; s: number; e: number; line?: number }> };
+    if (!r.ok) { markLyricsMissing(item.id, token); return; }
+    // A misbehaving origin can return 200 with the SPA HTML shell for a missing
+    // file; parse defensively so HTML-as-JSON is "missing", not a stuck "syncing…".
+    const data = await r.json().catch(() => null) as { lines?: Array<{ s: number; e?: number; text: string }>; words?: Array<{ w: string; s: number; e: number; line?: number }> } | null;
+    if (!data) { markLyricsMissing(item.id, token); return; }
     // Stale guard: track changed or a newer fetch superseded this one.
     if (token !== lyricsFetchToken || currentItem()?.id !== item.id) return;
     const rawLines = data.lines ?? [];
@@ -1105,7 +1118,18 @@ async function selfFetchLyrics(item: ReceiverQueueItem) {
       return { t: l.s, e: l.e, text: l.text, ...(lw.length ? { words: lw } : {}) } as ReceiverLine;
     });
     if (lines.length) setLyricsLines(item.id, lines, 'self'); // authoritative
-  } catch { /* offline / missing lyrics → keep sender push or "syncing…" */ }
+    else markLyricsMissing(item.id, token);                   // file exists but empty
+  } catch { /* offline / transient → keep sender push or "syncing…" (don't claim instrumental) */ }
+}
+
+// A self-fetch confirmed this track has no usable lyrics (404 or empty file).
+// Show the gorgeous "instrumental" state — but only if this is still the current
+// track, the fetch wasn't superseded, and no sender push has filled the lyrics.
+function markLyricsMissing(trackId: string, token: number) {
+  if (token !== lyricsFetchToken || currentItem()?.id !== trackId) return;
+  if (lyricsSource === 'sender' || runtime.lyrics.length) return;
+  lyricsMissing = true;
+  renderLyrics();
 }
 
 // Compact per-track BPM + key map (public/cast-meta.json, ~2kB), fetched once.
