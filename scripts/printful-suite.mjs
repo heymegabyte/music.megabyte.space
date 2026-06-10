@@ -246,9 +246,14 @@ async function buildMockup(item) {
   const verticalCenter = Math.round((1200 - designMeta.height) / 2);
   const top = verticalCenter + Math.round(1200 * item.overlayYOffset);
 
+  // Output at 800px (product cards display ~400px; 800 covers retina) with max
+  // PNG compression — keeps full colour + transparency, ~⅓ the weight of the
+  // old 1000px q90 output. tee-1717-pepper doubles as the merch OG image so PNG
+  // (scraper-safe) is retained rather than WebP.
   const composited = await blank
     .composite([{ input: design, top, left, blend: 'over' }])
-    .png({ quality: 90, compressionLevel: 9 })
+    .resize(800, 800, { fit: 'inside' })
+    .png({ compressionLevel: 9, effort: 10 })
     .toBuffer();
 
   await writeFile(outPath, composited);
