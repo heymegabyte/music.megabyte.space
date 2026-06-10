@@ -536,6 +536,16 @@ function contentPageSeo(c: { slug: string; title: string; description: string; o
         url,
         isPartOf: { '@type': 'WebSite', name: 'bZ — music.megabyte.space', url: SITE_ORIGIN }
       },
+      // Home > {Page} breadcrumb — parity with track/album routes, so Google can
+      // render the hierarchy in search results.
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_ORIGIN },
+          { '@type': 'ListItem', position: 2, name: c.title, item: url }
+        ]
+      },
       // The merch page gets a Product ItemList for shopping rich results.
       ...(c.slug === 'merch' ? [merchItemListJsonLd()] : [])
     ],
