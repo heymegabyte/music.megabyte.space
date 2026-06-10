@@ -1,8 +1,16 @@
 import type { Album, Track } from './types';
 import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID } from './data';
+import { TRACK_DURATIONS } from './durations';
 
 const SITE_ORIGIN = 'https://music.megabyte.space';
 const ARTIST = 'bZ';
+
+/** Whole seconds → ISO-8601 duration (e.g. 180 → "PT3M0S") for schema.org. */
+function iso8601Duration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `PT${m}M${s}S`;
+}
 // 48 KB branded 1200×630 card — not the 2.6 MB source PNG. Social scrapers
 // (Twitter/Discord/Slack/iMessage) reject or truncate multi-MB OG images.
 const FALLBACK_OG = '/og/album-desiiignare.jpg';
@@ -266,7 +274,9 @@ function trackJsonLd(track: Track, album: Album, url: string): object[] {
       name: track.title,
       url,
       image: trackOgImage(track.id),
-      duration: 'PT3M30S',
+      // Real probed duration (ffprobe → src/durations.ts); omit if unknown
+      // rather than fabricate (was a hardcoded PT3M30S for every track).
+      ...(TRACK_DURATIONS[track.id] ? { duration: iso8601Duration(TRACK_DURATIONS[track.id]) } : {}),
       audio: `${SITE_ORIGIN}${track.file}`,
       embedUrl: `${SITE_ORIGIN}/embed/${track.id}`,
       byArtist: { '@type': 'MusicGroup', name: ARTIST, url: SITE_ORIGIN },
@@ -277,6 +287,9 @@ function trackJsonLd(track: Track, album: Album, url: string): object[] {
         image: albumOgImage(album)
       },
       genre: 'Hustle gospel',
+      // The recording's publish date = its album's release date (Google-
+      // recommended MusicRecording field). Omitted when the album has no date.
+      ...(album.releasedAt ? { datePublished: album.releasedAt } : {}),
       description: track.wisdom.replace(/[‘’“”]/g, '"')
     },
     {
