@@ -20,7 +20,6 @@ import {
 import { SUNO_META } from './suno-meta';
 import { TRACK_TAGS, getTrackTags } from './tags';
 import { CONTENT_PAGE_BY_SLUG, CONTENT_PAGES } from './content-pages';
-import { bootIfMerchPage } from './merch-cart';
 import { fmtTime, fmtClock, fmtHz, hzToNote } from './format';
 import { TRACK_DURATIONS } from './durations';
 import type { Track, Album } from './types';
@@ -4962,7 +4961,10 @@ function openContentPage(slug: string, { pushHistory = true }: { pushHistory?: b
     if (scrollOuter) scrollOuter.scrollTop = 0;
     renderContentPageTOC();
     setupContentPageScrollIn();
-    bootIfMerchPage(slug);
+    // Lazy-load the merch cart/checkout module only when the merch page opens —
+    // it's ~464 lines (cart, Stripe checkout, suite fetch) that the ~95% of
+    // visitors who never open /merch shouldn't pay for in the initial bundle.
+    if (slug === 'merch') void import('./merch-cart').then(m => m.bootIfMerchPage(slug));
   };
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const dialogAlreadyOpen = dialog.open;
