@@ -96,6 +96,34 @@ describe('SEO contract (every route)', () => {
   });
 });
 
+describe('/merch Product schema', () => {
+  const merch = SEO_INDEX['/merch'];
+
+  it('emits a Product ItemList with valid offers (no missing-field throw)', () => {
+    expect(merch).toBeDefined();
+    const list = merch.jsonLd.find(b => (b as { '@type'?: string })['@type'] === 'ItemList') as
+      | {
+          itemListElement: Array<{
+            item: {
+              '@type': string;
+              name: string;
+              image: string;
+              offers: { price: number; priceCurrency: string };
+            };
+          }>;
+        }
+      | undefined;
+    expect(list, 'merch should carry a Product ItemList').toBeDefined();
+    expect(list!.itemListElement.length).toBeGreaterThan(0);
+    for (const entry of list!.itemListElement) {
+      expect(entry.item['@type']).toBe('Product');
+      expect(entry.item.name).toBeTruthy();
+      expect(entry.item.image).toMatch(/^https?:\/\//); // never undefined/relative
+      expect(entry.item.offers.priceCurrency).toBe('USD');
+    }
+  });
+});
+
 describe('SEO_INDEX uniqueness', () => {
   const entries = Object.values(SEO_INDEX);
 

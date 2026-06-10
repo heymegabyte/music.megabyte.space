@@ -1,6 +1,55 @@
 import type { Album, Track } from './types';
 import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID } from './data';
 import { TRACK_DURATIONS } from './durations';
+import merchSuite from '../public/merch/suite.json';
+
+interface MerchItem {
+  slug?: string;
+  title?: string;
+  blurb?: string;
+  price?: number;
+  mockup?: string;
+  storefrontUrl?: string;
+}
+
+const MERCH_FALLBACK_IMAGE = '/merch/mockups/tee-1717-pepper.png';
+const MERCH_FALLBACK_STORE = 'https://bz-music.printful.me';
+
+function absMerchUrl(path: string): string {
+  return path.startsWith('http') ? path : `${SITE_ORIGIN}${path}`;
+}
+
+// ItemList of Product entities for /merch so the storefront is eligible for
+// Google product/shopping rich results. Built from the same suite.json the
+// merch page renders, so price/title/image never drift from the live store.
+// Defensive: not every suite item carries every field (some lack a mockup),
+// so each is guarded — a missing field must never throw and 500 the page.
+function merchItemListJsonLd(): object {
+  const items = ((merchSuite.items as MerchItem[]) || []).filter(p => p && p.title);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'bZ Merch',
+    itemListElement: items.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Product',
+        name: p.title,
+        description: p.blurb || p.title,
+        image: absMerchUrl(p.mockup || MERCH_FALLBACK_IMAGE),
+        brand: { '@type': 'Brand', name: ARTIST },
+        offers: {
+          '@type': 'Offer',
+          price: p.price ?? 0,
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/InStock',
+          url: p.storefrontUrl || MERCH_FALLBACK_STORE
+        }
+      }
+    }))
+  };
+}
 
 const SITE_ORIGIN = 'https://music.megabyte.space';
 const ARTIST = 'bZ';
@@ -486,7 +535,9 @@ function contentPageSeo(c: { slug: string; title: string; description: string; o
         description,
         url,
         isPartOf: { '@type': 'WebSite', name: 'bZ — music.megabyte.space', url: SITE_ORIGIN }
-      }
+      },
+      // The merch page gets a Product ItemList for shopping rich results.
+      ...(c.slug === 'merch' ? [merchItemListJsonLd()] : [])
     ],
     seoBody: `<h1>${c.title}</h1><p>${description}</p><p><a href="/">bZ — music.megabyte.space</a></p>`
   };
