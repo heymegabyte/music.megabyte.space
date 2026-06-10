@@ -1269,6 +1269,7 @@ function setupShell(root: HTMLElement) {
             <a href="/ashton/">Appeal</a>
             <a href="/privacy" data-content-page="privacy">Privacy</a>
             <a href="/terms" data-content-page="terms">Terms</a>
+            <a href="/feed.xml" title="RSS feed — follow new drops" rel="alternate noopener" target="_blank">RSS</a>
           </nav>
           <span class="rail__foot-copy">© bZ · Megabyte Labs · Newark, NJ</span>
         </footer>
