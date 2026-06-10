@@ -13,3 +13,12 @@ art/cover-canopy-dispatch.png
 art/cover-panda-desiiignare-v2.png
 art/bz-app-icon-source.png
 art/bz-icon-source.png
+
+# OG card PNGs (~19 MB): the served OG images are all .jpg (worker meta uses
+# /og/*.jpg exclusively — trackOgImage, FALLBACK_OG). These .png are build
+# sources for gen-page-og-images.mjs (it reads a .png, writes the .jpg) or stale
+# leftovers from the old PNG-based OG system. Never served — exclude from upload.
+og/*.png
+
+# Scratch logo experiments written by generate-logo-spray.mjs — never served.
+brand/logo-spray*.png
