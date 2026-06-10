@@ -1303,7 +1303,7 @@ function setupShell(root: HTMLElement) {
               <i class="hud__band" id="bandTreb"></i>
             </span>
           </span>
-          <button class="hud__mode-btn" id="modeBtn" type="button" popovertarget="vizPicker" aria-haspopup="dialog" aria-expanded="false" aria-label="Pick visualizer mode — 50 available" title="50 visualizer modes (V to cycle, or click to browse)">
+          <button class="hud__mode-btn" id="modeBtn" type="button" popovertarget="vizPicker" aria-haspopup="dialog" aria-expanded="false" title="Pick visualizer mode — 50 available (V to cycle, or click to browse)">
             <span class="hud__mode-count" id="modeBtnCount" aria-hidden="true">50</span>
             <span class="hud__mode-name" id="modeBtnLabel">composite</span>
             <span class="hud__mode-chev" aria-hidden="true">▾</span>
@@ -1898,7 +1898,7 @@ function setupShell(root: HTMLElement) {
     <div class="install-banner" id="installBanner" role="status" hidden>
       <span class="install-banner__txt" id="installBannerTxt">Install bZ as an app — instant launch + offline.</span>
       <button id="installAccept" class="install-banner__btn install-banner__btn--primary" type="button">Install</button>
-      <button id="installDismiss" class="install-banner__btn" type="button" aria-label="Dismiss">Later</button>
+      <button id="installDismiss" class="install-banner__btn" type="button" title="Dismiss the install banner">Later</button>
     </div>
 
     <!-- Cast sheet — Android-TV-clone remote with palette-aware UI, synced lyrics, multi-mode visualizer, Hue light sync -->
@@ -2096,7 +2096,7 @@ function setupShell(root: HTMLElement) {
               <svg class="autoplay__play-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
               <span>Play</span>
             </button>
-            <button id="apClose" class="autoplay__skip" type="button" aria-label="Dismiss">Not now</button>
+            <button id="apClose" class="autoplay__skip" type="button" title="Skip the autoplay prompt">Not now</button>
           </div>
         </div>
       </div>
