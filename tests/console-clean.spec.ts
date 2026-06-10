@@ -69,8 +69,19 @@ async function attachCollectors(page: import('@playwright/test').Page) {
     captured.push({ kind: msg.type(), text, location: url });
   });
   page.on('pageerror', err => {
-    if (shouldIgnore(err.message)) return;
-    captured.push({ kind: 'pageerror', text: err.message, location: '' });
+    // Check the STACK too, not just the message: a pageerror thrown inside a
+    // third-party script (e.g. the gstatic Cast SDK in headless, which has no
+    // Cast support) carries that source in its stack. IGNORE_SOURCES already
+    // lists those external origins, so they're filtered here — while any error
+    // with a first-party (music.megabyte.space) frame still fails the gate.
+    const stack = err.stack || '';
+    if (shouldIgnore(err.message, stack)) return;
+    const topFrame =
+      stack
+        .split('\n')
+        .find(l => /https?:\/\//.test(l))
+        ?.trim() || '';
+    captured.push({ kind: 'pageerror', text: err.message, location: topFrame });
   });
   page.on('requestfailed', req => {
     const url = req.url();
