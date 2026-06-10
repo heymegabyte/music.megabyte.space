@@ -727,6 +727,31 @@ function lookupSeo(pathname: string): RouteSeo | null {
   return null;
 }
 
+// Real content (every album/track/content-page) is in SEO_INDEX and always
+// resolves a seoMatch. Real static files carry a file extension. That leaves a
+// short list of extension-less SPA routes that legitimately have no SEO entry —
+// everything else extension-less is a soft-404 that must NOT be indexed.
+function isKnownNonSeoHtmlRoute(pathname: string): boolean {
+  const clean = pathname.replace(/\/+$/, '') || '/';
+  if (clean === '/') return true; // homepage
+  if (clean === '/ashton') return true; // Ashton appeal SPA letter
+  if (clean === '/share-target') return true; // PWA share_target handler
+  if (clean === '/spotify' || clean.startsWith('/spotify/')) return true; // OAuth utility
+  // Legacy /track/<id> — known only when <id> is a real track (i.e. some
+  // SEO_INDEX key ends with /<id>); /track/bogus still soft-404s.
+  const legacy = clean.match(/^\/track\/([a-z0-9-]+)$/i);
+  if (legacy) return Object.keys(SEO_INDEX).some(k => k.endsWith('/' + legacy[1]));
+  return false;
+}
+
+// Rewrites the shell's <meta name="robots"> to noindex on soft-404 routes so
+// mistyped / retired URLs drop out of the index instead of accruing crawl debt.
+class RobotsNoindexRewriter {
+  element(el: Element) {
+    el.setAttribute('content', 'noindex, follow');
+  }
+}
+
 // ── /clip/{trackId} — TikTok / Reels / Shorts vertical render ──────
 // 1080×1920 surface designed to be screen-recorded from a phone (iOS
 // Control Center → screen-record) or captured via Cloudflare Browser
@@ -2671,9 +2696,24 @@ export default {
           .transform(new Response(response.body, { status: response.status, headers }));
         return rewritten;
       }
-      const telemetryOnly = new HTMLRewriter()
-        .on('head', telemetry)
-        .transform(new Response(response.body, { status: response.status, headers }));
+      // Soft-404 guard: an extension-less route with no seoMatch that isn't a
+      // known SPA/utility route is a mistyped/retired URL. Serve the shell (so
+      // the SPA can render its own 404 UI) but with a 404 status + noindex so
+      // crawlers don't accrue soft-404s. Embed routes are excluded (they serve
+      // embed.html with no seoMatch by design).
+      const looksLikeAsset = /\.[a-z0-9]+$/i.test(url.pathname);
+      const isUnknownRoute = !looksLikeAsset && !isEmbedRoute && !isKnownNonSeoHtmlRoute(url.pathname);
+      let telemetryOnlyRewriter = new HTMLRewriter().on('head', telemetry);
+      if (isUnknownRoute) {
+        telemetryOnlyRewriter = telemetryOnlyRewriter.on('meta[name="robots"]', new RobotsNoindexRewriter());
+        headers.set('Cache-Control', 'public, max-age=60, must-revalidate');
+      }
+      const telemetryOnly = telemetryOnlyRewriter.transform(
+        new Response(response.body, {
+          status: isUnknownRoute ? 404 : response.status,
+          headers
+        })
+      );
       return telemetryOnly;
     }
 

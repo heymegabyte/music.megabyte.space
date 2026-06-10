@@ -168,4 +168,27 @@ test.describe('feature matrix — production', () => {
     expect(s1.status()).toBe(200);
     expect(s2.status(), 'repeat subscribe must be idempotent, not 429').toBe(200);
   });
+
+  // ── Soft-404 guard: unknown track routes are 404 + noindex ──────────
+  // Retired / mistyped /<album>/<track> URLs (the real-world soft-404 vector —
+  // shared links to renamed tracks) route through the worker and must 404.
+  test('unknown routes return 404 + noindex; real routes stay 200 + index', async ({ request }) => {
+    for (const bogus of [
+      '/desiiignare/not-a-real-track',
+      '/canopy/xyz-fake',
+      '/desiiignare/retired-slug-typo'
+    ]) {
+      const res = await request.get(bogus);
+      expect(res.status(), `${bogus} should soft-404`).toBe(404);
+      const html = await res.text();
+      expect(html, `${bogus} should be noindex`).toMatch(/<meta name="robots" content="noindex/i);
+    }
+    // Real routes must remain indexable + 200.
+    for (const real of ['/', '/desiiignare/chef-lu-stew', '/about']) {
+      const res = await request.get(real);
+      expect(res.status(), `${real} should be 200`).toBe(200);
+      const html = await res.text();
+      expect(html, `${real} must not be noindex`).not.toMatch(/content="noindex/i);
+    }
+  });
 });
