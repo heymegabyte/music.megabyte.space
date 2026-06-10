@@ -44,4 +44,19 @@ test.describe('regression — .aichat__fab is stable enough for instant click', 
     const input = page.locator('[data-aichat="input"]').first();
     await expect(input).toBeFocused();
   });
+
+  // WCAG 2.5.3 Label in Name: the accessible name must contain the visible label
+  // text ("Ask"), or voice-control users can't target the button by what they see.
+  test('FAB accessible name contains its visible label text', async ({ page }) => {
+    await gotoHome(page);
+    const fab = page.locator('[data-aichat="fab"]').first();
+    await expect(fab).toBeVisible();
+    const visible = ((await fab.locator('.aichat__fab-label').textContent()) ?? '').trim();
+    expect(visible.length, 'fab has a visible label').toBeGreaterThan(0);
+    const accName = (await fab.getAttribute('aria-label')) ?? '';
+    expect(
+      accName.toLowerCase().includes(visible.toLowerCase()),
+      `accessible name "${accName}" must contain visible label "${visible}"`
+    ).toBe(true);
+  });
 });
