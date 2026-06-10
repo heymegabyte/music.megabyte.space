@@ -2184,7 +2184,11 @@ function renderListenOn(album: Album): string {
 }
 
 function renderAlbums(host: HTMLElement) {
-  const savedTop = host.scrollTop;
+  // The scrollable ancestor is now `.rail` (the foot rides the bottom of the
+  // scroll flow), not `#albums` itself — preserve the rail's scroll across
+  // innerHTML rebuilds so filtering/track-change doesn't jump to the top.
+  const scroller = (host.closest('.rail') as HTMLElement | null) ?? host;
+  const savedTop = scroller.scrollTop;
   const isFeatured = Boolean(currentAlbumFilter);
   const visible = currentAlbumFilter
     ? ALBUMS.filter(a => a.id === currentAlbumFilter)
@@ -2276,7 +2280,7 @@ function renderAlbums(host: HTMLElement) {
       ${renderInlineNewsletter(nlSource)}
     </section>
   `;
-  host.scrollTop = savedTop;
+  scroller.scrollTop = savedTop;
   if (!currentAlbumFilter) {
     bindAiPlaylist();
     refreshAiPlaylist();

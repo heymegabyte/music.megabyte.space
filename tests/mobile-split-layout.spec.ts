@@ -65,17 +65,19 @@ test.describe('mobile — viz top half, playlist bottom half', () => {
   test('scrolling the album list works without scrolling the page', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForSelector('#heroTitle', { state: 'visible', timeout: 15000 });
-    const albums = page.locator('#albums');
-    await expect(albums).toBeVisible();
+    // The `.rail` is the internal scroll container (the album list flows
+    // full-length inside it, with the site-links footer at the bottom).
+    const rail = page.locator('.rail');
+    await expect(rail).toBeVisible();
 
     const docScrollBefore = await page.evaluate(() => document.documentElement.scrollTop);
-    await albums.evaluate(el => {
+    await rail.evaluate(el => {
       (el as HTMLElement).scrollTop = 300;
     });
     await page.waitForTimeout(120);
-    const albumScroll = await albums.evaluate(el => (el as HTMLElement).scrollTop);
+    const railScroll = await rail.evaluate(el => (el as HTMLElement).scrollTop);
     const docScrollAfter = await page.evaluate(() => document.documentElement.scrollTop);
-    expect(albumScroll, 'album scrolled internally').toBeGreaterThan(0);
+    expect(railScroll, 'rail scrolled internally').toBeGreaterThan(0);
     expect(docScrollAfter, 'document did not scroll').toBe(docScrollBefore);
   });
 });

@@ -1327,13 +1327,21 @@ html.is-playing .brand__logo {
   );
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  overflow: hidden;
+  /* The rail itself scrolls so the site-links footer rides at the very bottom
+     of the album list — only seen after scrolling all the way down, never
+     pinned in view. */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 229, 255, 0.3) transparent;
   transition: background 0.9s ease;
 }
-/* Tiny site-links footer pinned below the scrolling album list. */
+/* Tiny site-links footer at the tail of the scroll flow — reachable only by
+   scrolling past every album, not pinned. */
 .rail__foot {
   flex: 0 0 auto;
-  padding: 9px 12px 11px;
+  margin-top: auto;
+  padding: 14px 12px 16px;
   border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -1365,11 +1373,9 @@ html.is-playing .brand__logo {
   letter-spacing: 0.03em;
 }
 .albums {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 229, 255, 0.3) transparent;
+  /* Natural content height — the parent .rail owns the scroll now, so the
+     album list flows full-length and the footer sits below the last album. */
+  flex: 0 0 auto;
   padding: 6px 0 24px;
 }
 .albums::-webkit-scrollbar {
