@@ -35,13 +35,29 @@
 //   }
 
 import {
-  CAST_NAMESPACE, PROTOCOL_VERSION, TICK_HZ,
-  type CastMsg, type ReceiverState, type ReceiverQueueItem, type ReceiverLine,
-  type ReceiverView, type QueueLoadPayload, type SeekPayload, type VolumePayload,
-  type MutePayload, type SelectPayload, type InsertPayload, type RemovePayload,
-  type ReorderPayload, type ViewPayload, type PalettePayload, type LyricsPayload,
-  type LogPayload, type HelloPayload,
-  isCastMsg, packMsg
+  CAST_NAMESPACE,
+  PROTOCOL_VERSION,
+  TICK_HZ,
+  type CastMsg,
+  type ReceiverState,
+  type ReceiverQueueItem,
+  type ReceiverLine,
+  type ReceiverView,
+  type QueueLoadPayload,
+  type SeekPayload,
+  type VolumePayload,
+  type MutePayload,
+  type SelectPayload,
+  type InsertPayload,
+  type RemovePayload,
+  type ReorderPayload,
+  type ViewPayload,
+  type PalettePayload,
+  type LyricsPayload,
+  type LogPayload,
+  type HelloPayload,
+  isCastMsg,
+  packMsg
 } from '../src/cast-protocol';
 import { TRACKS, ALBUMS } from '../src/data';
 
@@ -119,7 +135,10 @@ let failTrackId: string | null = null;
 let recoverTimer = 0;
 const BACKOFF_MS = [1000, 3000, 9000];
 function clearRecoverTimer() {
-  if (recoverTimer) { clearTimeout(recoverTimer); recoverTimer = 0; }
+  if (recoverTimer) {
+    clearTimeout(recoverTimer);
+    recoverTimer = 0;
+  }
 }
 
 const $ = <T extends Element = HTMLElement>(s: string) => document.querySelector(s) as T | null;
@@ -157,9 +176,17 @@ function buildStandalonePlayer() {
   standaloneAudio.setAttribute('data-standalone-receiver', 'true');
   standaloneAudio.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none;';
   const attach = () => document.body?.appendChild(standaloneAudio!);
-  if (document.body) attach(); else document.addEventListener('DOMContentLoaded', attach, { once: true });
+  if (document.body) attach();
+  else document.addEventListener('DOMContentLoaded', attach, { once: true });
   const listeners: Record<string, Array<() => void>> = {};
-  const fire = (k: string) => (listeners[k] ?? []).forEach((fn) => { try { fn(); } catch { /* swallow */ } });
+  const fire = (k: string) =>
+    (listeners[k] ?? []).forEach(fn => {
+      try {
+        fn();
+      } catch {
+        /* swallow */
+      }
+    });
   standaloneAudio.addEventListener('playing', () => fire('PLAYING'));
   standaloneAudio.addEventListener('pause', () => fire('PAUSE'));
   standaloneAudio.addEventListener('seeked', () => fire('SEEKED'));
@@ -175,8 +202,12 @@ function buildStandalonePlayer() {
   standaloneAudio.addEventListener('canplay', () => setBuffering(false));
   standaloneAudio.addEventListener('seeked', () => setBuffering(false));
   return {
-    addEventListener: (k: string, fn: () => void) => { (listeners[k] ??= []).push(fn); },
-    setMessageInterceptor: (_t: any, _fn: any) => { /* no-op in standalone */ },
+    addEventListener: (k: string, fn: () => void) => {
+      (listeners[k] ??= []).push(fn);
+    },
+    setMessageInterceptor: (_t: any, _fn: any) => {
+      /* no-op in standalone */
+    },
     load: (req: any) => {
       const url = req?.media?.contentId;
       if (typeof url === 'string' && standaloneAudio) {
@@ -185,7 +216,11 @@ function buildStandalonePlayer() {
         if (cur) standaloneAudio.currentTime = cur;
         if (req?.autoplay !== false) {
           standaloneAudio.play().catch((err: any) => {
-            if (err && (err.name === 'NotAllowedError' || /user (?:didn'?t|did not) interact|gesture/i.test(err.message ?? ''))) {
+            if (
+              err &&
+              (err.name === 'NotAllowedError' ||
+                /user (?:didn'?t|did not) interact|gesture/i.test(err.message ?? ''))
+            ) {
               pendingAutoplayResume = true;
               toast('Tap to start playback', 'live', 4000);
               return;
@@ -195,16 +230,26 @@ function buildStandalonePlayer() {
         }
       }
     },
-    play: () => standaloneAudio?.play().catch((err: any) => {
-      if (err?.name === 'NotAllowedError') pendingAutoplayResume = true;
-    }),
+    play: () =>
+      standaloneAudio?.play().catch((err: any) => {
+        if (err?.name === 'NotAllowedError') pendingAutoplayResume = true;
+      }),
     pause: () => standaloneAudio?.pause(),
-    stop: () => { if (standaloneAudio) { standaloneAudio.pause(); standaloneAudio.currentTime = 0; } },
-    seek: (s: number) => { if (standaloneAudio) standaloneAudio.currentTime = Math.max(0, s); },
-    setVolume: (v: number) => { if (standaloneAudio) standaloneAudio.volume = Math.max(0, Math.min(1, v)); },
+    stop: () => {
+      if (standaloneAudio) {
+        standaloneAudio.pause();
+        standaloneAudio.currentTime = 0;
+      }
+    },
+    seek: (s: number) => {
+      if (standaloneAudio) standaloneAudio.currentTime = Math.max(0, s);
+    },
+    setVolume: (v: number) => {
+      if (standaloneAudio) standaloneAudio.volume = Math.max(0, Math.min(1, v));
+    },
     getCurrentTimeSec: () => standaloneAudio?.currentTime ?? 0,
     getDurationSec: () => (Number.isFinite(standaloneAudio?.duration ?? NaN) ? standaloneAudio!.duration : 0),
-    getPlayerState: () => standaloneAudio && !standaloneAudio.paused ? 'PLAYING' : 'PAUSED',
+    getPlayerState: () => (standaloneAudio && !standaloneAudio.paused ? 'PLAYING' : 'PAUSED'),
     getCurrentVolume: () => ({ level: standaloneAudio?.volume ?? 1, muted: !!standaloneAudio?.muted }),
     getMediaInformation: () => null
   };
@@ -216,39 +261,46 @@ if (!standaloneMode) {
 
   // LOAD interceptor — when senders push individual tracks via standard CAF load,
   // merge them into the queue so single-track casts still appear in our list.
-  playerManager.setMessageInterceptor(
-    window.cast!.framework.messages.MessageType.LOAD,
-    (req: any) => {
-      try {
-        const m = req.media;
-        if (m?.contentId) {
-          const item: ReceiverQueueItem = {
-            id: m.customData?.trackId ?? hashId(m.contentId),
-            title: m.metadata?.title ?? 'Unknown',
-            artist: m.metadata?.artist ?? '',
-            album: m.metadata?.albumName ?? '',
-            cover: m.metadata?.images?.[0]?.url ?? '',
-            audio: m.contentId,
-            duration: m.duration ?? undefined
-          };
-          upsertCurrent(item);
-        }
-      } catch (err) {
-        logErr('load-intercept', err);
+  playerManager.setMessageInterceptor(window.cast!.framework.messages.MessageType.LOAD, (req: any) => {
+    try {
+      const m = req.media;
+      if (m?.contentId) {
+        const item: ReceiverQueueItem = {
+          id: m.customData?.trackId ?? hashId(m.contentId),
+          title: m.metadata?.title ?? 'Unknown',
+          artist: m.metadata?.artist ?? '',
+          album: m.metadata?.albumName ?? '',
+          cover: m.metadata?.images?.[0]?.url ?? '',
+          audio: m.contentId,
+          duration: m.duration ?? undefined
+        };
+        upsertCurrent(item);
       }
-      return req;
+    } catch (err) {
+      logErr('load-intercept', err);
     }
-  );
+    return req;
+  });
 }
 
 // PLAY/PAUSE/SEEK/MEDIA_STATUS — broadcast on any change
 const subscribe = (type: string | undefined, fn: () => void) => {
   if (!type) return;
-  try { playerManager.addEventListener(type, fn); }
-  catch (err) { logErr('subscribe:' + type, err); }
+  try {
+    playerManager.addEventListener(type, fn);
+  } catch (err) {
+    logErr('subscribe:' + type, err);
+  }
 };
-subscribe(Events.PLAYING, () => { audioUnlocked = true; renderUI(); broadcast(); });
-subscribe(Events.PAUSE, () => { renderUI(); broadcast(); });
+subscribe(Events.PLAYING, () => {
+  audioUnlocked = true;
+  renderUI();
+  broadcast();
+});
+subscribe(Events.PAUSE, () => {
+  renderUI();
+  broadcast();
+});
 subscribe(Events.SEEKED, () => broadcast());
 subscribe(Events.TIME_UPDATE, () => updateProgress());
 subscribe(Events.LOAD_START, () => setStatus('live', 'Loading…'));
@@ -265,14 +317,20 @@ subscribe(Events.ERROR, (e: any) => onPlaybackError(e));
 subscribe(Events.BUFFERING, (e: any) => setBuffering(e?.isBuffering === true));
 
 if (!standaloneMode) {
-  ctx.addEventListener(window.cast!.framework.system.EventType?.SENDER_CONNECTED ?? 'senderconnected', (ev: any) => {
-    toast(`Sender connected · ${ev?.senderId ?? 'unknown'}`, 'success', 1800);
-    setStatus('live', 'Live');
-    broadcast(true);
-  });
-  ctx.addEventListener(window.cast!.framework.system.EventType?.SENDER_DISCONNECTED ?? 'senderdisconnected', () => {
-    setStatus('stale', 'Sender disconnected');
-  });
+  ctx.addEventListener(
+    window.cast!.framework.system.EventType?.SENDER_CONNECTED ?? 'senderconnected',
+    (ev: any) => {
+      toast(`Sender connected · ${ev?.senderId ?? 'unknown'}`, 'success', 1800);
+      setStatus('live', 'Live');
+      broadcast(true);
+    }
+  );
+  ctx.addEventListener(
+    window.cast!.framework.system.EventType?.SENDER_DISCONNECTED ?? 'senderdisconnected',
+    () => {
+      setStatus('stale', 'Sender disconnected');
+    }
+  );
 }
 
 // SDK is guaranteed ready (early throw above). Configure playback + start.
@@ -288,9 +346,30 @@ if (!standaloneMode) {
   playbackConfig.autoResumeNumberOfSegments = 4;
   playbackConfig.autoResumeDuration = 2;
   playbackConfig.initialBandwidth = 384000;
-  playbackConfig.licenseRequestRetryParams = { maxRetries: 4, baseDelay: 800, maxDelay: 8000, backoffFactor: 2, fuzzFactor: 0.4, timeout: 15000 };
-  playbackConfig.manifestRequestRetryParams = { maxRetries: 4, baseDelay: 800, maxDelay: 8000, backoffFactor: 2, fuzzFactor: 0.4, timeout: 15000 };
-  playbackConfig.segmentRequestRetryParams = { maxRetries: 6, baseDelay: 600, maxDelay: 10000, backoffFactor: 2, fuzzFactor: 0.4, timeout: 20000 };
+  playbackConfig.licenseRequestRetryParams = {
+    maxRetries: 4,
+    baseDelay: 800,
+    maxDelay: 8000,
+    backoffFactor: 2,
+    fuzzFactor: 0.4,
+    timeout: 15000
+  };
+  playbackConfig.manifestRequestRetryParams = {
+    maxRetries: 4,
+    baseDelay: 800,
+    maxDelay: 8000,
+    backoffFactor: 2,
+    fuzzFactor: 0.4,
+    timeout: 15000
+  };
+  playbackConfig.segmentRequestRetryParams = {
+    maxRetries: 6,
+    baseDelay: 600,
+    maxDelay: 10000,
+    backoffFactor: 2,
+    fuzzFactor: 0.4,
+    timeout: 20000
+  };
   // Receiver fetches media with CORS mode; this hook lets us add hints + force
   // absolute https URLs even if sender mistakenly forwarded a relative one.
   playbackConfig.manifestRequestHandler = (req: any) => {
@@ -300,10 +379,16 @@ if (!standaloneMode) {
         else if (req.url.startsWith('/')) req.url = 'https://music.megabyte.space' + req.url;
       }
       req.withCredentials = false;
-    } catch { /* swallow */ }
+    } catch {
+      /* swallow */
+    }
   };
   playbackConfig.segmentRequestHandler = (req: any) => {
-    try { req.withCredentials = false; } catch { /* swallow */ }
+    try {
+      req.withCredentials = false;
+    } catch {
+      /* swallow */
+    }
   };
   ctx.start({
     statusText: 'Ready',
@@ -320,11 +405,14 @@ if (!standaloneMode) {
   try {
     const sys = window.cast!.framework.system;
     const evType = sys?.EventType?.SYSTEM_VOLUME_CHANGED;
-    if (evType) ctx.addEventListener(evType, (e: any) => {
-      const lvl = typeof e?.data?.level === 'number' ? e.data.level : (e?.level ?? 1);
-      showVolumeOsd(lvl, !!(e?.data?.muted ?? e?.muted));
-    });
-  } catch { /* older CAF without the system-volume event → sender-driven OSD still works */ }
+    if (evType)
+      ctx.addEventListener(evType, (e: any) => {
+        const lvl = typeof e?.data?.level === 'number' ? e.data.level : (e?.level ?? 1);
+        showVolumeOsd(lvl, !!(e?.data?.muted ?? e?.muted));
+      });
+  } catch {
+    /* older CAF without the system-volume event → sender-driven OSD still works */
+  }
 }
 
 // Visualizer module state — MUST be declared before init() (which calls
@@ -396,7 +484,9 @@ function exposeStandaloneApi() {
     audio: standaloneAudio,
     loadQueue: (items, startIndex = 0) => onQueueLoad({ items, startIndex, autoplay: true }),
     setLyrics: (trackId, lines) => applyLyrics({ trackId, lines }),
-    setVolume: (v: number) => { onVolume({ level: v } as VolumePayload); },
+    setVolume: (v: number) => {
+      onVolume({ level: v } as VolumePayload);
+    },
     play: () => playerManager.play(),
     pause: () => playerManager.pause(),
     seek: (s: number) => playerManager.seek(s),
@@ -417,12 +507,17 @@ function exposeStandaloneApi() {
     // A gesture means the AudioContext is now allowed — unlock the analyser so
     // the visualizer binds to real audio, and resume the ctx if it exists.
     audioUnlocked = true;
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => { /* policy */ });
+    if (audioCtx && audioCtx.state === 'suspended')
+      audioCtx.resume().catch(() => {
+        /* policy */
+      });
     if (!pendingAutoplayResume || !standaloneAudio) return;
     pendingAutoplayResume = false;
-    standaloneAudio.play().catch(() => { pendingAutoplayResume = true; });
+    standaloneAudio.play().catch(() => {
+      pendingAutoplayResume = true;
+    });
   };
-  ['click', 'keydown', 'touchstart', 'pointerdown'].forEach((evt) => {
+  ['click', 'keydown', 'touchstart', 'pointerdown'].forEach(evt => {
     document.addEventListener(evt, resumeOnGesture, { passive: true });
   });
   maybeAutoSeed();
@@ -456,8 +551,17 @@ function maybeAutoSeed() {
         vibe: t.vibe
       } satisfies ReceiverQueueItem;
     });
-    const startIndex = trackId ? Math.max(0, items.findIndex(x => x.id === trackId)) : 0;
-    log('info', 'preview', `auto-seed ${items.length} tracks start=${items[startIndex]?.id ?? '?'} autoplay=${autoplay}`);
+    const startIndex = trackId
+      ? Math.max(
+          0,
+          items.findIndex(x => x.id === trackId)
+        )
+      : 0;
+    log(
+      'info',
+      'preview',
+      `auto-seed ${items.length} tracks start=${items[startIndex]?.id ?? '?'} autoplay=${autoplay}`
+    );
     onQueueLoad({ items, startIndex, autoplay, startPosition: 0 });
   } catch (err) {
     logErr('auto-seed', err);
@@ -482,15 +586,23 @@ function handleSenderMessage(event: any) {
   if (msg.v && msg.v > PROTOCOL_VERSION) {
     log('warn', 'msg', `protocol mismatch: sender v${msg.v}, receiver v${PROTOCOL_VERSION}`);
   }
-  try { dispatch(msg, senderId); }
-  catch (err) { logErr('dispatch:' + msg.type, err); errorOut('dispatch_failed', err); }
+  try {
+    dispatch(msg, senderId);
+  } catch (err) {
+    logErr('dispatch:' + msg.type, err);
+    errorOut('dispatch_failed', err);
+  }
 }
 
 function dispatch(msg: CastMsg<unknown>, senderId: string) {
   switch (msg.type) {
     case 'hello':
       lastSenderHelloAt = Date.now();
-      log('info', 'hello', `sender ${senderId} v${(msg.payload as HelloPayload | undefined)?.appVersion ?? '?'}`);
+      log(
+        'info',
+        'hello',
+        `sender ${senderId} v${(msg.payload as HelloPayload | undefined)?.appVersion ?? '?'}`
+      );
       broadcast(true);
       break;
     case 'queue:load':
@@ -555,7 +667,10 @@ function dispatch(msg: CastMsg<unknown>, senderId: string) {
 
 // ─── Queue ops ──────────────────────────────────────────────────────────────
 function onQueueLoad(p: QueueLoadPayload) {
-  if (!p?.items?.length) { errorOut('empty_queue', new Error('queue:load with zero items')); return; }
+  if (!p?.items?.length) {
+    errorOut('empty_queue', new Error('queue:load with zero items'));
+    return;
+  }
   runtime.queue = p.items.slice(0, 200);
   if (typeof p.shuffle === 'boolean') runtime.shuffle = p.shuffle;
   // Force loop:'all' unless the sender explicitly asks for 'one'. The receiver
@@ -568,7 +683,11 @@ function onQueueLoad(p: QueueLoadPayload) {
   runtime.focusedIndex = startIdx;
   renderQueue();
   if (p.autoplay !== false) loadAndPlay(runtime.queue[startIdx], p.startPosition ?? 0);
-  else { wakeUI(); renderUI(); primeLyrics(runtime.queue[startIdx]); } // show synced lyrics even while paused
+  else {
+    wakeUI();
+    renderUI();
+    primeLyrics(runtime.queue[startIdx]);
+  } // show synced lyrics even while paused
   broadcast(true);
   toast(`Queue loaded · ${runtime.queue.length} tracks`, 'success', 1500);
 }
@@ -595,8 +714,12 @@ function onQueueRemove(p: RemovePayload) {
   if (idx < 0) return;
   runtime.queue.splice(idx, 1);
   if (idx === runtime.index) {
-    if (runtime.queue.length === 0) { stop(); }
-    else { runtime.index = clamp(runtime.index, 0, runtime.queue.length - 1); loadAndPlay(runtime.queue[runtime.index]); }
+    if (runtime.queue.length === 0) {
+      stop();
+    } else {
+      runtime.index = clamp(runtime.index, 0, runtime.queue.length - 1);
+      loadAndPlay(runtime.queue[runtime.index]);
+    }
   } else if (idx < runtime.index) {
     runtime.index -= 1;
   }
@@ -620,7 +743,10 @@ function onQueueReorder(p: ReorderPayload) {
 
 function onQueueSelect(p: SelectPayload) {
   const idx = runtime.queue.findIndex(q => q.id === p.id);
-  if (idx < 0) { errorOut('select_unknown_id', new Error('id ' + p.id + ' not in queue')); return; }
+  if (idx < 0) {
+    errorOut('select_unknown_id', new Error('id ' + p.id + ' not in queue'));
+    return;
+  }
   runtime.index = idx;
   runtime.focusedIndex = idx;
   loadAndPlay(runtime.queue[idx], p.position ?? 0);
@@ -722,7 +848,11 @@ function onPlaybackError(e: any) {
   const wait = BACKOFF_MS[failCount - 1];
   const label = code ? `load failed (${code})` : 'load failed';
   setStatus('error', label);
-  toast(`${label} — retry ${failCount}/${BACKOFF_MS.length} in ${Math.round(wait / 1000)}s`, 'error', wait + 200);
+  toast(
+    `${label} — retry ${failCount}/${BACKOFF_MS.length} in ${Math.round(wait / 1000)}s`,
+    'error',
+    wait + 200
+  );
   clearRecoverTimer();
   recoverTimer = window.setTimeout(() => {
     recoverTimer = 0;
@@ -732,7 +862,10 @@ function onPlaybackError(e: any) {
 }
 
 function loadAndPlay(item: ReceiverQueueItem, startPosition = 0) {
-  if (!item?.audio) { errorOut('no_audio', new Error('queue item missing audio url')); return; }
+  if (!item?.audio) {
+    errorOut('no_audio', new Error('queue item missing audio url'));
+    return;
+  }
   hideUpNext(); // clear any "up next" card from the previous track
   setBuffering(false); // reset any stale spinner from the previous track
   wakeUI(); // a new track is a "presence" event → brighten, then auto-dim after 5s
@@ -747,7 +880,7 @@ function loadAndPlay(item: ReceiverQueueItem, startPosition = 0) {
       req = {
         media: { contentId: item.audio, contentType: 'audio/mpeg', customData: { trackId: item.id } },
         autoplay: true,
-        currentTime: Math.max(0, startPosition),
+        currentTime: Math.max(0, startPosition)
       };
     } else {
       const mediaInfo = new window.cast!.framework.messages.MediaInformation();
@@ -786,8 +919,13 @@ function stop() {
 
 function upsertCurrent(item: ReceiverQueueItem) {
   const at = runtime.queue.findIndex(q => q.id === item.id);
-  if (at >= 0) { runtime.queue[at] = item; runtime.index = at; }
-  else { runtime.queue.unshift(item); runtime.index = 0; }
+  if (at >= 0) {
+    runtime.queue[at] = item;
+    runtime.index = at;
+  } else {
+    runtime.queue.unshift(item);
+    runtime.index = 0;
+  }
   runtime.focusedIndex = runtime.index;
   renderQueue();
   renderUI();
@@ -813,8 +951,13 @@ function renderUI() {
   if (art && cur.cover && art.src !== cur.cover) {
     // Crossfade to the new cover.
     art.style.opacity = '0';
-    art.onload = () => { art.style.opacity = '1'; };
-    art.onerror = () => { logErr('art', new Error('art load failed: ' + cur.cover)); art.src = '/art/cover-panda-desiiignare.png'; };
+    art.onload = () => {
+      art.style.opacity = '1';
+    };
+    art.onerror = () => {
+      logErr('art', new Error('art load failed: ' + cur.cover));
+      art.src = '/art/cover-panda-desiiignare.png';
+    };
     art.src = cur.cover;
     // Sheen sweep on track change — re-trigger the CSS animation by toggling
     // the class across a reflow.
@@ -891,16 +1034,18 @@ function renderLyrics() {
       : '<p class="lyrics__line is-empty">Lyrics syncing…</p>';
     return;
   }
-  inner.innerHTML = runtime.lyrics.map((l, i) => {
-    const words = l.words ?? [];
-    if (words.length) {
-      const spans = words
-        .map((w, wi) => `<span class="lyrics__w" data-idx="${wi}">${escHtml(w.w)}</span>`)
-        .join(' ');
-      return `<p class="lyrics__line" data-idx="${i}">${spans}</p>`;
-    }
-    return `<p class="lyrics__line" data-idx="${i}">${escHtml(l.text)}</p>`;
-  }).join('');
+  inner.innerHTML = runtime.lyrics
+    .map((l, i) => {
+      const words = l.words ?? [];
+      if (words.length) {
+        const spans = words
+          .map((w, wi) => `<span class="lyrics__w" data-idx="${wi}">${escHtml(w.w)}</span>`)
+          .join(' ');
+        return `<p class="lyrics__line" data-idx="${i}">${spans}</p>`;
+      }
+      return `<p class="lyrics__line" data-idx="${i}">${escHtml(l.text)}</p>`;
+    })
+    .join('');
   lyricLineEls = Array.from(inner.querySelectorAll<HTMLElement>('.lyrics__line'));
 }
 
@@ -936,8 +1081,8 @@ function updateUpNext(remaining: number, dur: number) {
   const card = $('#upNext');
   if (!card) return;
   const next = peekNextTrack();
-  const show = dur > 12 && remaining > 1 && remaining <= 12 && !!next
-    && playerManager.getPlayerState?.() === 'PLAYING';
+  const show =
+    dur > 12 && remaining > 1 && remaining <= 12 && !!next && playerManager.getPlayerState?.() === 'PLAYING';
   if (show && next) {
     if (upNextShownFor !== next.id) {
       upNextShownFor = next.id;
@@ -967,11 +1112,15 @@ function tickLyrics(now: number) {
   // (e.g. chef-lu-stew's vocal enters ~21s in) otherwise leaves no line selected
   // and reads as a broken/unsynced screen. The first line's words stay unfilled
   // (--fill 0) until their own timestamps, so it's highlighted-but-not-yet-sung.
-  let active = -1, lo = 0, hi = runtime.lyrics.length - 1;
+  let active = -1,
+    lo = 0,
+    hi = runtime.lyrics.length - 1;
   while (lo <= hi) {
     const mid = (lo + hi) >> 1;
-    if (runtime.lyrics[mid].t <= now) { active = mid; lo = mid + 1; }
-    else hi = mid - 1;
+    if (runtime.lyrics[mid].t <= now) {
+      active = mid;
+      lo = mid + 1;
+    } else hi = mid - 1;
   }
   if (active < 0) active = 0;
   if (active !== lastLyricsActiveIdx) {
@@ -987,7 +1136,7 @@ function tickLyrics(now: number) {
     const target = lyricLineEls[active];
     const inner = $('#lyricsInner') as HTMLElement | null;
     if (target && inner && wrap) {
-      const offset = (target.offsetTop + target.offsetHeight / 2) - (wrap.clientHeight / 2);
+      const offset = target.offsetTop + target.offsetHeight / 2 - wrap.clientHeight / 2;
       inner.style.transform = `translateY(${-offset}px)`;
     }
   }
@@ -1033,48 +1182,61 @@ function applyExtracted(p: { accent: string; accent2: string; violet: string }) 
 function extractPaletteFromCover(url: string) {
   if (!url) return;
   const cached = paletteCache.get(url);
-  if (cached) { applyExtracted(cached); return; }
+  if (cached) {
+    applyExtracted(cached);
+    return;
+  }
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.onload = () => {
     try {
       const n = 24;
       const cv = document.createElement('canvas');
-      cv.width = n; cv.height = n;
+      cv.width = n;
+      cv.height = n;
       const cx = cv.getContext('2d', { willReadFrequently: true });
       if (!cx) return;
       cx.drawImage(img, 0, 0, n, n);
       const d = cx.getImageData(0, 0, n, n).data;
-      let best = { score: -1, h: 190 }, second = { score: -1, h: 210 };
+      let best = { score: -1, h: 190 },
+        second = { score: -1, h: 210 };
       for (let i = 0; i < d.length; i += 4) {
         const [h, s, l] = rgbToHsl(d[i], d[i + 1], d[i + 2]);
-        if (l < 0.18 || l > 0.82) continue;              // skip near-black/white
-        const score = s * (1 - Math.abs(l - 0.55));       // vibrant + mid-light
-        if (score > best.score) { second = best; best = { score, h }; }
-        else if (score > second.score && Math.abs(h - best.h) > 40) second = { score, h };
+        if (l < 0.18 || l > 0.82) continue; // skip near-black/white
+        const score = s * (1 - Math.abs(l - 0.55)); // vibrant + mid-light
+        if (score > best.score) {
+          second = best;
+          best = { score, h };
+        } else if (score > second.score && Math.abs(h - best.h) > 40) second = { score, h };
       }
       const pal = {
         accent: `hsl(${Math.round(best.h)} 92% 62%)`,
         accent2: `hsl(${Math.round(second.h)} 85% 60%)`,
-        violet: `hsl(${Math.round(best.h)} 70% 46%)`,
+        violet: `hsl(${Math.round(best.h)} 70% 46%)`
       };
       paletteCache.set(url, pal);
       const curUrl = currentItem() ? new URL(currentItem()!.cover, location.href).toString() : '';
       if (curUrl === url) applyExtracted(pal);
-    } catch { /* tainted/canvas blocked → keep brand cyan */ }
+    } catch {
+      /* tainted/canvas blocked → keep brand cyan */
+    }
   };
   img.src = url;
 }
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
-  r /= 255; g /= 255; b /= 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
   const l = (max + min) / 2;
-  let h = 0, s = 0;
+  let h = 0,
+    s = 0;
   if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0));
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
     else if (max === g) h = (b - r) / d + 2;
     else h = (r - g) / d + 4;
     h *= 60;
@@ -1099,8 +1261,8 @@ function setLyricsLines(trackId: string, lines: ReceiverLine[], source: 'self' |
 function applyLyrics(p: LyricsPayload) {
   if (!p?.trackId) return;
   const cur = currentItem()?.id;
-  if (cur && p.trackId !== cur) return;       // wrong-track push → drop
-  if (lyricsSource === 'self') return;        // self-fetch is authoritative
+  if (cur && p.trackId !== cur) return; // wrong-track push → drop
+  if (lyricsSource === 'self') return; // self-fetch is authoritative
   setLyricsLines(p.trackId, p.lines ?? [], 'sender');
 }
 
@@ -1127,15 +1289,27 @@ async function selfFetchLyrics(item: ReceiverQueueItem) {
   const token = ++lyricsFetchToken;
   try {
     const r = await fetch(`/lyrics/${encodeURIComponent(item.id)}.json`, { cache: 'force-cache' });
-    if (!r.ok) { markLyricsMissing(item.id, token); return; }
+    if (!r.ok) {
+      markLyricsMissing(item.id, token);
+      return;
+    }
     // A misbehaving origin can return 200 with the SPA HTML shell for a missing
     // file; parse defensively so HTML-as-JSON is "missing", not a stuck "syncing…".
-    const data = await r.json().catch(() => null) as { lines?: Array<{ s: number; e?: number; text: string }>; words?: Array<{ w: string; s: number; e: number; line?: number }> } | null;
-    if (!data) { markLyricsMissing(item.id, token); return; }
+    const data = (await r.json().catch(() => null)) as {
+      lines?: Array<{ s: number; e?: number; text: string }>;
+      words?: Array<{ w: string; s: number; e: number; line?: number }>;
+    } | null;
+    if (!data) {
+      markLyricsMissing(item.id, token);
+      return;
+    }
     // Stale guard: track changed or a newer fetch superseded this one.
     if (token !== lyricsFetchToken || currentItem()?.id !== item.id) return;
     const rawLines = data.lines ?? [];
-    const rawWords = (data.words ?? []).filter(w => typeof w.s === 'number').slice().sort((a, b) => a.s - b.s);
+    const rawWords = (data.words ?? [])
+      .filter(w => typeof w.s === 'number')
+      .slice()
+      .sort((a, b) => a.s - b.s);
     // Assign each word to a line. Many lyrics files OMIT the per-word `line`
     // field (11/72 as of 2026-06-08) — relying on it dropped every word to
     // line -1 → those tracks got NO word-level highlight. Group by TIME instead
@@ -1148,7 +1322,10 @@ async function selfFetchLyrics(item: ReceiverQueueItem) {
       if (hasLineField) {
         li = w.line as number;
       } else {
-        for (let i = 0; i < rawLines.length; i++) { if (rawLines[i].s <= w.s) li = i; else break; }
+        for (let i = 0; i < rawLines.length; i++) {
+          if (rawLines[i].s <= w.s) li = i;
+          else break;
+        }
       }
       if (li >= 0 && li < buckets.length) buckets[li].push({ w: w.w, s: w.s, e: w.e });
     }
@@ -1156,9 +1333,12 @@ async function selfFetchLyrics(item: ReceiverQueueItem) {
       const lw = buckets[i].sort((a, b) => a.s - b.s); // monotonic so the fill wipes left→right
       return { t: l.s, e: l.e, text: l.text, ...(lw.length ? { words: lw } : {}) } as ReceiverLine;
     });
-    if (lines.length) setLyricsLines(item.id, lines, 'self'); // authoritative
-    else markLyricsMissing(item.id, token);                   // file exists but empty
-  } catch { /* offline / transient → keep sender push or "syncing…" (don't claim instrumental) */ }
+    if (lines.length)
+      setLyricsLines(item.id, lines, 'self'); // authoritative
+    else markLyricsMissing(item.id, token); // file exists but empty
+  } catch {
+    /* offline / transient → keep sender push or "syncing…" (don't claim instrumental) */
+  }
 }
 
 // A self-fetch confirmed this track has no usable lyrics (404 or empty file).
@@ -1193,7 +1373,7 @@ async function enrichMeta(item: ReceiverQueueItem) {
 }
 
 function setView(view: ReceiverView | 'idle') {
-  runtime.view = (view === 'idle' ? 'now-playing' : view);
+  runtime.view = view === 'idle' ? 'now-playing' : view;
   const stage = $('#stage') as HTMLElement | null;
   if (stage) stage.dataset.view = view;
 
@@ -1251,7 +1431,10 @@ function setBuffering(on: boolean) {
       el.setAttribute('aria-hidden', 'false');
     }, 350) as unknown as number;
   } else {
-    if (bufferTimer) { clearTimeout(bufferTimer); bufferTimer = 0; }
+    if (bufferTimer) {
+      clearTimeout(bufferTimer);
+      bufferTimer = 0;
+    }
     el.classList.remove('is-on');
     el.setAttribute('aria-hidden', 'true');
   }
@@ -1260,7 +1443,7 @@ function setBuffering(on: boolean) {
 function setupKeyboard() {
   document.addEventListener('keydown', () => wakeUI(), { passive: true, capture: true });
   document.addEventListener('pointermove', () => wakeUI(), { passive: true });
-  document.addEventListener('keydown', (e) => {
+  document.addEventListener('keydown', e => {
     const k = e.key;
     if (runtime.view === 'queue') {
       if (k === 'ArrowDown' || k === 'ArrowUp') {
@@ -1304,11 +1487,20 @@ function setupKeyboard() {
       if (k === 'Enter' || k === ' ' || k === 'MediaPlayPause') {
         e.preventDefault();
         const playing = playerManager.getPlayerState?.() === 'PLAYING';
-        if (playing) playerManager.pause(); else playerManager.play();
+        if (playing) playerManager.pause();
+        else playerManager.play();
         return;
       }
-      if (k === 'MediaTrackNext') { e.preventDefault(); stepTrack(1); return; }
-      if (k === 'MediaTrackPrevious') { e.preventDefault(); stepTrack(-1); return; }
+      if (k === 'MediaTrackNext') {
+        e.preventDefault();
+        stepTrack(1);
+        return;
+      }
+      if (k === 'MediaTrackPrevious') {
+        e.preventDefault();
+        stepTrack(-1);
+        return;
+      }
     }
   });
 }
@@ -1330,7 +1522,8 @@ function ensureAnalyser(): AnalyserNode | null {
   // Don't create/resume the AudioContext before playback is allowed — avoids the
   // autoplay-policy console warning. Synthetic wave covers the pre-unlock window.
   if (!audioUnlocked) return null;
-  const el: HTMLMediaElement | null = standaloneAudio ?? (playerManager.getMediaElement?.() as HTMLMediaElement | null) ?? null;
+  const el: HTMLMediaElement | null =
+    standaloneAudio ?? (playerManager.getMediaElement?.() as HTMLMediaElement | null) ?? null;
   if (!el) return null;
   if (analyser && analyserBound === el) return analyser;
   try {
@@ -1345,10 +1538,17 @@ function ensureAnalyser(): AnalyserNode | null {
       src = audioCtx.createMediaElementSource(el);
       (el as any).__bzSrc = src;
     }
-    try { (src as any).disconnect(); } catch { /* first bind */ }
+    try {
+      (src as any).disconnect();
+    } catch {
+      /* first bind */
+    }
     src.connect(node);
     node.connect(audioCtx.destination);
-    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {/* autoplay policy */});
+    if (audioCtx.state === 'suspended')
+      audioCtx.resume().catch(() => {
+        /* autoplay policy */
+      });
     analyser = node;
     analyserBound = el;
     analyserFreq = new Uint8Array(node.frequencyBinCount);
@@ -1381,7 +1581,8 @@ function startVisualizer() {
   // Drifting particle field — cheap depth cue behind the bars. Seeded once.
   const PARTICLES = 46;
   const parts = Array.from({ length: PARTICLES }, () => ({
-    x: Math.random(), y: Math.random(),
+    x: Math.random(),
+    y: Math.random(),
     r: 0.4 + Math.random() * 1.6,
     sp: 0.02 + Math.random() * 0.06,
     ph: Math.random() * Math.PI * 2
@@ -1396,7 +1597,9 @@ function startVisualizer() {
   //  • In lite, cap the draw rate to ~40fps (skip frames) to leave the TV's
   //    weak GPU/CPU headroom for audio decode + Shaka.
   //  • Pause entirely while the tab/app is backgrounded.
-  let fpsEMA = 60, lastT = 0, warmFrames = 0;
+  let fpsEMA = 60,
+    lastT = 0,
+    warmFrames = 0;
   const LITE_FRAME_MS = 1000 / 40;
   let lastDrawT = 0;
 
@@ -1425,7 +1628,8 @@ function startVisualizer() {
       lastDrawT = t;
     }
 
-    const w = canvas.width, h = canvas.height;
+    const w = canvas.width,
+      h = canvas.height;
     ctx2.clearRect(0, 0, w, h);
     const playing = playerManager.getPlayerState?.() === 'PLAYING';
     const accent = getCSS('--accent') || '#00e5ff';
@@ -1441,24 +1645,28 @@ function startVisualizer() {
         const px = (p.x + Math.cos(p.ph * 0.7) * 0.01 + 1) % 1;
         ctx2.beginPath();
         ctx2.arc(px * w, py * h, p.r * dpr, 0, Math.PI * 2);
-        ctx2.fillStyle = hexToRgba(accent, 0.10 + 0.12 * Math.abs(Math.sin(p.ph)));
+        ctx2.fillStyle = hexToRgba(accent, 0.1 + 0.12 * Math.abs(Math.sin(p.ph)));
         ctx2.fill();
       }
     }
 
     // ── Read FFT (for bass/beat) + time-domain (for the wave) ────────────
     const an = ensureAnalyser();
-    let bassSum = 0, bassN = 0;
+    let bassSum = 0,
+      bassN = 0;
     if (an && analyserFreq) {
       an.getByteFrequencyData(analyserFreq);
       const bins = analyserFreq.length;
       const bassCut = Math.max(2, Math.floor(bins * 0.08));
-      for (let j = 0; j < bassCut; j++) { bassSum += analyserFreq[j]; bassN++; }
+      for (let j = 0; j < bassCut; j++) {
+        bassSum += analyserFreq[j];
+        bassN++;
+      }
     }
     if (an && analyserTime) an.getByteTimeDomainData(analyserTime);
 
     // ── Beat → --beat CSS var (drives the album-glow ring + aurora) ──────
-    const bass = bassN ? (bassSum / bassN) / 255 : (playing ? 0.3 : 0.08);
+    const bass = bassN ? bassSum / bassN / 255 : playing ? 0.3 : 0.08;
     beatEnergy = beatEnergy * 0.86 + bass * 0.14;
     const pulse = Math.max(0, Math.min(1, (bass - beatEnergy) * 3 + bass * 0.5));
     if (bass > beatEnergy * 1.25 && t - lastBeatAt > 180) lastBeatAt = t;
@@ -1467,8 +1675,9 @@ function startVisualizer() {
 
     // ── Centered radial bass bloom behind the wave ───────────────────────
     if (!lite) {
-      const cx = w / 2, cy = h * 0.5;
-      const rr = Math.max(w, h) * (0.20 + bass * 0.24);
+      const cx = w / 2,
+        cy = h * 0.5;
+      const rr = Math.max(w, h) * (0.2 + bass * 0.24);
       const bloom = ctx2.createRadialGradient(cx, cy, 0, cx, cy, rr);
       bloom.addColorStop(0, hexToRgba(accent, 0.14 + bass * 0.18));
       bloom.addColorStop(0.5, hexToRgba(violet, 0.06));
@@ -1479,10 +1688,15 @@ function startVisualizer() {
 
     // ── Ambient palette blobs (always, so idle has life) ─────────────────
     blobPhase += 0.003;
-    const blobAlpha = lite ? 0.10 : 0.16;
+    const blobAlpha = lite ? 0.1 : 0.16;
     const blobs: Array<[number, number, string, number]> = [
-      [0.20 + 0.07 * Math.sin(blobPhase), 0.28 + 0.05 * Math.cos(blobPhase * 0.9), accent, blobAlpha],
-      [0.80 + 0.05 * Math.cos(blobPhase * 1.1), 0.42 + 0.06 * Math.sin(blobPhase * 0.7), accent2, blobAlpha * 0.85]
+      [0.2 + 0.07 * Math.sin(blobPhase), 0.28 + 0.05 * Math.cos(blobPhase * 0.9), accent, blobAlpha],
+      [
+        0.8 + 0.05 * Math.cos(blobPhase * 1.1),
+        0.42 + 0.06 * Math.sin(blobPhase * 0.7),
+        accent2,
+        blobAlpha * 0.85
+      ]
     ];
     for (const [bx, by, color, alpha] of blobs) {
       const r = Math.max(w, h) * 0.5;
@@ -1529,12 +1743,15 @@ function startVisualizer() {
         const x = (i / (N - 1)) * w;
         const v = (timeArr[i] - 128) / 128;
         const y = cy + off + v * amp + Math.sin(i * 0.05 + phase * 2 + phaseShift) * h * 0.01;
-        if (i === 0) ctx2.moveTo(x, y); else ctx2.lineTo(x, y);
+        if (i === 0) ctx2.moveTo(x, y);
+        else ctx2.lineTo(x, y);
       }
       const col = layerHex[layer % layerHex.length];
       ctx2.strokeStyle = hexToRgba(col, isMain ? 0.92 : 0.34);
-      if (isMain && !lite) { ctx2.shadowColor = hexToRgba(accent, 0.7); ctx2.shadowBlur = 22 * dpr; }
-      else ctx2.shadowBlur = 0;
+      if (isMain && !lite) {
+        ctx2.shadowColor = hexToRgba(accent, 0.7);
+        ctx2.shadowBlur = 22 * dpr;
+      } else ctx2.shadowBlur = 0;
       ctx2.stroke();
     }
     ctx2.shadowBlur = 0;
@@ -1551,17 +1768,25 @@ function hexToRgba(hex: string, alpha: number): string {
     return hex;
   }
   let h = hex.replace('#', '');
-  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  if (h.length === 3)
+    h = h
+      .split('')
+      .map(c => c + c)
+      .join('');
   const n = parseInt(h, 16);
-  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const r = (n >> 16) & 255,
+    g = (n >> 8) & 255,
+    b = n & 255;
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 // ─── Tick loop + outbound ──────────────────────────────────────────────────
 function startTickLoop() {
   setInterval(() => {
-    if (pendingState) { broadcast(false); pendingState = false; }
-    else broadcast(false); // safety net even if no event fired
+    if (pendingState) {
+      broadcast(false);
+      pendingState = false;
+    } else broadcast(false); // safety net even if no event fired
   }, 1000 / TICK_HZ);
 }
 
@@ -1607,10 +1832,22 @@ function send(type: string, payload: unknown) {
   // entirely. ctx.sendCustomMessage would throw "Cannot read properties of
   // null (reading 'send')" and recursing through logErr→log→send would loop.
   if (standaloneMode) return;
-  const senders = (() => { try { return ctx.getSenders?.() ?? []; } catch { return []; } })();
+  const senders = (() => {
+    try {
+      return ctx.getSenders?.() ?? [];
+    } catch {
+      return [];
+    }
+  })();
   if (!senders.length) return;
   try {
-    const msg: CastMsg<unknown> = { v: PROTOCOL_VERSION, type: type as any, seq: ++outboundSeq, ts: Date.now(), payload };
+    const msg: CastMsg<unknown> = {
+      v: PROTOCOL_VERSION,
+      type: type as any,
+      seq: ++outboundSeq,
+      ts: Date.now(),
+      payload
+    };
     ctx.sendCustomMessage(CAST_NAMESPACE, undefined, msg);
   } catch (err) {
     // Use console directly — calling logErr here re-enters send() and loops.
@@ -1621,11 +1858,15 @@ function send(type: string, payload: unknown) {
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 function currentItem(): ReceiverQueueItem | null {
-  return runtime.index >= 0 ? runtime.queue[runtime.index] ?? null : null;
+  return runtime.index >= 0 ? (runtime.queue[runtime.index] ?? null) : null;
 }
 
 function safe(fn: () => void) {
-  try { fn(); } catch (err) { logErr('safe', err); }
+  try {
+    fn();
+  } catch (err) {
+    logErr('safe', err);
+  }
 }
 
 function clamp(n: number, lo: number, hi: number): number {
@@ -1650,17 +1891,25 @@ function showFatal(message: string) {
 
 function fmtTime(sec: number): string {
   if (!Number.isFinite(sec) || sec < 0) sec = 0;
-  const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+  const m = Math.floor(sec / 60),
+    s = Math.floor(sec % 60);
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-function pad2(n: number): string { return n < 10 ? '0' + n : String(n); }
-
-function escHtml(s: string): string {
-  return String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch] as string));
+function pad2(n: number): string {
+  return n < 10 ? '0' + n : String(n);
 }
 
-function escAttr(s: string): string { return escHtml(s).replace(/`/g, ''); }
+function escHtml(s: string): string {
+  return String(s ?? '').replace(
+    /[&<>"']/g,
+    ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch] as string
+  );
+}
+
+function escAttr(s: string): string {
+  return escHtml(s).replace(/`/g, '');
+}
 
 function getCSS(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -1685,7 +1934,9 @@ function toast(message: string, tone: 'success' | 'error' | 'info' = 'info', dur
     el.setAttribute('aria-hidden', 'true');
     // Clear after the fade so `.toast:empty { display:none }` removes the
     // bubble entirely — no empty pill lingering at the bottom of the TV.
-    window.setTimeout(() => { if (!el.classList.contains('is-visible')) el.textContent = ''; }, 360);
+    window.setTimeout(() => {
+      if (!el.classList.contains('is-visible')) el.textContent = '';
+    }, 360);
   }, durationMs);
 }
 

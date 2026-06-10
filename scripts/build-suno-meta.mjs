@@ -32,7 +32,9 @@ const OUT_PATH = resolve(ROOT, 'src/suno-meta.ts');
 const MIN_SCORE = 0.5;
 
 if (!existsSync(MATCH_PATH) || !existsSync(FEED_PATH)) {
-  console.error('Missing data/suno-matches.json or data/suno-feed.json — run scripts/fetch-suno-metadata.mjs first.');
+  console.error(
+    'Missing data/suno-matches.json or data/suno-feed.json — run scripts/fetch-suno-metadata.mjs first.'
+  );
   process.exit(1);
 }
 
@@ -52,7 +54,12 @@ const analysis = existsSync(ANALYSIS_PATH)
 // + voice + tempo + 2-3 textures, which is what an album credits line needs.
 function condenseTags(tags) {
   if (!tags) return '';
-  return tags.split(/,\s*/).map(s => s.trim()).filter(Boolean).slice(0, 6).join(', ');
+  return tags
+    .split(/,\s*/)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .slice(0, 6)
+    .join(', ');
 }
 
 // Detect tempo. Suno tags often include "<N> BPM" or "<N>bpm" or "~<N> bpm".
@@ -105,10 +112,10 @@ for (const m of matches) {
     sunoStyleFull: meta.tags || '',
     sunoDisplayTags: clip.display_tags || '',
     sunoBpm: bpm ?? null,
-    sunoBpmSource: audio.bpm ? 'audio' : (bpmTag ? 'tag' : null),
+    sunoBpmSource: audio.bpm ? 'audio' : bpmTag ? 'tag' : null,
     sunoKey: key || null,
     sunoKeyConfidence: audio.keyConfidence ?? null,
-    sunoKeySource: audio.key ? 'audio' : (keyTag ? 'tag' : null),
+    sunoKeySource: audio.key ? 'audio' : keyTag ? 'tag' : null,
     sunoModel: clip.major_model_version || null,
     sunoModelName: clip.model_name || null,
     sunoDuration: typeof meta.duration === 'number' ? +meta.duration.toFixed(2) : null,
@@ -129,37 +136,39 @@ entries.sort((a, b) => a.id.localeCompare(b.id));
 
 // Render the TS module. Pretty-printed for readability — gzip-friendly so
 // no size win from compacting.
-const lit = entries.map(e => {
-  const lines = [
-    `  '${e.id}': {`,
-    `    sunoId: '${e.sunoId}',`,
-    `    sunoTitle: ${tsString(e.sunoTitle)},`,
-    `    sunoConcept: ${tsString(e.sunoConcept)},`,
-    `    sunoStyle: ${tsString(e.sunoStyle)},`,
-    `    sunoStyleFull: ${tsString(e.sunoStyleFull)},`,
-    `    sunoDisplayTags: ${tsString(e.sunoDisplayTags)},`,
-    `    sunoBpm: ${e.sunoBpm ?? 'null'},`,
-    `    sunoBpmSource: ${tsString(e.sunoBpmSource)},`,
-    `    sunoKey: ${tsString(e.sunoKey)},`,
-    `    sunoKeyConfidence: ${e.sunoKeyConfidence ?? 'null'},`,
-    `    sunoKeySource: ${tsString(e.sunoKeySource)},`,
-    `    sunoModel: ${tsString(e.sunoModel)},`,
-    `    sunoModelName: ${tsString(e.sunoModelName)},`,
-    `    sunoDuration: ${e.sunoDuration ?? 'null'},`,
-    `    sunoHasHook: ${e.sunoHasHook},`,
-    `    sunoIsRemix: ${e.sunoIsRemix},`,
-    `    sunoIsInstrumental: ${e.sunoIsInstrumental},`,
-    `    sunoExplicit: ${e.sunoExplicit},`,
-    `    sunoCreatedAt: ${tsString(e.sunoCreatedAt)},`,
-    `    sunoAudioUrl: ${tsString(e.sunoAudioUrl)},`,
-    `    sunoImageUrl: ${tsString(e.sunoImageUrl)},`,
-    `    sunoVideoUrl: ${tsString(e.sunoVideoUrl)},`,
-    `    sunoHandle: ${tsString(e.sunoHandle)},`,
-    `    sunoUrl: '${e.sunoUrl}'`,
-    `  }`
-  ];
-  return lines.join('\n');
-}).join(',\n');
+const lit = entries
+  .map(e => {
+    const lines = [
+      `  '${e.id}': {`,
+      `    sunoId: '${e.sunoId}',`,
+      `    sunoTitle: ${tsString(e.sunoTitle)},`,
+      `    sunoConcept: ${tsString(e.sunoConcept)},`,
+      `    sunoStyle: ${tsString(e.sunoStyle)},`,
+      `    sunoStyleFull: ${tsString(e.sunoStyleFull)},`,
+      `    sunoDisplayTags: ${tsString(e.sunoDisplayTags)},`,
+      `    sunoBpm: ${e.sunoBpm ?? 'null'},`,
+      `    sunoBpmSource: ${tsString(e.sunoBpmSource)},`,
+      `    sunoKey: ${tsString(e.sunoKey)},`,
+      `    sunoKeyConfidence: ${e.sunoKeyConfidence ?? 'null'},`,
+      `    sunoKeySource: ${tsString(e.sunoKeySource)},`,
+      `    sunoModel: ${tsString(e.sunoModel)},`,
+      `    sunoModelName: ${tsString(e.sunoModelName)},`,
+      `    sunoDuration: ${e.sunoDuration ?? 'null'},`,
+      `    sunoHasHook: ${e.sunoHasHook},`,
+      `    sunoIsRemix: ${e.sunoIsRemix},`,
+      `    sunoIsInstrumental: ${e.sunoIsInstrumental},`,
+      `    sunoExplicit: ${e.sunoExplicit},`,
+      `    sunoCreatedAt: ${tsString(e.sunoCreatedAt)},`,
+      `    sunoAudioUrl: ${tsString(e.sunoAudioUrl)},`,
+      `    sunoImageUrl: ${tsString(e.sunoImageUrl)},`,
+      `    sunoVideoUrl: ${tsString(e.sunoVideoUrl)},`,
+      `    sunoHandle: ${tsString(e.sunoHandle)},`,
+      `    sunoUrl: '${e.sunoUrl}'`,
+      `  }`
+    ];
+    return lines.join('\n');
+  })
+  .join(',\n');
 
 function tsString(v) {
   if (v === null || v === undefined) return 'null';
@@ -216,7 +225,9 @@ const footer = '\n};\n';
 
 await writeFile(OUT_PATH, header + lit + footer, 'utf8');
 
-console.log(`✓ Wrote ${entries.length} entries to src/suno-meta.ts (${(Buffer.byteLength(header + lit + footer) / 1024).toFixed(1)} KB)`);
+console.log(
+  `✓ Wrote ${entries.length} entries to src/suno-meta.ts (${(Buffer.byteLength(header + lit + footer) / 1024).toFixed(1)} KB)`
+);
 if (unmatched.length) {
   console.log(`\n⚠ No Suno match for ${unmatched.length} track(s):`);
   for (const id of unmatched) console.log(`  - ${id}`);
@@ -234,5 +245,7 @@ for (const e of entries) {
   const m = e.sunoModel || 'unknown';
   modelHist.set(m, (modelHist.get(m) || 0) + 1);
 }
-console.log(`\nCoverage: BPM=${withBpm}/${entries.length}, Key=${withKey}/${entries.length}, Concept=${withConcept}/${entries.length}, Image=${withImage}/${entries.length}`);
+console.log(
+  `\nCoverage: BPM=${withBpm}/${entries.length}, Key=${withKey}/${entries.length}, Concept=${withConcept}/${entries.length}, Image=${withImage}/${entries.length}`
+);
 console.log(`Models: ${[...modelHist].map(([k, v]) => `${k}(${v})`).join(', ')}`);

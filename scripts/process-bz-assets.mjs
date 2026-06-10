@@ -29,8 +29,8 @@ const { data: srcData, info: srcInfo } = sourceRaw;
 const w = srcInfo.width;
 const h = srcInfo.height;
 const px = Buffer.alloc(w * h * 4);
-const HARD_THRESHOLD = 232;   // luminance above this → fully transparent
-const SOFT_THRESHOLD = 200;   // luminance between SOFT..HARD → ramped alpha
+const HARD_THRESHOLD = 232; // luminance above this → fully transparent
+const SOFT_THRESHOLD = 200; // luminance between SOFT..HARD → ramped alpha
 for (let i = 0; i < srcData.length; i += 4) {
   const r = srcData[i];
   const g = srcData[i + 1];
@@ -61,8 +61,11 @@ const padX = Math.round((tw ?? 0) * 0.02);
 const padY = Math.round((th ?? 0) * 0.02);
 await sharp(trimmed)
   .extend({
-    top: padY, bottom: padY, left: padX, right: padX,
-    background: { r: 0, g: 0, b: 0, alpha: 0 },
+    top: padY,
+    bottom: padY,
+    left: padX,
+    right: padX,
+    background: { r: 0, g: 0, b: 0, alpha: 0 }
   })
   .png({ compressionLevel: 9, quality: 95 })
   .toFile('public/art/bz-icon.png');
@@ -96,7 +99,7 @@ const maskable = await sharp(appMaster)
     bottom: (1024 - maskableInner) / 2,
     left: (1024 - maskableInner) / 2,
     right: (1024 - maskableInner) / 2,
-    background: { r: 6, g: 6, b: 16, alpha: 1 },
+    background: { r: 6, g: 6, b: 16, alpha: 1 }
   })
   .png({ compressionLevel: 9, quality: 95 })
   .toBuffer();

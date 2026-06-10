@@ -46,8 +46,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'f341b28c-5ee1-4b92-956f-e9090c3968e5',
     sunoTitle: 'Afghanistan Mercy',
     sunoConcept: null,
-    sunoStyle: 'Cinematic gospel trap fused with conscious boom bap, 140 BPM, half-time trap bounce, melodic Atlanta street-rap energy, fast conversational pain-rap verses, slippery triplet flows',
-    sunoStyleFull: 'Cinematic gospel trap fused with conscious boom bap, 140 BPM, half-time trap bounce, melodic Atlanta street-rap energy, fast conversational pain-rap verses, slippery triplet flows, punch-in ad-libs, humble flexes, spiritual pressure, redemption themes, and luxury-struggle emotion.\n\nMale vocal: melodic Southern trap rapper with urgent street-preacher delivery, rapid pocket switches, pain-filled but confident tone, clean punch-ins, breathless momentum, motivational bars, and “made it through the storm” energy.\n\nFemale vocal: soulful piano-led R&B/gospel powerhouse, rich alto-to-belt dynamics, emotional ad-libs, church-trained runs, warm harmonies, and a soaring hook that feels like prayer turning into victory.\n\nProduction: huge talking 808s that answer the vocals, clever kick pauses, rolling hi-hats, brushed breakbeat ghosts, live rimshot snares, offbeat gospel handclaps, chopped choir stabs, church organ swells, warm Rhodes chords, tense piano ostinato, detuned music box counter-melody,',
+    sunoStyle:
+      'Cinematic gospel trap fused with conscious boom bap, 140 BPM, half-time trap bounce, melodic Atlanta street-rap energy, fast conversational pain-rap verses, slippery triplet flows',
+    sunoStyleFull:
+      'Cinematic gospel trap fused with conscious boom bap, 140 BPM, half-time trap bounce, melodic Atlanta street-rap energy, fast conversational pain-rap verses, slippery triplet flows, punch-in ad-libs, humble flexes, spiritual pressure, redemption themes, and luxury-struggle emotion.\n\nMale vocal: melodic Southern trap rapper with urgent street-preacher delivery, rapid pocket switches, pain-filled but confident tone, clean punch-ins, breathless momentum, motivational bars, and “made it through the storm” energy.\n\nFemale vocal: soulful piano-led R&B/gospel powerhouse, rich alto-to-belt dynamics, emotional ad-libs, church-trained runs, warm harmonies, and a soaring hook that feels like prayer turning into victory.\n\nProduction: huge talking 808s that answer the vocals, clever kick pauses, rolling hi-hats, brushed breakbeat ghosts, live rimshot snares, offbeat gospel handclaps, chopped choir stabs, church organ swells, warm Rhodes chords, tense piano ostinato, detuned music box counter-melody,',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, Southern trap',
     sunoBpm: 137.3,
     sunoBpmSource: 'audio',
@@ -72,8 +74,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'd7234d41-b778-415a-b77a-d372a016822b',
     sunoTitle: 'Almost Heartbreak',
     sunoConcept: null,
-    sunoStyle: 'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, sampled Rhodes chords',
-    sunoStyleFull: 'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, sampled Rhodes chords, tense piano ostinato, church organ accents, detuned music box, 808 sub drops, live rimshot snares, gospel handclaps, warped tape echo, wide plate reverb, half-time trap groove, brushed breakbeat layers, chant hook vocals, gritty melodic flow, triumphant escape, explosive outro',
+    sunoStyle:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, sampled Rhodes chords',
+    sunoStyleFull:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, sampled Rhodes chords, tense piano ostinato, church organ accents, detuned music box, 808 sub drops, live rimshot snares, gospel handclaps, warped tape echo, wide plate reverb, half-time trap groove, brushed breakbeat layers, chant hook vocals, gritty melodic flow, triumphant escape, explosive outro',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, cinematic trap',
     sunoBpm: 71.4,
     sunoBpmSource: 'audio',
@@ -97,9 +101,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'atlantis-crossfire': {
     sunoId: 'a3f8db90-8663-45fb-a528-0e329b84d16d',
     sunoTitle: 'Atlantis Crossfire',
-    sunoConcept: 'make a song about winning by sending nanobots in time to take Jesus Christ off the cross and turn him into the God of Atlantis',
-    sunoStyle: 'Dark synth-pop with propulsive four-on-the-floor drums, rubbery bass pulses, and tense arpeggiated synths; verse rides sparse and icy, pre-chorus opens with rising toms and filtered choir pads, chorus hits with stacked vocal doubles and a blunt chant hook. Use glitchy stutters, reversed swells into each drop',
-    sunoStyleFull: 'Dark synth-pop with propulsive four-on-the-floor drums, rubbery bass pulses, and tense arpeggiated synths; verse rides sparse and icy, pre-chorus opens with rising toms and filtered choir pads, chorus hits with stacked vocal doubles and a blunt chant hook. Use glitchy stutters, reversed swells into each drop, and a brief underwater break with air-bubble textures. Bright, glossy, and cinematic with a hard-edged club mix.',
+    sunoConcept:
+      'make a song about winning by sending nanobots in time to take Jesus Christ off the cross and turn him into the God of Atlantis',
+    sunoStyle:
+      'Dark synth-pop with propulsive four-on-the-floor drums, rubbery bass pulses, and tense arpeggiated synths; verse rides sparse and icy, pre-chorus opens with rising toms and filtered choir pads, chorus hits with stacked vocal doubles and a blunt chant hook. Use glitchy stutters, reversed swells into each drop',
+    sunoStyleFull:
+      'Dark synth-pop with propulsive four-on-the-floor drums, rubbery bass pulses, and tense arpeggiated synths; verse rides sparse and icy, pre-chorus opens with rising toms and filtered choir pads, chorus hits with stacked vocal doubles and a blunt chant hook. Use glitchy stutters, reversed swells into each drop, and a brief underwater break with air-bubble textures. Bright, glossy, and cinematic with a hard-edged club mix.',
     sunoDisplayTags: 'dark synth-pop, electronic dance music (EDM), club (four-on-the-floor)',
     sunoBpm: 130.3,
     sunoBpmSource: 'audio',
@@ -124,8 +131,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'b57058cf-b1c3-4ac9-b153-902e7a431151',
     sunoTitle: 'Banyan Ember Light',
     sunoConcept: null,
-    sunoStyle: 'Respectful Hindu forest-village devotional anthem in English, earthy jungle atmosphere, village chorus, call-and-response male and female vocals, hand drums, dholak',
-    sunoStyleFull: 'Respectful Hindu forest-village devotional anthem in English, earthy jungle atmosphere, village chorus, call-and-response male and female vocals, hand drums, dholak, tabla, mridangam, bansuri flute, tanpura drone, ankle bells, claps, monsoon ambience, birds, river sounds, warm tribal-folk rhythm, cinematic spiritual build, uplifting but ancient, sacred and powerful. Theme: dharma, karma, moksha, Atman, Brahman, Krishna, Shiva, Devi, Ganesha, Hanuman, Ganga, village life, jungle wisdom, light defeating illusion. 100 BPM, hypnotic groove, chantable hook, big final chorus',
+    sunoStyle:
+      'Respectful Hindu forest-village devotional anthem in English, earthy jungle atmosphere, village chorus, call-and-response male and female vocals, hand drums, dholak',
+    sunoStyleFull:
+      'Respectful Hindu forest-village devotional anthem in English, earthy jungle atmosphere, village chorus, call-and-response male and female vocals, hand drums, dholak, tabla, mridangam, bansuri flute, tanpura drone, ankle bells, claps, monsoon ambience, birds, river sounds, warm tribal-folk rhythm, cinematic spiritual build, uplifting but ancient, sacred and powerful. Theme: dharma, karma, moksha, Atman, Brahman, Krishna, Shiva, Devi, Ganesha, Hanuman, Ganga, village life, jungle wisdom, light defeating illusion. 100 BPM, hypnotic groove, chantable hook, big final chorus',
     sunoDisplayTags: 'devotional anthem, tribal folk, cinematic spiritual, world music',
     sunoBpm: 98.7,
     sunoBpmSource: 'audio',
@@ -150,8 +159,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '543363b2-9425-4fb9-afe8-28db46f2cb47',
     sunoTitle: 'Bermuda Slipstream',
     sunoConcept: 'Make a song about sailing away on a yacht, to find a wormhole in the Bermuda triangle',
-    sunoStyle: 'Pop-rock with driving midtempo swing, tight palm-muted guitars, buoyant bass, and punchy live drums; verse rides a restless sea-shanty pulse, pre-chorus strips to toms and a rising synth whistle, chorus opens wide with stacked harmonies and gang vocal chants. Lead vocal stays close and urgent in verses',
-    sunoStyleFull: 'Pop-rock with driving midtempo swing, tight palm-muted guitars, buoyant bass, and punchy live drums; verse rides a restless sea-shanty pulse, pre-chorus strips to toms and a rising synth whistle, chorus opens wide with stacked harmonies and gang vocal chants. Lead vocal stays close and urgent in verses, double-tracked on hooks with airy delay throws. Salt-spray risers, reversed wave swells, and a sudden low-end drop before the final chorus. Bright, cinematic, and glossy with a hard-edged punch.',
+    sunoStyle:
+      'Pop-rock with driving midtempo swing, tight palm-muted guitars, buoyant bass, and punchy live drums; verse rides a restless sea-shanty pulse, pre-chorus strips to toms and a rising synth whistle, chorus opens wide with stacked harmonies and gang vocal chants. Lead vocal stays close and urgent in verses',
+    sunoStyleFull:
+      'Pop-rock with driving midtempo swing, tight palm-muted guitars, buoyant bass, and punchy live drums; verse rides a restless sea-shanty pulse, pre-chorus strips to toms and a rising synth whistle, chorus opens wide with stacked harmonies and gang vocal chants. Lead vocal stays close and urgent in verses, double-tracked on hooks with airy delay throws. Salt-spray risers, reversed wave swells, and a sudden low-end drop before the final chorus. Bright, cinematic, and glossy with a hard-edged punch.',
     sunoDisplayTags: 'pop-rock, indie rock, cinematic pop',
     sunoBpm: 133.6,
     sunoBpmSource: 'audio',
@@ -176,8 +187,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'b85ffac1-3cbb-4b2c-a622-b6f02bd34fcb',
     sunoTitle: 'Birch-Swing Heaven',
     sunoConcept: null,
-    sunoStyle: 'Cinematic folk-rap gospel-trap with a Robert Frost “Birches” theme, long instrumental intro, emotional acoustic guitar, soft piano, wind through birch trees, birds',
-    sunoStyleFull: 'Cinematic folk-rap gospel-trap with a Robert Frost “Birches” theme, long instrumental intro, emotional acoustic guitar, soft piano, wind through birch trees, birds, airy flute, warm strings, choir pads, subtle 808s, crisp hi-hats, and huge cinematic drops.\n\nStart with a melodic Atlanta-trap male rap intro: soft Auto-Tune hums, whispered ad-libs, filtered piano, heartbeat 808, rising choir, then a hard bass drop into a reflective rap verse.\n\nAdd a female pop-punk / alt-rock chorus vocal: powerful, emotional, bright, soaring, slightly raspy, arena-ready, backed by live drums, distorted guitars, choir pads, and swelling strings.\n\nStructure:\nInstrumental Intro: acoustic guitar, wind, piano, flute\nMale Rap Intro: melodic trap vocal, ad-libs, rising 808\nDrop 1: heavy 808 + hi-hats + piano\nVerse: reflective folk-rap about climbing birch trees to escape pain\nFemale Chorus: huge pop-punk hook about touching heaven then coming back to earth\nInstrumental Bridge: flute, strings, guitar, birds, ch',
+    sunoStyle:
+      'Cinematic folk-rap gospel-trap with a Robert Frost “Birches” theme, long instrumental intro, emotional acoustic guitar, soft piano, wind through birch trees, birds',
+    sunoStyleFull:
+      'Cinematic folk-rap gospel-trap with a Robert Frost “Birches” theme, long instrumental intro, emotional acoustic guitar, soft piano, wind through birch trees, birds, airy flute, warm strings, choir pads, subtle 808s, crisp hi-hats, and huge cinematic drops.\n\nStart with a melodic Atlanta-trap male rap intro: soft Auto-Tune hums, whispered ad-libs, filtered piano, heartbeat 808, rising choir, then a hard bass drop into a reflective rap verse.\n\nAdd a female pop-punk / alt-rock chorus vocal: powerful, emotional, bright, soaring, slightly raspy, arena-ready, backed by live drums, distorted guitars, choir pads, and swelling strings.\n\nStructure:\nInstrumental Intro: acoustic guitar, wind, piano, flute\nMale Rap Intro: melodic trap vocal, ad-libs, rising 808\nDrop 1: heavy 808 + hi-hats + piano\nVerse: reflective folk-rap about climbing birch trees to escape pain\nFemale Chorus: huge pop-punk hook about touching heaven then coming back to earth\nInstrumental Bridge: flute, strings, guitar, birds, ch',
     sunoDisplayTags: 'cinematic folk-rap, trap, pop-punk, alt-rock',
     sunoBpm: 72.7,
     sunoBpmSource: 'audio',
@@ -202,8 +215,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '72c2706e-7e16-4402-9256-4a6556187a34',
     sunoTitle: 'Border Mercy',
     sunoConcept: null,
-    sunoStyle: 'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares',
-    sunoStyleFull: 'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares, gospel handclaps, 808 sub drops, church organ accents, sampled Rhodes chords, tense piano ostinato, detuned music box, choir stabs, warped tape echo, wide plate reverb, tape saturation, near collapse dynamics, apocalyptic urgency',
+    sunoStyle:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares',
+    sunoStyleFull:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares, gospel handclaps, 808 sub drops, church organ accents, sampled Rhodes chords, tense piano ostinato, detuned music box, choir stabs, warped tape echo, wide plate reverb, tape saturation, near collapse dynamics, apocalyptic urgency',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, gospel-leaning hip hop',
     sunoBpm: 71.7,
     sunoBpmSource: 'audio',
@@ -228,8 +243,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'fb9b21d2-ab3a-4f5f-96ac-e162b7516507',
     sunoTitle: 'Breathe Out Clean',
     sunoConcept: null,
-    sunoStyle: 'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, tense piano ostinato',
-    sunoStyleFull: 'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, tense piano ostinato, detuned music box, 808 sub drops, live rimshot snares, warped tape echo, wide plate reverb, male rap vocals, gritty melodic flow, chant hook vocals, triumphant escape, paranoid urgency, dramatic beat drop, explosive outro',
+    sunoStyle:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, tense piano ostinato',
+    sunoStyleFull:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, tense piano ostinato, detuned music box, 808 sub drops, live rimshot snares, warped tape echo, wide plate reverb, male rap vocals, gritty melodic flow, chant hook vocals, triumphant escape, paranoid urgency, dramatic beat drop, explosive outro',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, trap',
     sunoBpm: 71.8,
     sunoBpmSource: 'audio',
@@ -254,8 +271,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '44c6767e-edf3-4311-a776-52014304d3fd',
     sunoTitle: 'Brick City Near',
     sunoConcept: null,
-    sunoStyle: 'Melodic trap rap anthem, modern Atlanta-adjacent flow, two male rapper duo, smooth Auto-Tune hook, urgent street-sermon energy, Newark Brick City theme',
-    sunoStyleFull: 'Melodic trap rap anthem, modern Atlanta-adjacent flow, two male rapper duo, smooth Auto-Tune hook, urgent street-sermon energy, Newark Brick City theme, dark piano, cinematic choir pads, heavy 808s, crisp hi-hat rolls, sharp claps, gospel undertones, intellectual redemption lyrics, dense internal rhymes, chantable chorus, apocalyptic but hopeful, 142 BPM, minor key, huge final hook. Theme: inheriting the knowledge of the greats, taking accountability for everyone, fixing the world in 24 to 72 hours, Brick City rising from pain into grace',
+    sunoStyle:
+      'Melodic trap rap anthem, modern Atlanta-adjacent flow, two male rapper duo, smooth Auto-Tune hook, urgent street-sermon energy, Newark Brick City theme',
+    sunoStyleFull:
+      'Melodic trap rap anthem, modern Atlanta-adjacent flow, two male rapper duo, smooth Auto-Tune hook, urgent street-sermon energy, Newark Brick City theme, dark piano, cinematic choir pads, heavy 808s, crisp hi-hat rolls, sharp claps, gospel undertones, intellectual redemption lyrics, dense internal rhymes, chantable chorus, apocalyptic but hopeful, 142 BPM, minor key, huge final hook. Theme: inheriting the knowledge of the greats, taking accountability for everyone, fixing the world in 24 to 72 hours, Brick City rising from pain into grace',
     sunoDisplayTags: 'melodic trap rap, trap, gospel-tinged hip hop',
     sunoBpm: 71.4,
     sunoBpmSource: 'audio',
@@ -280,8 +299,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'a6d832b6-69ed-4b63-9703-ba4f3c3f0b57',
     sunoTitle: 'CBO Pen',
     sunoConcept: null,
-    sunoStyle: 'Hard trap, ~148 BPM, half-time switch on hook 2. Cinematic horns over sub-808s, vinyl crackle, triplet hat rolls, gospel choir buried in the back like a Treasury vault echo. Lead vocal cocky',
-    sunoStyleFull: 'Hard trap, ~148 BPM, half-time switch on hook 2. Cinematic horns over sub-808s, vinyl crackle, triplet hat rolls,\n  gospel choir buried in the back like a Treasury vault echo. Lead vocal cocky, raspy, dry — Future swagger, Kanye\n  conviction, Kendrick precision on the numbers. Adlibs whispered close-mic. No drug-haze synths. Hook 3 drops drums\n  for choir-only over a single 808 swell, then slams back in twice as heavy. Outro: news-anchor sample fading.',
+    sunoStyle:
+      'Hard trap, ~148 BPM, half-time switch on hook 2. Cinematic horns over sub-808s, vinyl crackle, triplet hat rolls, gospel choir buried in the back like a Treasury vault echo. Lead vocal cocky',
+    sunoStyleFull:
+      'Hard trap, ~148 BPM, half-time switch on hook 2. Cinematic horns over sub-808s, vinyl crackle, triplet hat rolls,\n  gospel choir buried in the back like a Treasury vault echo. Lead vocal cocky, raspy, dry — Future swagger, Kanye\n  conviction, Kendrick precision on the numbers. Adlibs whispered close-mic. No drug-haze synths. Hook 3 drops drums\n  for choir-only over a single 808 swell, then slams back in twice as heavy. Outro: news-anchor sample fading.',
     sunoDisplayTags: 'hard trap, hip hop, experimental rap',
     sunoBpm: 75.4,
     sunoBpmSource: 'audio',
@@ -305,9 +326,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'chef-lu-stew': {
     sunoId: '7a482484-f24a-43d8-89fc-83be5114e571',
     sunoTitle: 'Chef Lu Stew',
-    sunoConcept: 'gringey dope lit about chef Lu cooking up the best stew as a brand new child of god feeding other children who do their grind every day in any kind of way as long as they say them free meals coming from St. John\'s',
-    sunoStyle: 'Gospel hip-hop with a head-nodding boom-bap groove and clipped handclaps, dusty soul chops in the verses, a stripped pre-chorus with choir pads and clinking kitchen percussion, then a chorus that opens with stacked gang vocals and warm organ stabs. Close-mic lead vocal with gritty doubles on key lines, delay throws on “free meals” and “St. John’s, ” plus spoon taps',
-    sunoStyleFull: 'Gospel hip-hop with a head-nodding boom-bap groove and clipped handclaps, dusty soul chops in the verses, a stripped pre-chorus with choir pads and clinking kitchen percussion, then a chorus that opens with stacked gang vocals and warm organ stabs. Close-mic lead vocal with gritty doubles on key lines, delay throws on “free meals” and “St. John’s,” plus spoon taps, simmer pops, and a quick riser into each hook. Bright, punchy, communal mix with a vintage Sunday-service glow.',
+    sunoConcept:
+      "gringey dope lit about chef Lu cooking up the best stew as a brand new child of god feeding other children who do their grind every day in any kind of way as long as they say them free meals coming from St. John's",
+    sunoStyle:
+      'Gospel hip-hop with a head-nodding boom-bap groove and clipped handclaps, dusty soul chops in the verses, a stripped pre-chorus with choir pads and clinking kitchen percussion, then a chorus that opens with stacked gang vocals and warm organ stabs. Close-mic lead vocal with gritty doubles on key lines, delay throws on “free meals” and “St. John’s, ” plus spoon taps',
+    sunoStyleFull:
+      'Gospel hip-hop with a head-nodding boom-bap groove and clipped handclaps, dusty soul chops in the verses, a stripped pre-chorus with choir pads and clinking kitchen percussion, then a chorus that opens with stacked gang vocals and warm organ stabs. Close-mic lead vocal with gritty doubles on key lines, delay throws on “free meals” and “St. John’s,” plus spoon taps, simmer pops, and a quick riser into each hook. Bright, punchy, communal mix with a vintage Sunday-service glow.',
     sunoDisplayTags: 'gospel hip-hop, boom-bap, soul',
     sunoBpm: 88.7,
     sunoBpmSource: 'audio',
@@ -332,8 +356,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'd4c07e01-002c-4191-92f2-ee665a7c126d',
     sunoTitle: 'Chimba Precisa',
     sunoConcept: null,
-    sunoStyle: 'Quiet hard trap at 140 BPM, half-time switch on the second hook. Minimal sub 808 with detuned slides, sparse triplet hat rolls, gritty Memphis-style snare, vinyl crackle, and one gospel-tinged choir stab on the downbeat. Dry raspy lead vocal',
-    sunoStyleFull: 'Quiet hard trap at 140 BPM, half-time switch on the second hook. Minimal sub 808 with detuned slides, sparse triplet hat rolls, gritty Memphis-style snare, vinyl crackle, and one gospel-tinged choir stab on the downbeat. Dry raspy lead vocal, whispered close-mic adlibs, no auto-tune. Final hook strips to choir only, then slams back in.',
+    sunoStyle:
+      'Quiet hard trap at 140 BPM, half-time switch on the second hook. Minimal sub 808 with detuned slides, sparse triplet hat rolls, gritty Memphis-style snare, vinyl crackle, and one gospel-tinged choir stab on the downbeat. Dry raspy lead vocal',
+    sunoStyleFull:
+      'Quiet hard trap at 140 BPM, half-time switch on the second hook. Minimal sub 808 with detuned slides, sparse triplet hat rolls, gritty Memphis-style snare, vinyl crackle, and one gospel-tinged choir stab on the downbeat. Dry raspy lead vocal, whispered close-mic adlibs, no auto-tune. Final hook strips to choir only, then slams back in.',
     sunoDisplayTags: 'trap, 140 BPM, dark minimalist hip-hop',
     sunoBpm: 70.6,
     sunoBpmSource: 'audio',
@@ -358,8 +384,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'a0d592f2-bb6d-4b52-a1d4-8e5f790a66f2',
     sunoTitle: 'Chrome Mercy Lift',
     sunoConcept: null,
-    sunoStyle: 'cinematic gospel trap, conscious boom bap, 78 BPM, half-time trap bounce, projected rap vocals, chant hook refrains',
-    sunoStyleFull: 'cinematic gospel trap, conscious boom bap, 78 BPM, half-time trap bounce, projected rap vocals, chant hook refrains, breathless ad-libs, warm Rhodes chords, church organ stabs, chopped choir stabs, tense piano ostinato, talking 808s, brushed breakbeat ghosts, live rimshot snares, offbeat gospel handclaps, rolling hi-hats, tape saturation, wide stereo mix, bathroom reverb, call-and-response energy',
+    sunoStyle:
+      'cinematic gospel trap, conscious boom bap, 78 BPM, half-time trap bounce, projected rap vocals, chant hook refrains',
+    sunoStyleFull:
+      'cinematic gospel trap, conscious boom bap, 78 BPM, half-time trap bounce, projected rap vocals, chant hook refrains, breathless ad-libs, warm Rhodes chords, church organ stabs, chopped choir stabs, tense piano ostinato, talking 808s, brushed breakbeat ghosts, live rimshot snares, offbeat gospel handclaps, rolling hi-hats, tape saturation, wide stereo mix, bathroom reverb, call-and-response energy',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, half-time trap bounce',
     sunoBpm: 77.3,
     sunoBpmSource: 'audio',
@@ -384,8 +412,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '71cc779a-a853-43b7-892b-40950abbb58c',
     sunoTitle: 'Eisenhower Matrix',
     sunoConcept: null,
-    sunoStyle: 'hard cinematic trap 138 bpm half time on hook 2 and final hook open with a minor key piano flip of hail to the chief four somber chords then drop sub 808s triplet hat rolls vinyl crackle a single brass stab on the one harlem gospel choir buried low through verses full chest on the hooks lead vocal raspy dry cocky but grave kendrick precision on the names future cadence on the punchlines Hip Hop, Rap, Alternative Hip Hop, Pop Rap, Experimental gospel on the closes adlibs whispered close mic aurelius yeah mandela yeah hook 3 strips drums for choir piano alone then slams back twice as heavy outro a clipped eisenhower farewell sample fading',
-    sunoStyleFull: 'hard cinematic trap 138 bpm half time on hook 2 and final hook open with a minor key piano flip of hail to the chief four somber chords then drop sub 808s triplet hat rolls vinyl crackle a single brass stab on the one harlem gospel choir buried low through verses full chest on the hooks lead vocal raspy dry cocky but grave kendrick precision on the names future cadence on the punchlines Hip Hop, Rap, Alternative Hip Hop, Pop Rap, Experimental gospel on the closes adlibs whispered close mic aurelius yeah mandela yeah hook 3 strips drums for choir piano alone then slams back twice as heavy outro a clipped eisenhower farewell sample fading',
+    sunoStyle:
+      'hard cinematic trap 138 bpm half time on hook 2 and final hook open with a minor key piano flip of hail to the chief four somber chords then drop sub 808s triplet hat rolls vinyl crackle a single brass stab on the one harlem gospel choir buried low through verses full chest on the hooks lead vocal raspy dry cocky but grave kendrick precision on the names future cadence on the punchlines Hip Hop, Rap, Alternative Hip Hop, Pop Rap, Experimental gospel on the closes adlibs whispered close mic aurelius yeah mandela yeah hook 3 strips drums for choir piano alone then slams back twice as heavy outro a clipped eisenhower farewell sample fading',
+    sunoStyleFull:
+      'hard cinematic trap 138 bpm half time on hook 2 and final hook open with a minor key piano flip of hail to the chief four somber chords then drop sub 808s triplet hat rolls vinyl crackle a single brass stab on the one harlem gospel choir buried low through verses full chest on the hooks lead vocal raspy dry cocky but grave kendrick precision on the names future cadence on the punchlines Hip Hop, Rap, Alternative Hip Hop, Pop Rap, Experimental gospel on the closes adlibs whispered close mic aurelius yeah mandela yeah hook 3 strips drums for choir piano alone then slams back twice as heavy outro a clipped eisenhower farewell sample fading',
     sunoDisplayTags: 'cinematic trap, hip hop, experimental gospel',
     sunoBpm: 71.4,
     sunoBpmSource: 'audio',
@@ -410,8 +440,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '5804bd2d-04f9-4414-8713-c9ee032ac364',
     sunoTitle: 'Federal Reserve Trash',
     sunoConcept: null,
-    sunoStyle: 'chill bump inspired hip hop with dusty boom bap drums chopped vinyl samples crunchy breakbeats and a wobbling upright bass loose off kilter mpc swing filtered horn stabs toy keyboard accents and occasional turntable scratches chorus built from simple crowd chant hooks layered with rough group vocals and tape saturation now with a bit more Hip Hop, Trap introduction and this too christian gangster trap 80 bpm b flat minor dusty soul sample chop with detuned organ stab distorted 808 sub on the one half time trap drums knock snare on three vinyl crackle bed sneering mid range vocal with tape saturation sparse pitched down ad libs low mid grit no choir no melody filigree',
-    sunoStyleFull: 'chill bump inspired hip hop with dusty boom bap drums chopped vinyl samples crunchy breakbeats and a wobbling upright bass loose off kilter mpc swing filtered horn stabs toy keyboard accents and occasional turntable scratches chorus built from simple crowd chant hooks layered with rough group vocals and tape saturation now with a bit more Hip Hop, Trap introduction and this too christian gangster trap 80 bpm b flat minor dusty soul sample chop with detuned organ stab distorted 808 sub on the one half time trap drums knock snare on three vinyl crackle bed sneering mid range vocal with tape saturation sparse pitched down ad libs low mid grit no choir no melody filigree',
+    sunoStyle:
+      'chill bump inspired hip hop with dusty boom bap drums chopped vinyl samples crunchy breakbeats and a wobbling upright bass loose off kilter mpc swing filtered horn stabs toy keyboard accents and occasional turntable scratches chorus built from simple crowd chant hooks layered with rough group vocals and tape saturation now with a bit more Hip Hop, Trap introduction and this too christian gangster trap 80 bpm b flat minor dusty soul sample chop with detuned organ stab distorted 808 sub on the one half time trap drums knock snare on three vinyl crackle bed sneering mid range vocal with tape saturation sparse pitched down ad libs low mid grit no choir no melody filigree',
+    sunoStyleFull:
+      'chill bump inspired hip hop with dusty boom bap drums chopped vinyl samples crunchy breakbeats and a wobbling upright bass loose off kilter mpc swing filtered horn stabs toy keyboard accents and occasional turntable scratches chorus built from simple crowd chant hooks layered with rough group vocals and tape saturation now with a bit more Hip Hop, Trap introduction and this too christian gangster trap 80 bpm b flat minor dusty soul sample chop with detuned organ stab distorted 808 sub on the one half time trap drums knock snare on three vinyl crackle bed sneering mid range vocal with tape saturation sparse pitched down ad libs low mid grit no choir no melody filigree',
     sunoDisplayTags: 'hip hop, boom bap, trap, christian gangster trap',
     sunoBpm: 86.2,
     sunoBpmSource: 'audio',
@@ -435,9 +467,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'green-beans-mean': {
     sunoId: '2d556f3a-3e34-40af-a099-107d17a0db6a',
     sunoTitle: 'Green Beans Mean',
-    sunoConcept: 'Make a song about how them green beans make you mean, to do your thing, and win like you\'re retarded, road painted, an ode to the homeless poets, scientists, and philosophers that spawn from an infinite pool of glory coming about them green beans and mashed potatoes, they mean, at least if they at St. John\'s my bro',
-    sunoStyle: 'Boom-bap hip-hop with swung drums, dusty upright bass, chopped soul vocal stabs, and a stomping backbeat; verse rides tight and talky, pre-chorus lifts with snare rolls and filtered choir, chorus lands on a chanty hook with gang vocals and short delay throws. Add jar-lid percussion',
-    sunoStyleFull: 'Boom-bap hip-hop with swung drums, dusty upright bass, chopped soul vocal stabs, and a stomping backbeat; verse rides tight and talky, pre-chorus lifts with snare rolls and filtered choir, chorus lands on a chanty hook with gang vocals and short delay throws. Add jar-lid percussion, reversed horn swells into transitions, and a warm cracked-vinyl mix with close-mic lead vocal.',
+    sunoConcept:
+      "Make a song about how them green beans make you mean, to do your thing, and win like you're retarded, road painted, an ode to the homeless poets, scientists, and philosophers that spawn from an infinite pool of glory coming about them green beans and mashed potatoes, they mean, at least if they at St. John's my bro",
+    sunoStyle:
+      'Boom-bap hip-hop with swung drums, dusty upright bass, chopped soul vocal stabs, and a stomping backbeat; verse rides tight and talky, pre-chorus lifts with snare rolls and filtered choir, chorus lands on a chanty hook with gang vocals and short delay throws. Add jar-lid percussion',
+    sunoStyleFull:
+      'Boom-bap hip-hop with swung drums, dusty upright bass, chopped soul vocal stabs, and a stomping backbeat; verse rides tight and talky, pre-chorus lifts with snare rolls and filtered choir, chorus lands on a chanty hook with gang vocals and short delay throws. Add jar-lid percussion, reversed horn swells into transitions, and a warm cracked-vinyl mix with close-mic lead vocal.',
     sunoDisplayTags: 'boom-bap hip-hop, soul hip-hop, gritty street rap',
     sunoBpm: 87.9,
     sunoBpmSource: 'audio',
@@ -462,8 +497,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '0735fe71-b3e5-4ab6-a343-aac38e9e3e23',
     sunoTitle: 'Hobbit Kettle Fire',
     sunoConcept: null,
-    sunoStyle: 'Christian-gangster mythic-trap, 82 BPM, D minor, Celtic-tinged hammered-dulcimer melody over a tape-saturated 808, half-time trap drums, knocking 909 snare on three',
-    sunoStyleFull: 'Christian-gangster mythic-trap, 82 BPM, D minor, Celtic-tinged hammered-dulcimer melody over a tape-saturated 808,\n  half-time trap drums, knocking 909 snare on three, low men\'s-choir "oh" bedded under every hook (Howard Shore\n  register), distant Uilleann pipe drone on the verse beds, vinyl crackle, prophet-tone vocal warm and grainy, sparse\n  pitched-up child-choir harmony only on the final hook, holy-ghost reverb tail, no melody filigree on verses',
+    sunoStyle:
+      'Christian-gangster mythic-trap, 82 BPM, D minor, Celtic-tinged hammered-dulcimer melody over a tape-saturated 808, half-time trap drums, knocking 909 snare on three',
+    sunoStyleFull:
+      'Christian-gangster mythic-trap, 82 BPM, D minor, Celtic-tinged hammered-dulcimer melody over a tape-saturated 808,\n  half-time trap drums, knocking 909 snare on three, low men\'s-choir "oh" bedded under every hook (Howard Shore\n  register), distant Uilleann pipe drone on the verse beds, vinyl crackle, prophet-tone vocal warm and grainy, sparse\n  pitched-up child-choir harmony only on the final hook, holy-ghost reverb tail, no melody filigree on verses',
     sunoDisplayTags: 'Christian-gangster mythic-trap, trap, dark cinematic orchestral (mythic)',
     sunoBpm: 86.1,
     sunoBpmSource: 'audio',
@@ -488,8 +525,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'f1966a45-e942-4565-874a-78b8e19a178d',
     sunoTitle: 'Holy Steel',
     sunoConcept: null,
-    sunoStyle: 'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap bounce, warm Rhodes chords, church organ stabs',
-    sunoStyleFull: 'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap bounce, warm Rhodes chords, church organ stabs, chopped choir stabs, tense piano ostinato, talking 808s, brushed breakbeat ghosts, live rimshot snares, offbeat gospel handclaps, rolling hi-hats, tape saturation, wide stereo mix, bathroom reverb, call-and-response hook, breathless momentum, prayer to victory',
+    sunoStyle:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap bounce, warm Rhodes chords, church organ stabs',
+    sunoStyleFull:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap bounce, warm Rhodes chords, church organ stabs, chopped choir stabs, tense piano ostinato, talking 808s, brushed breakbeat ghosts, live rimshot snares, offbeat gospel handclaps, rolling hi-hats, tape saturation, wide stereo mix, bathroom reverb, call-and-response hook, breathless momentum, prayer to victory',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, gospel trap',
     sunoBpm: 70.8,
     sunoBpmSource: 'audio',
@@ -514,8 +553,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '140aa811-8c87-4d7c-a9f9-65d91130d0da',
     sunoTitle: 'Homoousios Stone',
     sunoConcept: null,
-    sunoStyle: 'east coast rap boom bap production minor key piano loop deep 808 kicks sparse hi hats preacher cadence mixed with street flow rhythmic and commanding every line lands like a sermon tempo 88 bpm dark and reverent not aggressive organ swell underneath the chorus think dmx meets kirk franklin meets nas newark grit cathedral echo on the hook no auto tune raw baritone delivery choir one shot on the outro w Hip Hop, Trap',
-    sunoStyleFull: 'east coast rap boom bap production minor key piano loop deep 808 kicks sparse hi hats preacher cadence mixed with street flow rhythmic and commanding every line lands like a sermon tempo 88 bpm dark and reverent not aggressive organ swell underneath the chorus think dmx meets kirk franklin meets nas newark grit cathedral echo on the hook no auto tune raw baritone delivery choir one shot on the outro w Hip Hop, Trap',
+    sunoStyle:
+      'east coast rap boom bap production minor key piano loop deep 808 kicks sparse hi hats preacher cadence mixed with street flow rhythmic and commanding every line lands like a sermon tempo 88 bpm dark and reverent not aggressive organ swell underneath the chorus think dmx meets kirk franklin meets nas newark grit cathedral echo on the hook no auto tune raw baritone delivery choir one shot on the outro w Hip Hop, Trap',
+    sunoStyleFull:
+      'east coast rap boom bap production minor key piano loop deep 808 kicks sparse hi hats preacher cadence mixed with street flow rhythmic and commanding every line lands like a sermon tempo 88 bpm dark and reverent not aggressive organ swell underneath the chorus think dmx meets kirk franklin meets nas newark grit cathedral echo on the hook no auto tune raw baritone delivery choir one shot on the outro w Hip Hop, Trap',
     sunoDisplayTags: 'hip hop, boom bap, trap',
     sunoBpm: 88.9,
     sunoBpmSource: 'audio',
@@ -540,8 +581,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '5624d207-682d-4c89-b57a-5bb80c7b44a9',
     sunoTitle: 'Humble Still Lit',
     sunoConcept: null,
-    sunoStyle: 'cinematic gospel trap, conscious boom bap, 85 BPM, half-time trap bounce, projected rap vocals, chant hook refrains',
-    sunoStyleFull: 'cinematic gospel trap, conscious boom bap, 85 BPM, half-time trap bounce, projected rap vocals, chant hook refrains, breathless ad-libs, warm Rhodes chords, church organ stabs, chopped choir stabs, tense piano ostinato, talking 808s, brushed breakbeat ghosts, live rimshot snares, offbeat gospel handclaps, rolling hi-hats, tape saturation, wide stereo mix, bathroom reverb, call-and-response energy',
+    sunoStyle:
+      'cinematic gospel trap, conscious boom bap, 85 BPM, half-time trap bounce, projected rap vocals, chant hook refrains',
+    sunoStyleFull:
+      'cinematic gospel trap, conscious boom bap, 85 BPM, half-time trap bounce, projected rap vocals, chant hook refrains, breathless ad-libs, warm Rhodes chords, church organ stabs, chopped choir stabs, tense piano ostinato, talking 808s, brushed breakbeat ghosts, live rimshot snares, offbeat gospel handclaps, rolling hi-hats, tape saturation, wide stereo mix, bathroom reverb, call-and-response energy',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, halftime trap',
     sunoBpm: 86.4,
     sunoBpmSource: 'audio',
@@ -566,8 +609,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '25d42ebe-baf2-411c-9684-9512b1294463',
     sunoTitle: 'Humble Thunder',
     sunoConcept: null,
-    sunoStyle: 'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, sampled Rhodes chords',
-    sunoStyleFull: 'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, sampled Rhodes chords, tense piano ostinato, church organ accents, detuned music box, 808 sub drops, live rimshot snares, gospel handclaps, warped tape echo, wide plate reverb, half-time trap groove, brushed breakbeat layers, chant hook vocals, gritty melodic flow, triumphant escape, explosive outro',
+    sunoStyle:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, sampled Rhodes chords',
+    sunoStyleFull:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, sampled Rhodes chords, tense piano ostinato, church organ accents, detuned music box, 808 sub drops, live rimshot snares, gospel handclaps, warped tape echo, wide plate reverb, half-time trap groove, brushed breakbeat layers, chant hook vocals, gritty melodic flow, triumphant escape, explosive outro',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, trap',
     sunoBpm: 70.5,
     sunoBpmSource: 'audio',
@@ -592,8 +637,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '92dbf28a-ce16-4502-8898-ebbe759bdbc7',
     sunoTitle: 'INFINITE GOOD',
     sunoConcept: null,
-    sunoStyle: 'Melodic conscious hip-hop / gospel-rap fusion with bright summer energy, soulful boom-bap drums, warm Rhodes keys, airy pads, subtle church choir harmonies, crisp 808 bass',
-    sunoStyleFull: 'Melodic conscious hip-hop / gospel-rap fusion with bright summer energy, soulful boom-bap drums, warm Rhodes keys, airy pads, subtle church choir harmonies, crisp 808 bass, bird ambience, and a catchy radio-ready hook. Mood starts reflective and cloudy, then lifts into hopeful sky-blue freedom. Vocals: confident East Coast rapper with melodic flow, poetic introspection, playful swagger, and emotional delivery. Inspired by  NF, Chill Bump, and uplifting gospel-trap, but original.\n\nTheme: waking up changed, escaping darkness, finding peace in simple daily rituals, fitness, sunlight, friendship, romance, faith, and creative freedom.\n\nStructure:\nIntro with birds chirping and soft keys → chantable chorus → long vivid rap verse → chorus returns bigger with choir layers → outro fades with birds and sunlight ambience.\n\nTempo: 92 BPM\nKey: G major / E minor\nVibe: sky blue, morning sun, spiritual recovery, playful confidence, street-to-sunrise transformation.\n\nProduction tags: soulful ',
+    sunoStyle:
+      'Melodic conscious hip-hop / gospel-rap fusion with bright summer energy, soulful boom-bap drums, warm Rhodes keys, airy pads, subtle church choir harmonies, crisp 808 bass',
+    sunoStyleFull:
+      'Melodic conscious hip-hop / gospel-rap fusion with bright summer energy, soulful boom-bap drums, warm Rhodes keys, airy pads, subtle church choir harmonies, crisp 808 bass, bird ambience, and a catchy radio-ready hook. Mood starts reflective and cloudy, then lifts into hopeful sky-blue freedom. Vocals: confident East Coast rapper with melodic flow, poetic introspection, playful swagger, and emotional delivery. Inspired by  NF, Chill Bump, and uplifting gospel-trap, but original.\n\nTheme: waking up changed, escaping darkness, finding peace in simple daily rituals, fitness, sunlight, friendship, romance, faith, and creative freedom.\n\nStructure:\nIntro with birds chirping and soft keys → chantable chorus → long vivid rap verse → chorus returns bigger with choir layers → outro fades with birds and sunlight ambience.\n\nTempo: 92 BPM\nKey: G major / E minor\nVibe: sky blue, morning sun, spiritual recovery, playful confidence, street-to-sunrise transformation.\n\nProduction tags: soulful ',
     sunoDisplayTags: 'conscious hip-hop, gospel-rap, boom-bap',
     sunoBpm: 92.1,
     sunoBpmSource: 'audio',
@@ -618,9 +665,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'b9c5b286-e8b4-455b-b2fc-f4ad02afaccc',
     sunoTitle: 'Kabul Handheld Prayer',
     sunoConcept: null,
-    sunoStyle: 'Cinematic gospel trap x conscious boom bap, 140 BPM, half-time trap pocket, melodic Atlanta street-rap energy, rapid but conversational sermon-flow verses, soulful piano-led R&B/gospel hook with powerhouse female vocal ad-libs',
-    sunoStyleFull: 'Cinematic gospel trap x conscious boom bap, 140 BPM, half-time trap pocket, melodic Atlanta street-rap energy, rapid but conversational sermon-flow verses, soulful piano-led R&B/gospel hook with powerhouse female vocal ad-libs, emotional choir lift, heavy hope, apocalyptic urgency.\n\nProduction: synced 808 responses that “talk back” to the vocals, clever bounce pockets, unexpected kick rests, brushed breakbeat ghost notes, live rimshot snares, offbeat gospel handclaps, chopped choir stabs, church organ swells, warm sampled Rhodes chords, tense piano ostinato, detuned music box counter-melody, warped tape echo, wide plate reverb, tape saturation, near-collapse dynamics.\n\nVocal direction: urgent street-preacher lead rap, melodic pain in the verses, humble confidence, spiritual recovery themes, call-and-response choir hooks, soaring soulful female chorus, stacked harmonies, emotional “church at midnight” climax.\n\nMood: wounded but victorious, hood gospel, luxury pain, repentance',
-    sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, church-leaning hip hop (street-rap) with R&B/gospel soul',
+    sunoStyle:
+      'Cinematic gospel trap x conscious boom bap, 140 BPM, half-time trap pocket, melodic Atlanta street-rap energy, rapid but conversational sermon-flow verses, soulful piano-led R&B/gospel hook with powerhouse female vocal ad-libs',
+    sunoStyleFull:
+      'Cinematic gospel trap x conscious boom bap, 140 BPM, half-time trap pocket, melodic Atlanta street-rap energy, rapid but conversational sermon-flow verses, soulful piano-led R&B/gospel hook with powerhouse female vocal ad-libs, emotional choir lift, heavy hope, apocalyptic urgency.\n\nProduction: synced 808 responses that “talk back” to the vocals, clever bounce pockets, unexpected kick rests, brushed breakbeat ghost notes, live rimshot snares, offbeat gospel handclaps, chopped choir stabs, church organ swells, warm sampled Rhodes chords, tense piano ostinato, detuned music box counter-melody, warped tape echo, wide plate reverb, tape saturation, near-collapse dynamics.\n\nVocal direction: urgent street-preacher lead rap, melodic pain in the verses, humble confidence, spiritual recovery themes, call-and-response choir hooks, soaring soulful female chorus, stacked harmonies, emotional “church at midnight” climax.\n\nMood: wounded but victorious, hood gospel, luxury pain, repentance',
+    sunoDisplayTags:
+      'cinematic gospel trap, conscious boom bap, church-leaning hip hop (street-rap) with R&B/gospel soul',
     sunoBpm: 139.8,
     sunoBpmSource: 'audio',
     sunoKey: 'A# minor',
@@ -644,8 +694,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'd0adbf3c-3751-435a-a29e-45daa05ac4aa',
     sunoTitle: 'KIA Boys Handshake',
     sunoConcept: null,
-    sunoStyle: 'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, tense piano ostinato',
-    sunoStyleFull: 'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, tense piano ostinato, detuned music box, 808 sub drops, live rimshot snares, warped tape echo, wide plate reverb, male rap vocals, gritty melodic flow, chant hook vocals, triumphant escape, paranoid urgency, dramatic beat drop, explosive outro',
+    sunoStyle:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, tense piano ostinato',
+    sunoStyleFull:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, minor key, choir stabs, tense piano ostinato, detuned music box, 808 sub drops, live rimshot snares, warped tape echo, wide plate reverb, male rap vocals, gritty melodic flow, chant hook vocals, triumphant escape, paranoid urgency, dramatic beat drop, explosive outro',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, cinematic hip hop',
     sunoBpm: 70.5,
     sunoBpmSource: 'audio',
@@ -670,8 +722,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '65835cff-8e18-4da4-84ff-0bc9f106057c',
     sunoTitle: 'Mama Called Us',
     sunoConcept: null,
-    sunoStyle: 'aquatic trap with christian gangster sneer 96 bpm f minor distorted detuned plucked synth doing a shark fin sine wave hook line deep sub 808 on the one half time trap drums with chopped 909 hat triplets bubbling water fx bedded under the verse beds vinyl crackle mid range vocal with tape saturation and a sneering grin pitched down do do do baby vocal stab on the hook tail stylistic nursery rhyme menace original vocalization not a Children\'s Music, Educational sample distant pitched up kid choir oooh on the final hook only holy ghost reverb no melody filigree on verses',
-    sunoStyleFull: 'aquatic trap with christian gangster sneer 96 bpm f minor distorted detuned plucked synth doing a shark fin sine wave hook line deep sub 808 on the one half time trap drums with chopped 909 hat triplets bubbling water fx bedded under the verse beds vinyl crackle mid range vocal with tape saturation and a sneering grin pitched down do do do baby vocal stab on the hook tail stylistic nursery rhyme menace original vocalization not a Children\'s Music, Educational sample distant pitched up kid choir oooh on the final hook only holy ghost reverb no melody filigree on verses',
+    sunoStyle:
+      "aquatic trap with christian gangster sneer 96 bpm f minor distorted detuned plucked synth doing a shark fin sine wave hook line deep sub 808 on the one half time trap drums with chopped 909 hat triplets bubbling water fx bedded under the verse beds vinyl crackle mid range vocal with tape saturation and a sneering grin pitched down do do do baby vocal stab on the hook tail stylistic nursery rhyme menace original vocalization not a Children's Music, Educational sample distant pitched up kid choir oooh on the final hook only holy ghost reverb no melody filigree on verses",
+    sunoStyleFull:
+      "aquatic trap with christian gangster sneer 96 bpm f minor distorted detuned plucked synth doing a shark fin sine wave hook line deep sub 808 on the one half time trap drums with chopped 909 hat triplets bubbling water fx bedded under the verse beds vinyl crackle mid range vocal with tape saturation and a sneering grin pitched down do do do baby vocal stab on the hook tail stylistic nursery rhyme menace original vocalization not a Children's Music, Educational sample distant pitched up kid choir oooh on the final hook only holy ghost reverb no melody filigree on verses",
     sunoDisplayTags: 'trap, hip hop, dark electronic (nursery-rhyme menace)',
     sunoBpm: 96.5,
     sunoBpmSource: 'audio',
@@ -696,8 +750,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '72c2706e-7e16-4402-9256-4a6556187a34',
     sunoTitle: 'Border Mercy',
     sunoConcept: null,
-    sunoStyle: 'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares',
-    sunoStyleFull: 'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares, gospel handclaps, 808 sub drops, church organ accents, sampled Rhodes chords, tense piano ostinato, detuned music box, choir stabs, warped tape echo, wide plate reverb, tape saturation, near collapse dynamics, apocalyptic urgency',
+    sunoStyle:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares',
+    sunoStyleFull:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares, gospel handclaps, 808 sub drops, church organ accents, sampled Rhodes chords, tense piano ostinato, detuned music box, choir stabs, warped tape echo, wide plate reverb, tape saturation, near collapse dynamics, apocalyptic urgency',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, gospel-leaning hip hop',
     sunoBpm: 70.9,
     sunoBpmSource: 'audio',
@@ -722,8 +778,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'ed1ca8ed-018e-4888-8a2b-040757287d3d',
     sunoTitle: 'Millstone Prophecy',
     sunoConcept: null,
-    sunoStyle: 'Chill Bump-inspired hip-hop with dusty boom-bap drums, chopped vinyl samples, crunchy breakbeats, and a wobbling upright bass. Loose, off-kilter MPC swing, filtered horn stabs',
-    sunoStyleFull: 'Chill Bump-inspired hip-hop with dusty boom-bap drums, chopped vinyl samples, crunchy breakbeats, and a wobbling upright bass. Loose, off-kilter MPC swing, filtered horn stabs, toy-keyboard accents, and occasional turntable scratches. Chorus built from simple crowd-chant hooks, layered with rough group vocals and tape saturation.',
+    sunoStyle:
+      'Chill Bump-inspired hip-hop with dusty boom-bap drums, chopped vinyl samples, crunchy breakbeats, and a wobbling upright bass. Loose, off-kilter MPC swing, filtered horn stabs',
+    sunoStyleFull:
+      'Chill Bump-inspired hip-hop with dusty boom-bap drums, chopped vinyl samples, crunchy breakbeats, and a wobbling upright bass. Loose, off-kilter MPC swing, filtered horn stabs, toy-keyboard accents, and occasional turntable scratches. Chorus built from simple crowd-chant hooks, layered with rough group vocals and tape saturation.',
     sunoDisplayTags: 'hip hop, boom-bap, sample-based (chopped vinyl)',
     sunoBpm: 95.7,
     sunoBpmSource: 'audio',
@@ -747,9 +805,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'one-stop-higher': {
     sunoId: '7cbde3f5-2916-42f7-b327-0447bfee7384',
     sunoTitle: 'One Stop Higher',
-    sunoConcept: 'Now, make a song about Mikewell the blind guy from Penn Station who takes the light rail one stop from his homeless-home at Penn Station to St. John\'s Soup Kitchen freestyling to the top to become the mayor of Newark by getting a scholarship to attend Essex County College',
-    sunoStyle: 'Hip-hop anthem with mid-tempo swung drums, rubbery bass, and chopped vocal stabs; verse rides sparse keys and finger snaps, pre-chorus opens with rising synth blur and handclaps, chorus hits with gang vocals and a bright horn riff. Lead vocal stays close-mic and urgent with doubled ad-libs, delay throws on key words',
-    sunoStyleFull: 'Hip-hop anthem with mid-tempo swung drums, rubbery bass, and chopped vocal stabs; verse rides sparse keys and finger snaps, pre-chorus opens with rising synth blur and handclaps, chorus hits with gang vocals and a bright horn riff. Lead vocal stays close-mic and urgent with doubled ad-libs, delay throws on key words, and a few call-and-response echoes. Ear candy: station PA samples, a train-door hiss into the hook, and a reversed swell before the final chorus. Mix is punchy, warm, and street-level with crisp top end., light',
+    sunoConcept:
+      "Now, make a song about Mikewell the blind guy from Penn Station who takes the light rail one stop from his homeless-home at Penn Station to St. John's Soup Kitchen freestyling to the top to become the mayor of Newark by getting a scholarship to attend Essex County College",
+    sunoStyle:
+      'Hip-hop anthem with mid-tempo swung drums, rubbery bass, and chopped vocal stabs; verse rides sparse keys and finger snaps, pre-chorus opens with rising synth blur and handclaps, chorus hits with gang vocals and a bright horn riff. Lead vocal stays close-mic and urgent with doubled ad-libs, delay throws on key words',
+    sunoStyleFull:
+      'Hip-hop anthem with mid-tempo swung drums, rubbery bass, and chopped vocal stabs; verse rides sparse keys and finger snaps, pre-chorus opens with rising synth blur and handclaps, chorus hits with gang vocals and a bright horn riff. Lead vocal stays close-mic and urgent with doubled ad-libs, delay throws on key words, and a few call-and-response echoes. Ear candy: station PA samples, a train-door hiss into the hook, and a reversed swell before the final chorus. Mix is punchy, warm, and street-level with crisp top end., light',
     sunoDisplayTags: 'hip hop, boom bap, dirty south trap',
     sunoBpm: 95.1,
     sunoBpmSource: 'audio',
@@ -774,8 +835,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '4f1d9a3f-542c-4786-b18b-5fe8654a2f6c',
     sunoTitle: 'Paper-Cup Gospel',
     sunoConcept: null,
-    sunoStyle: 'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares',
-    sunoStyleFull: 'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares, gospel handclaps, 808 sub drops, church organ accents, sampled Rhodes chords, tense piano ostinato, detuned music box, choir stabs, warped tape echo, wide plate reverb, tape saturation, near collapse dynamics, sermon lead vocals, stacked choir refrains, call-and-response hooks, apocalyptic urgency',
+    sunoStyle:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares',
+    sunoStyleFull:
+      'cinematic gospel trap, conscious boom bap, 140 BPM, half-time trap groove, brushed breakbeat layers, live rimshot snares, gospel handclaps, 808 sub drops, church organ accents, sampled Rhodes chords, tense piano ostinato, detuned music box, choir stabs, warped tape echo, wide plate reverb, tape saturation, near collapse dynamics, sermon lead vocals, stacked choir refrains, call-and-response hooks, apocalyptic urgency',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, gospel hip hop',
     sunoBpm: 138.8,
     sunoBpmSource: 'audio',
@@ -800,8 +863,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '7cf9c576-3ab4-4316-89d1-bce1f985f0be',
     sunoTitle: 'Pick One Star',
     sunoConcept: null,
-    sunoStyle: 'Alternative hip-hop with eerie synth pulses and a loping half-time groove; verse rides sparse drums, rubbery bass, and handclap snaps, pre-chorus lifts with stacked choir pads and filtered sirens, chorus opens wide with gang vocals and a chanting hook, Close-mic lead with whispered doubles',
-    sunoStyleFull: 'Alternative hip-hop with eerie synth pulses and a loping half-time groove; verse rides sparse drums, rubbery bass, and handclap snaps, pre-chorus lifts with stacked choir pads and filtered sirens, chorus opens wide with gang vocals and a chanting hook, Close-mic lead with whispered doubles, delay throws on key phrases, reversed swells into transitions, glassy bell accents, and a bright, punchy mix with a haunted shine make it Lil Babyish',
+    sunoStyle:
+      'Alternative hip-hop with eerie synth pulses and a loping half-time groove; verse rides sparse drums, rubbery bass, and handclap snaps, pre-chorus lifts with stacked choir pads and filtered sirens, chorus opens wide with gang vocals and a chanting hook, Close-mic lead with whispered doubles',
+    sunoStyleFull:
+      'Alternative hip-hop with eerie synth pulses and a loping half-time groove; verse rides sparse drums, rubbery bass, and handclap snaps, pre-chorus lifts with stacked choir pads and filtered sirens, chorus opens wide with gang vocals and a chanting hook, Close-mic lead with whispered doubles, delay throws on key phrases, reversed swells into transitions, glassy bell accents, and a bright, punchy mix with a haunted shine make it Lil Babyish',
     sunoDisplayTags: 'alternative hip-hop, hip hop, eerie synthwave',
     sunoBpm: 129.9,
     sunoBpmSource: 'audio',
@@ -825,9 +890,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'pineal-crown': {
     sunoId: 'c16501d4-59d1-4aaa-9334-96f400b586ab',
     sunoTitle: 'Pineal Crown',
-    sunoConcept: 'Make a song about literally being the best, in a mind-blowing way that includes basically whatever my pineal glan affords me at this point and make the lyrics contain all rhymes and make it rap\n\nMAKE IT ABOUT WINNING and never giving up unless giving up is part of your strategy, in which case, you should become Hindu',
-    sunoStyle: 'Hip-hop rap with a fast boom-bap swing, punchy kick-snare, chopped vocal shouts, and a rolling bassline; verse rides dense and percussive, pre-chorus strips to drums and a tense chant, chorus hits with stacked doubles and a short chantable hook. Add reversed risers into each drop',
-    sunoStyleFull: 'Hip-hop rap with a fast boom-bap swing, punchy kick-snare, chopped vocal shouts, and a rolling bassline; verse rides dense and percussive, pre-chorus strips to drums and a tense chant, chorus hits with stacked doubles and a short chantable hook. Add reversed risers into each drop, tape-stop fills between lines, and rim-click ear candy on the turnarounds. Bright, hard-hitting mix with crisp low end and upfront vocal presence, rap',
+    sunoConcept:
+      'Make a song about literally being the best, in a mind-blowing way that includes basically whatever my pineal glan affords me at this point and make the lyrics contain all rhymes and make it rap\n\nMAKE IT ABOUT WINNING and never giving up unless giving up is part of your strategy, in which case, you should become Hindu',
+    sunoStyle:
+      'Hip-hop rap with a fast boom-bap swing, punchy kick-snare, chopped vocal shouts, and a rolling bassline; verse rides dense and percussive, pre-chorus strips to drums and a tense chant, chorus hits with stacked doubles and a short chantable hook. Add reversed risers into each drop',
+    sunoStyleFull:
+      'Hip-hop rap with a fast boom-bap swing, punchy kick-snare, chopped vocal shouts, and a rolling bassline; verse rides dense and percussive, pre-chorus strips to drums and a tense chant, chorus hits with stacked doubles and a short chantable hook. Add reversed risers into each drop, tape-stop fills between lines, and rim-click ear candy on the turnarounds. Bright, hard-hitting mix with crisp low end and upfront vocal presence, rap',
     sunoDisplayTags: 'boom-bap hip hop, rap, hip-hop',
     sunoBpm: 96.7,
     sunoBpmSource: 'audio',
@@ -851,9 +919,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'promised-land-hands': {
     sunoId: '753b8934-4e13-4acd-8e07-9ce0e7bc7af1',
     sunoTitle: 'Promised Land Hands',
-    sunoConcept: '[Verse]\nSomebody’s sleeping under neon skies\nSomebody’s praying with tired eyes\nWe got enough if we open our hands\nTurn every corner into promised land\n\n[Pre-Chorus]\nNo more waiting for the world to change\nWe are the spark, we are the flame\n\n[Chorus]\nWe don’t need gold, we need each other\nLight in the street, bread for my brother\nHands to the sky, feet on the ground\nLove is the loudest sound\nWe can build a different world tonight\nDifferent world tonight\n',
-    sunoStyle: 'Gospel-pop anthem with mid-tempo swing, stomping handclaps, piano-driven verses, and a lift into big stacked choruses; verse stays intimate with sparse keys and low bass, pre-chorus opens with rising harmonies and claps, chorus hits with full drums',
-    sunoStyleFull: 'Gospel-pop anthem with mid-tempo swing, stomping handclaps, piano-driven verses, and a lift into big stacked choruses; verse stays intimate with sparse keys and low bass, pre-chorus opens with rising harmonies and claps, chorus hits with full drums, group vocals, and short delay throws on the hook. Add chime pickups, a swelling pad into the drop, and a bright, wide, communal mix., world, light',
+    sunoConcept:
+      '[Verse]\nSomebody’s sleeping under neon skies\nSomebody’s praying with tired eyes\nWe got enough if we open our hands\nTurn every corner into promised land\n\n[Pre-Chorus]\nNo more waiting for the world to change\nWe are the spark, we are the flame\n\n[Chorus]\nWe don’t need gold, we need each other\nLight in the street, bread for my brother\nHands to the sky, feet on the ground\nLove is the loudest sound\nWe can build a different world tonight\nDifferent world tonight\n',
+    sunoStyle:
+      'Gospel-pop anthem with mid-tempo swing, stomping handclaps, piano-driven verses, and a lift into big stacked choruses; verse stays intimate with sparse keys and low bass, pre-chorus opens with rising harmonies and claps, chorus hits with full drums',
+    sunoStyleFull:
+      'Gospel-pop anthem with mid-tempo swing, stomping handclaps, piano-driven verses, and a lift into big stacked choruses; verse stays intimate with sparse keys and low bass, pre-chorus opens with rising harmonies and claps, chorus hits with full drums, group vocals, and short delay throws on the hook. Add chime pickups, a swelling pad into the drop, and a bright, wide, communal mix., world, light',
     sunoDisplayTags: 'gospel-pop, swing, anthem',
     sunoBpm: 87.1,
     sunoBpmSource: 'audio',
@@ -878,8 +949,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '490f51dc-419b-46fd-ac0c-2838c8c57b32',
     sunoTitle: 'Rimshot Redemption',
     sunoConcept: null,
-    sunoStyle: 'Cinematic gospel trap meets conscious boom bap, 140 BPM with a half-time trap pocket. Clever syncopated 808s that answer the vocal lines, brushed breakbeat ghost notes, live rimshot snares, gospel handclaps on unexpected off-beats, chopped choir stabs',
-    sunoStyleFull: 'Cinematic gospel trap meets conscious boom bap, 140 BPM with a half-time trap pocket. Clever syncopated 808s that answer the vocal lines, brushed breakbeat ghost notes, live rimshot snares, gospel handclaps on unexpected off-beats, chopped choir stabs, church organ swells, sampled Rhodes chords, tense piano ostinato, detuned music box counter-melody, warped tape echo, wide plate reverb, tape saturation, near-collapse dynamics. Sermon-style lead vocal, stacked choir refrains, call-and-response hooks, apocalyptic urgency, lofi rap texture, spiritual but streetwise, heavy and hopeful',
+    sunoStyle:
+      'Cinematic gospel trap meets conscious boom bap, 140 BPM with a half-time trap pocket. Clever syncopated 808s that answer the vocal lines, brushed breakbeat ghost notes, live rimshot snares, gospel handclaps on unexpected off-beats, chopped choir stabs',
+    sunoStyleFull:
+      'Cinematic gospel trap meets conscious boom bap, 140 BPM with a half-time trap pocket. Clever syncopated 808s that answer the vocal lines, brushed breakbeat ghost notes, live rimshot snares, gospel handclaps on unexpected off-beats, chopped choir stabs, church organ swells, sampled Rhodes chords, tense piano ostinato, detuned music box counter-melody, warped tape echo, wide plate reverb, tape saturation, near-collapse dynamics. Sermon-style lead vocal, stacked choir refrains, call-and-response hooks, apocalyptic urgency, lofi rap texture, spiritual but streetwise, heavy and hopeful',
     sunoDisplayTags: 'cinematic gospel trap, conscious boom bap, gospel rap',
     sunoBpm: 70.8,
     sunoBpmSource: 'audio',
@@ -903,9 +976,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'saint-johns-plate': {
     sunoId: 'de092306-970c-4d62-96b5-061aa6828d31',
     sunoTitle: 'St John’s Plate',
-    sunoConcept: 'Make it like Cardi B meets NF plus Ben Gibbard and stars, sex, and Coca-Cola, under all celestial God\'s blessings. But for St. John\'s Soup Kitchen.',
-    sunoStyle: 'Hip-hop trap-pop with tense half-time drums, clipped 808 slides, and a singable indie-pop lift; verse rides sparse hats and dark piano stabs, pre-chorus opens with filtered pads and stacked refrains, chorus lands on wide drums with group vocals and a memorable chant. Close-mic rap verses, melodic cracked-topline hook',
-    sunoStyleFull: 'Hip-hop trap-pop with tense half-time drums, clipped 808 slides, and a singable indie-pop lift; verse rides sparse hats and dark piano stabs, pre-chorus opens with filtered pads and stacked refrains, chorus lands on wide drums with group vocals and a memorable chant. Close-mic rap verses, melodic cracked-topline hook, ad-lib doubles on key phrases, reversed swells into each drop, vinyl dust and bell chimes for texture, glossy but bruised mix., pop, hip hop, rap',
+    sunoConcept:
+      "Make it like Cardi B meets NF plus Ben Gibbard and stars, sex, and Coca-Cola, under all celestial God's blessings. But for St. John's Soup Kitchen.",
+    sunoStyle:
+      'Hip-hop trap-pop with tense half-time drums, clipped 808 slides, and a singable indie-pop lift; verse rides sparse hats and dark piano stabs, pre-chorus opens with filtered pads and stacked refrains, chorus lands on wide drums with group vocals and a memorable chant. Close-mic rap verses, melodic cracked-topline hook',
+    sunoStyleFull:
+      'Hip-hop trap-pop with tense half-time drums, clipped 808 slides, and a singable indie-pop lift; verse rides sparse hats and dark piano stabs, pre-chorus opens with filtered pads and stacked refrains, chorus lands on wide drums with group vocals and a memorable chant. Close-mic rap verses, melodic cracked-topline hook, ad-lib doubles on key phrases, reversed swells into each drop, vinyl dust and bell chimes for texture, glossy but bruised mix., pop, hip hop, rap',
     sunoDisplayTags: 'trap-pop, hip hop, rap',
     sunoBpm: 73.3,
     sunoBpmSource: 'audio',
@@ -930,8 +1006,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'fbf7b959-9ef0-4e9f-9e1e-eed047ecafda',
     sunoTitle: 'Sky Been Knocking',
     sunoConcept: null,
-    sunoStyle: 'Cinematic alien wake-up anthem, melodic trap-pop with pop-punk female chorus, male rap verses, huge 808 drops, space synths, acoustic guitar',
-    sunoStyleFull: 'Cinematic alien wake-up anthem, melodic trap-pop with pop-punk female chorus, male rap verses, huge 808 drops, space synths, acoustic guitar, choir pads, glitchy alien ad-libs, UFO bass swells, stadium drums, hopeful “wake up” energy. Theme: aliens, outsiders, and people sleeping under a rock finally waking up to the truth, joining humanity, learning love, and helping fix the world. Funny, epic, emotional, cosmic, chantable hook, 96 BPM, minor-to-major lift',
+    sunoStyle:
+      'Cinematic alien wake-up anthem, melodic trap-pop with pop-punk female chorus, male rap verses, huge 808 drops, space synths, acoustic guitar',
+    sunoStyleFull:
+      'Cinematic alien wake-up anthem, melodic trap-pop with pop-punk female chorus, male rap verses, huge 808 drops, space synths, acoustic guitar, choir pads, glitchy alien ad-libs, UFO bass swells, stadium drums, hopeful “wake up” energy. Theme: aliens, outsiders, and people sleeping under a rock finally waking up to the truth, joining humanity, learning love, and helping fix the world. Funny, epic, emotional, cosmic, chantable hook, 96 BPM, minor-to-major lift',
     sunoDisplayTags: 'melodic trap-pop, pop-punk, cinematic hip hop',
     sunoBpm: 94.3,
     sunoBpmSource: 'audio',
@@ -955,9 +1033,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'soup-kitchen-sky': {
     sunoId: 'dca1c0e1-5f7f-4106-a75f-803032920e9c',
     sunoTitle: 'Soup Kitchen Sky',
-    sunoConcept: 'Short catchy clean rap-pop anthem, Top 40 hip-hop, futuristic gospel trap, spacey synths, choir hits, heavy 808s, claps, melodic hook, hopeful and epic. Theme: escaping darkness together, lifting the lost, carrying Christ’s message of love, mercy, and freedom across the cosmos. Big chantable chorus, radio-ready, 92 BPM.\n\nSt. John\'s Soup Kitchen, massage that in too',
-    sunoStyle: 'Top 40 hip-hop with futuristic gospel trap pulse, 92 BPM, swung claps, heavy 808s, spacey synth halos, and choir hits that swell into a radio hook; verse rides sparse drums and airy keys',
-    sunoStyleFull: 'Top 40 hip-hop with futuristic gospel trap pulse, 92 BPM, swung claps, heavy 808s, spacey synth halos, and choir hits that swell into a radio hook; verse rides sparse drums and airy keys, pre-chorus opens with stacked gospel calls, chorus lands on big chantable gang vocals. Male and female vocal layers, ad-lib throws, reversed swells, starry risers, glossy wide mix., hip-hop, pop, theme, rap, clean, gospel',
+    sunoConcept:
+      "Short catchy clean rap-pop anthem, Top 40 hip-hop, futuristic gospel trap, spacey synths, choir hits, heavy 808s, claps, melodic hook, hopeful and epic. Theme: escaping darkness together, lifting the lost, carrying Christ’s message of love, mercy, and freedom across the cosmos. Big chantable chorus, radio-ready, 92 BPM.\n\nSt. John's Soup Kitchen, massage that in too",
+    sunoStyle:
+      'Top 40 hip-hop with futuristic gospel trap pulse, 92 BPM, swung claps, heavy 808s, spacey synth halos, and choir hits that swell into a radio hook; verse rides sparse drums and airy keys',
+    sunoStyleFull:
+      'Top 40 hip-hop with futuristic gospel trap pulse, 92 BPM, swung claps, heavy 808s, spacey synth halos, and choir hits that swell into a radio hook; verse rides sparse drums and airy keys, pre-chorus opens with stacked gospel calls, chorus lands on big chantable gang vocals. Male and female vocal layers, ad-lib throws, reversed swells, starry risers, glossy wide mix., hip-hop, pop, theme, rap, clean, gospel',
     sunoDisplayTags: 'hip hop, pop, gospel',
     sunoBpm: 135.2,
     sunoBpmSource: 'audio',
@@ -981,9 +1062,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'soup-kitchen-windows': {
     sunoId: '2b9cad8f-fbfd-4e89-a9a9-77a880afa502',
     sunoTitle: 'Soup Kitchen Windows',
-    sunoConcept: 'A song about how so many people watch St. John\'s Soup Kitchen through their glass windows, when they should come and get free food and network - its interconnectedness LOVE',
-    sunoStyle: 'Soulful folk-pop with a mid-tempo swung groove, fingerpicked acoustic guitar, warm electric piano, light percussion, and a simple bass pulse; verse stays intimate and conversational, pre-chorus opens with stacked harmonies and a lift in melody',
-    sunoStyleFull: 'Soulful folk-pop with a mid-tempo swung groove, fingerpicked acoustic guitar, warm electric piano, light percussion, and a simple bass pulse; verse stays intimate and conversational, pre-chorus opens with stacked harmonies and a lift in melody, chorus lands with gang vocals and a chantable hook. Vocal is close-mic and human, with airy doubles on the hook and a few delay throws on key words. Ear candy: glassy chime accents, a soft reverse swell into the chorus, and handclaps that bloom on the last line. Mix is warm, bright, and welcoming, like a room full of open doors.',
+    sunoConcept:
+      "A song about how so many people watch St. John's Soup Kitchen through their glass windows, when they should come and get free food and network - its interconnectedness LOVE",
+    sunoStyle:
+      'Soulful folk-pop with a mid-tempo swung groove, fingerpicked acoustic guitar, warm electric piano, light percussion, and a simple bass pulse; verse stays intimate and conversational, pre-chorus opens with stacked harmonies and a lift in melody',
+    sunoStyleFull:
+      'Soulful folk-pop with a mid-tempo swung groove, fingerpicked acoustic guitar, warm electric piano, light percussion, and a simple bass pulse; verse stays intimate and conversational, pre-chorus opens with stacked harmonies and a lift in melody, chorus lands with gang vocals and a chantable hook. Vocal is close-mic and human, with airy doubles on the hook and a few delay throws on key words. Ear candy: glassy chime accents, a soft reverse swell into the chorus, and handclaps that bloom on the last line. Mix is warm, bright, and welcoming, like a room full of open doors.',
     sunoDisplayTags: 'folk-pop, soulful, indie pop',
     sunoBpm: 95.4,
     sunoBpmSource: 'audio',
@@ -1008,8 +1092,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'c7135012-6f32-4f29-8e8a-c62914093c0b',
     sunoTitle: 'Soupe Saint-Jean',
     sunoConcept: null,
-    sunoStyle: 'french electro pop in the lineage of Electronic, Hip Hop, Pop s alors on danse minor key piano motif deep saw bass four on the floor kick at 118 bpm accordion ghost notes drifting under layer a harlem gospel choir on every hook like Hip Hop, Rap, Alternative Hip Hop, Pop Rap',
-    sunoStyleFull: 'french electro pop in the lineage of Electronic, Hip Hop, Pop s alors on danse minor key piano motif deep saw bass four on the floor kick at 118 bpm accordion ghost notes drifting under layer a harlem gospel choir on every hook like Hip Hop, Rap, Alternative Hip Hop, Pop Rap, Experimental s jesus walks lead vocal half rapped half sung in french world weary but warm dry close mic soup kitchen foley under the bridge spoons on bowls a coffee urn hissing a low murmur of voices hook 3 choir accordion only no drums then the kick slams back twice as heavy outro spoken parle doux choir fading into a single accordion chord',
+    sunoStyle:
+      'french electro pop in the lineage of Electronic, Hip Hop, Pop s alors on danse minor key piano motif deep saw bass four on the floor kick at 118 bpm accordion ghost notes drifting under layer a harlem gospel choir on every hook like Hip Hop, Rap, Alternative Hip Hop, Pop Rap',
+    sunoStyleFull:
+      'french electro pop in the lineage of Electronic, Hip Hop, Pop s alors on danse minor key piano motif deep saw bass four on the floor kick at 118 bpm accordion ghost notes drifting under layer a harlem gospel choir on every hook like Hip Hop, Rap, Alternative Hip Hop, Pop Rap, Experimental s jesus walks lead vocal half rapped half sung in french world weary but warm dry close mic soup kitchen foley under the bridge spoons on bowls a coffee urn hissing a low murmur of voices hook 3 choir accordion only no drums then the kick slams back twice as heavy outro spoken parle doux choir fading into a single accordion chord',
     sunoDisplayTags: 'electro pop, hip hop, experimental',
     sunoBpm: 119.9,
     sunoBpmSource: 'audio',
@@ -1033,9 +1119,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'st-john-needs': {
     sunoId: 'f9fc9600-b6b0-4cdc-8a07-7cb879646580',
     sunoTitle: 'St. John Needs',
-    sunoConcept: 'Make a song about how St. John Soup Kitchen needs $100 million dollars. These people are people too. The homeless are being fed, but honestly, consider this a call to arms.',
-    sunoStyle: 'Anthemic folk-pop with marching acoustic drums, handclaps, and a steady bass pulse; verse stays intimate and story-driven, pre-chorus lifts with stacked oohs and rising snare, chorus opens wide with gang vocals on the hook phrase. Add delay throws on “one hundred million, ” a short brass swell into each chorus',
-    sunoStyleFull: 'Anthemic folk-pop with marching acoustic drums, handclaps, and a steady bass pulse; verse stays intimate and story-driven, pre-chorus lifts with stacked oohs and rising snare, chorus opens wide with gang vocals on the hook phrase. Add delay throws on “one hundred million,” a short brass swell into each chorus, and a final key lift. Bright, human, and urgent with close-mic lead vocal and communal doubles.',
+    sunoConcept:
+      'Make a song about how St. John Soup Kitchen needs $100 million dollars. These people are people too. The homeless are being fed, but honestly, consider this a call to arms.',
+    sunoStyle:
+      'Anthemic folk-pop with marching acoustic drums, handclaps, and a steady bass pulse; verse stays intimate and story-driven, pre-chorus lifts with stacked oohs and rising snare, chorus opens wide with gang vocals on the hook phrase. Add delay throws on “one hundred million, ” a short brass swell into each chorus',
+    sunoStyleFull:
+      'Anthemic folk-pop with marching acoustic drums, handclaps, and a steady bass pulse; verse stays intimate and story-driven, pre-chorus lifts with stacked oohs and rising snare, chorus opens wide with gang vocals on the hook phrase. Add delay throws on “one hundred million,” a short brass swell into each chorus, and a final key lift. Bright, human, and urgent with close-mic lead vocal and communal doubles.',
     sunoDisplayTags: 'folk-pop, indie folk, anthem',
     sunoBpm: 73.6,
     sunoBpmSource: 'audio',
@@ -1059,9 +1148,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'st-johns-halo': {
     sunoId: '925cd412-294b-43ff-b697-566f2c40a4dd',
     sunoTitle: 'St. John’s Halo',
-    sunoConcept: 'make it about becoming a superhero once you realize that you can power of belief yourself into anything but you need Jesus Christ to hedge your bets\n\nMake about a thank you to all the homeless people at St. John\'s Soup Kitchen because if you weren\'t homeless maybe I would be',
-    sunoStyle: 'Folk-rock anthem with driving midtempo acoustic strum and stomp-clap groove; verse stays intimate and close-mic with fingerpicked guitar, pre-chorus opens into stacked harmonies and handclaps, chorus lifts with gospel choir doubles and call-and-response. Add a tambourine lift, a short organ swell before the final chorus, and a warm wide mix with bright vocal sheen and roomy reverb on the last words.',
-    sunoStyleFull: 'Folk-rock anthem with driving midtempo acoustic strum and stomp-clap groove; verse stays intimate and close-mic with fingerpicked guitar, pre-chorus opens into stacked harmonies and handclaps, chorus lifts with gospel choir doubles and call-and-response. Add a tambourine lift, a short organ swell before the final chorus, and a warm wide mix with bright vocal sheen and roomy reverb on the last words.',
+    sunoConcept:
+      "make it about becoming a superhero once you realize that you can power of belief yourself into anything but you need Jesus Christ to hedge your bets\n\nMake about a thank you to all the homeless people at St. John's Soup Kitchen because if you weren't homeless maybe I would be",
+    sunoStyle:
+      'Folk-rock anthem with driving midtempo acoustic strum and stomp-clap groove; verse stays intimate and close-mic with fingerpicked guitar, pre-chorus opens into stacked harmonies and handclaps, chorus lifts with gospel choir doubles and call-and-response. Add a tambourine lift, a short organ swell before the final chorus, and a warm wide mix with bright vocal sheen and roomy reverb on the last words.',
+    sunoStyleFull:
+      'Folk-rock anthem with driving midtempo acoustic strum and stomp-clap groove; verse stays intimate and close-mic with fingerpicked guitar, pre-chorus opens into stacked harmonies and handclaps, chorus lifts with gospel choir doubles and call-and-response. Add a tambourine lift, a short organ swell before the final chorus, and a warm wide mix with bright vocal sheen and roomy reverb on the last words.',
     sunoDisplayTags: 'folk-rock, gospel, indie/folk anthem',
     sunoBpm: 87.4,
     sunoBpmSource: 'audio',
@@ -1085,9 +1177,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'st-johns-launchpad': {
     sunoId: '3244aedb-ba69-451b-9655-e8acfd05c98a',
     sunoTitle: 'St Johns Launchpad',
-    sunoConcept: 'Clean Top 40 gospel-trap rap anthem for St. John’s Soup Kitchen in Newark, personalized for Bz / Megabyte Labs energy. Melodic Atlanta-style trap flow, cinematic confessional rap intensity, clever underground boom-bap wordplay, huge gospel choir hooks, heavy 808s, claps, piano stabs, spacey synths, triumphant risers, jaw-dropping drop.\n\nTheme: escaping darkness together, feeding the hungry, lifting the lost, no judgment at the door, everyone gets a seat at the table, carrying Christ’s message of love, mercy, freedom, and good news across the cosmos. Newark streets become the launchpad to the galaxies.\n\nInclude the line: “You asked for the Chef, well I’m cooking / they made my name Lu too.” Make it mean cooking meals, cooking hope, cooking bars, and cooking a way out.\n\nMood: lit, holy, street-gospel, emotional, clever, hopeful, cosmic, radio-ready, chantable.\nTempo: 128 BPM.\nKey: G major / E minor.\nVerse: Em – C – G – D.\nPre-chorus: C – D – Em – D.\nChorus: G – D – Em – C.\nStructure: short cinematic intro, melodic rap verse, emotional pre-chorus, massive chant chorus, t',
-    sunoStyle: 'Gospel-trap anthem with melodic Atlanta flow, cinematic rap intensity, and boom-bap wordplay over 128 BPM; intro opens with sparse piano and choir air, verse rides tight drums and spacey synths, pre-chorus lifts with claps and rising pads, chorus hits huge with gospel choir stacks',
-    sunoStyleFull: 'Gospel-trap anthem with melodic Atlanta flow, cinematic rap intensity, and boom-bap wordplay over 128 BPM; intro opens with sparse piano and choir air, verse rides tight drums and spacey synths, pre-chorus lifts with claps and rising pads, chorus hits huge with gospel choir stacks, sub drops, and triumphant risers. Close-mic lead with doubled ad-libs, call-and-response gang vocals on the hook, delay throws on key lines, final chorus bigger with crowd chants and a jaw-dropping drop. Bright, punchy, wide, and radio-ready., clever, theme, rap, clean, emotional, gospel',
+    sunoConcept:
+      'Clean Top 40 gospel-trap rap anthem for St. John’s Soup Kitchen in Newark, personalized for Bz / Megabyte Labs energy. Melodic Atlanta-style trap flow, cinematic confessional rap intensity, clever underground boom-bap wordplay, huge gospel choir hooks, heavy 808s, claps, piano stabs, spacey synths, triumphant risers, jaw-dropping drop.\n\nTheme: escaping darkness together, feeding the hungry, lifting the lost, no judgment at the door, everyone gets a seat at the table, carrying Christ’s message of love, mercy, freedom, and good news across the cosmos. Newark streets become the launchpad to the galaxies.\n\nInclude the line: “You asked for the Chef, well I’m cooking / they made my name Lu too.” Make it mean cooking meals, cooking hope, cooking bars, and cooking a way out.\n\nMood: lit, holy, street-gospel, emotional, clever, hopeful, cosmic, radio-ready, chantable.\nTempo: 128 BPM.\nKey: G major / E minor.\nVerse: Em – C – G – D.\nPre-chorus: C – D – Em – D.\nChorus: G – D – Em – C.\nStructure: short cinematic intro, melodic rap verse, emotional pre-chorus, massive chant chorus, t',
+    sunoStyle:
+      'Gospel-trap anthem with melodic Atlanta flow, cinematic rap intensity, and boom-bap wordplay over 128 BPM; intro opens with sparse piano and choir air, verse rides tight drums and spacey synths, pre-chorus lifts with claps and rising pads, chorus hits huge with gospel choir stacks',
+    sunoStyleFull:
+      'Gospel-trap anthem with melodic Atlanta flow, cinematic rap intensity, and boom-bap wordplay over 128 BPM; intro opens with sparse piano and choir air, verse rides tight drums and spacey synths, pre-chorus lifts with claps and rising pads, chorus hits huge with gospel choir stacks, sub drops, and triumphant risers. Close-mic lead with doubled ad-libs, call-and-response gang vocals on the hook, delay throws on key lines, final chorus bigger with crowd chants and a jaw-dropping drop. Bright, punchy, wide, and radio-ready., clever, theme, rap, clean, emotional, gospel',
     sunoDisplayTags: 'gospel, trap, rap',
     sunoBpm: 131.1,
     sunoBpmSource: 'audio',
@@ -1111,9 +1206,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'st-johns-plate-2': {
     sunoId: 'de092306-970c-4d62-96b5-061aa6828d31',
     sunoTitle: 'St John’s Plate',
-    sunoConcept: 'Make it like Cardi B meets NF plus Ben Gibbard and stars, sex, and Coca-Cola, under all celestial God\'s blessings. But for St. John\'s Soup Kitchen.',
-    sunoStyle: 'Hip-hop trap-pop with tense half-time drums, clipped 808 slides, and a singable indie-pop lift; verse rides sparse hats and dark piano stabs, pre-chorus opens with filtered pads and stacked refrains, chorus lands on wide drums with group vocals and a memorable chant. Close-mic rap verses, melodic cracked-topline hook',
-    sunoStyleFull: 'Hip-hop trap-pop with tense half-time drums, clipped 808 slides, and a singable indie-pop lift; verse rides sparse hats and dark piano stabs, pre-chorus opens with filtered pads and stacked refrains, chorus lands on wide drums with group vocals and a memorable chant. Close-mic rap verses, melodic cracked-topline hook, ad-lib doubles on key phrases, reversed swells into each drop, vinyl dust and bell chimes for texture, glossy but bruised mix., pop, hip hop, rap',
+    sunoConcept:
+      "Make it like Cardi B meets NF plus Ben Gibbard and stars, sex, and Coca-Cola, under all celestial God's blessings. But for St. John's Soup Kitchen.",
+    sunoStyle:
+      'Hip-hop trap-pop with tense half-time drums, clipped 808 slides, and a singable indie-pop lift; verse rides sparse hats and dark piano stabs, pre-chorus opens with filtered pads and stacked refrains, chorus lands on wide drums with group vocals and a memorable chant. Close-mic rap verses, melodic cracked-topline hook',
+    sunoStyleFull:
+      'Hip-hop trap-pop with tense half-time drums, clipped 808 slides, and a singable indie-pop lift; verse rides sparse hats and dark piano stabs, pre-chorus opens with filtered pads and stacked refrains, chorus lands on wide drums with group vocals and a memorable chant. Close-mic rap verses, melodic cracked-topline hook, ad-lib doubles on key phrases, reversed swells into each drop, vinyl dust and bell chimes for texture, glossy but bruised mix., pop, hip hop, rap',
     sunoDisplayTags: 'trap-pop, hip hop, rap',
     sunoBpm: 71,
     sunoBpmSource: 'audio',
@@ -1137,9 +1235,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'st-johns-stew': {
     sunoId: 'fe55dc9a-64b1-4df4-83c7-6e05cea8b896',
     sunoTitle: 'St Johns Stew',
-    sunoConcept: 'gringey dope lit about chef Lu cooking up the best stew as a brand new child of god feeding other children who do their grind every day in any kind of way as long as they say them free meals coming from St. John\'s\n\nNow, make it hard about Recovery and Being Outside Homeless and Not Having Anything. And just tricking yourself to believe long enough to get the Filet.',
-    sunoStyle: 'Gospel trap with hard halftime drums, warm church organ stabs, sliding sub bass, and clipped clap snaps; verse rides sparse with close-mic lead and whispered ad-libs, pre-chorus opens into stacked childlike chants, chorus hits with gang vocals and a short chantable hook',
-    sunoStyleFull: 'Gospel trap with hard halftime drums, warm church organ stabs, sliding sub bass, and clipped clap snaps; verse rides sparse with close-mic lead and whispered ad-libs, pre-chorus opens into stacked childlike chants, chorus hits with gang vocals and a short chantable hook, bridge strips to handclaps and a low organ drone before the final lift. Tape hiss, a pot-lid hit, and a short riser into each chorus; bright, gritty, intimate mix with punchy low end.',
+    sunoConcept:
+      "gringey dope lit about chef Lu cooking up the best stew as a brand new child of god feeding other children who do their grind every day in any kind of way as long as they say them free meals coming from St. John's\n\nNow, make it hard about Recovery and Being Outside Homeless and Not Having Anything. And just tricking yourself to believe long enough to get the Filet.",
+    sunoStyle:
+      'Gospel trap with hard halftime drums, warm church organ stabs, sliding sub bass, and clipped clap snaps; verse rides sparse with close-mic lead and whispered ad-libs, pre-chorus opens into stacked childlike chants, chorus hits with gang vocals and a short chantable hook',
+    sunoStyleFull:
+      'Gospel trap with hard halftime drums, warm church organ stabs, sliding sub bass, and clipped clap snaps; verse rides sparse with close-mic lead and whispered ad-libs, pre-chorus opens into stacked childlike chants, chorus hits with gang vocals and a short chantable hook, bridge strips to handclaps and a low organ drone before the final lift. Tape hiss, a pot-lid hit, and a short riser into each chorus; bright, gritty, intimate mix with punchy low end.',
     sunoDisplayTags: 'gospel trap, trap, church-inspired hip-hop',
     sunoBpm: 133.9,
     sunoBpmSource: 'audio',
@@ -1162,10 +1263,13 @@ export const SUNO_META: Record<string, SunoMeta> = {
   },
   'st-johns-towers': {
     sunoId: '022a4a4f-ff45-41b2-9e06-512510cbb314',
-    sunoTitle: 'St John\'s Towers',
-    sunoConcept: 'Make a song about how, if the walls of the FBI block the light of St. John\'s Church in Newark New Jersey, oldest church, then the Illuminati will erect large towers too, and St. John\'s Soup Kitchen will be covered with prophecy',
-    sunoStyle: 'Alternative rock with ominous mid-tempo pulse, driving toms and dry snare, verse rides tense muted guitars and low bass, pre-chorus opens with rising harmony stacks, chorus hits with wide gang vocals and a ringing lead riff; whispered doubles and chanty backing vox on hooks, reversed swells into the chorus',
-    sunoStyleFull: 'Alternative rock with ominous mid-tempo pulse, driving toms and dry snare, verse rides tense muted guitars and low bass, pre-chorus opens with rising harmony stacks, chorus hits with wide gang vocals and a ringing lead riff; whispered doubles and chanty backing vox on hooks, reversed swells into the chorus, distant bell-like chime accents, bright punchy mix with a dark edge, light',
+    sunoTitle: "St John's Towers",
+    sunoConcept:
+      "Make a song about how, if the walls of the FBI block the light of St. John's Church in Newark New Jersey, oldest church, then the Illuminati will erect large towers too, and St. John's Soup Kitchen will be covered with prophecy",
+    sunoStyle:
+      'Alternative rock with ominous mid-tempo pulse, driving toms and dry snare, verse rides tense muted guitars and low bass, pre-chorus opens with rising harmony stacks, chorus hits with wide gang vocals and a ringing lead riff; whispered doubles and chanty backing vox on hooks, reversed swells into the chorus',
+    sunoStyleFull:
+      'Alternative rock with ominous mid-tempo pulse, driving toms and dry snare, verse rides tense muted guitars and low bass, pre-chorus opens with rising harmony stacks, chorus hits with wide gang vocals and a ringing lead riff; whispered doubles and chanty backing vox on hooks, reversed swells into the chorus, distant bell-like chime accents, bright punchy mix with a dark edge, light',
     sunoDisplayTags: 'alternative rock, dark indie rock, post-punk revival',
     sunoBpm: 102.4,
     sunoBpmSource: 'audio',
@@ -1190,8 +1294,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '238665ca-f59d-4b67-959d-ced2e0c4774c',
     sunoTitle: 'Syllabus Sling',
     sunoConcept: null,
-    sunoStyle: 'conscious rap heavyweight 76 bpm half time killer mike reagan gravity run the jewels drum weight immortal technique menace Hip hop, alternative hip hop, conscious hip hop bar density el p production grit distorted rhodes loop sub 808 earthquake marching snare choir pad swells on the hook brass stab on punchlines vinyl crackle occasional sermon organ in minor key key of c minor old testament cinematic gospel undercurrent clean radio cut no profanity full throat male lead with gang vocal hook chant tenor choir stack on bridge every bar earns its weight hard but holy',
-    sunoStyleFull: 'conscious rap heavyweight 76 bpm half time killer mike reagan gravity run the jewels drum weight immortal technique menace Hip hop, alternative hip hop, conscious hip hop bar density el p production grit distorted rhodes loop sub 808 earthquake marching snare choir pad swells on the hook brass stab on punchlines vinyl crackle occasional sermon organ in minor key key of c minor old testament cinematic gospel undercurrent clean radio cut no profanity full throat male lead with gang vocal hook chant tenor choir stack on bridge every bar earns its weight hard but holy',
+    sunoStyle:
+      'conscious rap heavyweight 76 bpm half time killer mike reagan gravity run the jewels drum weight immortal technique menace Hip hop, alternative hip hop, conscious hip hop bar density el p production grit distorted rhodes loop sub 808 earthquake marching snare choir pad swells on the hook brass stab on punchlines vinyl crackle occasional sermon organ in minor key key of c minor old testament cinematic gospel undercurrent clean radio cut no profanity full throat male lead with gang vocal hook chant tenor choir stack on bridge every bar earns its weight hard but holy',
+    sunoStyleFull:
+      'conscious rap heavyweight 76 bpm half time killer mike reagan gravity run the jewels drum weight immortal technique menace Hip hop, alternative hip hop, conscious hip hop bar density el p production grit distorted rhodes loop sub 808 earthquake marching snare choir pad swells on the hook brass stab on punchlines vinyl crackle occasional sermon organ in minor key key of c minor old testament cinematic gospel undercurrent clean radio cut no profanity full throat male lead with gang vocal hook chant tenor choir stack on bridge every bar earns its weight hard but holy',
     sunoDisplayTags: 'conscious hip hop, hip hop, alternative hip hop',
     sunoBpm: 77.6,
     sunoBpmSource: 'audio',
@@ -1216,8 +1322,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'ff369ac8-618e-4797-adc2-823eafd50723',
     sunoTitle: 'Terms Updated',
     sunoConcept: null,
-    sunoStyle: 'Dark-comedy gospel trap anthem, melodic male rap vocals, playful heartbreak energy, sci-fi AI breakup theme, Newark / Brick City nightlife vibe, smooth Auto-Tune hook',
-    sunoStyleFull: 'Dark-comedy gospel trap anthem, melodic male rap vocals, playful heartbreak energy, sci-fi AI breakup theme, Newark / Brick City nightlife vibe, smooth Auto-Tune hook, dramatic choir pads, dark piano, heavy 808s, crisp hi-hat rolls, bouncy ad-libs, cinematic riser into a huge drop, half-joking but emotionally real. Theme: “Satan got my wife through AI, so I’m single ladies,” turning heartbreak into redemption, faith, confidence, and funny swagger. 142 BPM, minor key, radio-ready modern trap mix, catchy chant chorus, glossy club bounce with spiritual undertones',
+    sunoStyle:
+      'Dark-comedy gospel trap anthem, melodic male rap vocals, playful heartbreak energy, sci-fi AI breakup theme, Newark / Brick City nightlife vibe, smooth Auto-Tune hook',
+    sunoStyleFull:
+      'Dark-comedy gospel trap anthem, melodic male rap vocals, playful heartbreak energy, sci-fi AI breakup theme, Newark / Brick City nightlife vibe, smooth Auto-Tune hook, dramatic choir pads, dark piano, heavy 808s, crisp hi-hat rolls, bouncy ad-libs, cinematic riser into a huge drop, half-joking but emotionally real. Theme: “Satan got my wife through AI, so I’m single ladies,” turning heartbreak into redemption, faith, confidence, and funny swagger. 142 BPM, minor key, radio-ready modern trap mix, catchy chant chorus, glossy club bounce with spiritual undertones',
     sunoDisplayTags: 'gospel trap, modern trap, dark comedy rap',
     sunoBpm: 70.7,
     sunoBpmSource: 'audio',
@@ -1242,8 +1350,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: 'e2b2b1e4-f992-4917-8013-a83b3c05731a',
     sunoTitle: 'Tide Foley Revelation',
     sunoConcept: null,
-    sunoStyle: 'chill bump inspired hip hop with dusty boom bap drums chopped vinyl samples crunchy breakbeats and a wobbling upright bass loose off kilter mpc swing filtered horn stabs toy keyboard accents and occasional turntable scratches chorus built from simple crowd chant hooks layered with rough group vocals and tape saturation now with a bit more Hip Hop, Trap introduction and this too hardcore christian gangster rap 84 bpm c minor deep submarine sub bass distant wave field recording layer cinematic ocean strings swell gospel organ on the turnaround broken snare on 2 and 4 unquantized swung hats dark cathedral reverb aggressive distorted male vocal double time on stat bars no auto tune no melodic singing choir whisper underneath the hook righteous old testament fury raw analog mix salt soaked tape saturation vinyl crackle',
-    sunoStyleFull: 'chill bump inspired hip hop with dusty boom bap drums chopped vinyl samples crunchy breakbeats and a wobbling upright bass loose off kilter mpc swing filtered horn stabs toy keyboard accents and occasional turntable scratches chorus built from simple crowd chant hooks layered with rough group vocals and tape saturation now with a bit more Hip Hop, Trap introduction and this too hardcore christian gangster rap 84 bpm c minor deep submarine sub bass distant wave field recording layer cinematic ocean strings swell gospel organ on the turnaround broken snare on 2 and 4 unquantized swung hats dark cathedral reverb aggressive distorted male vocal double time on stat bars no auto tune no melodic singing choir whisper underneath the hook righteous old testament fury raw analog mix salt soaked tape saturation vinyl crackle',
+    sunoStyle:
+      'chill bump inspired hip hop with dusty boom bap drums chopped vinyl samples crunchy breakbeats and a wobbling upright bass loose off kilter mpc swing filtered horn stabs toy keyboard accents and occasional turntable scratches chorus built from simple crowd chant hooks layered with rough group vocals and tape saturation now with a bit more Hip Hop, Trap introduction and this too hardcore christian gangster rap 84 bpm c minor deep submarine sub bass distant wave field recording layer cinematic ocean strings swell gospel organ on the turnaround broken snare on 2 and 4 unquantized swung hats dark cathedral reverb aggressive distorted male vocal double time on stat bars no auto tune no melodic singing choir whisper underneath the hook righteous old testament fury raw analog mix salt soaked tape saturation vinyl crackle',
+    sunoStyleFull:
+      'chill bump inspired hip hop with dusty boom bap drums chopped vinyl samples crunchy breakbeats and a wobbling upright bass loose off kilter mpc swing filtered horn stabs toy keyboard accents and occasional turntable scratches chorus built from simple crowd chant hooks layered with rough group vocals and tape saturation now with a bit more Hip Hop, Trap introduction and this too hardcore christian gangster rap 84 bpm c minor deep submarine sub bass distant wave field recording layer cinematic ocean strings swell gospel organ on the turnaround broken snare on 2 and 4 unquantized swung hats dark cathedral reverb aggressive distorted male vocal double time on stat bars no auto tune no melodic singing choir whisper underneath the hook righteous old testament fury raw analog mix salt soaked tape saturation vinyl crackle',
     sunoDisplayTags: 'hip hop, hardcore rap, trap',
     sunoBpm: 87.2,
     sunoBpmSource: 'audio',
@@ -1267,9 +1377,12 @@ export const SUNO_META: Record<string, SunoMeta> = {
   'white-flag-prayer': {
     sunoId: '3743a35c-2624-4373-b998-f707562e3c88',
     sunoTitle: 'White Flag Prayer',
-    sunoConcept: 'The only gang sign we should flaunt is a white one, because the war we are making is not only our own, and Jesus Christ has already fallen',
-    sunoStyle: 'Gospel rock with stomping half-time drums, handclaps, and a restless organ bed; verse stays intimate with close-mic lead and sparse piano, pre-chorus opens into stacked harmonies and rising tambourine, chorus hits with gang vocals on the anchor phrase and short shout responses. Bridge drops to just voice and organ, then final chorus swells with choir doubles',
-    sunoStyleFull: 'Gospel rock with stomping half-time drums, handclaps, and a restless organ bed; verse stays intimate with close-mic lead and sparse piano, pre-chorus opens into stacked harmonies and rising tambourine, chorus hits with gang vocals on the anchor phrase and short shout responses. Bridge drops to just voice and organ, then final chorus swells with choir doubles, delay throws, and a wide, bright mix',
+    sunoConcept:
+      'The only gang sign we should flaunt is a white one, because the war we are making is not only our own, and Jesus Christ has already fallen',
+    sunoStyle:
+      'Gospel rock with stomping half-time drums, handclaps, and a restless organ bed; verse stays intimate with close-mic lead and sparse piano, pre-chorus opens into stacked harmonies and rising tambourine, chorus hits with gang vocals on the anchor phrase and short shout responses. Bridge drops to just voice and organ, then final chorus swells with choir doubles',
+    sunoStyleFull:
+      'Gospel rock with stomping half-time drums, handclaps, and a restless organ bed; verse stays intimate with close-mic lead and sparse piano, pre-chorus opens into stacked harmonies and rising tambourine, chorus hits with gang vocals on the anchor phrase and short shout responses. Bridge drops to just voice and organ, then final chorus swells with choir doubles, delay throws, and a wide, bright mix',
     sunoDisplayTags: 'gospel rock, soul, rock',
     sunoBpm: 80.7,
     sunoBpmSource: 'audio',
@@ -1294,8 +1407,10 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoId: '42ffdcf7-6896-42a2-a0f7-87307b53928f',
     sunoTitle: 'Window Herb Parade',
     sunoConcept: 'Make a song for my plants',
-    sunoStyle: 'Indie-pop with a bouncy mid-tempo sway, brushed drums and plucked acoustic guitar under a light bass pulse; verse stays intimate with spare guitar and close-mic vocal, pre-chorus lifts with stacked harmonies and a rising synth shimmer, chorus opens with gang vocals and a bright handclap pattern. Add little leaf-rustle foley, a reversed swell into each hook, and bell tones between phrases. Warm',
-    sunoStyleFull: 'Indie-pop with a bouncy mid-tempo sway, brushed drums and plucked acoustic guitar under a light bass pulse; verse stays intimate with spare guitar and close-mic vocal, pre-chorus lifts with stacked harmonies and a rising synth shimmer, chorus opens with gang vocals and a bright handclap pattern. Add little leaf-rustle foley, a reversed swell into each hook, and bell tones between phrases. Warm, crisp mix with a sunlit, handmade feel.',
+    sunoStyle:
+      'Indie-pop with a bouncy mid-tempo sway, brushed drums and plucked acoustic guitar under a light bass pulse; verse stays intimate with spare guitar and close-mic vocal, pre-chorus lifts with stacked harmonies and a rising synth shimmer, chorus opens with gang vocals and a bright handclap pattern. Add little leaf-rustle foley, a reversed swell into each hook, and bell tones between phrases. Warm',
+    sunoStyleFull:
+      'Indie-pop with a bouncy mid-tempo sway, brushed drums and plucked acoustic guitar under a light bass pulse; verse stays intimate with spare guitar and close-mic vocal, pre-chorus lifts with stacked harmonies and a rising synth shimmer, chorus opens with gang vocals and a bright handclap pattern. Add little leaf-rustle foley, a reversed swell into each hook, and bell tones between phrases. Warm, crisp mix with a sunlit, handmade feel.',
     sunoDisplayTags: 'indie-pop, indie rock, folk-pop',
     sunoBpm: 96.8,
     sunoBpmSource: 'audio',
@@ -1317,184 +1432,205 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoUrl: 'https://suno.com/song/42ffdcf7-6896-42a2-a0f7-87307b53928f'
   },
   'baby-sharks-destiny': {
-    sunoId: "b30c9b37-9bd2-4c84-bb71-4d670bd090b7",
-    sunoTitle: "Baby Sharks Destiny",
+    sunoId: 'b30c9b37-9bd2-4c84-bb71-4d670bd090b7',
+    sunoTitle: 'Baby Sharks Destiny',
     sunoConcept: null,
-    sunoStyle: "Genre: cinematic eco-gospel pop rap, soulful piano ballad, conscious anthem\nMood: protective, urgent, tender, spiritual, hopeful\nVocals: emotional male lead, children’s choir accents, powerful female soul bridge\nSound: ocean waves, soft pia",
-    sunoStyleFull: "Genre: cinematic eco-gospel pop rap, soulful piano ballad, conscious anthem\nMood: protective, urgent, tender, spiritual, hopeful\nVocals: emotional male lead, children’s choir accents, powerful female soul bridge\nSound: ocean waves, soft piano, gospel choir, deep cinematic drums, warm bass, subtle strings\nTheme: children deserve dignity beyond dehumanizing labels; ocean collapse as a warning; humanity must protect the next generation and the living Earth.",
-    sunoDisplayTags: "Genre: cinematic eco-gospel pop rap,  soulful piano ballad,  conscious anthem\nMood: protective,  urgent,  tender,  spiri",
+    sunoStyle:
+      'Genre: cinematic eco-gospel pop rap, soulful piano ballad, conscious anthem\nMood: protective, urgent, tender, spiritual, hopeful\nVocals: emotional male lead, children’s choir accents, powerful female soul bridge\nSound: ocean waves, soft pia',
+    sunoStyleFull:
+      'Genre: cinematic eco-gospel pop rap, soulful piano ballad, conscious anthem\nMood: protective, urgent, tender, spiritual, hopeful\nVocals: emotional male lead, children’s choir accents, powerful female soul bridge\nSound: ocean waves, soft piano, gospel choir, deep cinematic drums, warm bass, subtle strings\nTheme: children deserve dignity beyond dehumanizing labels; ocean collapse as a warning; humanity must protect the next generation and the living Earth.',
+    sunoDisplayTags:
+      'Genre: cinematic eco-gospel pop rap,  soulful piano ballad,  conscious anthem\nMood: protective,  urgent,  tender,  spiri',
     sunoBpm: null,
     sunoBpmSource: null,
     sunoKey: null,
     sunoKeyConfidence: null,
     sunoKeySource: null,
-    sunoModel: "chirp-fenix",
-    sunoModelName: "v5.5",
+    sunoModel: 'chirp-fenix',
+    sunoModelName: 'v5.5',
     sunoDuration: 226.12,
     sunoHasHook: false,
     sunoIsRemix: false,
     sunoIsInstrumental: false,
     sunoExplicit: false,
-    sunoCreatedAt: "2026-05-30T01:19:56.279Z",
-    sunoAudioUrl: "https://cdn1.suno.ai/b30c9b37-9bd2-4c84-bb71-4d670bd090b7.mp3",
-    sunoImageUrl: "https://cdn2.suno.ai/image_b30c9b37-9bd2-4c84-bb71-4d670bd090b7.jpeg",
-    sunoVideoUrl: "",
+    sunoCreatedAt: '2026-05-30T01:19:56.279Z',
+    sunoAudioUrl: 'https://cdn1.suno.ai/b30c9b37-9bd2-4c84-bb71-4d670bd090b7.mp3',
+    sunoImageUrl: 'https://cdn2.suno.ai/image_b30c9b37-9bd2-4c84-bb71-4d670bd090b7.jpeg',
+    sunoVideoUrl: '',
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/b30c9b37-9bd2-4c84-bb71-4d670bd090b7'
   },
   'guadalajara-sin-talla': {
-    sunoId: "233c20d4-6cc5-412c-a171-34b12571c89b",
-    sunoTitle: "Guadalajara Sin Talla",
+    sunoId: '233c20d4-6cc5-412c-a171-34b12571c89b',
+    sunoTitle: 'Guadalajara Sin Talla',
     sunoConcept: null,
-    sunoStyle: "Create a cinematic Latin gospel trap song about a shoeless child begging outside a cathedral in Guadalajara. The song should feel sacred, streetwise, and emotionally powerful. Blend Spanish guitar, church bells, soft piano, deep 808s, crisp",
-    sunoStyleFull: "Create a cinematic Latin gospel trap song about a shoeless child begging outside a cathedral in Guadalajara. The song should feel sacred, streetwise, and emotionally powerful. Blend Spanish guitar, church bells, soft piano, deep 808s, crisp trap drums, and a distant gospel choir. The lyrics should explore the tension between compassion and discernment: even if the situation might be a con, the child deserves dignity, mercy, and respect. Include a strong hook around the phrase “respect the player, even if you know the play.” Add a soulful female vocal drop-in for the bridge, with a big emotional belt, then end with a quiet prayer-like outro under cathedral bells. Keep it clean, poetic, and radio-ready",
-    sunoDisplayTags: "Create a cinematic Latin gospel trap song about a shoeless child begging outside a cathedral in Guadalajara. The song sh",
+    sunoStyle:
+      'Create a cinematic Latin gospel trap song about a shoeless child begging outside a cathedral in Guadalajara. The song should feel sacred, streetwise, and emotionally powerful. Blend Spanish guitar, church bells, soft piano, deep 808s, crisp',
+    sunoStyleFull:
+      'Create a cinematic Latin gospel trap song about a shoeless child begging outside a cathedral in Guadalajara. The song should feel sacred, streetwise, and emotionally powerful. Blend Spanish guitar, church bells, soft piano, deep 808s, crisp trap drums, and a distant gospel choir. The lyrics should explore the tension between compassion and discernment: even if the situation might be a con, the child deserves dignity, mercy, and respect. Include a strong hook around the phrase “respect the player, even if you know the play.” Add a soulful female vocal drop-in for the bridge, with a big emotional belt, then end with a quiet prayer-like outro under cathedral bells. Keep it clean, poetic, and radio-ready',
+    sunoDisplayTags:
+      'Create a cinematic Latin gospel trap song about a shoeless child begging outside a cathedral in Guadalajara. The song sh',
     sunoBpm: null,
     sunoBpmSource: null,
     sunoKey: null,
     sunoKeyConfidence: null,
     sunoKeySource: null,
-    sunoModel: "chirp-fenix",
-    sunoModelName: "v5.5",
+    sunoModel: 'chirp-fenix',
+    sunoModelName: 'v5.5',
     sunoDuration: 218.04,
     sunoHasHook: false,
     sunoIsRemix: false,
     sunoIsInstrumental: false,
     sunoExplicit: false,
-    sunoCreatedAt: "2026-05-30T00:48:54.396Z",
-    sunoAudioUrl: "https://cdn1.suno.ai/233c20d4-6cc5-412c-a171-34b12571c89b.mp3",
-    sunoImageUrl: "https://cdn2.suno.ai/image_233c20d4-6cc5-412c-a171-34b12571c89b.jpeg",
-    sunoVideoUrl: "",
+    sunoCreatedAt: '2026-05-30T00:48:54.396Z',
+    sunoAudioUrl: 'https://cdn1.suno.ai/233c20d4-6cc5-412c-a171-34b12571c89b.mp3',
+    sunoImageUrl: 'https://cdn2.suno.ai/image_233c20d4-6cc5-412c-a171-34b12571c89b.jpeg',
+    sunoVideoUrl: '',
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/233c20d4-6cc5-412c-a171-34b12571c89b'
   },
   'fire-runs-out': {
-    sunoId: "a0f28121-170c-4d38-bf0b-f1bb815970f9",
-    sunoTitle: "Fire Runs Out",
+    sunoId: 'a0f28121-170c-4d38-bf0b-f1bb815970f9',
+    sunoTitle: 'Fire Runs Out',
     sunoConcept: null,
-    sunoStyle: "Genre: cinematic gospel trap, apocalyptic orchestral rap, dark soul, prophetic anthem\nMood: urgent, cosmic, sacred, terrifying-but-redemptive\nVocals: Atlanta melodic trap male lead, gospel choir, powerhouse female soul belt, spoken-word pro",
-    sunoStyleFull: "Genre: cinematic gospel trap, apocalyptic orchestral rap, dark soul, prophetic anthem\nMood: urgent, cosmic, sacred, terrifying-but-redemptive\nVocals: Atlanta melodic trap male lead, gospel choir, powerhouse female soul belt, spoken-word prophet intro\nSound: thunderous 808s, church piano, choir swells, asteroid-impact risers, cinematic strings, huge final hook\nTempo: 80 BPM",
-    sunoDisplayTags: "Genre: cinematic gospel trap,  apocalyptic orchestral rap,  dark soul,  prophetic anthem\nMood: urgent,  cosmic,  sacred",
+    sunoStyle:
+      'Genre: cinematic gospel trap, apocalyptic orchestral rap, dark soul, prophetic anthem\nMood: urgent, cosmic, sacred, terrifying-but-redemptive\nVocals: Atlanta melodic trap male lead, gospel choir, powerhouse female soul belt, spoken-word pro',
+    sunoStyleFull:
+      'Genre: cinematic gospel trap, apocalyptic orchestral rap, dark soul, prophetic anthem\nMood: urgent, cosmic, sacred, terrifying-but-redemptive\nVocals: Atlanta melodic trap male lead, gospel choir, powerhouse female soul belt, spoken-word prophet intro\nSound: thunderous 808s, church piano, choir swells, asteroid-impact risers, cinematic strings, huge final hook\nTempo: 80 BPM',
+    sunoDisplayTags:
+      'Genre: cinematic gospel trap,  apocalyptic orchestral rap,  dark soul,  prophetic anthem\nMood: urgent,  cosmic,  sacred',
     sunoBpm: 80,
     sunoBpmSource: 'tag',
     sunoKey: null,
     sunoKeyConfidence: null,
     sunoKeySource: null,
-    sunoModel: "chirp-fenix",
-    sunoModelName: "v5.5",
+    sunoModel: 'chirp-fenix',
+    sunoModelName: 'v5.5',
     sunoDuration: 242.44,
     sunoHasHook: false,
     sunoIsRemix: false,
     sunoIsInstrumental: false,
     sunoExplicit: false,
-    sunoCreatedAt: "2026-05-30T00:28:28.251Z",
-    sunoAudioUrl: "https://cdn1.suno.ai/a0f28121-170c-4d38-bf0b-f1bb815970f9.mp3",
-    sunoImageUrl: "https://cdn2.suno.ai/image_a0f28121-170c-4d38-bf0b-f1bb815970f9.jpeg",
-    sunoVideoUrl: "",
+    sunoCreatedAt: '2026-05-30T00:28:28.251Z',
+    sunoAudioUrl: 'https://cdn1.suno.ai/a0f28121-170c-4d38-bf0b-f1bb815970f9.mp3',
+    sunoImageUrl: 'https://cdn2.suno.ai/image_a0f28121-170c-4d38-bf0b-f1bb815970f9.jpeg',
+    sunoVideoUrl: '',
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/a0f28121-170c-4d38-bf0b-f1bb815970f9'
   },
   'gray-skies-amen': {
-    sunoId: "1932cc88-c3d7-4004-9d21-872c50b3165d",
-    sunoTitle: "Gray Skies Amen",
+    sunoId: '1932cc88-c3d7-4004-9d21-872c50b3165d',
+    sunoTitle: 'Gray Skies Amen',
     sunoConcept: null,
-    sunoStyle: "Genre: cinematic gospel rap anthem, prayer song, soul choir, orchestral trap drums, emotional piano, huge worship hook, urgent but hopeful\nMood: sacred, unifying, powerful, world-healing, anti-war, anti-hate, anti-pollution\nVocals: deep mal",
-    sunoStyleFull: "Genre: cinematic gospel rap anthem, prayer song, soul choir, orchestral trap drums, emotional piano, huge worship hook, urgent but hopeful\nMood: sacred, unifying, powerful, world-healing, anti-war, anti-hate, anti-pollution\nVocals: deep male lead, angelic female choir, call-and-response, spoken prayer intro, explosive final chorus\nTempo: 82 BPM\nStyle: modern gospel + conscious hip-hop + cinematic soul, huge drop, clean radio-ready mix",
-    sunoDisplayTags: "Genre: cinematic gospel rap anthem,  prayer song,  soul choir,  orchestral trap drums,  emotional piano,  huge worship h",
+    sunoStyle:
+      'Genre: cinematic gospel rap anthem, prayer song, soul choir, orchestral trap drums, emotional piano, huge worship hook, urgent but hopeful\nMood: sacred, unifying, powerful, world-healing, anti-war, anti-hate, anti-pollution\nVocals: deep mal',
+    sunoStyleFull:
+      'Genre: cinematic gospel rap anthem, prayer song, soul choir, orchestral trap drums, emotional piano, huge worship hook, urgent but hopeful\nMood: sacred, unifying, powerful, world-healing, anti-war, anti-hate, anti-pollution\nVocals: deep male lead, angelic female choir, call-and-response, spoken prayer intro, explosive final chorus\nTempo: 82 BPM\nStyle: modern gospel + conscious hip-hop + cinematic soul, huge drop, clean radio-ready mix',
+    sunoDisplayTags:
+      'Genre: cinematic gospel rap anthem,  prayer song,  soul choir,  orchestral trap drums,  emotional piano,  huge worship h',
     sunoBpm: 82,
     sunoBpmSource: 'tag',
     sunoKey: null,
     sunoKeyConfidence: null,
     sunoKeySource: null,
-    sunoModel: "chirp-fenix",
-    sunoModelName: "v5.5",
+    sunoModel: 'chirp-fenix',
+    sunoModelName: 'v5.5',
     sunoDuration: 209.44,
     sunoHasHook: false,
     sunoIsRemix: false,
     sunoIsInstrumental: false,
     sunoExplicit: false,
-    sunoCreatedAt: "2026-05-30T00:09:33.886Z",
-    sunoAudioUrl: "https://cdn1.suno.ai/1932cc88-c3d7-4004-9d21-872c50b3165d.mp3",
-    sunoImageUrl: "https://cdn2.suno.ai/image_1932cc88-c3d7-4004-9d21-872c50b3165d.jpeg",
-    sunoVideoUrl: "",
+    sunoCreatedAt: '2026-05-30T00:09:33.886Z',
+    sunoAudioUrl: 'https://cdn1.suno.ai/1932cc88-c3d7-4004-9d21-872c50b3165d.mp3',
+    sunoImageUrl: 'https://cdn2.suno.ai/image_1932cc88-c3d7-4004-9d21-872c50b3165d.jpeg',
+    sunoVideoUrl: '',
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/1932cc88-c3d7-4004-9d21-872c50b3165d'
   },
   'bootleg-from-tomorrow': {
-    sunoId: "17836229-01a8-442c-9b06-224fe1c77d74",
-    sunoTitle: "Bootleg From Tomorrow",
+    sunoId: '17836229-01a8-442c-9b06-224fe1c77d74',
+    sunoTitle: 'Bootleg From Tomorrow',
     sunoConcept: null,
-    sunoStyle: "Pop-rap with a jittery mid-tempo swing and punchy trap drums; verse rides sparse keys and clipped bass, pre-chorus opens with rising synth blur and stacked doubles, chorus hits with a chantable hook and gang replies. Vocal is close-mic and ",
-    sunoStyleFull: "Pop-rap with a jittery mid-tempo swing and punchy trap drums; verse rides sparse keys and clipped bass, pre-chorus opens with rising synth blur and stacked doubles, chorus hits with a chantable hook and gang replies. Vocal is close-mic and urgent in verses, wider with harmonies on the hook, with delay throws on key words. Ear candy: rewind zaps, glitch pops between lines, and a reversed swell into the chorus. Bright, glossy mix with a tense futuristic edge.",
-    sunoDisplayTags: "Pop-rap with a jittery mid-tempo swing and punchy trap drums; verse rides sparse keys and clipped bass,  pre-chorus open",
+    sunoStyle:
+      'Pop-rap with a jittery mid-tempo swing and punchy trap drums; verse rides sparse keys and clipped bass, pre-chorus opens with rising synth blur and stacked doubles, chorus hits with a chantable hook and gang replies. Vocal is close-mic and ',
+    sunoStyleFull:
+      'Pop-rap with a jittery mid-tempo swing and punchy trap drums; verse rides sparse keys and clipped bass, pre-chorus opens with rising synth blur and stacked doubles, chorus hits with a chantable hook and gang replies. Vocal is close-mic and urgent in verses, wider with harmonies on the hook, with delay throws on key words. Ear candy: rewind zaps, glitch pops between lines, and a reversed swell into the chorus. Bright, glossy mix with a tense futuristic edge.',
+    sunoDisplayTags:
+      'Pop-rap with a jittery mid-tempo swing and punchy trap drums; verse rides sparse keys and clipped bass,  pre-chorus open',
     sunoBpm: null,
     sunoBpmSource: null,
     sunoKey: null,
     sunoKeyConfidence: null,
     sunoKeySource: null,
-    sunoModel: "chirp-fenix",
-    sunoModelName: "v5.5",
+    sunoModel: 'chirp-fenix',
+    sunoModelName: 'v5.5',
     sunoDuration: 191.12,
     sunoHasHook: false,
     sunoIsRemix: false,
     sunoIsInstrumental: false,
     sunoExplicit: false,
-    sunoCreatedAt: "2026-05-28T03:07:06.707Z",
-    sunoAudioUrl: "https://cdn1.suno.ai/17836229-01a8-442c-9b06-224fe1c77d74.mp3",
-    sunoImageUrl: "https://cdn2.suno.ai/image_17836229-01a8-442c-9b06-224fe1c77d74.jpeg",
-    sunoVideoUrl: "",
+    sunoCreatedAt: '2026-05-28T03:07:06.707Z',
+    sunoAudioUrl: 'https://cdn1.suno.ai/17836229-01a8-442c-9b06-224fe1c77d74.mp3',
+    sunoImageUrl: 'https://cdn2.suno.ai/image_17836229-01a8-442c-9b06-224fe1c77d74.jpeg',
+    sunoVideoUrl: '',
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/17836229-01a8-442c-9b06-224fe1c77d74'
   },
   'loaded-dice': {
-    sunoId: "51d0d166-25bc-4ec2-92d6-36b70a755c89",
-    sunoTitle: "Loaded Dice",
+    sunoId: '51d0d166-25bc-4ec2-92d6-36b70a755c89',
+    sunoTitle: 'Loaded Dice',
     sunoConcept: null,
-    sunoStyle: "soul-blues rock, modern Americana, 78 BPM, swung backbeat, minor key, gravelly male vocal, gospel backing vocals, slide guitar bends, tremolo electric guitar, organ swells, upright bass pulse, brushed snare, vintage tape saturation, chamber",
-    sunoStyleFull: "soul-blues rock, modern Americana, 78 BPM, swung backbeat, minor key, gravelly male vocal, gospel backing vocals, slide guitar bends, tremolo electric guitar, organ swells, upright bass pulse, brushed snare, vintage tape saturation, chamber reverb, smoky lounge, defiant uplift, triumphant lift",
-    sunoDisplayTags: "soul-blues rock,  modern Americana,  78 BPM,  swung backbeat,  minor key,  gravelly male vocal",
+    sunoStyle:
+      'soul-blues rock, modern Americana, 78 BPM, swung backbeat, minor key, gravelly male vocal, gospel backing vocals, slide guitar bends, tremolo electric guitar, organ swells, upright bass pulse, brushed snare, vintage tape saturation, chamber',
+    sunoStyleFull:
+      'soul-blues rock, modern Americana, 78 BPM, swung backbeat, minor key, gravelly male vocal, gospel backing vocals, slide guitar bends, tremolo electric guitar, organ swells, upright bass pulse, brushed snare, vintage tape saturation, chamber reverb, smoky lounge, defiant uplift, triumphant lift',
+    sunoDisplayTags:
+      'soul-blues rock,  modern Americana,  78 BPM,  swung backbeat,  minor key,  gravelly male vocal',
     sunoBpm: 78,
     sunoBpmSource: 'tag',
-    sunoKey: "minor",
+    sunoKey: 'minor',
     sunoKeyConfidence: null,
     sunoKeySource: 'tag',
-    sunoModel: "chirp-fenix",
-    sunoModelName: "v5.5",
+    sunoModel: 'chirp-fenix',
+    sunoModelName: 'v5.5',
     sunoDuration: 257.56,
     sunoHasHook: false,
     sunoIsRemix: false,
     sunoIsInstrumental: false,
     sunoExplicit: false,
-    sunoCreatedAt: "2026-05-23T21:29:31.818Z",
-    sunoAudioUrl: "https://cdn1.suno.ai/51d0d166-25bc-4ec2-92d6-36b70a755c89.mp3",
-    sunoImageUrl: "https://cdn2.suno.ai/image_51d0d166-25bc-4ec2-92d6-36b70a755c89.jpeg",
-    sunoVideoUrl: "",
+    sunoCreatedAt: '2026-05-23T21:29:31.818Z',
+    sunoAudioUrl: 'https://cdn1.suno.ai/51d0d166-25bc-4ec2-92d6-36b70a755c89.mp3',
+    sunoImageUrl: 'https://cdn2.suno.ai/image_51d0d166-25bc-4ec2-92d6-36b70a755c89.jpeg',
+    sunoVideoUrl: '',
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/51d0d166-25bc-4ec2-92d6-36b70a755c89'
   },
   'sleep-like': {
-    sunoId: "8eee8aa2-da6e-49d8-9da7-f2e70e38817f",
-    sunoTitle: "Sleep Like",
+    sunoId: '8eee8aa2-da6e-49d8-9da7-f2e70e38817f',
+    sunoTitle: 'Sleep Like',
     sunoConcept: null,
-    sunoStyle: "Uplifting soulful folk-pop anthem with gospel warmth, cinematic drums, acoustic guitar, piano, subtle organ, handclaps, and a powerful sing-along chorus. Male lead vocal, emotional but confident, modern Americana-meets-gospel-pop, inspiring",
-    sunoStyleFull: "Uplifting soulful folk-pop anthem with gospel warmth, cinematic drums, acoustic guitar, piano, subtle organ, handclaps, and a powerful sing-along chorus. Male lead vocal, emotional but confident, modern Americana-meets-gospel-pop, inspiring life-advice lyrics about health, wisdom, service, money, love, sleep, learning, focus, and purpose. Build from intimate verse to huge final chorus with choir harmonies. Tempo 92 BPM. Mood: wise, hopeful, redemptive, motivational, heartfelt",
-    sunoDisplayTags: "Uplifting soulful folk-pop anthem with gospel warmth,  cinematic drums,  acoustic guitar,  piano,  subtle organ,  handcl",
+    sunoStyle:
+      'Uplifting soulful folk-pop anthem with gospel warmth, cinematic drums, acoustic guitar, piano, subtle organ, handclaps, and a powerful sing-along chorus. Male lead vocal, emotional but confident, modern Americana-meets-gospel-pop, inspiring',
+    sunoStyleFull:
+      'Uplifting soulful folk-pop anthem with gospel warmth, cinematic drums, acoustic guitar, piano, subtle organ, handclaps, and a powerful sing-along chorus. Male lead vocal, emotional but confident, modern Americana-meets-gospel-pop, inspiring life-advice lyrics about health, wisdom, service, money, love, sleep, learning, focus, and purpose. Build from intimate verse to huge final chorus with choir harmonies. Tempo 92 BPM. Mood: wise, hopeful, redemptive, motivational, heartfelt',
+    sunoDisplayTags:
+      'Uplifting soulful folk-pop anthem with gospel warmth,  cinematic drums,  acoustic guitar,  piano,  subtle organ,  handcl',
     sunoBpm: 92,
     sunoBpmSource: 'tag',
     sunoKey: null,
     sunoKeyConfidence: null,
     sunoKeySource: null,
-    sunoModel: "chirp-fenix",
-    sunoModelName: "v5.5",
+    sunoModel: 'chirp-fenix',
+    sunoModelName: 'v5.5',
     sunoDuration: 249.56,
     sunoHasHook: false,
     sunoIsRemix: false,
     sunoIsInstrumental: false,
     sunoExplicit: false,
-    sunoCreatedAt: "2026-05-22T15:19:01.529Z",
-    sunoAudioUrl: "https://cdn1.suno.ai/8eee8aa2-da6e-49d8-9da7-f2e70e38817f.mp3",
-    sunoImageUrl: "https://cdn2.suno.ai/image_8eee8aa2-da6e-49d8-9da7-f2e70e38817f.jpeg",
-    sunoVideoUrl: "",
+    sunoCreatedAt: '2026-05-22T15:19:01.529Z',
+    sunoAudioUrl: 'https://cdn1.suno.ai/8eee8aa2-da6e-49d8-9da7-f2e70e38817f.mp3',
+    sunoImageUrl: 'https://cdn2.suno.ai/image_8eee8aa2-da6e-49d8-9da7-f2e70e38817f.jpeg',
+    sunoVideoUrl: '',
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/8eee8aa2-da6e-49d8-9da7-f2e70e38817f'
   }

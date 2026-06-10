@@ -26,10 +26,19 @@ import type { Track, Album } from './types';
 
 const SITE_ORIGIN = 'https://music.megabyte.space';
 const FALLBACK_MSG_INVALID = 'This embed link is missing or invalid.';
-const FALLBACK_MSG_ERROR = 'Something went wrong loading this track. Try the full player on music.megabyte.space.';
+const FALLBACK_MSG_ERROR =
+  'Something went wrong loading this track. Try the full player on music.megabyte.space.';
 
-interface EmbedTrackTarget { kind: 'track'; track: Track; album: Album }
-interface EmbedAlbumTarget { kind: 'album'; album: Album; tracks: Track[] }
+interface EmbedTrackTarget {
+  kind: 'track';
+  track: Track;
+  album: Album;
+}
+interface EmbedAlbumTarget {
+  kind: 'album';
+  album: Album;
+  tracks: Track[];
+}
 type EmbedTarget = EmbedTrackTarget | EmbedAlbumTarget | null;
 
 /** Parse `/embed/<album>` or `/embed/<album>/<track>` against the data
@@ -52,9 +61,11 @@ function parseEmbedTarget(): EmbedTarget {
   return { kind: 'album', album, tracks };
 }
 
-
 function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+  return s.replace(
+    /[&<>"']/g,
+    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!
+  );
 }
 
 /** Render the branded fallback card. Used for invalid paths AND runtime
@@ -120,9 +131,7 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
   const isAlbum = target.kind === 'album';
   const eyebrow = isAlbum ? 'album' : 'single';
   const titleCopy = isAlbum ? albumName : escapeHtml(target.track.title);
-  const subline = isAlbum
-    ? `${playlist.length} tracks · bZ`
-    : `${albumName} · bZ`;
+  const subline = isAlbum ? `${playlist.length} tracks · bZ` : `${albumName} · bZ`;
   const deepHref = isAlbum ? `${SITE_ORIGIN}/${album.id}` : `${SITE_ORIGIN}/${album.id}/${target.track.id}`;
 
   const multi = playlist.length > 1;
@@ -226,16 +235,16 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
       navigator.mediaSession.setActionHandler('pause', () => {
         engine.audio.pause();
       });
-      navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+      navigator.mediaSession.setActionHandler('seekbackward', details => {
         const step = details.seekOffset || 10;
         engine.audio.currentTime = Math.max(0, engine.audio.currentTime - step);
       });
-      navigator.mediaSession.setActionHandler('seekforward', (details) => {
+      navigator.mediaSession.setActionHandler('seekforward', details => {
         const step = details.seekOffset || 10;
         const dur = engine.audio.duration || 0;
         engine.audio.currentTime = Math.min(dur, engine.audio.currentTime + step);
       });
-      navigator.mediaSession.setActionHandler('seekto', (details) => {
+      navigator.mediaSession.setActionHandler('seekto', details => {
         if (typeof details.seekTime !== 'number') return;
         engine.audio.currentTime = details.seekTime;
       });
@@ -302,10 +311,19 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
   bar.addEventListener('keydown', e => {
     if (!engine.audio.duration) return;
     const step = 5;
-    if (e.key === 'ArrowRight') { engine.audio.currentTime = Math.min(engine.audio.duration, engine.audio.currentTime + step); e.preventDefault(); }
-    else if (e.key === 'ArrowLeft') { engine.audio.currentTime = Math.max(0, engine.audio.currentTime - step); e.preventDefault(); }
-    else if (e.key === 'Home') { engine.audio.currentTime = 0; e.preventDefault(); }
-    else if (e.key === 'End') { engine.audio.currentTime = engine.audio.duration - 0.01; e.preventDefault(); }
+    if (e.key === 'ArrowRight') {
+      engine.audio.currentTime = Math.min(engine.audio.duration, engine.audio.currentTime + step);
+      e.preventDefault();
+    } else if (e.key === 'ArrowLeft') {
+      engine.audio.currentTime = Math.max(0, engine.audio.currentTime - step);
+      e.preventDefault();
+    } else if (e.key === 'Home') {
+      engine.audio.currentTime = 0;
+      e.preventDefault();
+    } else if (e.key === 'End') {
+      engine.audio.currentTime = engine.audio.duration - 0.01;
+      e.preventDefault();
+    }
   });
 
   // Bubble audio-element errors (decode, network 404, MIME mismatch) into
@@ -349,15 +367,18 @@ function renderPlayer(host: HTMLElement, target: NonNullable<EmbedTarget>) {
       engine.audio.currentTime = data.payload.seconds;
     } else if (data.type === 'bzmusic:get-nowplaying') {
       const t = playlist[idx];
-      window.parent?.postMessage({
-        type: 'bzmusic:nowplaying',
-        payload: {
-          title: t.title,
-          album: album.name,
-          currentTime: engine.audio.currentTime || 0,
-          duration: engine.audio.duration || 0,
+      window.parent?.postMessage(
+        {
+          type: 'bzmusic:nowplaying',
+          payload: {
+            title: t.title,
+            album: album.name,
+            currentTime: engine.audio.currentTime || 0,
+            duration: engine.audio.duration || 0
+          }
         },
-      }, '*');
+        '*'
+      );
     }
   });
 
@@ -478,7 +499,11 @@ function setupVisualizer(engine: AudioEngine, accent: string) {
 function hexToRgba(hex: string, alpha: number): string {
   let h = hex.trim();
   if (h.startsWith('#')) h = h.slice(1);
-  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  if (h.length === 3)
+    h = h
+      .split('')
+      .map(c => c + c)
+      .join('');
   if (h.length !== 6) return `rgba(0, 229, 255, ${alpha})`;
   const r = parseInt(h.slice(0, 2), 16);
   const g = parseInt(h.slice(2, 4), 16);

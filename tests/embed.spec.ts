@@ -51,8 +51,9 @@ test.describe('embed player — album view', () => {
 
     const initial = parseFloat(initialWidth) || 0;
     const later = parseFloat(laterWidth) || 0;
-    expect(later, `scrub bar should advance after 2.5s; got ${initialWidth} → ${laterWidth}`)
-      .toBeGreaterThan(initial);
+    expect(later, `scrub bar should advance after 2.5s; got ${initialWidth} → ${laterWidth}`).toBeGreaterThan(
+      initial
+    );
   });
 
   test('next button advances playlist title; prev wraps backwards', async ({ page }) => {
@@ -63,18 +64,21 @@ test.describe('embed player — album view', () => {
     await page.locator('#embedNext').click();
     // Wait for refreshTitle() to swap the textContent — it runs synchronously
     // inside load(), but the assertion waits for the DOM to flush.
-    await expect.poll(async () => (await page.locator('#embedTitle').textContent())?.trim())
+    await expect
+      .poll(async () => (await page.locator('#embedTitle').textContent())?.trim())
       .not.toBe(firstTitle);
 
     const secondTitle = (await page.locator('#embedTitle').textContent())?.trim();
     await page.locator('#embedPrev').click();
-    await expect.poll(async () => (await page.locator('#embedTitle').textContent())?.trim())
-      .toBe(firstTitle);
+    await expect.poll(async () => (await page.locator('#embedTitle').textContent())?.trim()).toBe(firstTitle);
     expect(secondTitle).not.toBe(firstTitle);
   });
 
   test('visualizer canvas paints after play (non-empty pixel data)', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', 'Chromium-only autoplay-policy override is set in playwright.config');
+    test.skip(
+      browserName !== 'chromium',
+      'Chromium-only autoplay-policy override is set in playwright.config'
+    );
     test.setTimeout(30_000);
 
     await page.goto(`/embed/${ALBUM_SLUG}`, { waitUntil: 'domcontentloaded' });
@@ -118,17 +122,23 @@ test.describe('embed player — MediaSession action handlers', () => {
   // 2. seekto changes audio.currentTime when invoked via the same code path
   //    the OS chrome would invoke (calling the handler logic directly).
   test('seekto handler updates audio.currentTime', async ({ page, browserName }) => {
-    test.skip(browserName !== 'chromium', 'Chromium-only autoplay-policy override is set in playwright.config');
+    test.skip(
+      browserName !== 'chromium',
+      'Chromium-only autoplay-policy override is set in playwright.config'
+    );
     test.setTimeout(60_000);
 
     await page.goto(`/embed/${ALBUM_SLUG}`, { waitUntil: 'domcontentloaded' });
     await page.locator('#embedPlay').click();
 
     // Wait for audio to have a real duration so seekto has somewhere to go.
-    await page.waitForFunction(() => {
-      const audio = document.querySelector('audio') as HTMLAudioElement | null;
-      return !!audio && Number.isFinite(audio.duration) && audio.duration > 10;
-    }, { timeout: 30_000 });
+    await page.waitForFunction(
+      () => {
+        const audio = document.querySelector('audio') as HTMLAudioElement | null;
+        return !!audio && Number.isFinite(audio.duration) && audio.duration > 10;
+      },
+      { timeout: 30_000 }
+    );
 
     // Simulate the OS chrome firing the seekto action — the embed registered
     // a handler that sets audio.currentTime, so we trigger the same code path
@@ -141,12 +151,17 @@ test.describe('embed player — MediaSession action handlers', () => {
       audio.currentTime = 30;
     });
 
-    await page.waitForFunction(() => {
-      const audio = document.querySelector('audio') as HTMLAudioElement;
-      return audio.currentTime >= 29.5;
-    }, { timeout: 5_000 });
+    await page.waitForFunction(
+      () => {
+        const audio = document.querySelector('audio') as HTMLAudioElement;
+        return audio.currentTime >= 29.5;
+      },
+      { timeout: 5_000 }
+    );
 
-    const after = await page.evaluate(() => (document.querySelector('audio') as HTMLAudioElement).currentTime);
+    const after = await page.evaluate(
+      () => (document.querySelector('audio') as HTMLAudioElement).currentTime
+    );
     expect(after).toBeGreaterThanOrEqual(29.5);
   });
 
@@ -156,14 +171,19 @@ test.describe('embed player — MediaSession action handlers', () => {
     await expect(page.locator('#embedTitle')).not.toBeEmpty();
 
     // Tick the engine once so the loaded event fires (which writes metadata).
-    await page.waitForFunction(() => {
-      const ms = (navigator as Navigator & { mediaSession?: MediaSession }).mediaSession;
-      return !!ms?.metadata?.title;
-    }, { timeout: 10_000 });
+    await page.waitForFunction(
+      () => {
+        const ms = (navigator as Navigator & { mediaSession?: MediaSession }).mediaSession;
+        return !!ms?.metadata?.title;
+      },
+      { timeout: 10_000 }
+    );
 
     const meta = await page.evaluate(() => {
       const ms = (navigator as Navigator & { mediaSession?: MediaSession }).mediaSession;
-      return ms?.metadata ? { title: ms.metadata.title, artist: ms.metadata.artist, artworks: ms.metadata.artwork.length } : null;
+      return ms?.metadata
+        ? { title: ms.metadata.title, artist: ms.metadata.artist, artworks: ms.metadata.artwork.length }
+        : null;
     });
     expect(meta).not.toBeNull();
     expect(meta!.title.length).toBeGreaterThan(0);

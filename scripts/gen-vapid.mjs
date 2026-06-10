@@ -11,7 +11,11 @@ function b64u(buf) {
   const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
   let s = '';
   for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
-  return Buffer.from(s, 'binary').toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return Buffer.from(s, 'binary')
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
 }
 
 const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);

@@ -8,8 +8,14 @@
 import { test, expect } from '@playwright/test';
 import { attachConsoleGuard, assertClean } from './helpers/console-guard';
 
-const shot = (testInfo: import('@playwright/test').TestInfo, page: import('@playwright/test').Page, name: string) =>
-  page.screenshot({ path: `test-results/feature-matrix/${testInfo.project.name}-${name}.png` }).catch(() => {});
+const shot = (
+  testInfo: import('@playwright/test').TestInfo,
+  page: import('@playwright/test').Page,
+  name: string
+) =>
+  page
+    .screenshot({ path: `test-results/feature-matrix/${testInfo.project.name}-${name}.png` })
+    .catch(() => {});
 
 test.describe('feature matrix — production', () => {
   // ── Homepage ──────────────────────────────────────────────────────
@@ -150,7 +156,10 @@ test.describe('feature matrix — production', () => {
     const vapid = await request.get('/api/push/vapid-key');
     expect(vapid.status()).toBe(200);
     const push = await request.post('/api/push/subscribe', {
-      data: { endpoint: `https://fcm.googleapis.com/fcm/send/e2e-${Date.now()}`, keys: { p256dh: 'BPxAbC', auth: 'authTok' } },
+      data: {
+        endpoint: `https://fcm.googleapis.com/fcm/send/e2e-${Date.now()}`,
+        keys: { p256dh: 'BPxAbC', auth: 'authTok' }
+      }
     });
     expect(push.status()).toBe(200);
     const email = `e2e+${Date.now()}@example.com`;

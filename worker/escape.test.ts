@@ -26,9 +26,7 @@ describe('escapeXmlText', () => {
 
 describe('escapeHtmlAttr', () => {
   it('escapes ampersands, angle brackets, both quote styles, and apostrophes', () => {
-    expect(escapeHtmlAttr(`a&b<c>d"e'f`)).toBe(
-      'a&amp;b&lt;c&gt;d&quot;e&#39;f'
-    );
+    expect(escapeHtmlAttr(`a&b<c>d"e'f`)).toBe('a&amp;b&lt;c&gt;d&quot;e&#39;f');
   });
 
   it('orders ampersand escape first to avoid stacking', () => {

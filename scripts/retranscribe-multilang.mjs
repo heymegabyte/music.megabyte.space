@@ -6,14 +6,17 @@ const ROOT = '/Users/apple/emdash-projects/worktrees/blue-donuts-flash-v6d';
 const targets = [
   { id: 'chimba-precisa', file: 'public/audio/Chimba_Precisa.mp3', lang: 'es' },
   { id: 'soupe-saint-jean', file: 'public/audio/Soupe_Saint-Jean.mp3', lang: 'fr' },
-  { id: 'corozon-gringo', file: 'public/audio/Corozon_Gringo.mp3', lang: 'es' },
+  { id: 'corozon-gringo', file: 'public/audio/Corozon_Gringo.mp3', lang: 'es' }
 ];
 
 function packLines(words, maxWords = 7, maxGap = 1.2) {
   const lines = [];
   let cur = [];
   for (const w of words) {
-    if (cur.length === 0) { cur.push(w); continue; }
+    if (cur.length === 0) {
+      cur.push(w);
+      continue;
+    }
     const gap = w.s - cur[cur.length - 1].e;
     if (cur.length >= maxWords || gap > maxGap) {
       lines.push({ s: cur[0].s, e: cur[cur.length - 1].e, text: cur.map(x => x.w).join(' ') });
@@ -22,7 +25,8 @@ function packLines(words, maxWords = 7, maxGap = 1.2) {
       cur.push(w);
     }
   }
-  if (cur.length > 0) lines.push({ s: cur[0].s, e: cur[cur.length - 1].e, text: cur.map(x => x.w).join(' ') });
+  if (cur.length > 0)
+    lines.push({ s: cur[0].s, e: cur[cur.length - 1].e, text: cur.map(x => x.w).join(' ') });
   return lines;
 }
 
@@ -40,12 +44,17 @@ for (const t of targets) {
   const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
     headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
-    body: form,
+    body: form
   });
   const json = await res.json();
-  if (!res.ok) { console.log(` ERROR: ${JSON.stringify(json)}`); continue; }
+  if (!res.ok) {
+    console.log(` ERROR: ${JSON.stringify(json)}`);
+    continue;
+  }
 
-  const words = (json.words || []).map(w => ({ w: String(w.word).trim(), s: w.start, e: w.end })).filter(w => w.w);
+  const words = (json.words || [])
+    .map(w => ({ w: String(w.word).trim(), s: w.start, e: w.end }))
+    .filter(w => w.w);
   const lines = packLines(words);
   writeFileSync(
     `${ROOT}/public/lyrics/${t.id}.json`,

@@ -23,7 +23,7 @@ const BRAND_MARK = path.join(PUBLIC_DIR, 'art/bz-mark.png');
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const COVER_SIZE = 510;  // square art on the left
+const COVER_SIZE = 510; // square art on the left
 const COVER_X = 60;
 const COVER_Y = (HEIGHT - COVER_SIZE) / 2;
 
@@ -33,16 +33,18 @@ const dataMtime = statSync(DATA_PATH).mtimeMs;
 // Parse COVERS map → { c2: '/art/chatgpt-2.png', ... }
 const coversMatch = dataSrc.match(/const COVERS\s*=\s*\{([^}]+)\}/);
 if (!coversMatch) throw new Error('COVERS map not found in data.ts');
-const COVERS = Object.fromEntries(
-  [...coversMatch[1].matchAll(/(\w+):\s*'([^']+)'/g)].map(m => [m[1], m[2]])
-);
+const COVERS = Object.fromEntries([...coversMatch[1].matchAll(/(\w+):\s*'([^']+)'/g)].map(m => [m[1], m[2]]));
 
 // Parse ALBUMS → { id → { name, cover, accent } }
 const ALBUMS = {};
 const albumBlockMatch = dataSrc.match(/export const ALBUMS:[^=]*=\s*\[([\s\S]*?)\n\];/);
 if (albumBlockMatch) {
   const albumBlock = albumBlockMatch[1];
-  const albumEntries = [...albumBlock.matchAll(/\{\s*id:\s*'([^']+)',\s*name:\s*'([^']+)',\s*cover:\s*'([^']+)',[\s\S]*?accent:\s*'([^']+)'/g)];
+  const albumEntries = [
+    ...albumBlock.matchAll(
+      /\{\s*id:\s*'([^']+)',\s*name:\s*'([^']+)',\s*cover:\s*'([^']+)',[\s\S]*?accent:\s*'([^']+)'/g
+    )
+  ];
   for (const [, id, name, cover, accent] of albumEntries) {
     ALBUMS[id] = { id, name, cover, accent };
   }
@@ -53,12 +55,22 @@ const trackBlockMatch = dataSrc.match(/export const TRACKS:[^=]*=\s*\[([\s\S]+)\
 if (!trackBlockMatch) throw new Error('TRACKS array not found in data.ts');
 
 const TRACKS = [];
-const trackRegex = /\{\s*id:\s*'([^']+)',\s*title:\s*['"]([^'"]+)['"],\s*artist:\s*'([^']+)',\s*file:\s*'[^']+',\s*cover:\s*([^,]+),\s*album:\s*'([^']+)'/g;
+const trackRegex =
+  /\{\s*id:\s*'([^']+)',\s*title:\s*['"]([^'"]+)['"],\s*artist:\s*'([^']+)',\s*file:\s*'[^']+',\s*cover:\s*([^,]+),\s*album:\s*'([^']+)'/g;
 for (const m of dataSrc.matchAll(trackRegex)) {
   const [, id, title, artist, coverRef, album] = m;
-  const cover = coverRef.startsWith("'") ? coverRef.replace(/'/g, '') :
-    (COVERS[coverRef.replace(/^COVERS\./, '').trim()] || ALBUMS[album]?.cover || '/art/cover-panda-desiiignare.png');
-  TRACKS.push({ id, title: title.replace(/&apos;|&#39;/g, "'").replace(/&quot;/g, '"'), artist, cover, album });
+  const cover = coverRef.startsWith("'")
+    ? coverRef.replace(/'/g, '')
+    : COVERS[coverRef.replace(/^COVERS\./, '').trim()] ||
+      ALBUMS[album]?.cover ||
+      '/art/cover-panda-desiiignare.png';
+  TRACKS.push({
+    id,
+    title: title.replace(/&apos;|&#39;/g, "'").replace(/&quot;/g, '"'),
+    artist,
+    cover,
+    album
+  });
 }
 
 if (TRACKS.length === 0) throw new Error('No tracks parsed from data.ts');
@@ -67,8 +79,12 @@ await fs.mkdir(OG_DIR, { recursive: true });
 
 // Escape XML/SVG text content
 function svgEscape(s) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // Wrap a title and auto-fit font size to a fixed panel width.
@@ -124,7 +140,9 @@ function greedyBalance(words, lineCount) {
 
 function buildOverlaySvg(track, album) {
   const title = svgEscape(track.title);
-  const eyebrow = svgEscape(`${track.artist.toUpperCase()} · ${album?.name?.toUpperCase() ?? ''}`.replace(/ · $/, ''));
+  const eyebrow = svgEscape(
+    `${track.artist.toUpperCase()} · ${album?.name?.toUpperCase() ?? ''}`.replace(/ · $/, '')
+  );
   const accent = album?.accent ?? '#00E5FF';
   const { lines: titleLines, fontSize } = wrapTitle(title);
   const lineHeight = Math.round(fontSize * 0.96);
@@ -189,9 +207,9 @@ function buildOverlaySvg(track, album) {
   <text x="630" y="160" class="eyebrow">${eyebrow}</text>
 
   <!-- multi-line title -->
-  ${titleLines.map((line, i) =>
-    `<text x="630" y="${titleStartY + i * lineHeight}" class="titletext">${line}</text>`
-  ).join('\n  ')}
+  ${titleLines
+    .map((line, i) => `<text x="630" y="${titleStartY + i * lineHeight}" class="titletext">${line}</text>`)
+    .join('\n  ')}
 
   <!-- footer: domain -->
   <text x="630" y="${HEIGHT - 62}" class="footer">PLAY ON  </text>
@@ -231,10 +249,14 @@ async function generateCard(track) {
   // 2. Cover art — sharp square, soft shadow handled by SVG drop-shadow on a wrapper later
   const coverSquare = await sharp(coverPath)
     .resize(COVER_SIZE, COVER_SIZE, { fit: 'cover', position: 'centre' })
-    .composite([{
-      input: Buffer.from(`<svg width="${COVER_SIZE}" height="${COVER_SIZE}"><rect width="${COVER_SIZE}" height="${COVER_SIZE}" rx="22" ry="22" fill="white"/></svg>`),
-      blend: 'dest-in'
-    }])
+    .composite([
+      {
+        input: Buffer.from(
+          `<svg width="${COVER_SIZE}" height="${COVER_SIZE}"><rect width="${COVER_SIZE}" height="${COVER_SIZE}" rx="22" ry="22" fill="white"/></svg>`
+        ),
+        blend: 'dest-in'
+      }
+    ])
     .png()
     .toBuffer();
 
@@ -251,10 +273,12 @@ async function generateCard(track) {
       .resize(64, 64, { fit: 'contain' })
       .ensureAlpha()
       .modulate({ brightness: 1, saturation: 1 })
-      .composite([{
-        input: Buffer.from('<svg><rect width="64" height="64" fill="rgba(255,255,255,0.85)"/></svg>'),
-        blend: 'dest-in'
-      }])
+      .composite([
+        {
+          input: Buffer.from('<svg><rect width="64" height="64" fill="rgba(255,255,255,0.85)"/></svg>'),
+          blend: 'dest-in'
+        }
+      ])
       .toBuffer();
     composites.push({ input: mark, top: 50, left: WIDTH - 64 - 80 });
   }
@@ -269,7 +293,10 @@ async function generateCard(track) {
 }
 
 const t0 = Date.now();
-let generated = 0, skipped = 0, missing = 0, totalBytes = 0;
+let generated = 0,
+  skipped = 0,
+  missing = 0,
+  totalBytes = 0;
 const results = [];
 
 for (const track of TRACKS) {
@@ -285,7 +312,9 @@ for (const track of TRACKS) {
 }
 
 const ms = Date.now() - t0;
-console.log(`OG cards: generated ${generated}, skipped ${skipped}${missing ? `, missing ${missing}` : ''}, ${(totalBytes / 1024).toFixed(0)} KB total in ${ms}ms`);
+console.log(
+  `OG cards: generated ${generated}, skipped ${skipped}${missing ? `, missing ${missing}` : ''}, ${(totalBytes / 1024).toFixed(0)} KB total in ${ms}ms`
+);
 if (generated > 0) {
   const avgKB = totalBytes / generated / 1024;
   console.log(`  avg ${avgKB.toFixed(1)} KB/card · ${TRACKS.length} tracks total`);

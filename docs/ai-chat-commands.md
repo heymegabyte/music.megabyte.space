@@ -23,22 +23,22 @@ Run `/shortcommands` (or its alias `/sc`) inside the panel to render every comma
 
 ## Built-in commands worth knowing
 
-| Command                 | Effect                                                       |
-| ----------------------- | ------------------------------------------------------------ |
-| `/help`                 | Markdown command reference inline                            |
-| `/shortcommands`, `/sc` | Renders the grouped command palette widget                   |
-| `/clear`                | Wipes the active session (after status confirmation)         |
-| `/new`                  | Starts a fresh session                                       |
-| `/export`               | Downloads the active session as Markdown                     |
-| `/persona <name>`       | Switches the assistant voice (`/persona` lists choices)      |
-| `/catalog`              | Lists every track grouped by album                           |
-| `/track <id>`           | Renders a `track-card` widget for that track                 |
-| `/album <id>`           | Renders an `album-card` widget for that album                |
-| `/play`, `/pause`, …    | Forwarded to the audio engine via `opts.onCommand`           |
-| `/viz <mode>`           | Switches the visualizer (`/viz` lists modes)                 |
-| `/seek <m:ss>`          | Jumps the playhead                                           |
-| `/speed <0.5-2>`        | Sets playback rate                                           |
-| `/cast`                 | Opens the Chromecast picker                                  |
+| Command                 | Effect                                                  |
+| ----------------------- | ------------------------------------------------------- |
+| `/help`                 | Markdown command reference inline                       |
+| `/shortcommands`, `/sc` | Renders the grouped command palette widget              |
+| `/clear`                | Wipes the active session (after status confirmation)    |
+| `/new`                  | Starts a fresh session                                  |
+| `/export`               | Downloads the active session as Markdown                |
+| `/persona <name>`       | Switches the assistant voice (`/persona` lists choices) |
+| `/catalog`              | Lists every track grouped by album                      |
+| `/track <id>`           | Renders a `track-card` widget for that track            |
+| `/album <id>`           | Renders an `album-card` widget for that album           |
+| `/play`, `/pause`, …    | Forwarded to the audio engine via `opts.onCommand`      |
+| `/viz <mode>`           | Switches the visualizer (`/viz` lists modes)            |
+| `/seek <m:ss>`          | Jumps the playhead                                      |
+| `/speed <0.5-2>`        | Sets playback rate                                      |
+| `/cast`                 | Opens the Chromecast picker                             |
 
 ## Adding a new command
 

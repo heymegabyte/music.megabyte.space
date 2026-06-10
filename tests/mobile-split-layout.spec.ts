@@ -37,14 +37,22 @@ test.describe('mobile — viz top half, playlist bottom half', () => {
     if (!layout) throw new Error('no layout');
 
     // BG canvas should NOT span the whole viewport on mobile.
-    expect(layout.bg.height, `bg ${layout.bg.height} vs viewport ${layout.viewport.h}`).toBeLessThan(layout.viewport.h * 0.7);
+    expect(layout.bg.height, `bg ${layout.bg.height} vs viewport ${layout.viewport.h}`).toBeLessThan(
+      layout.viewport.h * 0.7
+    );
 
     // Rail (playlist) should sit BELOW the viz column on mobile.
-    expect(layout.rail.top, `rail top ${layout.rail.top} vs viz bottom ${layout.viz.bottom}`).toBeGreaterThanOrEqual(layout.viz.bottom - 4);
+    expect(
+      layout.rail.top,
+      `rail top ${layout.rail.top} vs viz bottom ${layout.viz.bottom}`
+    ).toBeGreaterThanOrEqual(layout.viz.bottom - 4);
 
     // Visualizer half should be roughly equal to playlist half (within 30% tolerance).
     const ratio = layout.viz.height / Math.max(1, layout.rail.height);
-    expect(ratio, `viz/rail ratio ${ratio.toFixed(2)} (viz=${layout.viz.height}, rail=${layout.rail.height})`).toBeGreaterThan(0.6);
+    expect(
+      ratio,
+      `viz/rail ratio ${ratio.toFixed(2)} (viz=${layout.viz.height}, rail=${layout.rail.height})`
+    ).toBeGreaterThan(0.6);
     expect(ratio).toBeLessThan(1.6);
 
     // Playlist must reach near the transport bar (no large gap).
@@ -61,7 +69,9 @@ test.describe('mobile — viz top half, playlist bottom half', () => {
     await expect(albums).toBeVisible();
 
     const docScrollBefore = await page.evaluate(() => document.documentElement.scrollTop);
-    await albums.evaluate(el => { (el as HTMLElement).scrollTop = 300; });
+    await albums.evaluate(el => {
+      (el as HTMLElement).scrollTop = 300;
+    });
     await page.waitForTimeout(120);
     const albumScroll = await albums.evaluate(el => (el as HTMLElement).scrollTop);
     const docScrollAfter = await page.evaluate(() => document.documentElement.scrollTop);

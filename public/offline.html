@@ -8,41 +8,106 @@
     <title>Offline — Panda Desiiignare</title>
     <link rel="icon" href="/favicon.ico" />
     <style>
-      :root { color-scheme: dark; }
-      *, *::before, *::after { box-sizing: border-box; }
-      html, body { margin: 0; padding: 0; height: 100%; }
+      :root {
+        color-scheme: dark;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
       body {
-        font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      body {
+        font-family:
+          'Space Grotesk',
+          system-ui,
+          -apple-system,
+          sans-serif;
         background: radial-gradient(circle at 50% 25%, #1a0d35, #060610 70%);
         color: #f1f1f6;
-        display: grid; place-items: center; padding: 24px;
+        display: grid;
+        place-items: center;
+        padding: 24px;
         text-align: center;
       }
-      .wrap { max-width: 520px; }
+      .wrap {
+        max-width: 520px;
+      }
       .badge {
-        display: inline-block; padding: 6px 14px; border: 1px solid rgba(0,229,255,0.5);
-        border-radius: 999px; font-family: 'JetBrains Mono', ui-monospace, monospace;
-        font-size: 0.74rem; letter-spacing: 0.2em; text-transform: uppercase;
-        color: #00E5FF; margin-bottom: 24px;
+        display: inline-block;
+        padding: 6px 14px;
+        border: 1px solid rgba(0, 229, 255, 0.5);
+        border-radius: 999px;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.74rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #00e5ff;
+        margin-bottom: 24px;
       }
-      h1 { font-family: 'Sora', system-ui, sans-serif; font-weight: 700; font-size: clamp(2rem, 6vw, 3.4rem); margin: 0 0 12px; line-height: 1.05; }
-      h1 em { color: #00E5FF; font-style: italic; }
-      p { line-height: 1.55; color: rgba(241,241,246,0.78); margin: 0 0 18px; }
+      h1 {
+        font-family: 'Sora', system-ui, sans-serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 6vw, 3.4rem);
+        margin: 0 0 12px;
+        line-height: 1.05;
+      }
+      h1 em {
+        color: #00e5ff;
+        font-style: italic;
+      }
+      p {
+        line-height: 1.55;
+        color: rgba(241, 241, 246, 0.78);
+        margin: 0 0 18px;
+      }
       .btn {
-        display: inline-block; padding: 12px 22px; border-radius: 999px;
-        background: linear-gradient(120deg, #00E5FF, #7C3AED);
-        color: #060610; font-weight: 700; text-decoration: none; letter-spacing: 0.04em;
-        box-shadow: 0 8px 32px rgba(0,229,255,0.35);
+        display: inline-block;
+        padding: 12px 22px;
+        border-radius: 999px;
+        background: linear-gradient(120deg, #00e5ff, #7c3aed);
+        color: #060610;
+        font-weight: 700;
+        text-decoration: none;
+        letter-spacing: 0.04em;
+        box-shadow: 0 8px 32px rgba(0, 229, 255, 0.35);
       }
-      .pulse { width: 12px; height: 12px; border-radius: 50%; background: #FF2DA0; display: inline-block; vertical-align: middle; margin-right: 8px; animation: pulse 1.4s ease-in-out infinite; }
-      @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.4} }
+      .pulse {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #ff2da0;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 8px;
+        animation: pulse 1.4s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.5);
+          opacity: 0.4;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="wrap">
       <span class="badge"><span class="pulse"></span>offline</span>
       <h1>Cyan flag still up — <em>signal's down</em>.</h1>
-      <p>You're disconnected. Cached tracks still play once the home page loads. Try the app again when the network comes back.</p>
+      <p>
+        You're disconnected. Cached tracks still play once the home page loads. Try the app again
+        when the network comes back.
+      </p>
       <a class="btn" href="/">Retry — open the album</a>
     </div>
   </body>

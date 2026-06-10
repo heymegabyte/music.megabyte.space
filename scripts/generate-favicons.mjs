@@ -30,7 +30,10 @@ const SIZES = [
 ];
 
 async function emit(spec) {
-  const buf = await sharp(ICON_SRC).resize(spec.size, spec.size, { fit: 'cover', position: 'center' }).png({ compressionLevel: 9 }).toBuffer();
+  const buf = await sharp(ICON_SRC)
+    .resize(spec.size, spec.size, { fit: 'cover', position: 'center' })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
   await writeFile(spec.file, buf);
   console.log(`[${spec.size}px] ${(buf.length / 1024).toFixed(1)}KB → ${spec.file.replace(ROOT, '.')}`);
 }
@@ -53,7 +56,10 @@ await writeFile(resolve(ART, 'logo-sm.png'), logoSm);
 console.log(`[logo-sm.png] ${(logoSm.length / 1024).toFixed(1)}KB`);
 
 // Topbar uses tiny brand mark — derive from icon at 64px for retina @ 32px CSS.
-const brandMark = await sharp(ICON_SRC).resize(128, 128, { fit: 'cover' }).png({ compressionLevel: 9 }).toBuffer();
+const brandMark = await sharp(ICON_SRC)
+  .resize(128, 128, { fit: 'cover' })
+  .png({ compressionLevel: 9 })
+  .toBuffer();
 await writeFile(resolve(ART, 'brand-mark.png'), brandMark);
 console.log(`[brand-mark.png] ${(brandMark.length / 1024).toFixed(1)}KB`);
 

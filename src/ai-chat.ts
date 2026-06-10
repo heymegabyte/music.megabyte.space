@@ -826,11 +826,19 @@ export function mountAIChat(opts: MountOpts = {}) {
     if (!strip) return;
     // Already-subscribed? — body[data-subscribed='1'] is the global signal
     // refreshed by main.ts (setupInlineNewsletter / refreshNotifyToggle).
-    if (document.body.dataset.subscribed === '1') { strip.hidden = true; return; }
+    if (document.body.dataset.subscribed === '1') {
+      strip.hidden = true;
+      return;
+    }
     // Dismissed this session?
     try {
-      if (sessionStorage.getItem('bz:aichat:nl-dismissed') === '1') { strip.hidden = true; return; }
-    } catch { /* private mode */ }
+      if (sessionStorage.getItem('bz:aichat:nl-dismissed') === '1') {
+        strip.hidden = true;
+        return;
+      }
+    } catch {
+      /* private mode */
+    }
     const assistantMsgs = messageCount; // close enough — user+assistant interleaved
     if (assistantMsgs >= 4 && strip.hidden) {
       strip.hidden = false;
@@ -844,17 +852,33 @@ export function mountAIChat(opts: MountOpts = {}) {
   // heart, yellow chick) that break the monochrome chrome of the chat.
   const ICON = (path: string, attrs = '') =>
     `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${attrs}>${path}</svg>`;
-  const I_COPY    = ICON('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>');
-  const I_SPEAK   = ICON('<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>');
-  const I_EDIT    = ICON('<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>');
-  const I_RETRY   = ICON('<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>');
-  const I_FLASK   = ICON('<path d="M9 2v6L4 18a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L15 8V2"/><line x1="9" y1="2" x2="15" y2="2"/>');
-  const I_CUT     = ICON('<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/>');
-  const I_SPARK   = ICON('<path d="m12 3-1.5 5L5 9.5l5.5 1.5L12 16l1.5-5L19 9.5 13.5 8 12 3z"/><path d="M5 18l1-2 2-1-2-1-1-2-1 2-2 1 2 1 1 2z"/>');
-  const I_BRANCH  = ICON('<line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>');
-  const I_PLAY2   = ICON('<polygon points="3 4 13 12 3 20 3 4"/><polygon points="13 4 23 12 13 20 13 4"/>');
-  const I_PIN     = ICON('<path d="M12 17v5"/><path d="M5 17h14l-2-5V5H7v7l-2 5z"/>');
-  const I_HEART   = ICON('<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>');
+  const I_COPY = ICON(
+    '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'
+  );
+  const I_SPEAK = ICON(
+    '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>'
+  );
+  const I_EDIT = ICON('<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>');
+  const I_RETRY = ICON(
+    '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>'
+  );
+  const I_FLASK = ICON(
+    '<path d="M9 2v6L4 18a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L15 8V2"/><line x1="9" y1="2" x2="15" y2="2"/>'
+  );
+  const I_CUT = ICON(
+    '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/>'
+  );
+  const I_SPARK = ICON(
+    '<path d="m12 3-1.5 5L5 9.5l5.5 1.5L12 16l1.5-5L19 9.5 13.5 8 12 3z"/><path d="M5 18l1-2 2-1-2-1-1-2-1 2-2 1 2 1 1 2z"/>'
+  );
+  const I_BRANCH = ICON(
+    '<line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>'
+  );
+  const I_PLAY2 = ICON('<polygon points="3 4 13 12 3 20 3 4"/><polygon points="13 4 23 12 13 20 13 4"/>');
+  const I_PIN = ICON('<path d="M12 17v5"/><path d="M5 17h14l-2-5V5H7v7l-2 5z"/>');
+  const I_HEART = ICON(
+    '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>'
+  );
 
   function renderPins() {
     const sess = activeSession();
@@ -903,9 +927,7 @@ export function mountAIChat(opts: MountOpts = {}) {
     // below every completed assistant turn. Streaming turns skip them
     // (content < 16 chars) so chips don't flicker into existence.
     const followups =
-      m.role === 'assistant' && m.content.length > 16 && !m.widgets?.length
-        ? renderFollowups(m)
-        : '';
+      m.role === 'assistant' && m.content.length > 16 && !m.widgets?.length ? renderFollowups(m) : '';
     return `<li class="${cls}${pinned}${wrapCollapsed}" data-id="${m.id}" id="msg-${m.id}"${personaAttr}>
       <div class="aichat__msg-meta"><span>${m.role === 'user' ? 'You' : 'bZ'}</span><time>${ts}</time>${readTime}</div>
       <div class="aichat__msg-body${bodyCollapsed}">${body}</div>
@@ -938,9 +960,7 @@ export function mountAIChat(opts: MountOpts = {}) {
   function renderFollowups(m: ChatMessage): string {
     const eng = opts.engine;
     const cur = eng?.state()?.track;
-    const lastUserMsg = [...activeSession().messages]
-      .reverse()
-      .find(x => x.role === 'user' && x.ts < m.ts);
+    const lastUserMsg = [...activeSession().messages].reverse().find(x => x.role === 'user' && x.ts < m.ts);
     const last = (lastUserMsg?.content || '').toLowerCase();
     const persona = state.settings.persona;
 
@@ -968,15 +988,20 @@ export function mountAIChat(opts: MountOpts = {}) {
 
     // Dedup + take 3.
     const seen = new Set<string>();
-    const picks = candidates.filter(c => {
-      if (seen.has(c)) return false;
-      seen.add(c);
-      return true;
-    }).slice(0, 3);
+    const picks = candidates
+      .filter(c => {
+        if (seen.has(c)) return false;
+        seen.add(c);
+        return true;
+      })
+      .slice(0, 3);
 
     if (!picks.length) return '';
     const chips = picks
-      .map(p => `<button type="button" class="aichat__followup" data-followup="${escapeHtml(p)}">${escapeHtml(p)}</button>`)
+      .map(
+        p =>
+          `<button type="button" class="aichat__followup" data-followup="${escapeHtml(p)}">${escapeHtml(p)}</button>`
+      )
       .join('');
     return `<div class="aichat__followups" role="group" aria-label="Suggested follow-ups">${chips}</div>`;
   }
@@ -1058,7 +1083,7 @@ export function mountAIChat(opts: MountOpts = {}) {
     'Saved',
     'Pinned',
     'Copied',
-    'Updated',
+    'Updated'
   ]);
   function setStatus(text: string, busy = false) {
     messages.setAttribute('aria-busy', busy ? 'true' : 'false');
@@ -1104,7 +1129,10 @@ export function mountAIChat(opts: MountOpts = {}) {
   function dismissStatusToast() {
     if (!toastEl) return;
     toastEl.classList.remove('is-open');
-    if (toastTimer !== null) { clearTimeout(toastTimer); toastTimer = null; }
+    if (toastTimer !== null) {
+      clearTimeout(toastTimer);
+      toastTimer = null;
+    }
   }
 
   function openContentPageContext(): string {
@@ -1121,7 +1149,11 @@ export function mountAIChat(opts: MountOpts = {}) {
   function trackContext(): string {
     const eng = opts.engine;
     const st = eng?.state();
-    if (!st?.track) return 'No track is currently playing. The user is browsing the catalog — feel free to recommend.' + openContentPageContext();
+    if (!st?.track)
+      return (
+        'No track is currently playing. The user is browsing the catalog — feel free to recommend.' +
+        openContentPageContext()
+      );
     const cur = st.track;
     const min = Math.floor((st.currentTime || 0) / 60);
     const sec = Math.floor((st.currentTime || 0) % 60)
@@ -1144,10 +1176,15 @@ export function mountAIChat(opts: MountOpts = {}) {
       const raw = localStorage.getItem('bz:recent');
       if (raw) {
         const ids = JSON.parse(raw) as string[];
-        const titles = ids.slice(0, 4).map(id => TRACK_BY_ID.get(id)?.title).filter(Boolean) as string[];
+        const titles = ids
+          .slice(0, 4)
+          .map(id => TRACK_BY_ID.get(id)?.title)
+          .filter(Boolean) as string[];
         if (titles.length) recentLine = `\nRecently played (newest first): ${titles.join(' → ')}`;
       }
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
     return `Now playing: "${cur.title}" by ${cur.artist || 'bZ'}${cur.album ? ` (${cur.album})` : ''} at ${min}:${sec}${bpm}. Status: ${st.playing ? 'playing' : 'paused'}.${albumLine}${recentLine}${lyricLine}${wisdom}${openContentPageContext()}`;
   }
 
@@ -2017,10 +2054,10 @@ export function mountAIChat(opts: MountOpts = {}) {
         columns: ['Track', 'Plays', 'Shares'],
         rows
       };
-      pushAssistantWithWidgets(
-        `**Stats** — ${entries.length} tracks counted; showing top ${top.length}.`,
-        [playsChart, table]
-      );
+      pushAssistantWithWidgets(`**Stats** — ${entries.length} tracks counted; showing top ${top.length}.`, [
+        playsChart,
+        table
+      ]);
     } catch {
       pushAssistant('Stats fetch failed — try again in a moment.');
     } finally {
@@ -2889,13 +2926,20 @@ export function mountAIChat(opts: MountOpts = {}) {
         } else if (act === 'eli10' && m.role === 'assistant') {
           // "Explain like I'm 10" — reframe to elementary-grade reading
           // level. Single ask, no setup, no preamble.
-          send(`Explain your prior reply like I'm 10 years old. Short sentences. Plain words. No jargon. Original:\n\n${m.content}`);
+          send(
+            `Explain your prior reply like I'm 10 years old. Short sentences. Plain words. No jargon. Original:\n\n${m.content}`
+          );
         } else if (act === 'playlist' && m.role === 'assistant') {
           // Build a playlist suggestion from the whole conversation so far.
           // Asks the model to pick 5 tracks from the catalog that fit the
           // chat's mood, returns them as a track-card widget set.
-          const convo = sess.messages.slice(Math.max(0, idx - 6), idx + 1).map(x => `${x.role}: ${x.content.slice(0, 240)}`).join('\n');
-          send(`Based on this conversation:\n\n${convo}\n\nPick 5 bZ tracks (from the catalog you know) that match this mood. Return them as a "playlist" track-card widget set. One sentence on why this set fits.`);
+          const convo = sess.messages
+            .slice(Math.max(0, idx - 6), idx + 1)
+            .map(x => `${x.role}: ${x.content.slice(0, 240)}`)
+            .join('\n');
+          send(
+            `Based on this conversation:\n\n${convo}\n\nPick 5 bZ tracks (from the catalog you know) that match this mood. Return them as a "playlist" track-card widget set. One sentence on why this set fits.`
+          );
         } else if (act === 'branch' && m.role === 'assistant') {
           const fork = makeSession();
           fork.title = sess.title + ' (branch)';
@@ -3158,8 +3202,14 @@ export function mountAIChat(opts: MountOpts = {}) {
       if (!dt) return false;
       if (dt.types && dt.types.length > 0) {
         for (const ty of Array.from(dt.types)) {
-          if (ty === 'Files' || ty === 'text/uri-list' || ty === 'text/plain' ||
-              ty === 'text/html' || ty.startsWith('image/')) return true;
+          if (
+            ty === 'Files' ||
+            ty === 'text/uri-list' ||
+            ty === 'text/plain' ||
+            ty === 'text/html' ||
+            ty.startsWith('image/')
+          )
+            return true;
         }
       }
       return false;
@@ -3221,7 +3271,11 @@ export function mountAIChat(opts: MountOpts = {}) {
       if (!files.length && !uri) {
         const text = dt.getData('text/plain');
         if (text && text.length > 0) {
-          const safe = text.slice(0, 24).replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '') || 'snippet';
+          const safe =
+            text
+              .slice(0, 24)
+              .replace(/\s+/g, '-')
+              .replace(/[^a-z0-9-]/gi, '') || 'snippet';
           attachedFiles.push(new File([text], `${safe}.txt`, { type: 'text/plain' }));
         }
       }
@@ -3229,7 +3283,11 @@ export function mountAIChat(opts: MountOpts = {}) {
       if (attachedFiles.length) {
         renderAttachments();
         setOpen(true);
-        try { input.focus({ preventScroll: true }); } catch { /* noop */ }
+        try {
+          input.focus({ preventScroll: true });
+        } catch {
+          /* noop */
+        }
       }
     });
 
@@ -3300,9 +3358,19 @@ export function mountAIChat(opts: MountOpts = {}) {
         if (after) after();
       });
     };
-    bindToggle('autoScroll', v => { state.settings.autoScroll = v; });
-    bindToggle('reactiveGlow', v => { state.settings.reactiveGlow = v; }, () => applySettings());
-    bindToggle('sfx', v => { state.settings.sfx = v; });
+    bindToggle('autoScroll', v => {
+      state.settings.autoScroll = v;
+    });
+    bindToggle(
+      'reactiveGlow',
+      v => {
+        state.settings.reactiveGlow = v;
+      },
+      () => applySettings()
+    );
+    bindToggle('sfx', v => {
+      state.settings.sfx = v;
+    });
     bindToggle('wakeWord', v => {
       state.settings.wakeWord = v;
       if (v) startWakeWord();
@@ -3331,13 +3399,15 @@ export function mountAIChat(opts: MountOpts = {}) {
     };
     const openPersonaMenu = () => {
       personaMenu.innerHTML = (Object.entries(PERSONAS) as Array<[Persona, { label: string; emoji: string }]>)
-        .map(([k, p]) => `
+        .map(
+          ([k, p]) => `
           <button type="button" role="option" data-persona-pick="${k}" class="${k === state.settings.persona ? 'is-active' : ''}" aria-selected="${k === state.settings.persona}">
             <span class="aichat__persona-menu-emoji">${p.emoji}</span>
             <span class="aichat__persona-menu-label">${p.label}</span>
             ${k === state.settings.persona ? '<span class="aichat__persona-menu-check" aria-hidden="true">✓</span>' : ''}
           </button>
-        `)
+        `
+        )
         .join('');
       personaMenu.hidden = false;
       personaPill.setAttribute('aria-expanded', 'true');
@@ -3361,7 +3431,9 @@ export function mountAIChat(opts: MountOpts = {}) {
     });
     document.addEventListener('click', e => {
       if (personaMenu.hidden) return;
-      const inside = (e.target as HTMLElement).closest('[data-aichat="personaPill"]') || (e.target as HTMLElement).closest('[data-aichat="personaMenu"]');
+      const inside =
+        (e.target as HTMLElement).closest('[data-aichat="personaPill"]') ||
+        (e.target as HTMLElement).closest('[data-aichat="personaMenu"]');
       if (!inside) closePersonaMenu();
     });
     document.addEventListener('keydown', e => {
@@ -3371,33 +3443,93 @@ export function mountAIChat(opts: MountOpts = {}) {
       }
     });
 
-    bindToggle('theatreMode', v => { state.settings.theatreMode = v; }, () => applySettings());
-    bindToggle('spectrogramBackdrop', v => { state.settings.spectrogramBackdrop = v; }, () => {
-      applySettings();
-      if (!state.settings.spectrogramBackdrop) {
-        const c = spectro.getContext('2d');
-        if (c) c.clearRect(0, 0, spectro.width, spectro.height);
+    bindToggle(
+      'theatreMode',
+      v => {
+        state.settings.theatreMode = v;
+      },
+      () => applySettings()
+    );
+    bindToggle(
+      'spectrogramBackdrop',
+      v => {
+        state.settings.spectrogramBackdrop = v;
+      },
+      () => {
+        applySettings();
+        if (!state.settings.spectrogramBackdrop) {
+          const c = spectro.getContext('2d');
+          if (c) c.clearRect(0, 0, spectro.width, spectro.height);
+        }
       }
+    );
+    bindToggle(
+      'beatSyncCaret',
+      v => {
+        state.settings.beatSyncCaret = v;
+      },
+      () => applySettings()
+    );
+    bindToggle(
+      'adaptiveDensity',
+      v => {
+        state.settings.adaptiveDensity = v;
+      },
+      () => {
+        applySettings();
+        renderMessages();
+      }
+    );
+    bindToggle(
+      'showReadingTime',
+      v => {
+        state.settings.showReadingTime = v;
+      },
+      () => {
+        applySettings();
+        renderMessages();
+      }
+    );
+    bindToggle('pttSpacebar', v => {
+      state.settings.pttSpacebar = v;
     });
-    bindToggle('beatSyncCaret', v => { state.settings.beatSyncCaret = v; }, () => applySettings());
-    bindToggle('adaptiveDensity', v => { state.settings.adaptiveDensity = v; }, () => {
-      applySettings();
-      renderMessages();
+    bindToggle('continuousDictation', v => {
+      state.settings.continuousDictation = v;
     });
-    bindToggle('showReadingTime', v => { state.settings.showReadingTime = v; }, () => {
-      applySettings();
-      renderMessages();
+    bindToggle(
+      'hideSpectroDuringStream',
+      v => {
+        state.settings.hideSpectroDuringStream = v;
+      },
+      () => applySettings()
+    );
+    bindToggle(
+      'collapseLongMessages',
+      v => {
+        state.settings.collapseLongMessages = v;
+      },
+      () => {
+        applySettings();
+        renderMessages();
+      }
+    );
+    bindToggle(
+      'showTokenRate',
+      v => {
+        state.settings.showTokenRate = v;
+      },
+      () => applySettings()
+    );
+    bindToggle('autoPinStars', v => {
+      state.settings.autoPinStars = v;
     });
-    bindToggle('pttSpacebar', v => { state.settings.pttSpacebar = v; });
-    bindToggle('continuousDictation', v => { state.settings.continuousDictation = v; });
-    bindToggle('hideSpectroDuringStream', v => { state.settings.hideSpectroDuringStream = v; }, () => applySettings());
-    bindToggle('collapseLongMessages', v => { state.settings.collapseLongMessages = v; }, () => {
-      applySettings();
-      renderMessages();
-    });
-    bindToggle('showTokenRate', v => { state.settings.showTokenRate = v; }, () => applySettings());
-    bindToggle('autoPinStars', v => { state.settings.autoPinStars = v; });
-    bindToggle('themeFromAlbum', v => { state.settings.themeFromAlbum = v; }, () => applySettings());
+    bindToggle(
+      'themeFromAlbum',
+      v => {
+        state.settings.themeFromAlbum = v;
+      },
+      () => applySettings()
+    );
     $<HTMLInputElement>('autoSummarizeAt').addEventListener('input', e => {
       const v = Number((e.currentTarget as HTMLInputElement).value);
       state.settings.autoSummarizeAt = v;
@@ -3414,7 +3546,11 @@ export function mountAIChat(opts: MountOpts = {}) {
         const close = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-aichat="newsletterClose"]');
         if (close) {
           nlStrip.hidden = true;
-          try { sessionStorage.setItem('bz:aichat:nl-dismissed', '1'); } catch { /* private mode */ }
+          try {
+            sessionStorage.setItem('bz:aichat:nl-dismissed', '1');
+          } catch {
+            /* private mode */
+          }
         }
       });
     }
@@ -3655,7 +3791,9 @@ export function mountAIChat(opts: MountOpts = {}) {
   async function toggleVoice() {
     const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Ctor) {
-      setStatus('Voice input — your browser doesn\'t support Speech Recognition (try Chrome, Edge, or Safari).');
+      setStatus(
+        "Voice input — your browser doesn't support Speech Recognition (try Chrome, Edge, or Safari)."
+      );
       return;
     }
     if (voiceRec) {
@@ -3666,7 +3804,11 @@ export function mountAIChat(opts: MountOpts = {}) {
     // Pre-flight the mic permission so a previously-denied user sees a
     // clear hint instead of a one-shot onerror that disappears.
     try {
-      const perms = (navigator as Navigator & { permissions?: { query: (q: { name: string }) => Promise<{ state: string }> } }).permissions;
+      const perms = (
+        navigator as Navigator & {
+          permissions?: { query: (q: { name: string }) => Promise<{ state: string }> };
+        }
+      ).permissions;
       if (perms?.query) {
         const status = await perms.query({ name: 'microphone' as PermissionName }).catch(() => null);
         if (status?.state === 'denied') {
@@ -3674,7 +3816,9 @@ export function mountAIChat(opts: MountOpts = {}) {
           return;
         }
       }
-    } catch { /* permissions API unavailable — fall through to rec.start() */ }
+    } catch {
+      /* permissions API unavailable — fall through to rec.start() */
+    }
     const rec = new Ctor();
     rec.lang = navigator.language || 'en-US';
     rec.interimResults = true;
@@ -3705,7 +3849,9 @@ export function mountAIChat(opts: MountOpts = {}) {
         input.selectionStart = input.value.length;
         input.selectionEnd = input.value.length;
         input.scrollTop = input.scrollHeight;
-      } catch { /* readonly / non-textarea — ignore */ }
+      } catch {
+        /* readonly / non-textarea — ignore */
+      }
     };
 
     rec.onresult = (e: SREvent) => {
@@ -3753,17 +3899,30 @@ export function mountAIChat(opts: MountOpts = {}) {
       // Map the standard SpeechRecognitionErrorEvent codes to actionable
       // human messages. Spec at https://wicg.github.io/speech-api/.
       const msg =
-        e.error === 'not-allowed'    ? 'Mic blocked — allow microphone access in your browser, then tap voice again.'
-        : e.error === 'no-speech'    ? 'No speech detected — speak a bit louder, or move closer to the mic.'
-        : e.error === 'audio-capture'? 'No mic found — plug one in or grant access to your laptop mic.'
-        : e.error === 'network'      ? 'Voice recognition is offline — try again once you\'re back online.'
-        : e.error === 'aborted'      ? '' // user cancelled, silent
-        : `Voice error: ${e.error}.`;
+        e.error === 'not-allowed'
+          ? 'Mic blocked — allow microphone access in your browser, then tap voice again.'
+          : e.error === 'no-speech'
+            ? 'No speech detected — speak a bit louder, or move closer to the mic.'
+            : e.error === 'audio-capture'
+              ? 'No mic found — plug one in or grant access to your laptop mic.'
+              : e.error === 'network'
+                ? "Voice recognition is offline — try again once you're back online."
+                : e.error === 'aborted'
+                  ? '' // user cancelled, silent
+                  : `Voice error: ${e.error}.`;
       if (msg) setStatus(msg);
     };
     try {
       rec.start();
-      voiceRec = { stop: () => { try { rec.stop(); } catch { /* already stopped */ } } };
+      voiceRec = {
+        stop: () => {
+          try {
+            rec.stop();
+          } catch {
+            /* already stopped */
+          }
+        }
+      };
       root.classList.add('is-listening');
       setStatus('Listening — speak your message.');
     } catch (err: unknown) {

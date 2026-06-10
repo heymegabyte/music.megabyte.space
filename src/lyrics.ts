@@ -102,11 +102,15 @@ export function parseLrc(text: string): SyncedLine[] {
  */
 export function activeLineIndex(lines: SyncedLine[], time: number): number {
   if (!lines.length) return -1;
-  let lo = 0, hi = lines.length - 1, ans = -1;
+  let lo = 0,
+    hi = lines.length - 1,
+    ans = -1;
   while (lo <= hi) {
     const mid = (lo + hi) >> 1;
-    if (lines[mid].t <= time) { ans = mid; lo = mid + 1; }
-    else hi = mid - 1;
+    if (lines[mid].t <= time) {
+      ans = mid;
+      lo = mid + 1;
+    } else hi = mid - 1;
   }
   return ans;
 }
@@ -117,7 +121,8 @@ export function activeLineIndex(lines: SyncedLine[], time: number): number {
  * doesn't trigger after playback ends. No-op for non-static bundles.
  */
 export function scaleStaticBundle(bundle: LyricsBundle, duration: number): SyncedLine[] {
-  if (bundle.source !== 'static' || !bundle.lines.length || !Number.isFinite(duration) || duration <= 0) return bundle.lines;
+  if (bundle.source !== 'static' || !bundle.lines.length || !Number.isFinite(duration) || duration <= 0)
+    return bundle.lines;
   const n = bundle.lines.length;
   const span = duration * 0.92; // leave a tail
   const start = duration * 0.04;

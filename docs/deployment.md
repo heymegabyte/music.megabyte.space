@@ -38,16 +38,16 @@ Run this immediately after `wrangler deploy`. The dev experience is: deploy → 
 
 The worker reads these via `env.<NAME>`. Set them with `wrangler secret put <NAME>`:
 
-| Secret | Used by | Required |
-| --- | --- | --- |
-| `ANTHROPIC_API_KEY` | `/api/ai/chat` | Yes (or AI chat 503s) |
-| `LISTMONK_API_TOKEN` | `/api/subscribe` | Yes (or subscribe 503s) |
-| `LISTMONK_API_URL` | `/api/subscribe` | Yes |
+| Secret               | Used by          | Required                                            |
+| -------------------- | ---------------- | --------------------------------------------------- |
+| `ANTHROPIC_API_KEY`  | `/api/ai/chat`   | Yes (or AI chat 503s)                               |
+| `LISTMONK_API_TOKEN` | `/api/subscribe` | Yes (or subscribe 503s)                             |
+| `LISTMONK_API_URL`   | `/api/subscribe` | Yes                                                 |
 | `LISTMONK_LIST_UUID` | `/api/subscribe` | Optional — auto-discovered + cached in KV otherwise |
-| `VAPID_PUBLIC_KEY` | `/api/push/*` | Required for push |
-| `VAPID_PRIVATE_JWK` | `/api/push/send` | Required for push send |
-| `VAPID_SUBJECT` | `/api/push/send` | Required (`mailto:` or `https:`) |
-| `PUSH_ADMIN_TOKEN` | `/api/push/send` | Required — admin Bearer gate |
+| `VAPID_PUBLIC_KEY`   | `/api/push/*`    | Required for push                                   |
+| `VAPID_PRIVATE_JWK`  | `/api/push/send` | Required for push send                              |
+| `VAPID_SUBJECT`      | `/api/push/send` | Required (`mailto:` or `https:`)                    |
+| `PUSH_ADMIN_TOKEN`   | `/api/push/send` | Required — admin Bearer gate                        |
 
 Verify what's set:
 

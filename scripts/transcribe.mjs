@@ -35,7 +35,10 @@ function packLines(words, maxWordsPerLine = 7, maxGap = 1.2) {
   const lines = [];
   let cur = [];
   for (const w of words) {
-    if (!cur.length) { cur.push(w); continue; }
+    if (!cur.length) {
+      cur.push(w);
+      continue;
+    }
     const prev = cur[cur.length - 1];
     const gap = w.s - prev.e;
     if (cur.length >= maxWordsPerLine || gap > maxGap) {
@@ -83,11 +86,13 @@ async function transcribeOne(track) {
     return;
   }
   const json = await res.json();
-  const words = (json.words || []).map(w => ({
-    w: String(w.word || '').trim(),
-    s: Number(w.start ?? 0),
-    e: Number(w.end ?? 0)
-  })).filter(w => w.w.length);
+  const words = (json.words || [])
+    .map(w => ({
+      w: String(w.word || '').trim(),
+      s: Number(w.start ?? 0),
+      e: Number(w.end ?? 0)
+    }))
+    .filter(w => w.w.length);
   const lines = packLines(words);
   await writeFile(out, JSON.stringify({ words, lines, duration: json.duration ?? 0 }));
   console.log(`✓ ${track.id} (${words.length} words, ${lines.length} lines)`);
@@ -98,7 +103,11 @@ let i = 0;
 async function worker() {
   while (i < tracks.length) {
     const t = tracks[i++];
-    try { await transcribeOne(t); } catch (err) { console.error(`✗ ${t.id} → ${err.message}`); }
+    try {
+      await transcribeOne(t);
+    } catch (err) {
+      console.error(`✗ ${t.id} → ${err.message}`);
+    }
   }
 }
 await Promise.all(Array.from({ length: concurrency }, worker));

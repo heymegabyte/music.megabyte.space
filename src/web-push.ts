@@ -79,7 +79,9 @@ export async function unsubscribePush(): Promise<boolean> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ endpoint: sub.endpoint })
     });
-  } catch { /* network failure is fine — server prunes 410s on send */ }
+  } catch {
+    /* network failure is fine — server prunes 410s on send */
+  }
   return sub.unsubscribe();
 }
 
@@ -98,7 +100,7 @@ async function fetchVapidKey(): Promise<string | null> {
   try {
     const res = await fetch(VAPID_KEY_URL, { cache: 'force-cache' });
     if (!res.ok) return null;
-    const data = await res.json() as { key?: string };
+    const data = (await res.json()) as { key?: string };
     if (!data.key) return null;
     cachedVapid = data.key;
     return data.key;

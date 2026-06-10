@@ -31,7 +31,7 @@ if (!TOKEN) {
 
 async function pf(path) {
   const r = await fetch(`https://api.printful.com${path}`, {
-    headers: { Authorization: `Bearer ${TOKEN}`, 'X-PF-Store-Id': String(REAL_STORE_ID) },
+    headers: { Authorization: `Bearer ${TOKEN}`, 'X-PF-Store-Id': String(REAL_STORE_ID) }
   });
   if (!r.ok) throw new Error(`Printful ${path} → ${r.status}: ${(await r.text()).slice(0, 200)}`);
   return r.json();
@@ -62,7 +62,7 @@ async function main() {
     const detail = await pf(`/store/products/${product.id}`);
     const syncVariants = detail.result?.sync_variants ?? [];
     item.productId = product.id;
-    item.variants = syncVariants.map((sv) => ({
+    item.variants = syncVariants.map(sv => ({
       sync_variant_id: sv.id,
       catalog_variant_id: sv.variant_id,
       name: sv.name,
@@ -71,7 +71,7 @@ async function main() {
       retail_price: sv.retail_price,
       currency: sv.currency,
       in_stock: !sv.is_ignored,
-      external_id: sv.external_id,
+      external_id: sv.external_id
     }));
     enriched++;
     console.log(`  ✓ ${item.slug}: ${item.variants.length} variants`);
@@ -82,4 +82,7 @@ async function main() {
   console.log(`\n✓ Enriched ${enriched}/${suite.items.length} items in ${SUITE_PATH}`);
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch(e => {
+  console.error(e);
+  process.exit(1);
+});

@@ -43,7 +43,7 @@ const res = await fetch('https://api.openai.com/v1/images/generations', {
   method: 'POST',
   headers: {
     Authorization: `Bearer ${OPENAI_KEY}`,
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
   body: JSON.stringify({
     model: 'gpt-image-1',
@@ -51,8 +51,8 @@ const res = await fetch('https://api.openai.com/v1/images/generations', {
     n: 1,
     size: '1024x1024',
     quality: 'high',
-    background: 'opaque',
-  }),
+    background: 'opaque'
+  })
 });
 
 if (!res.ok) {

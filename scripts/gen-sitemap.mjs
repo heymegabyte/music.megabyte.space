@@ -53,8 +53,10 @@ function url(loc, lastmod, priority = 0.7) {
 function main() {
   const { albums, tracks } = extractAlbumsAndTracks();
   const today = new Date().toISOString().slice(0, 10);
-  const lines = [`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">`];
+  const lines = [
+    `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">`
+  ];
 
   // Root.
   lines.push(url(`${ORIGIN}/`, today, 1.0));
@@ -78,7 +80,9 @@ function main() {
     let m;
     while ((m = re.exec(cp)) !== null) contentSlugs.push(m[1]);
     contentSlugs = [...new Set(contentSlugs)];
-  } catch { /* fall back to none */ }
+  } catch {
+    /* fall back to none */
+  }
   for (const slug of contentSlugs) {
     lines.push(url(`${ORIGIN}/${slug}`, today, 0.6));
   }

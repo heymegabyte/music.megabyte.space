@@ -36,10 +36,7 @@ describe('serializeJsonLd', () => {
   });
 
   it('handles arrays of payloads', () => {
-    const arr = [
-      { '@type': 'WebSite' },
-      { '@type': 'MusicRecording', name: '</script>x' }
-    ];
+    const arr = [{ '@type': 'WebSite' }, { '@type': 'MusicRecording', name: '</script>x' }];
     const out = serializeJsonLd(arr);
     expect(out).not.toContain('</script>');
     expect(JSON.parse(out)).toEqual(arr);

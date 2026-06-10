@@ -27,9 +27,8 @@ const sendSlash = async (page: Page, cmd: string) => {
 
 test.describe('AI chat — widget renderer', () => {
   test.beforeEach(async ({ context }) => {
-    await context.route(
-      /cloudflareinsights\.com|cdn-cgi\/challenge-platform|cdn-cgi\/speculation/,
-      r => r.abort()
+    await context.route(/cloudflareinsights\.com|cdn-cgi\/challenge-platform|cdn-cgi\/speculation/, r =>
+      r.abort()
     );
   });
 
@@ -37,10 +36,7 @@ test.describe('AI chat — widget renderer', () => {
     await gotoHome(page);
     await page.locator('body').click();
     await page.keyboard.press(process.platform === 'darwin' ? 'Meta+i' : 'Control+i');
-    await expect(page.locator('[data-aichat="panel"]').first()).toHaveAttribute(
-      'aria-hidden',
-      'false'
-    );
+    await expect(page.locator('[data-aichat="panel"]').first()).toHaveAttribute('aria-hidden', 'false');
   });
 
   test('/shortcommands palette is keyboard-actionable', async ({ page }) => {

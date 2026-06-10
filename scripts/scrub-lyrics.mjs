@@ -17,7 +17,7 @@ function scrubText(raw) {
   if (typeof raw !== 'string') return raw;
   let s = raw.replace(MUSIC_SYMBOLS, '');
   s = s.replace(/^[\s\-–—]*[♪♫♬♩♭♮♯]+\s*/gu, ''); // safety belt on the LRC "-♪ " prefix
-  s = s.replace(/^[\s\-–—]+/u, '');                // strip orphan leading dashes left behind
+  s = s.replace(/^[\s\-–—]+/u, ''); // strip orphan leading dashes left behind
   s = s.replace(/\s+/g, ' ').trim();
   if (!s) return '';
   // Capitalize first alphabetic character (skip punctuation/numerals)
@@ -43,9 +43,7 @@ function processFile(path) {
 
   if (Array.isArray(json.words)) {
     const before = json.words.length;
-    json.words = json.words
-      .map(w => ({ ...w, w: w.w.replace(MUSIC_SYMBOLS, '').trim() }))
-      .filter(w => w.w);
+    json.words = json.words.map(w => ({ ...w, w: w.w.replace(MUSIC_SYMBOLS, '').trim() })).filter(w => w.w);
     if (json.words.length !== before) changed += before - json.words.length;
 
     // Capitalize first word of each line cluster

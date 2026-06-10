@@ -3,7 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <script>
-      try { window.trustedTypes && window.trustedTypes.createPolicy('default', { createHTML: function(s){return s;}, createScript: function(s){return s;}, createScriptURL: function(s){return s;} }); } catch (e) {}
+      try {
+        window.trustedTypes &&
+          window.trustedTypes.createPolicy('default', {
+            createHTML: function (s) {
+              return s;
+            },
+            createScript: function (s) {
+              return s;
+            },
+            createScriptURL: function (s) {
+              return s;
+            }
+          });
+      } catch (e) {}
     </script>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />

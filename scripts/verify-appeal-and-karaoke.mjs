@@ -15,9 +15,9 @@ await mkdir(SHOTS, { recursive: true });
 const TRACK_ID = 'carry-the-light';
 const lyrics = JSON.parse(await readFile(resolve(ROOT, `public/lyrics/${TRACK_ID}.json`), 'utf8'));
 const expectedAt = [
-  { t: 5,  expectIdx: -1, label: 'pre-vocals (intro pad)' },
-  { t: 20, expectIdx: 0,  label: 'line 0 mid' },
-  { t: 60, expectIdx: 1,  label: 'line 1 mid' },
+  { t: 5, expectIdx: -1, label: 'pre-vocals (intro pad)' },
+  { t: 20, expectIdx: 0, label: 'line 0 mid' },
+  { t: 60, expectIdx: 1, label: 'line 1 mid' },
   { t: 100, expectIdx: 2, label: 'line 2 mid' },
   { t: 140, expectIdx: 3, label: 'line 3 mid' }
 ];
@@ -38,10 +38,16 @@ await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
 // Click first track to start playback. Browser policy needs user gesture to unlock audio.
 const firstTrack = page.locator(`a[data-track="${TRACK_ID}"]`).first();
 await firstTrack.click();
-await page.waitForFunction(() => {
-  const w = window;
-  return w.__panda?.engine?.audio && !w.__panda.engine.audio.paused;
-}, null, { timeout: 6000 }).catch(() => {});
+await page
+  .waitForFunction(
+    () => {
+      const w = window;
+      return w.__panda?.engine?.audio && !w.__panda.engine.audio.paused;
+    },
+    null,
+    { timeout: 6000 }
+  )
+  .catch(() => {});
 
 // Force unmuted play if autoplay was blocked.
 await page.evaluate(() => {
@@ -64,7 +70,9 @@ await page.screenshot({ path: resolve(SHOTS, 'appeal-open.png'), fullPage: false
 
 // Wait for the iframe to render and verify it loaded the appeal page.
 const iframeSrc = await page.evaluate(() => document.getElementById('appealFrame')?.src);
-const iframeContentSrc = await page.evaluate(() => document.getElementById('appealFrame')?.contentWindow?.location?.href);
+const iframeContentSrc = await page.evaluate(
+  () => document.getElementById('appealFrame')?.contentWindow?.location?.href
+);
 console.log(`iframe.src attr: ${iframeSrc}`);
 console.log(`iframe.contentWindow.location.href: ${iframeContentSrc}`);
 const frame = page.frameLocator('#appealFrame');
@@ -89,9 +97,12 @@ const after = await page.evaluate(() => {
 });
 console.log(`audio after close:`, after);
 
-const audioSurvived = !before.paused && !during.paused && !after.paused
-  && during.currentTime >= before.currentTime - 0.1
-  && after.currentTime >= during.currentTime - 0.1;
+const audioSurvived =
+  !before.paused &&
+  !during.paused &&
+  !after.paused &&
+  during.currentTime >= before.currentTime - 0.1 &&
+  after.currentTime >= during.currentTime - 0.1;
 console.log(`audio survived modal lifecycle: ${audioSurvived ? 'PASS' : 'FAIL'}`);
 
 // Also verify ESC closes it.
@@ -112,13 +123,13 @@ for (const probe of expectedAt) {
   await page.waitForTimeout(220);
   const cur = await page.locator('#karCur').textContent();
   const expectedLine = probe.expectIdx >= 0 ? lyrics.lines[probe.expectIdx].text : '';
-  const match = probe.expectIdx >= 0
-    ? (cur?.trim() === expectedLine.trim())
-    : true;
+  const match = probe.expectIdx >= 0 ? cur?.trim() === expectedLine.trim() : true;
   karaokeResults.push({ ...probe, displayed: cur?.trim(), expected: expectedLine, match });
   await page.screenshot({ path: resolve(SHOTS, `karaoke-t${probe.t}.png`) });
 }
-console.table(karaokeResults.map(r => ({ t: r.t, label: r.label, match: r.match, displayed: r.displayed?.slice(0, 50) })));
+console.table(
+  karaokeResults.map(r => ({ t: r.t, label: r.label, match: r.match, displayed: r.displayed?.slice(0, 50) }))
+);
 
 const karaokeOk = karaokeResults.every(r => r.match);
 console.log(`karaoke alignment: ${karaokeOk ? 'PASS' : 'FAIL'}`);

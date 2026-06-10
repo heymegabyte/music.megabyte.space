@@ -14,5 +14,5 @@ for (const f of files) {
     .toBuffer();
   await sharp(buf).toFile(path);
   const after = statSync(path).size;
-  console.log(`${f}: ${(before/1024).toFixed(0)}KB → ${(after/1024).toFixed(0)}KB`);
+  console.log(`${f}: ${(before / 1024).toFixed(0)}KB → ${(after / 1024).toFixed(0)}KB`);
 }

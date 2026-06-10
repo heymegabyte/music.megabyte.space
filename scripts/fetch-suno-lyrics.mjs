@@ -37,7 +37,7 @@ const REAL_UA =
 
 if (!SUNO_COOKIE) {
   console.error('SUNO_COOKIE not set. Open https://suno.com/me, copy your Cookie header, and:');
-  console.error('  export SUNO_COOKIE=\'<paste>\'');
+  console.error("  export SUNO_COOKIE='<paste>'");
   process.exit(2);
 }
 
@@ -46,11 +46,11 @@ async function fetchPage(page) {
   const r = await fetch(url, {
     headers: {
       'User-Agent': REAL_UA,
-      'Accept': 'application/json, text/plain, */*',
+      Accept: 'application/json, text/plain, */*',
       'Accept-Language': 'en-US,en;q=0.9',
-      'Cookie': SUNO_COOKIE,
-      'Referer': 'https://suno.com/me',
-      'Origin': 'https://suno.com'
+      Cookie: SUNO_COOKIE,
+      Referer: 'https://suno.com/me',
+      Origin: 'https://suno.com'
     }
   });
   if (r.status === 401 || r.status === 403) {
@@ -119,7 +119,11 @@ async function main() {
   process.stderr.write(`Wrote ${FEED_OUT}\n`);
 
   const src = await readFile(DATA_PATH, 'utf8');
-  const trackBlocks = [...src.matchAll(/\{\s*id:\s*'([a-z0-9-]+)'[\s\S]*?title:\s*'([^']+)'[\s\S]*?lyrics:\s*\[([\s\S]*?)\n\s{4}\]/g)];
+  const trackBlocks = [
+    ...src.matchAll(
+      /\{\s*id:\s*'([a-z0-9-]+)'[\s\S]*?title:\s*'([^']+)'[\s\S]*?lyrics:\s*\[([\s\S]*?)\n\s{4}\]/g
+    )
+  ];
   const matches = [];
   for (const tm of trackBlocks) {
     const track = { id: tm[1], title: tm[2] };
@@ -156,9 +160,7 @@ async function main() {
     const blockRe = new RegExp(
       `(\\{\\s*id:\\s*'${m.track.id}'[\\s\\S]*?lyrics:\\s*\\[)([\\s\\S]*?)(\\n\\s{4}\\])`
     );
-    const lit = m.lyrics
-      .map(l => `      '${l.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`)
-      .join(',\n');
+    const lit = m.lyrics.map(l => `      '${l.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`).join(',\n');
     const next = out.replace(blockRe, `$1\n${lit}\n    ]`);
     if (next !== out) {
       out = next;
@@ -178,4 +180,7 @@ async function main() {
   }
 }
 
-main().catch(err => { console.error(err.message); process.exit(1); });
+main().catch(err => {
+  console.error(err.message);
+  process.exit(1);
+});

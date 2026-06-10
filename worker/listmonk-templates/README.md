@@ -5,13 +5,13 @@ newsletter playbook. Upload each one to Listmonk (Settings →
 **Transactional templates** → New) using the names + IDs below, then
 the worker's auto-fire + daily-cron logic will pick them up.
 
-| Template ID env var | Listmonk template name | Fires when |
-|---|---|---|
-| `LISTMONK_TPL_WELCOME` | `bz-welcome-instant` | within 60s of new subscriber confirmation (auto-fired by `/api/subscribe`) |
-| `LISTMONK_TPL_FIRST_MONTH_D3` | `bz-first-month-day-3` | 3 days after signup (daily cron) |
-| `LISTMONK_TPL_FIRST_MONTH_D10` | `bz-first-month-day-10` | 10 days after signup (daily cron) |
-| `LISTMONK_TPL_FIRST_MONTH_D21` | `bz-first-month-day-21` | 21 days after signup (daily cron) |
-| `LISTMONK_TPL_WINBACK` | `bz-winback-90d` | 90 days after last-open (daily cron) |
+| Template ID env var            | Listmonk template name  | Fires when                                                                 |
+| ------------------------------ | ----------------------- | -------------------------------------------------------------------------- |
+| `LISTMONK_TPL_WELCOME`         | `bz-welcome-instant`    | within 60s of new subscriber confirmation (auto-fired by `/api/subscribe`) |
+| `LISTMONK_TPL_FIRST_MONTH_D3`  | `bz-first-month-day-3`  | 3 days after signup (daily cron)                                           |
+| `LISTMONK_TPL_FIRST_MONTH_D10` | `bz-first-month-day-10` | 10 days after signup (daily cron)                                          |
+| `LISTMONK_TPL_FIRST_MONTH_D21` | `bz-first-month-day-21` | 21 days after signup (daily cron)                                          |
+| `LISTMONK_TPL_WINBACK`         | `bz-winback-90d`        | 90 days after last-open (daily cron)                                       |
 
 After upload, set the matching template IDs as worker secrets:
 

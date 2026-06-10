@@ -63,9 +63,12 @@ async function send(c) {
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${RESEND}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to: c.email, subject, text, reply_to: 'brian@megabyte.space' }),
+    body: JSON.stringify({ from: FROM, to: c.email, subject, text, reply_to: 'brian@megabyte.space' })
   });
-  if (!r.ok) { console.error('FAIL', c.email, r.status, (await r.text()).slice(0, 200)); return; }
+  if (!r.ok) {
+    console.error('FAIL', c.email, r.status, (await r.text()).slice(0, 200));
+    return;
+  }
   const j = await r.json();
   console.log('SENT', c.email, j.id);
 }
@@ -73,7 +76,10 @@ async function send(c) {
 if (toArg) {
   await send({ name: 'Brian', org: 'test recipient', email: toArg });
 } else if (sendAll && CURATORS.length) {
-  for (const c of CURATORS) { await send(c); await new Promise(r => setTimeout(r, 800)); }
+  for (const c of CURATORS) {
+    await send(c);
+    await new Promise(r => setTimeout(r, 800));
+  }
 } else if (sendAll && !CURATORS.length) {
   console.error('No curators configured. Add verified entries to CURATORS[] then re-run.');
   process.exit(1);

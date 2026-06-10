@@ -126,7 +126,12 @@ const escapeHtml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 function wordCount(html: string): number {
-  return html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length;
+  return html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean).length;
 }
 
 function siblingTrackLinks(album: Album, excludeId?: string, limit = 6): string {
@@ -139,8 +144,7 @@ function siblingTrackLinks(album: Album, excludeId?: string, limit = 6): string 
 }
 
 function siblingAlbumLinks(excludeId?: string, limit = 5): string {
-  return ALBUMS
-    .filter(a => a.id !== excludeId)
+  return ALBUMS.filter(a => a.id !== excludeId)
     .slice(0, limit)
     .map(a => `<a href="/${a.id}">${escapeHtml(a.name)}</a>`)
     .join(', ');
@@ -161,7 +165,9 @@ function buildTrackBody(track: Track, album: Album): string {
     `<p>${escapeHtml(track.title)} is a ${escapeHtml(track.vibe)} cut from <a href="/${album.id}">${escapeHtml(album.name)}</a>, the ${escapeHtml(album.tagline.toLowerCase())} record by <a href="${SITE_ORIGIN}/">bZ</a>. The track lives in the album's ${escapeHtml(album.description)} Recorded as part of bZ's hustle-gospel catalog — hard but holy, Christian-gangster ethic, zero substance references.</p>`
   );
   parts.push(`<h2>What the song is about</h2>`);
-  parts.push(`<p>The hook lands on the line "${escapeHtml(lyrics[0] || track.title)}." It plays like a ${escapeHtml(track.vibe)} sermon set to a drum machine — bZ's signature where the bar is the prayer and the prayer is the bar. The wisdom behind the track is short and sharp: <em>${escapeHtml(wisdom)}</em></p>`);
+  parts.push(
+    `<p>The hook lands on the line "${escapeHtml(lyrics[0] || track.title)}." It plays like a ${escapeHtml(track.vibe)} sermon set to a drum machine — bZ's signature where the bar is the prayer and the prayer is the bar. The wisdom behind the track is short and sharp: <em>${escapeHtml(wisdom)}</em></p>`
+  );
   if (stanza1) {
     parts.push(`<h2>Opening verse</h2>`);
     parts.push(`<blockquote>${stanza1}</blockquote>`);
@@ -204,11 +210,12 @@ function buildTrackBody(track: Track, album: Album): string {
 }
 
 function buildAlbumBody(album: Album): string {
-  const tracks = album.trackIds
-    .map(id => TRACK_BY_ID.get(id))
-    .filter((t): t is Track => !!t);
+  const tracks = album.trackIds.map(id => TRACK_BY_ID.get(id)).filter((t): t is Track => !!t);
   const trackList = tracks
-    .map((t, i) => `<li><a href="/${album.id}/${t.id}">${i + 1}. ${escapeHtml(t.title)}</a> — ${escapeHtml(t.vibe)}</li>`)
+    .map(
+      (t, i) =>
+        `<li><a href="/${album.id}/${t.id}">${i + 1}. ${escapeHtml(t.title)}</a> — ${escapeHtml(t.vibe)}</li>`
+    )
     .join('');
   const sampleWisdom = tracks
     .slice(0, 4)
@@ -293,9 +300,7 @@ function trackJsonLd(track: Track, album: Album, url: string): object[] {
 }
 
 function albumJsonLd(album: Album, url: string): object[] {
-  const tracks = album.trackIds
-    .map(id => TRACK_BY_ID.get(id))
-    .filter((t): t is Track => Boolean(t));
+  const tracks = album.trackIds.map(id => TRACK_BY_ID.get(id)).filter((t): t is Track => Boolean(t));
   return [
     {
       '@context': 'https://schema.org',
@@ -395,12 +400,48 @@ export function albumSeo(album: Album): RouteSeo {
 // <head> at the edge (without importing the heavy content-pages render bundle).
 // Without this, every content route served the homepage <title> to crawlers.
 const CONTENT_PAGES_SEO: Array<{ slug: string; title: string; description: string; og: string }> = [
-  { slug: 'about', title: 'About bZ — Newark hustle-gospel artist, theology, process', description: "Brian Zalewski is bZ — solo hustle-gospel artist out of Newark, NJ. Bio, hard-but-holy theology, the 5-stage song-making process, how to support the studio, and how to connect.", og: '/og/og-about.jpg' },
-  { slug: 'credits', title: 'Tracks — per-track Suno DNA, BPM/key sources, licensing', description: 'Every bZ track’s provenance: Suno model + style prompt, measured BPM + key, lyric-alignment method, and licensing. Full transparency on how each song was made.', og: FALLBACK_OG },
-  { slug: 'press', title: 'Press — bios, cover art, brand voice, booking + embeds', description: '50-word + 150-word bios, hi-res cover art for every album, headshot, brand voice, booking + licensing, interview answers, and a live embed-player preview. Everything writers and curators need.', og: FALLBACK_OG },
-  { slug: 'merch', title: 'Merch — bZ FREE SATAN apparel suite (Printful)', description: 'The full FREE SATAN — It’s Animal Abuse apparel suite: Comfort Colors heavyweight tees, hoodies, long-sleeves, tanks. DTG print, Stripe checkout, ships worldwide via Printful.', og: '/merch/mockups/tee-1717-pepper.png' },
-  { slug: 'privacy', title: 'Privacy — music.megabyte.space', description: 'How music.megabyte.space handles data: anonymous play/share counts, opt-in newsletter, Stripe checkout, privacy-aware analytics. No accounts, no ad trackers, no sale of data.', og: FALLBACK_OG },
-  { slug: 'terms', title: 'Terms of Service — music.megabyte.space', description: 'Plain-English terms: stream freely for personal use, music + lyrics are © Brian Zalewski, merch via Stripe + Printful, licensing on request, no warranties.', og: FALLBACK_OG },
+  {
+    slug: 'about',
+    title: 'About bZ — Newark hustle-gospel artist, theology, process',
+    description:
+      'Brian Zalewski is bZ — solo hustle-gospel artist out of Newark, NJ. Bio, hard-but-holy theology, the 5-stage song-making process, how to support the studio, and how to connect.',
+    og: '/og/og-about.jpg'
+  },
+  {
+    slug: 'credits',
+    title: 'Tracks — per-track Suno DNA, BPM/key sources, licensing',
+    description:
+      'Every bZ track’s provenance: Suno model + style prompt, measured BPM + key, lyric-alignment method, and licensing. Full transparency on how each song was made.',
+    og: FALLBACK_OG
+  },
+  {
+    slug: 'press',
+    title: 'Press — bios, cover art, brand voice, booking + embeds',
+    description:
+      '50-word + 150-word bios, hi-res cover art for every album, headshot, brand voice, booking + licensing, interview answers, and a live embed-player preview. Everything writers and curators need.',
+    og: FALLBACK_OG
+  },
+  {
+    slug: 'merch',
+    title: 'Merch — bZ FREE SATAN apparel suite (Printful)',
+    description:
+      'The full FREE SATAN — It’s Animal Abuse apparel suite: Comfort Colors heavyweight tees, hoodies, long-sleeves, tanks. DTG print, Stripe checkout, ships worldwide via Printful.',
+    og: '/merch/mockups/tee-1717-pepper.png'
+  },
+  {
+    slug: 'privacy',
+    title: 'Privacy — music.megabyte.space',
+    description:
+      'How music.megabyte.space handles data: anonymous play/share counts, opt-in newsletter, Stripe checkout, privacy-aware analytics. No accounts, no ad trackers, no sale of data.',
+    og: FALLBACK_OG
+  },
+  {
+    slug: 'terms',
+    title: 'Terms of Service — music.megabyte.space',
+    description:
+      'Plain-English terms: stream freely for personal use, music + lyrics are © Brian Zalewski, merch via Stripe + Printful, licensing on request, no warranties.',
+    og: FALLBACK_OG
+  }
 ];
 
 function contentPageSeo(c: { slug: string; title: string; description: string; og: string }): RouteSeo {
@@ -410,12 +451,29 @@ function contentPageSeo(c: { slug: string; title: string; description: string; o
   const description = clampLen(c.description, 120, 156, ' Hard but holy.');
   const ogImage = c.og.startsWith('http') ? c.og : `${SITE_ORIGIN}${c.og}`;
   return {
-    path, title, description, canonical: url,
-    ogTitle: title, ogDescription: description, ogType: 'website',
-    ogImage, ogImageAlt: `${c.title} — bZ`,
-    twitterTitle: title, twitterDescription: description, twitterImage: ogImage,
-    jsonLd: [{ '@context': 'https://schema.org', '@type': 'WebPage', name: c.title, description, url, isPartOf: { '@type': 'WebSite', name: 'bZ — music.megabyte.space', url: SITE_ORIGIN } }],
-    seoBody: `<h1>${c.title}</h1><p>${description}</p><p><a href="/">bZ — music.megabyte.space</a></p>`,
+    path,
+    title,
+    description,
+    canonical: url,
+    ogTitle: title,
+    ogDescription: description,
+    ogType: 'website',
+    ogImage,
+    ogImageAlt: `${c.title} — bZ`,
+    twitterTitle: title,
+    twitterDescription: description,
+    twitterImage: ogImage,
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: c.title,
+        description,
+        url,
+        isPartOf: { '@type': 'WebSite', name: 'bZ — music.megabyte.space', url: SITE_ORIGIN }
+      }
+    ],
+    seoBody: `<h1>${c.title}</h1><p>${description}</p><p><a href="/">bZ — music.megabyte.space</a></p>`
   };
 }
 

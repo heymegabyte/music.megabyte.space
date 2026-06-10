@@ -28,7 +28,10 @@ test.describe('regression — .aichat__fab is stable enough for instant click', 
     const dw = Math.abs(box2.width - box1.width);
     const dh = Math.abs(box2.height - box1.height);
     const drift = Math.max(dx, dy, dw, dh);
-    expect(drift, `fab drifted ${drift.toFixed(2)}px in 1.1s (box1=${JSON.stringify(box1)} box2=${JSON.stringify(box2)})`).toBeLessThanOrEqual(1);
+    expect(
+      drift,
+      `fab drifted ${drift.toFixed(2)}px in 1.1s (box1=${JSON.stringify(box1)} box2=${JSON.stringify(box2)})`
+    ).toBeLessThanOrEqual(1);
   });
 
   test('clicking the FAB opens the chat panel within the default action timeout', async ({ page }) => {

@@ -19,7 +19,10 @@ export interface TrackTags {
 }
 
 const MOOD_RULES: Array<[RegExp, string]> = [
-  [/holy|sacred|psalm|prayer|hymn|gospel|saint|halo|crown|throne|christ|jesus|noah|matthew|jerusalem|creed/i, 'sacred'],
+  [
+    /holy|sacred|psalm|prayer|hymn|gospel|saint|halo|crown|throne|christ|jesus|noah|matthew|jerusalem|creed/i,
+    'sacred'
+  ],
   [/mercy|grace|forgive|redeem|baptism|surrender|pardon/i, 'mercy'],
   [/dawn|sunrise|morning|first-light|sun-up/i, 'dawn'],
   [/night|midnight|moon|star|stars|sleep|dream/i, 'nocturnal'],
@@ -38,7 +41,10 @@ const THEME_RULES: Array<[RegExp, string]> = [
   // and the redemption-from-the-old-life markers the catalog actually uses
   // ("brand new child", "clean plate, warm grace") so songs whose ethic is
   // sobriety-without-the-keyword still tag.
-  [/no drug|no vice|no bottle|no needle|sober|stay(?:ed)? clean|clean plate|brand new child|discipline|virtue/i, 'no-substance'],
+  [
+    /no drug|no vice|no bottle|no needle|sober|stay(?:ed)? clean|clean plate|brand new child|discipline|virtue/i,
+    'no-substance'
+  ],
   [/greene|law \d|forty-eight|48 laws/i, 'greene-law'],
   [/soup|kitchen|plate|bread|feed|meal|stew|bean/i, 'soup-kitchen'],
   [/ai|artificial|silicon|model|engine|crown of ai/i, 'ai'],
@@ -75,7 +81,17 @@ const GENRE_RULES: Array<[RegExp, string]> = [
 ];
 
 const ENERGY_KEYS = ['quiet', 'still', 'whisper', 'low-volume', 'silence', 'exhale', 'humble', 'humility'];
-const HIGH_KEYS = ['stomp', 'launch', 'rimshot', 'parade', 'march', 'dance', 'elevator', 'trillion', 'crossfire'];
+const HIGH_KEYS = [
+  'stomp',
+  'launch',
+  'rimshot',
+  'parade',
+  'march',
+  'dance',
+  'elevator',
+  'trillion',
+  'crossfire'
+];
 
 function applyRules<T extends string>(rules: Array<[RegExp, T]>, text: string): T[] {
   const out = new Set<T>();
@@ -169,7 +185,13 @@ export function getTrackTags(trackId: string): TrackTags | undefined {
 export function tracksByTag(tag: string): string[] {
   const hits: string[] = [];
   for (const [id, t] of TRACK_TAGS) {
-    if (t.moods.includes(tag) || t.themes.includes(tag) || t.places.includes(tag) || t.genres.includes(tag) || t.contains.includes(tag)) {
+    if (
+      t.moods.includes(tag) ||
+      t.themes.includes(tag) ||
+      t.places.includes(tag) ||
+      t.genres.includes(tag) ||
+      t.contains.includes(tag)
+    ) {
       hits.push(id);
     }
   }
@@ -177,7 +199,12 @@ export function tracksByTag(tag: string): string[] {
 }
 
 /** Collect the union of derived tags across all tracks, partitioned by namespace. */
-export function allTags(): { moods: Set<string>; themes: Set<string>; places: Set<string>; genres: Set<string> } {
+export function allTags(): {
+  moods: Set<string>;
+  themes: Set<string>;
+  places: Set<string>;
+  genres: Set<string>;
+} {
   const moods = new Set<string>();
   const themes = new Set<string>();
   const places = new Set<string>();

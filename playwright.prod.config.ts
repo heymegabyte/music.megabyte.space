@@ -23,7 +23,10 @@ export default defineConfig({
     }
   },
   projects: [
-    { name: 'desktop-1280', use: { ...devices['Desktop Chrome'], channel: 'chrome', viewport: { width: 1280, height: 800 } } },
+    {
+      name: 'desktop-1280',
+      use: { ...devices['Desktop Chrome'], channel: 'chrome', viewport: { width: 1280, height: 800 } }
+    },
     {
       name: 'mobile-390',
       // iPhone 13 dimensions emulated in Chrome (channel: 'chrome' is the only
@@ -36,7 +39,8 @@ export default defineConfig({
         deviceScaleFactor: 3,
         isMobile: true,
         hasTouch: true,
-        userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
+        userAgent:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
       }
     }
   ]

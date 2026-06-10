@@ -17,12 +17,18 @@ test.describe('regression — clicking a track row does not jump the list', () =
     const albums = page.locator('#albums');
     await expect(albums).toBeVisible();
 
-    await page.waitForFunction(() => {
-      const el = document.querySelector('#albums');
-      return !!el && (el as HTMLElement).scrollHeight > (el as HTMLElement).clientHeight + 200;
-    }, undefined, { timeout: 10000 });
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector('#albums');
+        return !!el && (el as HTMLElement).scrollHeight > (el as HTMLElement).clientHeight + 200;
+      },
+      undefined,
+      { timeout: 10000 }
+    );
 
-    await albums.evaluate(el => { (el as HTMLElement).scrollTop = 400; });
+    await albums.evaluate(el => {
+      (el as HTMLElement).scrollTop = 400;
+    });
     const before = await albums.evaluate(el => (el as HTMLElement).scrollTop);
     expect(before).toBeGreaterThan(300);
 
@@ -30,10 +36,12 @@ test.describe('regression — clicking a track row does not jump the list', () =
       const host = el as HTMLElement;
       const hostRect = host.getBoundingClientRect();
       const rows = Array.from(host.querySelectorAll<HTMLAnchorElement>('.trackrow:not(.is-current)'));
-      return rows.find(r => {
-        const rect = r.getBoundingClientRect();
-        return rect.top >= hostRect.top + 20 && rect.bottom <= hostRect.bottom - 20;
-      }) ?? null;
+      return (
+        rows.find(r => {
+          const rect = r.getBoundingClientRect();
+          return rect.top >= hostRect.top + 20 && rect.bottom <= hostRect.bottom - 20;
+        }) ?? null
+      );
     });
     const rowEl = visibleRow.asElement();
     if (!rowEl) throw new Error('no visible non-current row to click');
@@ -42,6 +50,9 @@ test.describe('regression — clicking a track row does not jump the list', () =
 
     await page.waitForTimeout(900);
     const after = await albums.evaluate(el => (el as HTMLElement).scrollTop);
-    expect(Math.abs(after - before), `scrollTop drifted ${after - before}px after click (was ${before}, now ${after})`).toBeLessThanOrEqual(8);
+    expect(
+      Math.abs(after - before),
+      `scrollTop drifted ${after - before}px after click (was ${before}, now ${after})`
+    ).toBeLessThanOrEqual(8);
   });
 });

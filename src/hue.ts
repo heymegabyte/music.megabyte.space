@@ -11,14 +11,14 @@ export interface HueConfig {
   bridgeIp: string;
   appKey: string;
   groupId?: string;
-  intensity: number;          // 0-1 user knob
+  intensity: number; // 0-1 user knob
   enabled: boolean;
   /** When true, drive Play Light Bars / gradient strips via CLIP v2 multi-point frames at ~25Hz. */
   useGradient: boolean;
 }
 
 export interface HueGroup {
-  id: string;                 // v1 group id (string number, e.g. "1")
+  id: string; // v1 group id (string number, e.g. "1")
   name: string;
   type: 'room' | 'zone' | 'entertainment' | 'other';
 }
@@ -35,11 +35,11 @@ export interface GradientLight {
  *  only `bass`/`mid`/`treble` modulate brightness; transient drop/build
  *  predictors are accepted for API stability but ignored (no strobing). */
 export interface HueBands {
-  bass: number;       // 0-1 (0-150Hz region)
-  mid: number;        // 0-1 (150Hz-2kHz region)
-  treble: number;     // 0-1 (2kHz+)
-  beat: number;       // 0-1 transient kick pulse (ignored — aesthetic mode)
-  bpm?: number;       // (ignored — phase drift is constant)
+  bass: number; // 0-1 (0-150Hz region)
+  mid: number; // 0-1 (150Hz-2kHz region)
+  treble: number; // 0-1 (2kHz+)
+  beat: number; // 0-1 transient kick pulse (ignored — aesthetic mode)
+  bpm?: number; // (ignored — phase drift is constant)
   /** Accepted for API stability — ignored in aesthetic mode. */
   dropImminent?: boolean;
   /** Accepted for API stability — ignored in aesthetic mode. */
@@ -49,8 +49,8 @@ export interface HueBands {
 }
 
 const STORAGE_KEY = 'bz:hue:v1';
-const MIN_FRAME_MS = 110;     // ~9Hz — bridge HTTPS v1 endpoint hard-throttles ~10Hz
-const MIN_V2_MS = 45;         // ~22Hz — CLIP v2 sustains higher cadence than v1
+const MIN_FRAME_MS = 110; // ~9Hz — bridge HTTPS v1 endpoint hard-throttles ~10Hz
+const MIN_V2_MS = 45; // ~22Hz — CLIP v2 sustains higher cadence than v1
 
 export class HueSync {
   config: HueConfig;
@@ -66,7 +66,10 @@ export class HueSync {
   private smoothed: [number, number, number] = [12, 16, 24];
   private secondary: [number, number, number] = [124, 58, 237];
   /** Full per-track palette. Falls back to [accent, secondary] if `setPalette` not called. */
-  private paletteRgb: Array<[number, number, number]> = [[0, 229, 255], [124, 58, 237]];
+  private paletteRgb: Array<[number, number, number]> = [
+    [0, 229, 255],
+    [124, 58, 237]
+  ];
   /** Phase counter — advances on every frame, kicks forward on beat. Drives sweep. */
   private phase = 0;
   /** Smoothed bands per zone, indexed by zone position. Re-allocated when zones change. */
@@ -87,7 +90,11 @@ export class HueSync {
 
   private emit() {
     for (const l of this.listeners) {
-      try { l(); } catch { /* noop */ }
+      try {
+        l();
+      } catch {
+        /* noop */
+      }
     }
   }
 
@@ -98,7 +105,7 @@ export class HueSync {
     try {
       const res = await fetch('/api/hue/discover', { cache: 'no-store' });
       if (!res.ok) throw new Error(`discover ${res.status}`);
-      const arr = await res.json() as Array<{ id: string; internalipaddress: string }>;
+      const arr = (await res.json()) as Array<{ id: string; internalipaddress: string }>;
       this.status = arr.length ? 'idle' : 'error';
       if (!arr.length) this.lastError = 'No bridges found on your network';
       this.emit();
@@ -124,7 +131,10 @@ export class HueSync {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ devicetype: 'bz-music#cast', generateclientkey: true })
       });
-      const data = await res.json() as Array<{ success?: { username?: string; clientkey?: string }; error?: { type?: number; description?: string } }>;
+      const data = (await res.json()) as Array<{
+        success?: { username?: string; clientkey?: string };
+        error?: { type?: number; description?: string };
+      }>;
       const first = Array.isArray(data) ? data[0] : null;
       if (first?.success?.username) {
         this.config = { ...this.config, bridgeIp: ip, appKey: first.success.username, enabled: true };
@@ -154,17 +164,23 @@ export class HueSync {
   async loadGroups(): Promise<HueGroup[]> {
     if (!this.config.bridgeIp || !this.config.appKey) return [];
     try {
-      const res = await fetch(`https://${this.config.bridgeIp}/api/${this.config.appKey}/groups`, { cache: 'no-store' });
+      const res = await fetch(`https://${this.config.bridgeIp}/api/${this.config.appKey}/groups`, {
+        cache: 'no-store'
+      });
       if (!res.ok) throw new Error(`groups ${res.status}`);
-      const data = await res.json() as Record<string, { name: string; type: string }>;
+      const data = (await res.json()) as Record<string, { name: string; type: string }>;
       this.groups = Object.entries(data).map(([id, g]) => {
         const t = (g.type ?? '').toLowerCase();
         return {
           id,
           name: g.name ?? `Group ${id}`,
-          type: (t === 'entertainment' ? 'entertainment'
-            : t === 'room' ? 'room'
-            : t === 'zone' ? 'zone' : 'other') as HueGroup['type']
+          type: (t === 'entertainment'
+            ? 'entertainment'
+            : t === 'room'
+              ? 'room'
+              : t === 'zone'
+                ? 'zone'
+                : 'other') as HueGroup['type']
         };
       });
       // Always ensure synthetic "All lights" group
@@ -194,11 +210,13 @@ export class HueSync {
         headers: { 'hue-application-key': this.config.appKey }
       });
       if (!res.ok) throw new Error(`v2 lights ${res.status}`);
-      const json = await res.json() as { data?: Array<{
-        id: string;
-        metadata?: { name?: string };
-        gradient?: { points_capable?: number };
-      }> };
+      const json = (await res.json()) as {
+        data?: Array<{
+          id: string;
+          metadata?: { name?: string };
+          gradient?: { points_capable?: number };
+        }>;
+      };
       const data = json.data ?? [];
       this.gradientLights = data
         .filter(l => typeof l.gradient?.points_capable === 'number' && (l.gradient.points_capable ?? 0) >= 2)
@@ -298,7 +316,10 @@ export class HueSync {
     // Gentle bass-driven breath. Floor at 35% so the room never goes dark.
     // Top out at 80% so the lights ride softly above the screen rather than
     // dominating the room.
-    const modulated = Math.max(0.35, Math.min(0.8, baseBri * (0.55 + 0.25 * bassEnergy * (0.4 + 0.6 * intensity))));
+    const modulated = Math.max(
+      0.35,
+      Math.min(0.8, baseBri * (0.55 + 0.25 * bassEnergy * (0.4 + 0.6 * intensity)))
+    );
     const bri = Math.max(1, Math.round(modulated * 254));
     const xy = rgbToXY(r, g, b);
 
@@ -330,8 +351,11 @@ export class HueSync {
         body: JSON.stringify(body),
         keepalive: true
       });
-    } catch { /* swallow — keep visualizer ticking */ }
-    finally { this.inflight = Math.max(0, this.inflight - 1); }
+    } catch {
+      /* swallow — keep visualizer ticking */
+    } finally {
+      this.inflight = Math.max(0, this.inflight - 1);
+    }
   }
 
   /**
@@ -365,15 +389,16 @@ export class HueSync {
     let lightIdx = 0;
     for (const light of this.gradientLights) {
       const points = Math.max(2, Math.min(5, light.points));
-      const lightOffset = lightIdx * 0.37;  // staggers bars so they're not clones
+      const lightOffset = lightIdx * 0.37; // staggers bars so they're not clones
       const zones: Array<{ color: { xy: { x: number; y: number } } }> = [];
 
       for (let i = 0; i < points; i++) {
-        const t = i / (points - 1);                 // 0 = bass end, 1 = treble end
+        const t = i / (points - 1); // 0 = bass end, 1 = treble end
         // Heavily-smoothed per-zone band energy. Gentle wash, no transients.
-        const zoneBand = t < 0.5
-          ? bands.bass * (1 - t * 2) + bands.mid * (t * 2)
-          : bands.mid * (1 - (t - 0.5) * 2) + bands.treble * ((t - 0.5) * 2);
+        const zoneBand =
+          t < 0.5
+            ? bands.bass * (1 - t * 2) + bands.mid * (t * 2)
+            : bands.mid * (1 - (t - 0.5) * 2) + bands.treble * ((t - 0.5) * 2);
 
         // Pick palette swatch via slow rotating phase + per-light offset + zone index.
         const swatchIdx = Math.floor(this.phase * 0.05 + lightOffset + i * 0.6) % palette.length;
@@ -409,8 +434,12 @@ export class HueSync {
         body: JSON.stringify(body),
         keepalive: true
       })
-        .catch(() => { /* swallow — keep frames flowing */ })
-        .finally(() => { this.v2Inflight = Math.max(0, this.v2Inflight - 1); });
+        .catch(() => {
+          /* swallow — keep frames flowing */
+        })
+        .finally(() => {
+          this.v2Inflight = Math.max(0, this.v2Inflight - 1);
+        });
       lightIdx += 1;
     }
   }
@@ -418,18 +447,27 @@ export class HueSync {
   async setOn(on: boolean): Promise<void> {
     if (!this.config.bridgeIp || !this.config.appKey || !this.config.groupId) return;
     try {
-      await fetch(`https://${this.config.bridgeIp}/api/${this.config.appKey}/groups/${this.config.groupId}/action`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ on, transitiontime: 4 })
-      });
-    } catch { /* noop */ }
+      await fetch(
+        `https://${this.config.bridgeIp}/api/${this.config.appKey}/groups/${this.config.groupId}/action`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ on, transitiontime: 4 })
+        }
+      );
+    } catch {
+      /* noop */
+    }
   }
 }
 
 function readConfig(reset = false): HueConfig {
   if (reset) {
-    try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* noop */
+    }
     return { bridgeIp: '', appKey: '', intensity: 0.7, enabled: false, useGradient: true };
   }
   try {
@@ -450,7 +488,11 @@ function readConfig(reset = false): HueConfig {
 }
 
 function writeConfig(c: HueConfig) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(c)); } catch { /* noop */ }
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
+  } catch {
+    /* noop */
+  }
 }
 
 export const hue = new HueSync();

@@ -18,17 +18,17 @@ The app is a single-page experience. The audio element is created once and persi
 
 ## Where to make changes
 
-| Task | File |
-| --- | --- |
-| New track or album | `src/data.ts` |
-| Per-route SEO / OG tags | `src/track-meta.ts` (consumed by `worker/index.ts`) |
-| Transport UI / app shell | `src/main.ts` (large; search first) |
-| AI DJ drawer | `src/ai-chat.ts` |
-| AI chat widget kinds + renderer | `src/ai-widgets.ts` (see [`docs/ai-chat-widgets.md`](./docs/ai-chat-widgets.md)) |
+| Task                             | File                                                                                     |
+| -------------------------------- | ---------------------------------------------------------------------------------------- |
+| New track or album               | `src/data.ts`                                                                            |
+| Per-route SEO / OG tags          | `src/track-meta.ts` (consumed by `worker/index.ts`)                                      |
+| Transport UI / app shell         | `src/main.ts` (large; search first)                                                      |
+| AI DJ drawer                     | `src/ai-chat.ts`                                                                         |
+| AI chat widget kinds + renderer  | `src/ai-widgets.ts` (see [`docs/ai-chat-widgets.md`](./docs/ai-chat-widgets.md))         |
 | `/shortcommands` palette builder | `src/ai-shortcommands.ts` (see [`docs/ai-chat-commands.md`](./docs/ai-chat-commands.md)) |
-| Visualizer | `src/visualizer.ts` |
-| Worker route or API | `worker/index.ts` |
-| Styles | `src/style.css` (one file, cascade-layered) |
+| Visualizer                       | `src/visualizer.ts`                                                                      |
+| Worker route or API              | `worker/index.ts`                                                                        |
+| Styles                           | `src/style.css` (one file, cascade-layered)                                              |
 
 ## Hard rules
 

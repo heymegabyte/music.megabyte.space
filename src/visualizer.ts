@@ -53,7 +53,7 @@ function applyTrackPalette(p: Palette | null) {
 
 function lerpPalette(p: Array<[number, number, number]>, t: number): [number, number, number] {
   const n = p.length;
-  const idx = ((t % 1) + 1) % 1 * n;
+  const idx = (((t % 1) + 1) % 1) * n;
   const i0 = Math.floor(idx) % n;
   const i1 = (i0 + 1) % n;
   const f = idx - Math.floor(idx);
@@ -70,18 +70,22 @@ function lerpPalette(p: Array<[number, number, number]>, t: number): [number, nu
 // cur.centroid each frame. Push every paletteAt() result through a saturation
 // stretch + centroid-driven hue rotation so the colours follow the music's
 // spectral character (centroid up→hue walks up the wheel).
-let VIBRANCE = 1.0;         // saturation multiplier, 1=neutral
-let HUE_SHIFT = 0;          // degrees, -180..180
+let VIBRANCE = 1.0; // saturation multiplier, 1=neutral
+let HUE_SHIFT = 0; // degrees, -180..180
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
-  r /= 255; g /= 255; b /= 255;
-  const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
-  let h = 0, s = 0;
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const mx = Math.max(r, g, b),
+    mn = Math.min(r, g, b);
+  let h = 0,
+    s = 0;
   const l = (mx + mn) / 2;
   if (mx !== mn) {
     const d = mx - mn;
     s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
-    if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0));
+    if (mx === r) h = (g - b) / d + (g < b ? 6 : 0);
     else if (mx === g) h = (b - r) / d + 2;
     else h = (r - g) / d + 4;
     h /= 6;
@@ -119,9 +123,15 @@ function vibrantize(rgb: [number, number, number]): [number, number, number] {
   return hslToRgb(h2, s2, l2);
 }
 
-function paletteAt(t: number) { return vibrantize(lerpPalette(PALETTE_KEYFRAMES, t)); }
-function lovePalette(t: number) { return lerpPalette(LOVE_PALETTE, t); }
-function starPalette(t: number) { return lerpPalette(STAR_PALETTE, t); }
+function paletteAt(t: number) {
+  return vibrantize(lerpPalette(PALETTE_KEYFRAMES, t));
+}
+function lovePalette(t: number) {
+  return lerpPalette(LOVE_PALETTE, t);
+}
+function starPalette(t: number) {
+  return lerpPalette(STAR_PALETTE, t);
+}
 
 export type VizMode =
   | 'starfield'
@@ -167,31 +177,94 @@ export type VizMode =
   | 'flux';
 
 const MODE_ORDER: VizMode[] = [
-  'starfield', 'constellation', 'galaxy', 'supernova', 'aurora',
+  'starfield',
+  'constellation',
+  'galaxy',
+  'supernova',
+  'aurora',
   'petals',
-  'plasma', 'mandala', 'fireflies', 'bokeh',
-  'palette-orbs', 'drop-strobe', 'prism',
-  'wormhole', 'vortex', 'sunburst', 'mirror-wave',
-  'hex-grid', 'liquid', 'vinyl', 'smoke', 'strings',
-  'spider', 'cymatics', 'confetti', 'bloom', 'rose', 'waterfall',
-  'monolith', 'nebula', 'ribbons',
-  'gravity', 'lattice', 'flux',
-  'composite', 'tunnel', 'lissajous', 'rings', 'bars', 'wave', 'kaleidoscope'
+  'plasma',
+  'mandala',
+  'fireflies',
+  'bokeh',
+  'palette-orbs',
+  'drop-strobe',
+  'prism',
+  'wormhole',
+  'vortex',
+  'sunburst',
+  'mirror-wave',
+  'hex-grid',
+  'liquid',
+  'vinyl',
+  'smoke',
+  'strings',
+  'spider',
+  'cymatics',
+  'confetti',
+  'bloom',
+  'rose',
+  'waterfall',
+  'monolith',
+  'nebula',
+  'ribbons',
+  'gravity',
+  'lattice',
+  'flux',
+  'composite',
+  'tunnel',
+  'lissajous',
+  'rings',
+  'bars',
+  'wave',
+  'kaleidoscope'
 ];
 
 // pure-dark background (no gradient blob field underneath)
 const PURE_BG_MODES: Set<VizMode> = new Set([
-  'starfield', 'constellation', 'galaxy', 'plasma', 'drop-strobe',
-  'wormhole', 'waterfall', 'lattice', 'monolith'
+  'starfield',
+  'constellation',
+  'galaxy',
+  'plasma',
+  'drop-strobe',
+  'wormhole',
+  'waterfall',
+  'lattice',
+  'monolith'
 ]);
 
 type Star3D = { x: number; y: number; z: number; px: number; py: number };
 type Star2D = { x: number; y: number; bin: number; tw: number };
 type GalaxyParticle = { theta: number; r: number; size: number; color: [number, number, number] };
 type SupernovaRing = { age: number; max: number; color: [number, number, number] };
-type HeartItem = { x: number; vy: number; size: number; rot: number; vrot: number; sway: number; color: [number, number, number]; life: number };
-type Firefly = { x: number; y: number; ax: number; ay: number; phase: number; rate: number; color: [number, number, number] };
-type BokehItem = { x: number; y: number; size: number; vx: number; vy: number; color: [number, number, number]; alpha: number };
+type HeartItem = {
+  x: number;
+  vy: number;
+  size: number;
+  rot: number;
+  vrot: number;
+  sway: number;
+  color: [number, number, number];
+  life: number;
+};
+type Firefly = {
+  x: number;
+  y: number;
+  ax: number;
+  ay: number;
+  phase: number;
+  rate: number;
+  color: [number, number, number];
+};
+type BokehItem = {
+  x: number;
+  y: number;
+  size: number;
+  vx: number;
+  vy: number;
+  color: [number, number, number];
+  alpha: number;
+};
 
 export class Visualizer {
   private bg: HTMLCanvasElement;
@@ -241,18 +314,27 @@ export class Visualizer {
   // read by every mode + overlay. Avoids per-mode recomputation of bands()
   // / tempoPhase() / channelEnergy() and lets cheap reads replace allocations.
   private cur = {
-    t: 0,           // seconds since t0
-    beat: 0,        // engine.beatPulse 0..1
+    t: 0, // seconds since t0
+    beat: 0, // engine.beatPulse 0..1
     bpm: 0,
-    bass: 0, lowMid: 0, mid: 0, highMid: 0, treble: 0, presence: 0, brilliance: 0,
-    centroid: 0, stereo: 0, flux: 0,
-    chL: 0, chR: 0,
-    tempo: 0,       // tempoPhase 0..1
-    build: 0,       // buildPhase 0..1
-    drop: false,    // dropImminent this frame
-    dropE: 0,       // smoothed RMS 0..1
+    bass: 0,
+    lowMid: 0,
+    mid: 0,
+    highMid: 0,
+    treble: 0,
+    presence: 0,
+    brilliance: 0,
+    centroid: 0,
+    stereo: 0,
+    flux: 0,
+    chL: 0,
+    chR: 0,
+    tempo: 0, // tempoPhase 0..1
+    build: 0, // buildPhase 0..1
+    drop: false, // dropImminent this frame
+    dropE: 0, // smoothed RMS 0..1
     quality: 'high' as 'high' | 'medium' | 'low',
-    glow: true      // false when fpsEMA<48 → skip shadowBlur for speed
+    glow: true // false when fpsEMA<48 → skip shadowBlur for speed
   };
   // Global drop flash — armed on dropImminent, decays at ~120ms.
   private dropFlash = 0;
@@ -260,8 +342,14 @@ export class Visualizer {
   // Shared particle pool — emits on dropImminent + sustained beat peaks.
   // Screen-blended, scales speed with bass, rotates hue via centroid.
   private particles: Array<{
-    x: number; y: number; vx: number; vy: number;
-    life: number; max: number; size: number; hue: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    life: number;
+    max: number;
+    size: number;
+    hue: number;
   }> = [];
 
   // Offscreen bloom canvas — quarter-res scratch buffer, allocated once on
@@ -339,13 +427,24 @@ export class Visualizer {
 
     const starfield: Star3D[] = [];
     for (let i = 0; i < STAR_N; i++) {
-      starfield.push({ x: Math.random() * 2 - 1, y: Math.random() * 2 - 1, z: Math.random() * 0.99 + 0.01, px: 0, py: 0 });
+      starfield.push({
+        x: Math.random() * 2 - 1,
+        y: Math.random() * 2 - 1,
+        z: Math.random() * 0.99 + 0.01,
+        px: 0,
+        py: 0
+      });
     }
     this.vizState.starfield = { stars: starfield };
 
     const constStars: Star2D[] = [];
     for (let i = 0; i < CONST_N; i++) {
-      constStars.push({ x: Math.random(), y: Math.random(), bin: 5 + Math.floor(Math.random() * 200), tw: Math.random() * Math.PI * 2 });
+      constStars.push({
+        x: Math.random(),
+        y: Math.random(),
+        bin: 5 + Math.floor(Math.random() * 200),
+        tw: Math.random() * Math.PI * 2
+      });
     }
     this.vizState.constellation = { stars: constStars };
 
@@ -358,13 +457,19 @@ export class Visualizer {
         const spread = (Math.random() - 0.5) * 0.5;
         const theta = armAngle + tParam * Math.PI * 4 + spread;
         const r = 0.06 + tParam * 0.45 + (Math.random() - 0.5) * 0.04;
-        galaxy.push({ theta, r, size: 0.4 + Math.random() * 1.8, color: starPalette(tParam * 0.6 + a * 0.13 + Math.random() * 0.2) });
+        galaxy.push({
+          theta,
+          r,
+          size: 0.4 + Math.random() * 1.8,
+          color: starPalette(tParam * 0.6 + a * 0.13 + Math.random() * 0.2)
+        });
       }
     }
     this.vizState.galaxy = { particles: galaxy };
 
     const off = document.createElement('canvas');
-    off.width = PLASMA_W; off.height = PLASMA_H;
+    off.width = PLASMA_W;
+    off.height = PLASMA_H;
     const offCtx = off.getContext('2d', { willReadFrequently: true })!;
     const img = offCtx.createImageData(PLASMA_W, PLASMA_H);
     this.vizState.plasma = { off, offCtx, img };
@@ -372,9 +477,12 @@ export class Visualizer {
     const fireflies: Firefly[] = [];
     for (let i = 0; i < FIREFLY_N; i++) {
       fireflies.push({
-        x: Math.random(), y: Math.random(),
-        ax: Math.random() * Math.PI * 2, ay: Math.random() * Math.PI * 2,
-        phase: Math.random() * Math.PI * 2, rate: 0.4 + Math.random() * 1.4,
+        x: Math.random(),
+        y: Math.random(),
+        ax: Math.random() * Math.PI * 2,
+        ay: Math.random() * Math.PI * 2,
+        phase: Math.random() * Math.PI * 2,
+        rate: 0.4 + Math.random() * 1.4,
         color: lovePalette(Math.random() * 0.5 + 0.25)
       });
     }
@@ -383,10 +491,13 @@ export class Visualizer {
     const bokeh: BokehItem[] = [];
     for (let i = 0; i < BOKEH_N; i++) {
       bokeh.push({
-        x: Math.random(), y: Math.random(),
+        x: Math.random(),
+        y: Math.random(),
         size: 0.05 + Math.random() * 0.22,
-        vx: (Math.random() - 0.5) * 0.01, vy: -0.004 - Math.random() * 0.008,
-        color: paletteAt(Math.random()), alpha: 0.25 + Math.random() * 0.5
+        vx: (Math.random() - 0.5) * 0.01,
+        vy: -0.004 - Math.random() * 0.008,
+        color: paletteAt(Math.random()),
+        alpha: 0.25 + Math.random() * 0.5
       });
     }
     this.vizState.bokeh = { items: bokeh };
@@ -414,7 +525,9 @@ export class Visualizer {
     if (p) this.accent = p.vibrant;
   }
 
-  getPalette(): Palette | null { return this.trackPalette; }
+  getPalette(): Palette | null {
+    return this.trackPalette;
+  }
 
   setMode(mode: VizMode) {
     this.mode = mode;
@@ -444,17 +557,23 @@ export class Visualizer {
     this.autoCycle = false;
     this.emitMode();
   }
-  modeCatalog(): VizMode[] { return MODE_ORDER.slice(); }
+  modeCatalog(): VizMode[] {
+    return MODE_ORDER.slice();
+  }
   setAutoCycle(on: boolean) {
     this.autoCycle = on;
     if (on) this.manualCycleStarted = false;
   }
-  currentMode(): VizMode { return this.mode; }
+  currentMode(): VizMode {
+    return this.mode;
+  }
   onModeChange(fn: (m: VizMode) => void) {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
   }
-  private emitMode() { for (const f of this.listeners) f(this.mode); }
+  private emitMode() {
+    for (const f of this.listeners) f(this.mode);
+  }
 
   resize() {
     const rect = this.bg.getBoundingClientRect();
@@ -496,10 +615,10 @@ export class Visualizer {
     // snapshot rather than re-summing freqData. Falls back to the scan for
     // bespoke ranges no mode actually uses today.
     const c = this.cur;
-    if (from === 0    && to === 0.06) return c.bass;
+    if (from === 0 && to === 0.06) return c.bass;
     if (from === 0.08 && to === 0.32) return c.mid;
     if (from === 0.32 && to === 0.85) return (c.treble + c.presence) * 0.5;
-    if (from === 0    && to === 0.5)  return (c.bass + c.lowMid + c.mid + c.highMid) * 0.25;
+    if (from === 0 && to === 0.5) return (c.bass + c.lowMid + c.mid + c.highMid) * 0.25;
     const f = this.engine.freqData;
     if (!f.length) return 0;
     const lo = Math.floor(f.length * from);
@@ -517,7 +636,10 @@ export class Visualizer {
     let max = 0;
     let pk = lo;
     for (let i = lo; i < hi; i++) {
-      if (f[i] > max) { max = f[i]; pk = i; }
+      if (f[i] > max) {
+        max = f[i];
+        pk = i;
+      }
     }
     return pk;
   }
@@ -638,16 +760,15 @@ export class Visualizer {
 
     this.hudPeakBin = this.peakBin(0, 0.5);
     const sr = this.engine.ctx?.sampleRate || 48000;
-    const fft = (this.engine.analyser?.fftSize || 2048);
+    const fft = this.engine.analyser?.fftSize || 2048;
     this.hudFreq = (this.hudPeakBin * sr) / fft;
 
     // Cinematic camera breath — subtle global scale that kicks on every beat
     // and slowly drifts. Lifts every mode (40+) uniformly without per-mode
     // edits: the whole frame "breathes" with the song. Bounded ±3% so it
     // never reads as a glitch. Skipped on low-power to save GPU.
-    const breath = this.cur.quality === 'low'
-      ? 1
-      : 1 + this.cur.beat * 0.02 + Math.sin(this.tempoClock * 0.6) * 0.008;
+    const breath =
+      this.cur.quality === 'low' ? 1 : 1 + this.cur.beat * 0.02 + Math.sin(this.tempoClock * 0.6) * 0.008;
     const breathDirty = breath !== 1;
     if (breathDirty) {
       ctx.save();
@@ -657,47 +778,129 @@ export class Visualizer {
     }
 
     switch (this.mode) {
-      case 'starfield':     this.drawStarfield(ctx, w, h); break;
-      case 'constellation': this.drawConstellation(ctx, w, h); break;
-      case 'galaxy':        this.drawGalaxy(ctx, w, h); break;
-      case 'supernova':     this.drawSupernova(ctx, w, h); break;
-      case 'aurora':        this.drawAurora(ctx, w, h); break;
-      case 'petals':        this.drawPetals(ctx, w, h); break;
-      case 'plasma':        this.drawPlasma(ctx, w, h); break;
-      case 'mandala':       this.drawMandala(ctx, w, h); break;
-      case 'fireflies':     this.drawFireflies(ctx, w, h); break;
-      case 'bokeh':         this.drawBokeh(ctx, w, h); break;
-      case 'palette-orbs':  this.drawPaletteOrbs(ctx, w, h); break;
-      case 'drop-strobe':   this.drawDropStrobe(ctx, w, h); break;
-      case 'prism':         this.drawPrism(ctx, w, h); break;
-      case 'wormhole':      this.drawWormhole(ctx, w, h); break;
-      case 'vortex':        this.drawVortex(ctx, w, h); break;
-      case 'sunburst':      this.drawSunburst(ctx, w, h); break;
-      case 'mirror-wave':   this.drawMirrorWave(ctx, w, h); break;
-      case 'hex-grid':      this.drawHexGrid(ctx, w, h); break;
-      case 'liquid':        this.drawLiquid(ctx, w, h); break;
-      case 'vinyl':         this.drawVinyl(ctx, w, h); break;
-      case 'smoke':         this.drawSmoke(ctx, w, h); break;
-      case 'strings':       this.drawStrings(ctx, w, h); break;
-      case 'spider':        this.drawSpider(ctx, w, h); break;
-      case 'cymatics':      this.drawCymatics(ctx, w, h); break;
-      case 'confetti':      this.drawConfetti(ctx, w, h); break;
-      case 'bloom':         this.drawBloom(ctx, w, h); break;
-      case 'rose':          this.drawRose(ctx, w, h); break;
-      case 'waterfall':     this.drawWaterfall(ctx, w, h); break;
-      case 'monolith':      this.drawMonolith(ctx, w, h); break;
-      case 'nebula':        this.drawNebula(ctx, w, h); break;
-      case 'ribbons':       this.drawRibbons(ctx, w, h); break;
-      case 'gravity':       this.drawGravity(ctx, w, h); break;
-      case 'lattice':       this.drawLattice(ctx, w, h); break;
-      case 'flux':          this.drawFlux(ctx, w, h); break;
-      case 'composite':     this.drawComposite(ctx, w, h); break;
-      case 'tunnel':        this.drawTunnel(ctx, w, h); break;
-      case 'lissajous':     this.drawLissajous(ctx, w, h); break;
-      case 'rings':         this.drawRings(ctx, w, h); break;
-      case 'bars':          this.drawRadialBars(ctx, w, h); break;
-      case 'wave':          this.drawOscilloscope(ctx, w, h); break;
-      case 'kaleidoscope':  this.drawKaleidoscope(ctx, w, h); break;
+      case 'starfield':
+        this.drawStarfield(ctx, w, h);
+        break;
+      case 'constellation':
+        this.drawConstellation(ctx, w, h);
+        break;
+      case 'galaxy':
+        this.drawGalaxy(ctx, w, h);
+        break;
+      case 'supernova':
+        this.drawSupernova(ctx, w, h);
+        break;
+      case 'aurora':
+        this.drawAurora(ctx, w, h);
+        break;
+      case 'petals':
+        this.drawPetals(ctx, w, h);
+        break;
+      case 'plasma':
+        this.drawPlasma(ctx, w, h);
+        break;
+      case 'mandala':
+        this.drawMandala(ctx, w, h);
+        break;
+      case 'fireflies':
+        this.drawFireflies(ctx, w, h);
+        break;
+      case 'bokeh':
+        this.drawBokeh(ctx, w, h);
+        break;
+      case 'palette-orbs':
+        this.drawPaletteOrbs(ctx, w, h);
+        break;
+      case 'drop-strobe':
+        this.drawDropStrobe(ctx, w, h);
+        break;
+      case 'prism':
+        this.drawPrism(ctx, w, h);
+        break;
+      case 'wormhole':
+        this.drawWormhole(ctx, w, h);
+        break;
+      case 'vortex':
+        this.drawVortex(ctx, w, h);
+        break;
+      case 'sunburst':
+        this.drawSunburst(ctx, w, h);
+        break;
+      case 'mirror-wave':
+        this.drawMirrorWave(ctx, w, h);
+        break;
+      case 'hex-grid':
+        this.drawHexGrid(ctx, w, h);
+        break;
+      case 'liquid':
+        this.drawLiquid(ctx, w, h);
+        break;
+      case 'vinyl':
+        this.drawVinyl(ctx, w, h);
+        break;
+      case 'smoke':
+        this.drawSmoke(ctx, w, h);
+        break;
+      case 'strings':
+        this.drawStrings(ctx, w, h);
+        break;
+      case 'spider':
+        this.drawSpider(ctx, w, h);
+        break;
+      case 'cymatics':
+        this.drawCymatics(ctx, w, h);
+        break;
+      case 'confetti':
+        this.drawConfetti(ctx, w, h);
+        break;
+      case 'bloom':
+        this.drawBloom(ctx, w, h);
+        break;
+      case 'rose':
+        this.drawRose(ctx, w, h);
+        break;
+      case 'waterfall':
+        this.drawWaterfall(ctx, w, h);
+        break;
+      case 'monolith':
+        this.drawMonolith(ctx, w, h);
+        break;
+      case 'nebula':
+        this.drawNebula(ctx, w, h);
+        break;
+      case 'ribbons':
+        this.drawRibbons(ctx, w, h);
+        break;
+      case 'gravity':
+        this.drawGravity(ctx, w, h);
+        break;
+      case 'lattice':
+        this.drawLattice(ctx, w, h);
+        break;
+      case 'flux':
+        this.drawFlux(ctx, w, h);
+        break;
+      case 'composite':
+        this.drawComposite(ctx, w, h);
+        break;
+      case 'tunnel':
+        this.drawTunnel(ctx, w, h);
+        break;
+      case 'lissajous':
+        this.drawLissajous(ctx, w, h);
+        break;
+      case 'rings':
+        this.drawRings(ctx, w, h);
+        break;
+      case 'bars':
+        this.drawRadialBars(ctx, w, h);
+        break;
+      case 'wave':
+        this.drawOscilloscope(ctx, w, h);
+        break;
+      case 'kaleidoscope':
+        this.drawKaleidoscope(ctx, w, h);
+        break;
     }
     if (breathDirty) ctx.restore();
 
@@ -741,7 +944,9 @@ export class Visualizer {
   // Beat-locked clock exposed for modes that prefer reading the paced clock
   // directly rather than scaling their own time variable. Equivalent to
   // (now - t0)/1000 but with the BPM scale + beat nudge baked in.
-  paced(): number { return this.tempoClock; }
+  paced(): number {
+    return this.tempoClock;
+  }
 
   // Cinematic post-pass — universal uplift for every mode. Three stages:
   //   1. Subtle film grain (16×16 noise tile, screen blend, jittered offset).
@@ -758,7 +963,8 @@ export class Visualizer {
     // 1. Film grain
     if (!this.grainCanvas) {
       const g = document.createElement('canvas');
-      g.width = 64; g.height = 64;
+      g.width = 64;
+      g.height = 64;
       const gctx = g.getContext('2d');
       if (gctx) {
         const img = gctx.createImageData(64, 64);
@@ -803,7 +1009,7 @@ export class Visualizer {
     if (this.cur.quality === 'high') {
       ctx.save();
       ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha = 0.10;
+      ctx.globalAlpha = 0.1;
       const phase = this.tempoClock * 0.04;
       const tealX = w * (0.18 + Math.sin(phase) * 0.05);
       const tealY = h * (0.82 + Math.cos(phase) * 0.03);
@@ -843,9 +1049,12 @@ export class Visualizer {
         const ang = (i / n) * Math.PI * 2 + Math.random() * 0.4;
         const spd = (3 + Math.random() * 5) * this.dpr;
         this.particles.push({
-          x: w / 2, y: h / 2,
-          vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
-          life: 0, max: 0.9 + Math.random() * 0.7,
+          x: w / 2,
+          y: h / 2,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          life: 0,
+          max: 0.9 + Math.random() * 0.7,
           size: this.dpr * (2 + Math.random() * 3),
           hue: (baseHue + i * (360 / n)) % 360
         });
@@ -857,8 +1066,10 @@ export class Visualizer {
       this.particles.push({
         x: w / 2 + (Math.random() - 0.5) * w * 0.4,
         y: h / 2 + (Math.random() - 0.5) * h * 0.4,
-        vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
-        life: 0, max: 0.7 + Math.random() * 0.5,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        life: 0,
+        max: 0.7 + Math.random() * 0.5,
         size: this.dpr * (1.4 + Math.random() * 2),
         hue: c.centroid * 360 + Math.random() * 60
       });
@@ -870,12 +1081,15 @@ export class Visualizer {
       // At 30fps mobile dt≈0.033, dtNorm≈2 → velocities/decays compensate
       // so particles behave identically across cadences.
       const dtNorm = dt * 60;
-      const drag = Math.pow(0.965, dtNorm);   // velocity preservation per frame
+      const drag = Math.pow(0.965, dtNorm); // velocity preservation per frame
       const gravity = 0.08 * this.dpr * dtNorm;
       for (let i = this.particles.length - 1; i >= 0; i--) {
         const p = this.particles[i];
         p.life += dt;
-        if (p.life >= p.max) { this.particles.splice(i, 1); continue; }
+        if (p.life >= p.max) {
+          this.particles.splice(i, 1);
+          continue;
+        }
         p.x += p.vx * dtNorm;
         p.y += p.vy * dtNorm;
         p.vx *= drag;
@@ -957,7 +1171,9 @@ export class Visualizer {
     }
   }
 
-  fps() { return this.fpsEMA; }
+  fps() {
+    return this.fpsEMA;
+  }
   audioMeters() {
     const c = this.cur;
     return {
@@ -1005,7 +1221,7 @@ export class Visualizer {
       // Ambient drift only — no BPM-locked wobble. Background blobs orbit
       // slowly so the user-selectable foreground modes own the visible motion.
       const phase = t * 0.06 + i * 0.41;
-      const orbit = 0.18 + (i * 0.11);
+      const orbit = 0.18 + i * 0.11;
       const cx = w / 2 + Math.cos(phase * Math.PI * 2 + i) * w * orbit;
       const cy = h / 2 + Math.sin(phase * Math.PI * 2 * 0.83 + i * 1.7) * h * orbit;
       const e = energies[i];
@@ -1030,12 +1246,19 @@ export class Visualizer {
     if (!this.vizState.starfield) {
       const stars: Star3D[] = [];
       for (let i = 0; i < 260; i++) {
-        stars.push({ x: Math.random() * 2 - 1, y: Math.random() * 2 - 1, z: Math.random() * 0.99 + 0.01, px: 0, py: 0 });
+        stars.push({
+          x: Math.random() * 2 - 1,
+          y: Math.random() * 2 - 1,
+          z: Math.random() * 0.99 + 0.01,
+          px: 0,
+          py: 0
+        });
       }
       this.vizState.starfield = { stars };
     }
     const stars = this.vizState.starfield.stars;
-    const cx = w / 2, cy = h / 2;
+    const cx = w / 2,
+      cy = h / 2;
     const bass = this.cur.bass;
     const beat = this.cur.beat;
     // Drop-locked warp burst — speed surges 50% when drop fires.
@@ -1050,12 +1273,14 @@ export class Visualizer {
         s.x = Math.random() * 2 - 1;
         s.y = Math.random() * 2 - 1;
         s.z = 1;
-        s.px = 0; s.py = 0;
+        s.px = 0;
+        s.py = 0;
       }
       const sx = cx + (s.x / s.z) * w * 0.55;
       const sy = cy + (s.y / s.z) * h * 0.55;
       if (sx < -50 || sx >= w + 50 || sy < -50 || sy >= h + 50) {
-        s.px = sx; s.py = sy;
+        s.px = sx;
+        s.py = sy;
         continue;
       }
       const depth = 1 - s.z;
@@ -1077,7 +1302,8 @@ export class Visualizer {
       ctx.beginPath();
       ctx.arc(sx, sy, size, 0, Math.PI * 2);
       ctx.fill();
-      s.px = sx; s.py = sy;
+      s.px = sx;
+      s.py = sy;
     }
     ctx.shadowBlur = 0;
     ctx.restore();
@@ -1110,7 +1336,8 @@ export class Visualizer {
       const a = stars[i];
       for (let j = i + 1; j < stars.length; j++) {
         const b = stars[j];
-        const dx = a.x - b.x, dy = a.y - b.y;
+        const dx = a.x - b.x,
+          dy = a.y - b.y;
         const d = Math.sqrt(dx * dx + dy * dy);
         if (d > linkDist) continue;
         const va = (f[a.bin] || 0) / 255;
@@ -1130,7 +1357,7 @@ export class Visualizer {
     // stars
     for (const s of stars) {
       const v = (f[s.bin] || 0) / 255;
-      const twinkle = (Math.sin(t * 2.4 + s.tw) * 0.5 + 0.5);
+      const twinkle = Math.sin(t * 2.4 + s.tw) * 0.5 + 0.5;
       const r = this.dpr * (1.2 + v * 4.5 + twinkle * 1.2);
       const col = starPalette(t * 0.04 + s.x);
       ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${0.55 + v * 0.4 + twinkle * 0.2})`;
@@ -1170,7 +1397,8 @@ export class Visualizer {
     const ps = this.vizState.galaxy.particles;
     const t = this.tempoClock;
     const beat = this.engine.beatPulse;
-    const cx = w / 2, cy = h / 2;
+    const cx = w / 2,
+      cy = h / 2;
     const scale = Math.min(w, h);
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
@@ -1205,7 +1433,8 @@ export class Visualizer {
     if (!this.vizState.supernova) this.vizState.supernova = { rings: [] };
     const st = this.vizState.supernova;
     const t = this.tempoClock;
-    const cx = w / 2, cy = h / 2;
+    const cx = w / 2,
+      cy = h / 2;
     const beat = this.engine.beatPulse;
     const b = this.engine.bands();
     const drop = this.engine.dropImminent;
@@ -1250,7 +1479,10 @@ export class Visualizer {
     for (let i = st.rings.length - 1; i >= 0; i--) {
       const r = st.rings[i];
       r.age += dt;
-      if (r.age > r.max) { st.rings.splice(i, 1); continue; }
+      if (r.age > r.max) {
+        st.rings.splice(i, 1);
+        continue;
+      }
       const k = r.age / r.max;
       const radius = k * Math.min(w, h) * 0.65;
       const alpha = (1 - k) * (0.85 + b.brilliance * 0.15);
@@ -1288,23 +1520,26 @@ export class Visualizer {
       for (let i = 0; i <= steps; i++) {
         const x = (i / steps) * w;
         const phase = (i / steps) * 4 + t * speed + r + tempo * Math.PI;
-        const y = baseY
-          + Math.sin(phase) * amp
-          + Math.sin(phase * 2.4 + r) * amp * 0.45
-          + Math.sin(phase * 0.7 + b.bass * 7) * amp * 0.34
-          + Math.sin(phase * 5 + b.brilliance * 8) * amp * 0.12
-          + skew * (r + 1);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        const y =
+          baseY +
+          Math.sin(phase) * amp +
+          Math.sin(phase * 2.4 + r) * amp * 0.45 +
+          Math.sin(phase * 0.7 + b.bass * 7) * amp * 0.34 +
+          Math.sin(phase * 5 + b.brilliance * 8) * amp * 0.12 +
+          skew * (r + 1);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       for (let i = steps; i >= 0; i--) {
         const x = (i / steps) * w;
         const phase = (i / steps) * 4 + t * speed + r + tempo * Math.PI;
-        const y = baseY
-          + Math.sin(phase) * amp
-          + Math.sin(phase * 2.4 + r) * amp * 0.45
-          + Math.sin(phase * 0.7 + b.bass * 7) * amp * 0.34
-          + Math.sin(phase * 5 + b.brilliance * 8) * amp * 0.12
-          + skew * (r + 1);
+        const y =
+          baseY +
+          Math.sin(phase) * amp +
+          Math.sin(phase * 2.4 + r) * amp * 0.45 +
+          Math.sin(phase * 0.7 + b.bass * 7) * amp * 0.34 +
+          Math.sin(phase * 5 + b.brilliance * 8) * amp * 0.12 +
+          skew * (r + 1);
         ctx.lineTo(x, y + ribbonH);
       }
       ctx.closePath();
@@ -1363,7 +1598,10 @@ export class Visualizer {
       const windX = (Math.sin(t * 0.35 + it.sway) * 60 + bass * 90 + mid * 30) * this.dpr;
       const x = it.x + windX;
       const y = it.life;
-      if (y > h + 40) { st.items.splice(i, 1); continue; }
+      if (y > h + 40) {
+        st.items.splice(i, 1);
+        continue;
+      }
       const col = it.color;
       const fadeIn = Math.min(1, (y + 30) / 80);
       ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${0.78 * fadeIn})`;
@@ -1392,7 +1630,8 @@ export class Visualizer {
     const beat = this.engine.beatPulse;
     const phase = this.engine.tempoPhase() * Math.PI * 2;
     const drop = this.engine.dropImminent ? 1 : 0;
-    const pw = st.off.width, ph = st.off.height;
+    const pw = st.off.width,
+      ph = st.off.height;
     const data = st.img.data;
     const f1 = 0.045 + b.bass * 0.09 + beat * 0.02;
     const f2 = 0.072 + b.treble * 0.07;
@@ -1408,13 +1647,13 @@ export class Visualizer {
         const dx = x - pw / 2 + stereoSkew * 18;
         const r = Math.sqrt(dx * dx + dy * dy);
         const ang = Math.atan2(dy, dx);
-        const v = (
-          Math.sin(x * f1 + t * 1.4 + phase)
-          + Math.sin(y * f2 + t * 1.05 - phase * 0.5)
-          + Math.sin((x + y) * f3 * 0.5 + t * 0.85)
-          + Math.sin(r * f4 + t * 1.6)
-          + Math.sin(ang * 3 + r * f5 + t * 0.6) * (0.5 + b.brilliance)
-        ) / 5;
+        const v =
+          (Math.sin(x * f1 + t * 1.4 + phase) +
+            Math.sin(y * f2 + t * 1.05 - phase * 0.5) +
+            Math.sin((x + y) * f3 * 0.5 + t * 0.85) +
+            Math.sin(r * f4 + t * 1.6) +
+            Math.sin(ang * 3 + r * f5 + t * 0.6) * (0.5 + b.brilliance)) /
+          5;
         const col = paletteAt(v * 0.55 + 0.5 + t * 0.05 + b.centroid * 0.3);
         const lift = 1 + beat * 0.18 + dropBoost;
         data[idx++] = Math.min(255, col[0] * lift);
@@ -1440,7 +1679,8 @@ export class Visualizer {
   // 10. mandala — concentric rings of petals with 12-fold symmetry
   private drawMandala(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const t = this.tempoClock;
-    const cx = w / 2, cy = h / 2;
+    const cx = w / 2,
+      cy = h / 2;
     const beat = this.engine.beatPulse;
     const f = this.engine.freqData;
     if (!f.length) return;
@@ -1520,7 +1760,7 @@ export class Visualizer {
     for (const f of items) {
       const x = (f.x + Math.sin(t * 0.18 + f.ax) * 0.12) * w;
       const y = (f.y + Math.cos(t * 0.14 + f.ay) * 0.12) * h;
-      const pulse = (Math.sin(t * f.rate + f.phase) * 0.5 + 0.5);
+      const pulse = Math.sin(t * f.rate + f.phase) * 0.5 + 0.5;
       const energy = pulse * (0.65 + beat * 0.25 + treble * 0.2);
       const r = this.dpr * (1.6 + energy * 5.5);
       const col = f.color;
@@ -1566,9 +1806,14 @@ export class Visualizer {
     for (const b of items) {
       b.x += b.vx * dt * 22;
       b.y += b.vy * dt * 22;
-      if (b.y < -0.3) { b.y = 1.2; b.x = Math.random(); }
-      if (b.x < -0.3) b.x = 1.2; else if (b.x > 1.3) b.x = -0.2;
-      const cx = b.x * w, cy = b.y * h;
+      if (b.y < -0.3) {
+        b.y = 1.2;
+        b.x = Math.random();
+      }
+      if (b.x < -0.3) b.x = 1.2;
+      else if (b.x > 1.3) b.x = -0.2;
+      const cx = b.x * w,
+        cy = b.y * h;
       const r = b.size * Math.min(w, h);
       const a = b.alpha * (0.7 + beat * 0.3 + treble * 0.2);
       const col = b.color;
@@ -1628,7 +1873,8 @@ export class Visualizer {
         const wob = 1 + v * 0.55 * Math.sin(a * 6 + t * 2 + r * 0.5);
         const x = cx + Math.cos(a) * rad * wob;
         const y = cy + Math.sin(a) * rad * wob;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       ctx.closePath();
       ctx.lineWidth = this.dpr * (0.6 + v * 2.4);
@@ -1658,7 +1904,8 @@ export class Visualizer {
       const ang = (i / samples) * Math.PI * 2 + t * 0.3;
       const x = cx + Math.cos(ang) * r * (1 + a * 0.6);
       const y = cy + Math.sin(ang) * r * (1 + b * 0.6);
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     }
     ctx.closePath();
     const fillGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 1.4);
@@ -1720,7 +1967,7 @@ export class Visualizer {
     const f = this.engine.freqData;
     if (!f.length) return;
     const bars = 128;
-    const step = Math.max(1, Math.floor(f.length * 0.7 / bars));
+    const step = Math.max(1, Math.floor((f.length * 0.7) / bars));
     const radInner = Math.min(w, h) * 0.14;
     const radOuter = Math.min(w, h) * 0.43;
     const t = this.tempoClock;
@@ -1739,7 +1986,12 @@ export class Visualizer {
       const a = (i / bars) * Math.PI * 2;
       const len = radInner + v * (radOuter - radInner) * (1 + beat * 0.5 + drop * 0.25);
       const ck = paletteAt(t * 0.08 + i / bars + b.centroid * 0.4);
-      const grad = ctx.createLinearGradient(Math.cos(a) * radInner, Math.sin(a) * radInner, Math.cos(a) * len, Math.sin(a) * len);
+      const grad = ctx.createLinearGradient(
+        Math.cos(a) * radInner,
+        Math.sin(a) * radInner,
+        Math.cos(a) * len,
+        Math.sin(a) * len
+      );
       grad.addColorStop(0, `rgba(${ck[0]},${ck[1]},${ck[2]},${0.35 + v * 0.5})`);
       grad.addColorStop(1, `rgba(255,255,255,${0.15 + v * 0.55})`);
       ctx.strokeStyle = grad;
@@ -1800,7 +2052,8 @@ export class Visualizer {
         const x = (i / tL.length) * w;
         const v = (tL[i] - 128) / 128;
         const y = cy + off + v * amp + Math.sin(i * 0.08 + t * 2 + phaseShift) * h * 0.012 * b.treble;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       const isMain = layer === Math.floor(layers / 2);
       ctx.strokeStyle = isMain
@@ -1877,10 +2130,11 @@ export class Visualizer {
       this.bandEnergy(0, 0.04),
       this.bandEnergy(0.05, 0.12),
       this.bandEnergy(0.14, 0.28),
-      this.bandEnergy(0.30, 0.52),
+      this.bandEnergy(0.3, 0.52),
       this.bandEnergy(0.55, 0.85)
     ];
-    const cx = w / 2, cy = h / 2;
+    const cx = w / 2,
+      cy = h / 2;
     const baseR = Math.min(w, h) * 0.32;
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
@@ -1943,7 +2197,7 @@ export class Visualizer {
       grad.addColorStop(0.5, `rgba(${vibrant[0]},${vibrant[1]},${vibrant[2]},${a})`);
       grad.addColorStop(1, `rgba(${complement[0]},${complement[1]},${complement[2]},0)`);
       ctx.fillStyle = grad;
-      ctx.fillRect(x - w / cols / 3, 0, w / cols * 0.66, h);
+      ctx.fillRect(x - w / cols / 3, 0, (w / cols) * 0.66, h);
     }
     ctx.restore();
 
@@ -1954,11 +2208,15 @@ export class Visualizer {
       ctx.fillStyle = `rgba(${vibrant[0]},${vibrant[1]},${vibrant[2]},${this.strobePulse * 0.45})`;
       ctx.fillRect(0, 0, w, h);
       // Radial shockwave from centre.
-      const cx = w / 2, cy = h / 2;
+      const cx = w / 2,
+        cy = h / 2;
       const rad = Math.max(w, h) * (1 - this.strobePulse) * 1.4;
       const wave = ctx.createRadialGradient(cx, cy, rad * 0.85, cx, cy, rad);
       wave.addColorStop(0, 'rgba(255,255,255,0)');
-      wave.addColorStop(0.5, `rgba(${complement[0]},${complement[1]},${complement[2]},${this.strobePulse * 0.55})`);
+      wave.addColorStop(
+        0.5,
+        `rgba(${complement[0]},${complement[1]},${complement[2]},${this.strobePulse * 0.55})`
+      );
       wave.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = wave;
       ctx.fillRect(0, 0, w, h);
@@ -1971,15 +2229,16 @@ export class Visualizer {
   private drawPrism(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const t = this.tempoClock;
     const beat = this.engine.beatPulse;
-    const treble = this.bandEnergy(0.40, 0.85);
+    const treble = this.bandEnergy(0.4, 0.85);
     const palette = this.trackPalette;
     const aColor = palette ? palette.vibrant : this.accent;
     const bColor = palette ? palette.complementary : [255, 80, 200];
-    const cx = w / 2, cy = h / 2;
+    const cx = w / 2,
+      cy = h / 2;
     const f = this.engine.freqData;
     const bars = 96;
-    const step = Math.max(1, Math.floor(f.length * 0.6 / bars));
-    const offset = (this.dpr * 2) + treble * (this.dpr * 14) + beat * (this.dpr * 6);
+    const step = Math.max(1, Math.floor((f.length * 0.6) / bars));
+    const offset = this.dpr * 2 + treble * (this.dpr * 14) + beat * (this.dpr * 6);
 
     ctx.save();
     ctx.translate(cx, cy);
@@ -1991,9 +2250,11 @@ export class Visualizer {
       ctx.translate(dx, 0);
       ctx.globalCompositeOperation = 'lighter';
       const channel: [number, number, number] =
-        pass === 0 ? [aColor[0], 28, 28] :
-        pass === 1 ? [Math.round((aColor[1] + bColor[1]) / 2), Math.round((aColor[1] + bColor[1]) / 2), 28] :
-        [28, 28, bColor[2]];
+        pass === 0
+          ? [aColor[0], 28, 28]
+          : pass === 1
+            ? [Math.round((aColor[1] + bColor[1]) / 2), Math.round((aColor[1] + bColor[1]) / 2), 28]
+            : [28, 28, bColor[2]];
       for (let i = 0; i < bars; i++) {
         let sum = 0;
         for (let k = 0; k < step; k++) sum += f[i * step + k] || 0;
@@ -2013,14 +2274,20 @@ export class Visualizer {
     }
     // Inner ring stitched from per-track swatches.
     if (palette) {
-      const swatches = [palette.vibrant, palette.complementary, palette.lightMuted, palette.darkVibrant, palette.muted];
+      const swatches = [
+        palette.vibrant,
+        palette.complementary,
+        palette.lightMuted,
+        palette.darkVibrant,
+        palette.muted
+      ];
       ctx.lineWidth = this.dpr * (1.5 + beat * 2);
       for (let s = 0; s < swatches.length; s++) {
         const c = swatches[s];
         ctx.beginPath();
         const start = (s / swatches.length) * Math.PI * 2;
         const end = ((s + 0.85) / swatches.length) * Math.PI * 2;
-        const r = Math.min(w, h) * 0.10;
+        const r = Math.min(w, h) * 0.1;
         ctx.arc(0, 0, r, start, end);
         ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.75 + beat * 0.2})`;
         ctx.stroke();
@@ -2045,7 +2312,7 @@ export class Visualizer {
     ctx.rotate(t * 0.06 + this.cur.tempo * Math.PI * 0.5);
     const rings = 28;
     for (let i = 0; i < rings; i++) {
-      const f = ((i + (t * (0.6 + bass * 1.4 + drop * 0.6))) % rings) / rings;
+      const f = ((i + t * (0.6 + bass * 1.4 + drop * 0.6)) % rings) / rings;
       const r = Math.pow(1 - f, 2.2) * maxR;
       const c = paletteAt(f + t * 0.04 + this.cur.centroid * 0.4);
       ctx.beginPath();
@@ -2107,7 +2374,7 @@ export class Visualizer {
     const cx = w / 2;
     const cy = h / 2;
     const rays = 96;
-    const innerR = Math.min(w, h) * (0.10 + beat * 0.04);
+    const innerR = Math.min(w, h) * (0.1 + beat * 0.04);
     const maxR = Math.min(w, h) * 0.5;
     ctx.save();
     ctx.translate(cx, cy);
@@ -2145,8 +2412,8 @@ export class Visualizer {
     const drop = this.cur.drop;
     // Beat pulse + bass swell drives horizontal-pair amplitude; quiet
     // sections stay calm, big bass moments arch the waves dramatically.
-    const ampH = Math.min(w, h) * (0.30 + bass * 0.18 + beat * 0.08);
-    const ampV = Math.min(w, h) * (0.30 + treble * 0.18 + beat * 0.06);
+    const ampH = Math.min(w, h) * (0.3 + bass * 0.18 + beat * 0.08);
+    const ampV = Math.min(w, h) * (0.3 + treble * 0.18 + beat * 0.06);
     // Drop window: blow the line weight to 3.6× + full alpha so the
     // climax reads at-a-glance.
     const dropBoost = drop ? 1.8 : 1;
@@ -2160,7 +2427,8 @@ export class Visualizer {
         const u = i / (t.length - 1);
         const x = u * w;
         const y = cy + dir * ((t[i] - 128) / 128) * ampH;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       const c = pass === 0 ? accent : comp;
       ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.85 * dropBoost})`;
@@ -2174,7 +2442,8 @@ export class Visualizer {
         const u = i / (t.length - 1);
         const y = u * h;
         const x = cx + dir * ((t[i] - 128) / 128) * ampV;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       const c = paletteAt(0.7 + pass * 0.15);
       ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.55 * dropBoost})`;
@@ -2205,17 +2474,18 @@ export class Visualizer {
     const sweepBand = w * 0.18;
     let bin = 0;
     for (let row = -1; row * dy < h + cell; row++) {
-      const offx = (row & 1) ? dx / 2 : 0;
+      const offx = row & 1 ? dx / 2 : 0;
       for (let col = -1; col * dx + offx < w + cell; col++) {
         const x = col * dx + offx;
         const y = row * dy;
-        const b = Math.floor((bin * 7919) % f.length * 0.7);
+        const b = Math.floor(((bin * 7919) % f.length) * 0.7);
         const v = (f[b] || 0) / 255;
         bin++;
         const sweepDist = Math.abs(x - sweepX);
-        const sweepBoost = sweepDist < sweepBand
-          ? Math.cos((sweepDist / sweepBand) * Math.PI * 0.5) * (0.35 + beat * 0.25)
-          : 0;
+        const sweepBoost =
+          sweepDist < sweepBand
+            ? Math.cos((sweepDist / sweepBand) * Math.PI * 0.5) * (0.35 + beat * 0.25)
+            : 0;
         const intensity = v + sweepBoost;
         if (intensity < 0.05) continue;
         // Color cells by horizontal position so left = bass register,
@@ -2232,7 +2502,8 @@ export class Visualizer {
           const a = (k / 6) * Math.PI * 2 + Math.PI / 6;
           const px = x + Math.cos(a) * cell * 0.55;
           const py = y + Math.sin(a) * cell * 0.55;
-          if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+          if (k === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
         }
         ctx.closePath();
         ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${alphaFill})`;
@@ -2334,7 +2605,19 @@ export class Visualizer {
   private drawSmoke(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const t = this.tempoClock;
     const bass = this.bandEnergy(0, 0.08);
-    const st = (this.vizState as { smoke?: { items: { x: number; y: number; vx: number; vy: number; r: number; life: number; c: [number, number, number] }[] } });
+    const st = this.vizState as {
+      smoke?: {
+        items: {
+          x: number;
+          y: number;
+          vx: number;
+          vy: number;
+          r: number;
+          life: number;
+          c: [number, number, number];
+        }[];
+      };
+    };
     if (!st.smoke) st.smoke = { items: [] };
     const items = st.smoke.items;
     const want = 70 + Math.floor(bass * 60);
@@ -2360,7 +2643,10 @@ export class Visualizer {
       p.y += p.vy * dtNorm;
       p.r += 0.4 * dtNorm;
       p.life -= 0.012 * dtNorm;
-      if (p.life <= 0 || p.y < -p.r) { items.splice(i, 1); continue; }
+      if (p.life <= 0 || p.y < -p.r) {
+        items.splice(i, 1);
+        continue;
+      }
       const a = Math.max(0, p.life) * 0.45;
       const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
       grad.addColorStop(0, `rgba(${p.c[0]},${p.c[1]},${p.c[2]},${a})`);
@@ -2391,7 +2677,8 @@ export class Visualizer {
         const phase = (x / w) * freq * Math.PI * 2 + t * (3 + s * 0.4);
         const env = Math.sin((x / w) * Math.PI);
         const y = y0 + Math.sin(phase) * amp * env;
-        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.5 + v * 0.5})`;
       ctx.lineWidth = this.dpr * (1 + v * 2.6);
@@ -2430,7 +2717,8 @@ export class Visualizer {
         const radius = u * maxR + v * 18 * this.dpr;
         const x = Math.cos(a) * radius;
         const y = Math.sin(a) * radius;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       const cc = paletteAt(u);
       ctx.strokeStyle = `rgba(${cc[0]},${cc[1]},${cc[2]},${0.4 + u * 0.4})`;
@@ -2475,7 +2763,21 @@ export class Visualizer {
   private drawConfetti(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const beat = this.engine.beatPulse;
     const drop = this.engine.dropImminent;
-    const st = (this.vizState as { confetti?: { items: { x: number; y: number; vx: number; vy: number; rot: number; vr: number; sz: number; c: [number, number, number]; life: number }[] } });
+    const st = this.vizState as {
+      confetti?: {
+        items: {
+          x: number;
+          y: number;
+          vx: number;
+          vy: number;
+          rot: number;
+          vr: number;
+          sz: number;
+          c: [number, number, number];
+          life: number;
+        }[];
+      };
+    };
     if (!st.confetti) st.confetti = { items: [] };
     const items = st.confetti.items;
     if (drop || beat > 0.92) {
@@ -2508,7 +2810,10 @@ export class Visualizer {
       p.y += p.vy * dtNorm;
       p.rot += p.vr * dtNorm;
       p.life -= 0.008 * dtNorm;
-      if (p.life <= 0 || p.y > h + 40) { items.splice(i, 1); continue; }
+      if (p.life <= 0 || p.y > h + 40) {
+        items.splice(i, 1);
+        continue;
+      }
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rot);
@@ -2528,10 +2833,10 @@ export class Visualizer {
       const ph = i * 0.83 + t * (0.35 + i * 0.05);
       const x = w / 2 + Math.cos(ph) * w * 0.36;
       const y = h / 2 + Math.sin(ph * 1.13) * h * 0.32;
-      const r = Math.min(w, h) * (0.10 + 0.04 * (i % 3) + beat * 0.05);
+      const r = Math.min(w, h) * (0.1 + 0.04 * (i % 3) + beat * 0.05);
       const c = paletteAt(i / orbs);
       for (let pass = 0; pass < 3; pass++) {
-        const k = (pass + 1);
+        const k = pass + 1;
         const grad = ctx.createRadialGradient(x, y, 0, x, y, r * k);
         grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.6 / k})`);
         grad.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
@@ -2565,7 +2870,8 @@ export class Visualizer {
         const r = R * Math.cos(k * th) * (0.6 + 0.4 * Math.sin(t + L)) * (1 - L * 0.12);
         const x = r * Math.cos(th);
         const y = r * Math.sin(th);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       ctx.closePath();
       ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.55 + mid * 0.35})`;
@@ -2577,7 +2883,9 @@ export class Visualizer {
 
   private drawWaterfall(ctx: CanvasRenderingContext2D, w: number, h: number) {
     const f = this.engine.freqData;
-    const st = (this.vizState as { waterfall?: { off: HTMLCanvasElement; ctx: CanvasRenderingContext2D; row: number } });
+    const st = this.vizState as {
+      waterfall?: { off: HTMLCanvasElement; ctx: CanvasRenderingContext2D; row: number };
+    };
     const rowH = Math.max(2, Math.floor(2 * this.dpr));
     if (!st.waterfall || st.waterfall.off.width !== w || st.waterfall.off.height !== h) {
       const off = document.createElement('canvas');
@@ -2628,7 +2936,7 @@ export class Visualizer {
     const tempoPhase = this.cur.tempo;
     const drop = this.cur.drop;
     const bars = 40;
-    const step = Math.floor(f.length * 0.7 / bars);
+    const step = Math.floor((f.length * 0.7) / bars);
     const bw = w / bars;
     // Bar-locked light wave traveling across the skyline. Towers whose
     // index is within ±sweepBand of the wave's current x get a flicker
@@ -2646,11 +2954,18 @@ export class Visualizer {
       // tower body
       const grad = ctx.createLinearGradient(0, y, 0, h);
       grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},0.95)`);
-      grad.addColorStop(1, `rgba(${Math.round(c[0] * 0.3)},${Math.round(c[1] * 0.3)},${Math.round(c[2] * 0.3)},0.85)`);
+      grad.addColorStop(
+        1,
+        `rgba(${Math.round(c[0] * 0.3)},${Math.round(c[1] * 0.3)},${Math.round(c[2] * 0.3)},0.85)`
+      );
       ctx.fillStyle = grad;
       ctx.fillRect(x + bw * 0.08, y, bw * 0.84, bh);
       // windows — flicker on beat + sweep + drop
-      const sweepDist = Math.min(Math.abs(i - sweepIdx), Math.abs(i - sweepIdx + bars), Math.abs(i - sweepIdx - bars));
+      const sweepDist = Math.min(
+        Math.abs(i - sweepIdx),
+        Math.abs(i - sweepIdx + bars),
+        Math.abs(i - sweepIdx - bars)
+      );
       const inSweep = sweepDist < sweepBand;
       const winRows = Math.floor(bh / (bw * 0.45));
       for (let r = 0; r < winRows; r++) {
@@ -2659,11 +2974,12 @@ export class Visualizer {
           const wy = y + r * bw * 0.45 + bw * 0.1;
           // Lit pattern is pseudo-random but flickers on beat: every beat
           // a different ~40% of windows light up extra-bright.
-          const hashBase = ((i * 31 + r * 17 + cI * 7) % 5) < 2;
-          const beatHash = beat > 0.5 && ((i * 13 + r * 23 + cI * 11 + Math.floor(performance.now() / 200)) % 7) < 3;
+          const hashBase = (i * 31 + r * 17 + cI * 7) % 5 < 2;
+          const beatHash =
+            beat > 0.5 && (i * 13 + r * 23 + cI * 11 + Math.floor(performance.now() / 200)) % 7 < 3;
           const sweepLit = inSweep || drop;
           const lit = hashBase || beatHash || sweepLit;
-          const litAlpha = drop ? 0.95 : (sweepLit ? 0.85 : (0.45 + v * 0.4 + beat * 0.15));
+          const litAlpha = drop ? 0.95 : sweepLit ? 0.85 : 0.45 + v * 0.4 + beat * 0.15;
           ctx.fillStyle = lit ? `rgba(255,240,180,${litAlpha})` : 'rgba(40,40,60,0.5)';
           ctx.fillRect(wx, wy, bw * 0.16, bw * 0.22);
         }
@@ -2706,7 +3022,7 @@ export class Visualizer {
     for (let i = 0; i < 60; i++) {
       const x = (Math.sin(i * 9.31 + t) * 0.5 + 0.5) * w;
       const y = (Math.cos(i * 7.13 + t * 0.6) * 0.5 + 0.5) * h;
-      const c = starPalette((i / 60));
+      const c = starPalette(i / 60);
       ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${(0.5 + Math.sin(t * 4 + i) * 0.4) * dustGain})`;
       ctx.beginPath();
       ctx.arc(x, y, this.dpr * 1.2 * dustGain, 0, Math.PI * 2);
@@ -2732,7 +3048,8 @@ export class Visualizer {
         const x = u * w;
         const phase = u * 6 + t * (1.2 + r * 0.2) + r;
         const y = h / 2 + Math.sin(phase) * h * 0.28 * (0.4 + v) + Math.sin(phase * 2.3) * h * 0.06;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.55 + v * 0.4})`;
       ctx.lineWidth = this.dpr * (3 + r * 1.1 + v * 4);
@@ -2799,37 +3116,48 @@ export class Visualizer {
     // 8 cube vertices
     const verts: [number, number, number][] = [];
     for (let i = 0; i < 8; i++) {
-      verts.push([
-        ((i & 1) ? 1 : -1),
-        ((i & 2) ? 1 : -1),
-        ((i & 4) ? 1 : -1)
-      ]);
+      verts.push([i & 1 ? 1 : -1, i & 2 ? 1 : -1, i & 4 ? 1 : -1]);
     }
     const edges: [number, number][] = [
-      [0, 1], [0, 2], [0, 4], [1, 3], [1, 5],
-      [2, 3], [2, 6], [3, 7], [4, 5], [4, 6],
-      [5, 7], [6, 7]
+      [0, 1],
+      [0, 2],
+      [0, 4],
+      [1, 3],
+      [1, 5],
+      [2, 3],
+      [2, 6],
+      [3, 7],
+      [4, 5],
+      [4, 6],
+      [5, 7],
+      [6, 7]
     ];
     const ax = t * 0.6;
     const ay = t * 0.4;
     const az = t * 0.3;
-    const ca = Math.cos(ax), sa = Math.sin(ax);
-    const cb = Math.cos(ay), sb = Math.sin(ay);
-    const cc = Math.cos(az), sc2 = Math.sin(az);
+    const ca = Math.cos(ax),
+      sa = Math.sin(ax);
+    const cb = Math.cos(ay),
+      sb = Math.sin(ay);
+    const cc = Math.cos(az),
+      sc2 = Math.sin(az);
     const project = (v: [number, number, number]): [number, number, number] => {
       let [x, y, z] = v;
       // rot x
       let y2 = y * ca - z * sa;
       let z2 = y * sa + z * ca;
-      y = y2; z = z2;
+      y = y2;
+      z = z2;
       // rot y
       let x2 = x * cb + z * sb;
       z2 = -x * sb + z * cb;
-      x = x2; z = z2;
+      x = x2;
+      z = z2;
       // rot z
       x2 = x * cc - y * sc2;
       y2 = x * sc2 + y * cc;
-      x = x2; y = y2;
+      x = x2;
+      y = y2;
       const persp = 1 / (3 - z);
       return [cx + x * size * persp * 3, cy + y * size * persp * 3, z];
     };
@@ -2881,7 +3209,8 @@ export class Visualizer {
         const x = poles[0].x + (poles[1].x - poles[0].x) * u;
         const bend = Math.sin((u - 0.5) * Math.PI) * off * (1 + Math.sin(t * 1.5 + L) * 0.3);
         const y = poles[0].y + bend + Math.sin(u * 12 + t * 3 + L) * 6 * (1 + mid * 4);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.4 + beat * 0.3})`;
       ctx.lineWidth = this.dpr * 1.3;
@@ -2889,7 +3218,10 @@ export class Visualizer {
     }
     // poles
     for (const p of poles) {
-      const c = p.sign > 0 ? (this.trackPalette?.vibrant ?? paletteAt(0)) : (this.trackPalette?.complementary ?? paletteAt(0.5));
+      const c =
+        p.sign > 0
+          ? (this.trackPalette?.vibrant ?? paletteAt(0))
+          : (this.trackPalette?.complementary ?? paletteAt(0.5));
       const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 60 * this.dpr);
       grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},0.9)`);
       grad.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);

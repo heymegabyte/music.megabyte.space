@@ -22,7 +22,7 @@ if (!apiKey) {
   process.exit(1);
 }
 
-const log = (msg) => {
+const log = msg => {
   const line = `[${new Date().toISOString()}] ${msg}\n`;
   fs.appendFileSync(LOG_FILE, line);
   process.stdout.write(line);
@@ -66,7 +66,7 @@ async function generate(track) {
   const resp = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({

@@ -9,13 +9,13 @@ interface Env {
   COUNTERS: KVNamespace;
   VAPID_PUBLIC_KEY?: string;
   VAPID_PRIVATE_JWK?: string; // JSON-stringified JsonWebKey
-  VAPID_SUBJECT?: string;     // mailto:brian@megabyte.space
-  PUSH_ADMIN_TOKEN?: string;  // Bearer token gating /api/push/send
-  LISTMONK_URL?: string;      // e.g. https://listmonk.megabyte.space
+  VAPID_SUBJECT?: string; // mailto:brian@megabyte.space
+  PUSH_ADMIN_TOKEN?: string; // Bearer token gating /api/push/send
+  LISTMONK_URL?: string; // e.g. https://listmonk.megabyte.space
   LISTMONK_API_USER?: string; // API user name (e.g. "automation")
-  LISTMONK_API_TOKEN?: string;// API token (secret)
-  LISTMONK_LIST_NAME?: string;// Display name for the list (default: "music.megabyte.space")
-  LISTMONK_LIST_ID?: string;  // Optional pinned list id; if unset, worker auto-discovers/creates
+  LISTMONK_API_TOKEN?: string; // API token (secret)
+  LISTMONK_LIST_NAME?: string; // Display name for the list (default: "music.megabyte.space")
+  LISTMONK_LIST_ID?: string; // Optional pinned list id; if unset, worker auto-discovers/creates
   // Listmonk transactional template IDs for Foundation flows. See
   // worker/listmonk-templates/README.md for upload + secret-set steps.
   LISTMONK_TPL_WELCOME?: string;
@@ -26,15 +26,15 @@ interface Env {
   // AI chat now runs on Workers AI (Llama 3.3 70B FP8-fast). Dropped
   // Anthropic — kept these fields commented out as historical breadcrumb.
   // ANTHROPIC_API_KEY / ANTHROPIC_MODEL / CF_AI_GATEWAY_SLUG removed.
-  AI: Ai;                     // Workers AI binding (defined in wrangler.toml)
-  AI_MODEL?: string;          // Override Workers AI model id
-  CF_AI_GATEWAY_SLUG?: string;// AI Gateway slug for caching/logging through env.AI
-  SENTRY_DSN?: string;        // @sentry/cloudflare DSN for exception capture
-  POSTHOG_PUBLIC_KEY?: string;// PostHog public key (forwarded to client snippet)
+  AI: Ai; // Workers AI binding (defined in wrangler.toml)
+  AI_MODEL?: string; // Override Workers AI model id
+  CF_AI_GATEWAY_SLUG?: string; // AI Gateway slug for caching/logging through env.AI
+  SENTRY_DSN?: string; // @sentry/cloudflare DSN for exception capture
+  POSTHOG_PUBLIC_KEY?: string; // PostHog public key (forwarded to client snippet)
   TURNSTILE_SECRET_KEY?: string; // Server-side Turnstile verification secret
-  SPOTIFY_CLIENT_ID?: string;    // Spotify Web API client credentials grant
+  SPOTIFY_CLIENT_ID?: string; // Spotify Web API client credentials grant
   SPOTIFY_CLIENT_SECRET?: string;
-  SPOTIFY_ARTIST_ID?: string;    // Optional: pin the bZ Spotify artist id (avoids one lookup)
+  SPOTIFY_ARTIST_ID?: string; // Optional: pin the bZ Spotify artist id (avoids one lookup)
   // Merch / e-commerce secrets.
   // NB per [[payments-routing]]: Square is the preferred accept-money rail
   // for apparel/sub-$100 tickets. We're using Stripe Checkout here because
@@ -54,17 +54,16 @@ const CF_ACCOUNT_ID = '84fa0d1b16ff8086dd958c468ce7fd59';
 // primary surface; music.megabyte.space is the legacy alias that stays
 // live for SEO + back-link continuity. Use these constants in CORS +
 // canonical computation + oEmbed host validation.
-const ALLOWED_HOSTS = new Set([
-  'music.megabyte.space',
-  'bzmusic.win',
-  'www.bzmusic.win'
-]);
+const ALLOWED_HOSTS = new Set(['music.megabyte.space', 'bzmusic.win', 'www.bzmusic.win']);
 
 const VALID_TRACK_ID = /^[a-z0-9-]{1,80}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 // ── Spotify Web API types + token helper ──────────────────────────────
-interface SpotifyArtistRef { id: string; name: string; }
+interface SpotifyArtistRef {
+  id: string;
+  name: string;
+}
 interface SpotifyTrack {
   id: string;
   name: string;
@@ -96,12 +95,12 @@ async function getSpotifyToken(env: Env): Promise<string | null> {
     method: 'POST',
     headers: {
       Authorization: `Basic ${basic}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Type': 'application/x-www-form-urlencoded'
     },
-    body: 'grant_type=client_credentials',
+    body: 'grant_type=client_credentials'
   });
   if (!r.ok) return null;
-  const j = await r.json() as { access_token?: string; expires_in?: number };
+  const j = (await r.json()) as { access_token?: string; expires_in?: number };
   if (!j.access_token) return null;
   await env.COUNTERS.put('sp:token', j.access_token, { expirationTtl: 3300 });
   return j.access_token;
@@ -117,11 +116,18 @@ function corsOrigin(request: Request): string {
   try {
     const host = new URL(origin).host;
     if (ALLOWED_HOSTS.has(host)) return origin;
-  } catch { /* invalid origin header */ }
+  } catch {
+    /* invalid origin header */
+  }
   return 'https://bzmusic.win';
 }
 
-function jsonResponse(body: unknown, status = 200, extra: Record<string, string> = {}, request?: Request): Response {
+function jsonResponse(
+  body: unknown,
+  status = 200,
+  extra: Record<string, string> = {},
+  request?: Request
+): Response {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
@@ -143,7 +149,13 @@ async function bumpCounter(kv: KVNamespace, key: string): Promise<number> {
   return next;
 }
 
-async function rateLimited(kv: KVNamespace, ip: string, scope: string, id: string, ttlSec: number): Promise<boolean> {
+async function rateLimited(
+  kv: KVNamespace,
+  ip: string,
+  scope: string,
+  id: string,
+  ttlSec: number
+): Promise<boolean> {
   const key = `rl:${scope}:${ip}:${id}`;
   const hit = await kv.get(key);
   if (hit) return true;
@@ -177,8 +189,14 @@ async function sha256Hex(s: string): Promise<string> {
   return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
 }
 
-interface ListmonkListLite { id: number; name: string }
-interface ListmonkResp<T> { data?: T; message?: string }
+interface ListmonkListLite {
+  id: number;
+  name: string;
+}
+interface ListmonkResp<T> {
+  data?: T;
+  message?: string;
+}
 
 function listmonkConfigured(env: Env): boolean {
   return Boolean(env.LISTMONK_URL && env.LISTMONK_API_USER && env.LISTMONK_API_TOKEN);
@@ -186,9 +204,9 @@ function listmonkConfigured(env: Env): boolean {
 
 function listmonkAuthHeaders(env: Env): Record<string, string> {
   return {
-    'Authorization': `token ${env.LISTMONK_API_USER}:${env.LISTMONK_API_TOKEN}`,
+    Authorization: `token ${env.LISTMONK_API_USER}:${env.LISTMONK_API_TOKEN}`,
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    Accept: 'application/json',
     'User-Agent': 'music.megabyte.space/1.0 (Cloudflare Workers)'
   };
 }
@@ -211,7 +229,7 @@ async function resolveListmonkListId(env: Env, kv: KVNamespace): Promise<number 
     const url = `${base}/api/lists?query=${encodeURIComponent(targetName)}&per_page=100`;
     const res = await fetch(url, { headers: listmonkAuthHeaders(env) });
     if (res.ok) {
-      const json = await res.json() as ListmonkResp<{ results?: ListmonkListLite[]; total?: number }>;
+      const json = (await res.json()) as ListmonkResp<{ results?: ListmonkListLite[]; total?: number }>;
       const results = json.data?.results || [];
       const match = results.find(l => l.name === targetName) || results[0];
       if (match?.id) {
@@ -219,23 +237,32 @@ async function resolveListmonkListId(env: Env, kv: KVNamespace): Promise<number 
         return match.id;
       }
     }
-  } catch { /* fall through to create */ }
+  } catch {
+    /* fall through to create */
+  }
   // Create the list if not found
   try {
     const res = await fetch(`${base}/api/lists`, {
       method: 'POST',
       headers: listmonkAuthHeaders(env),
-      body: JSON.stringify({ name: targetName, type: 'public', optin: 'single', tags: ['music', 'bz', 'drops'] })
+      body: JSON.stringify({
+        name: targetName,
+        type: 'public',
+        optin: 'single',
+        tags: ['music', 'bz', 'drops']
+      })
     });
     if (res.ok) {
-      const json = await res.json() as ListmonkResp<ListmonkListLite>;
+      const json = (await res.json()) as ListmonkResp<ListmonkListLite>;
       const id = json.data?.id;
       if (id) {
         await kv.put('listmonk:list-id', String(id), { expirationTtl: 60 * 60 * 24 * 7 });
         return id;
       }
     }
-  } catch { /* return null below */ }
+  } catch {
+    /* return null below */
+  }
   return null;
 }
 
@@ -278,7 +305,10 @@ async function sendListmonkTransactional(
  *
  *  Triggered by the cron in wrangler.toml ('0 9 * * *' = 09:00 UTC daily)
  *  or manually via /api/listmonk/foundation-cron?token=<PUSH_ADMIN_TOKEN>. */
-async function runFoundationFlowsCron(env: Env, kv: KVNamespace): Promise<{
+async function runFoundationFlowsCron(
+  env: Env,
+  kv: KVNamespace
+): Promise<{
   ok: boolean;
   scanned: number;
   fired: Record<string, number>;
@@ -302,7 +332,12 @@ async function runFoundationFlowsCron(env: Env, kv: KVNamespace): Promise<{
   // Paginate up to 50 pages × 100 = 5000 subscribers. Beyond that, Listmonk
   // Pro's segmentation is the right tool; this is a starter implementation.
   for (let page = 1; page <= 50; page++) {
-    let data: { data?: { results?: Array<{ email: string; created_at: string; last_active_at?: string }>; total?: number } };
+    let data: {
+      data?: {
+        results?: Array<{ email: string; created_at: string; last_active_at?: string }>;
+        total?: number;
+      };
+    };
     try {
       const res = await fetch(`${base}/api/subscribers?per_page=100&page=${page}`, {
         headers: listmonkAuthHeaders(env)
@@ -311,7 +346,7 @@ async function runFoundationFlowsCron(env: Env, kv: KVNamespace): Promise<{
         errors.push(`listmonk_subscribers ${res.status} page=${page}`);
         break;
       }
-      data = await res.json() as typeof data;
+      data = (await res.json()) as typeof data;
     } catch (err) {
       errors.push(`listmonk_fetch ${err instanceof Error ? err.message : String(err)}`);
       break;
@@ -400,7 +435,13 @@ async function subscribeToListmonk(
         await fetch(`${base}/api/subscribers/lists`, {
           method: 'PUT',
           headers: listmonkAuthHeaders(env),
-          body: JSON.stringify({ ids: [], emails: [email], action: 'add', target_list_ids: [listId], status: 'confirmed' })
+          body: JSON.stringify({
+            ids: [],
+            emails: [email],
+            action: 'add',
+            target_list_ids: [listId],
+            status: 'confirmed'
+          })
         }).catch(() => {});
       }
       return { ok: true, status: 'already' };
@@ -422,7 +463,9 @@ async function listSubscriptions(kv: KVNamespace): Promise<PushSubscriptionRecor
       try {
         const sub = JSON.parse(raw) as PushSubscriptionRecord;
         if (sub.endpoint && sub.keys?.p256dh && sub.keys?.auth) out.push(sub);
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
     }
     cursor = page.list_complete ? undefined : page.cursor;
   } while (cursor);
@@ -469,7 +512,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'self'",
-    "report-uri /api/csp-report"
+    'report-uri /api/csp-report'
   ].join('; '),
   // Trusted Types audit phase — report-only so CF's injected challenge beacon
   // doesn't throw. `default` is the app's passthrough policy installed at boot
@@ -479,7 +522,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   'Content-Security-Policy-Report-Only': [
     "require-trusted-types-for 'script'",
     "trusted-types 'allow-duplicates' default goog#html",
-    "report-uri /api/csp-report"
+    'report-uri /api/csp-report'
   ].join('; ')
 };
 
@@ -651,7 +694,9 @@ class TelemetryRewriter {
     try {
       const r = await this.env.COUNTERS.get('aeon:ranking');
       if (r && /^\[[\w".,\s-]*\]$/.test(r)) aeon = r;
-    } catch { /* KV blip → client computes its own order */ }
+    } catch {
+      /* KV blip → client computes its own order */
+    }
     const snippet = `<script>window.__POSTHOG_KEY__=${JSON.stringify(key)};window.__SENTRY_DSN__=${JSON.stringify(sentryEnabled ? 'configured' : '')};window.__AEON_SSR=${aeon};</script>`;
     el.append(snippet, { html: true });
   }
@@ -688,7 +733,10 @@ function lookupSeo(pathname: string): RouteSeo | null {
 // Rendering for an automated MP4. 15-second window picks the song's
 // hook (default: 00:21 onward, configurable via ?start=NN seconds).
 function titleFromSlug(slug: string): string {
-  return slug.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+  return slug
+    .split('-')
+    .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(' ');
 }
 function renderClipPage(trackId: string, origin: string): string {
   const title = titleFromSlug(trackId);
@@ -1187,9 +1235,9 @@ function renderPressPage(trackId: string, origin: string): string {
   </div>
 
   <footer>
-    <span>Generated ${new Date().toISOString().slice(0,10)} · Print-ready (⌘P)</span>
+    <span>Generated ${new Date().toISOString().slice(0, 10)} · Print-ready (⌘P)</span>
     <a href="${origin}/press">All press kits ↗</a>
-    <a href="${origin}/">${origin.replace('https://','')} ↗</a>
+    <a href="${origin}/">${origin.replace('https://', '')} ↗</a>
   </footer>
 </main>
 <script>
@@ -1343,7 +1391,11 @@ export default {
         // fall through to track-lookup so historical track-only embeds still
         // resolve.
         let parsed: URL;
-        try { parsed = new URL(target); } catch { return jsonResponse({ error: 'invalid_url' }, 400); }
+        try {
+          parsed = new URL(target);
+        } catch {
+          return jsonResponse({ error: 'invalid_url' }, 400);
+        }
         if (!ALLOWED_HOSTS.has(parsed.host)) return jsonResponse({ error: 'foreign_url' }, 404);
         const embedAlbumTrack = parsed.pathname.match(/^\/embed\/([a-z0-9-]+)\/([a-z0-9-]+)\/?$/);
         const embedSingle = parsed.pathname.match(/^\/embed\/([a-z0-9-]{1,80})\/?$/);
@@ -1419,7 +1471,9 @@ export default {
         };
         if (audioUrl) payload.audio_url = audioUrl;
         if (format === 'xml') {
-          const xml = `<?xml version="1.0" encoding="utf-8"?>\n<oembed>\n${Object.entries(payload).map(([k, v]) => `  <${k}>${escapeXmlText(String(v))}</${k}>`).join('\n')}\n</oembed>`;
+          const xml = `<?xml version="1.0" encoding="utf-8"?>\n<oembed>\n${Object.entries(payload)
+            .map(([k, v]) => `  <${k}>${escapeXmlText(String(v))}</${k}>`)
+            .join('\n')}\n</oembed>`;
           return new Response(xml, {
             status: 200,
             headers: {
@@ -1476,7 +1530,12 @@ export default {
         }
         try {
           const body = await request.text();
-          const parsed = JSON.parse(body) as { message?: string; stack?: string; type?: string; url?: string };
+          const parsed = JSON.parse(body) as {
+            message?: string;
+            stack?: string;
+            type?: string;
+            url?: string;
+          };
           // Parse DSN: https://<public>@<host>/<project_id>
           const m = env.SENTRY_DSN.match(/^https:\/\/([^@]+)@([^/]+)\/(\d+)$/);
           if (m) {
@@ -1488,8 +1547,25 @@ export default {
               logger: 'browser',
               level: 'error',
               message: parsed.message?.slice(0, 1000) || 'unknown',
-              exception: parsed.stack ? { values: [{ type: parsed.type || 'Error', value: parsed.message?.slice(0, 1000), stacktrace: { frames: [{ filename: parsed.url, function: parsed.stack.split('\n')[0]?.slice(0, 200) }] } }] } : undefined,
-              request: { url: parsed.url, headers: { 'User-Agent': request.headers.get('user-agent') || '' } },
+              exception: parsed.stack
+                ? {
+                    values: [
+                      {
+                        type: parsed.type || 'Error',
+                        value: parsed.message?.slice(0, 1000),
+                        stacktrace: {
+                          frames: [
+                            { filename: parsed.url, function: parsed.stack.split('\n')[0]?.slice(0, 200) }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                : undefined,
+              request: {
+                url: parsed.url,
+                headers: { 'User-Agent': request.headers.get('user-agent') || '' }
+              },
               tags: { runtime: 'browser', route: new URL(parsed.url || 'https://x/').pathname }
             };
             ctx.waitUntil(
@@ -1503,7 +1579,9 @@ export default {
               }).catch(() => {})
             );
           }
-        } catch { /* swallow — never let error reporting throw */ }
+        } catch {
+          /* swallow — never let error reporting throw */
+        }
         return new Response(null, { status: 204 });
       }
 
@@ -1516,7 +1594,9 @@ export default {
           if (body.length < 2048) {
             await env.COUNTERS.put(`vitals:${Date.now()}:${ip.slice(0, 8)}`, body, { expirationTtl: 86400 });
           }
-        } catch { /* swallow */ }
+        } catch {
+          /* swallow */
+        }
         return new Response(null, { status: 204 });
       }
 
@@ -1531,11 +1611,15 @@ export default {
             // 1-day dedup so the same violation only writes once per IP.
             const dedupKey = `csp:${ip}:${hash.slice(0, 16)}`;
             if (!(await env.COUNTERS.get(dedupKey))) {
-              await env.COUNTERS.put(`csp-log:${Date.now()}:${hash.slice(0, 8)}`, body, { expirationTtl: 604800 });
+              await env.COUNTERS.put(`csp-log:${Date.now()}:${hash.slice(0, 8)}`, body, {
+                expirationTtl: 604800
+              });
               await env.COUNTERS.put(dedupKey, '1', { expirationTtl: 86400 });
             }
           }
-        } catch { /* swallow — never fail the CSP report channel */ }
+        } catch {
+          /* swallow — never fail the CSP report channel */
+        }
         return new Response(null, { status: 204 });
       }
 
@@ -1551,7 +1635,10 @@ export default {
         if (hit) return hit;
         const out: Record<string, { plays: number; shares: number }> = {};
         for (const id of TRACK_BY_ID.keys()) {
-          const [p, s] = await Promise.all([readCount(env.COUNTERS, `play:${id}`), readCount(env.COUNTERS, `share:${id}`)]);
+          const [p, s] = await Promise.all([
+            readCount(env.COUNTERS, `play:${id}`),
+            readCount(env.COUNTERS, `share:${id}`)
+          ]);
           if (p || s) out[id] = { plays: p, shares: s };
         }
         const resp = jsonResponse({ tracks: out }, 200, { 'Cache-Control': 'public, max-age=60' }, request);
@@ -1579,7 +1666,8 @@ export default {
       const playMatch = url.pathname.match(/^\/api\/play\/([a-z0-9-]{1,80})$/);
       if (playMatch && request.method === 'POST') {
         const id = playMatch[1];
-        if (!VALID_TRACK_ID.test(id) || !TRACK_BY_ID.has(id)) return jsonResponse({ error: 'unknown_track' }, 404);
+        if (!VALID_TRACK_ID.test(id) || !TRACK_BY_ID.has(id))
+          return jsonResponse({ error: 'unknown_track' }, 404);
         if (await rateLimited(env.COUNTERS, ip, 'play', id, 1800)) {
           return jsonResponse({ plays: await readCount(env.COUNTERS, `play:${id}`), throttled: true });
         }
@@ -1590,7 +1678,8 @@ export default {
       const shareMatch = url.pathname.match(/^\/api\/share\/([a-z0-9-]{1,80})$/);
       if (shareMatch && request.method === 'POST') {
         const id = shareMatch[1];
-        if (!VALID_TRACK_ID.test(id) || !TRACK_BY_ID.has(id)) return jsonResponse({ error: 'unknown_track' }, 404);
+        if (!VALID_TRACK_ID.test(id) || !TRACK_BY_ID.has(id))
+          return jsonResponse({ error: 'unknown_track' }, 404);
         if (await rateLimited(env.COUNTERS, ip, 'share', id, 60)) {
           return jsonResponse({ shares: await readCount(env.COUNTERS, `share:${id}`), throttled: true });
         }
@@ -1601,7 +1690,11 @@ export default {
       if (url.pathname === '/api/hue/discover' && request.method === 'GET') {
         try {
           const upstream = await fetch('https://discovery.meethue.com/', {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36', 'Accept': 'application/json' },
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+              Accept: 'application/json'
+            },
             cf: { cacheTtl: 0 }
           });
           if (!upstream.ok) return jsonResponse({ error: 'discovery_failed', status: upstream.status }, 502);
@@ -1615,13 +1708,22 @@ export default {
             }
           });
         } catch (err: unknown) {
-          return jsonResponse({ error: 'discovery_error', message: err instanceof Error ? err.message : String(err) }, 502, {}, request);
+          return jsonResponse(
+            { error: 'discovery_error', message: err instanceof Error ? err.message : String(err) },
+            502,
+            {},
+            request
+          );
         }
       }
 
       if (url.pathname === '/api/subscribe' && request.method === 'POST') {
         let body: { email?: string; pushSubscription?: PushSubscriptionRecord; source?: string };
-        try { body = await request.json() as typeof body; } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
+        try {
+          body = (await request.json()) as typeof body;
+        } catch {
+          return jsonResponse({ error: 'invalid_json' }, 400);
+        }
         const email = (body.email || '').trim().toLowerCase();
         if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
           return jsonResponse({ error: 'invalid_email' }, 400);
@@ -1648,36 +1750,46 @@ export default {
         // /api/subscribe response on a transactional send. Idempotency via
         // KV flag in case Listmonk retries the request.
         if (listmonk.ok && listmonk.status === 'subscribed' && env.LISTMONK_TPL_WELCOME) {
-          ctx.waitUntil((async () => {
-            const dedupeKey = `fired:welcome:${email}`;
-            if (await env.COUNTERS.get(dedupeKey)) return;
-            const r = await sendListmonkTransactional(env, env.LISTMONK_TPL_WELCOME, email, { source });
-            if (r.ok) {
-              await env.COUNTERS.put(dedupeKey, String(Date.now()), { expirationTtl: 365 * 24 * 60 * 60 });
-            }
-          })());
+          ctx.waitUntil(
+            (async () => {
+              const dedupeKey = `fired:welcome:${email}`;
+              if (await env.COUNTERS.get(dedupeKey)) return;
+              const r = await sendListmonkTransactional(env, env.LISTMONK_TPL_WELCOME, email, { source });
+              if (r.ok) {
+                await env.COUNTERS.put(dedupeKey, String(Date.now()), { expirationTtl: 365 * 24 * 60 * 60 });
+              }
+            })()
+          );
         }
         let pushResult: 'subscribed' | 'invalid' | 'skipped' = 'skipped';
         const sub = body.pushSubscription;
         if (sub && sub.endpoint && sub.keys?.p256dh && sub.keys?.auth && /^https:\/\//.test(sub.endpoint)) {
           const id = await sha256Hex(sub.endpoint);
-          await env.COUNTERS.put(`push:${id}`, JSON.stringify({
-            endpoint: sub.endpoint,
-            keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth },
-            email,
-            subscribedAt: Date.now()
-          }), { expirationTtl: 60 * 60 * 24 * 90 });
+          await env.COUNTERS.put(
+            `push:${id}`,
+            JSON.stringify({
+              endpoint: sub.endpoint,
+              keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth },
+              email,
+              subscribedAt: Date.now()
+            }),
+            { expirationTtl: 60 * 60 * 24 * 90 }
+          );
           pushResult = 'subscribed';
         } else if (sub) {
           pushResult = 'invalid';
         }
         // Persist email→push linkage for cross-channel deduplication.
-        await env.COUNTERS.put(`email:${emailHash}`, JSON.stringify({
-          email,
-          source,
-          subscribedAt: Date.now(),
-          push: pushResult === 'subscribed'
-        }), { expirationTtl: 60 * 60 * 24 * 365 });
+        await env.COUNTERS.put(
+          `email:${emailHash}`,
+          JSON.stringify({
+            email,
+            source,
+            subscribedAt: Date.now(),
+            push: pushResult === 'subscribed'
+          }),
+          { expirationTtl: 60 * 60 * 24 * 365 }
+        );
         if (!listmonk.ok) {
           return jsonResponse({ error: 'listmonk_failed', detail: listmonk.message, push: pushResult }, 502);
         }
@@ -1691,8 +1803,13 @@ export default {
 
       if (url.pathname === '/api/push/subscribe' && request.method === 'POST') {
         let body: PushSubscriptionRecord;
-        try { body = await request.json() as PushSubscriptionRecord; } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
-        if (!body?.endpoint || !body.keys?.p256dh || !body.keys?.auth) return jsonResponse({ error: 'invalid_subscription' }, 400);
+        try {
+          body = (await request.json()) as PushSubscriptionRecord;
+        } catch {
+          return jsonResponse({ error: 'invalid_json' }, 400);
+        }
+        if (!body?.endpoint || !body.keys?.p256dh || !body.keys?.auth)
+          return jsonResponse({ error: 'invalid_subscription' }, 400);
         if (!/^https:\/\//.test(body.endpoint)) return jsonResponse({ error: 'invalid_endpoint' }, 400);
         // Best-effort persistence. A transient KV blip must NOT bubble to a 500
         // (which surfaces as a console error) — push opt-in is non-critical, so
@@ -1704,11 +1821,15 @@ export default {
             return jsonResponse({ ok: true, deduped: true });
           }
           const id = await sha256Hex(body.endpoint);
-          await env.COUNTERS.put(`push:${id}`, JSON.stringify({
-            endpoint: body.endpoint,
-            keys: { p256dh: body.keys.p256dh, auth: body.keys.auth },
-            subscribedAt: Date.now()
-          }), { expirationTtl: 60 * 60 * 24 * 90 });
+          await env.COUNTERS.put(
+            `push:${id}`,
+            JSON.stringify({
+              endpoint: body.endpoint,
+              keys: { p256dh: body.keys.p256dh, auth: body.keys.auth },
+              subscribedAt: Date.now()
+            }),
+            { expirationTtl: 60 * 60 * 24 * 90 }
+          );
           return jsonResponse({ ok: true, id });
         } catch (err) {
           console.warn('push/subscribe storage failed', err instanceof Error ? err.message : String(err));
@@ -1718,7 +1839,11 @@ export default {
 
       if (url.pathname === '/api/push/unsubscribe' && request.method === 'POST') {
         let body: { endpoint?: string };
-        try { body = await request.json() as { endpoint?: string }; } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
+        try {
+          body = (await request.json()) as { endpoint?: string };
+        } catch {
+          return jsonResponse({ error: 'invalid_json' }, 400);
+        }
         if (!body?.endpoint) return jsonResponse({ error: 'invalid_endpoint' }, 400);
         const id = await sha256Hex(body.endpoint);
         await env.COUNTERS.delete(`push:${id}`);
@@ -1731,7 +1856,10 @@ export default {
       if (url.pathname === '/api/listmonk/foundation-cron') {
         const auth = request.headers.get('Authorization') || '';
         const queryToken = url.searchParams.get('token') || '';
-        if (!env.PUSH_ADMIN_TOKEN || (auth !== `Bearer ${env.PUSH_ADMIN_TOKEN}` && queryToken !== env.PUSH_ADMIN_TOKEN)) {
+        if (
+          !env.PUSH_ADMIN_TOKEN ||
+          (auth !== `Bearer ${env.PUSH_ADMIN_TOKEN}` && queryToken !== env.PUSH_ADMIN_TOKEN)
+        ) {
           return jsonResponse({ error: 'unauthorized' }, 401);
         }
         const result = await runFoundationFlowsCron(env, env.COUNTERS);
@@ -1740,10 +1868,24 @@ export default {
 
       if (url.pathname === '/api/push/send' && request.method === 'POST') {
         const auth = request.headers.get('Authorization') || '';
-        if (!env.PUSH_ADMIN_TOKEN || auth !== `Bearer ${env.PUSH_ADMIN_TOKEN}`) return jsonResponse({ error: 'unauthorized' }, 401);
-        if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_JWK || !env.VAPID_SUBJECT) return jsonResponse({ error: 'vapid_not_configured' }, 503);
-        let body: { title?: string; body?: string; url?: string; icon?: string; image?: string; tag?: string; trackId?: string };
-        try { body = await request.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
+        if (!env.PUSH_ADMIN_TOKEN || auth !== `Bearer ${env.PUSH_ADMIN_TOKEN}`)
+          return jsonResponse({ error: 'unauthorized' }, 401);
+        if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_JWK || !env.VAPID_SUBJECT)
+          return jsonResponse({ error: 'vapid_not_configured' }, 503);
+        let body: {
+          title?: string;
+          body?: string;
+          url?: string;
+          icon?: string;
+          image?: string;
+          tag?: string;
+          trackId?: string;
+        };
+        try {
+          body = await request.json();
+        } catch {
+          return jsonResponse({ error: 'invalid_json' }, 400);
+        }
         const payload = JSON.stringify({
           title: body.title || 'bZ — new drop',
           body: body.body || 'Tap to listen.',
@@ -1753,7 +1895,11 @@ export default {
           tag: body.tag || body.trackId || 'bz-broadcast'
         });
         let privateJwk: JsonWebKey;
-        try { privateJwk = JSON.parse(env.VAPID_PRIVATE_JWK) as JsonWebKey; } catch { return jsonResponse({ error: 'vapid_jwk_invalid' }, 500); }
+        try {
+          privateJwk = JSON.parse(env.VAPID_PRIVATE_JWK) as JsonWebKey;
+        } catch {
+          return jsonResponse({ error: 'vapid_jwk_invalid' }, 500);
+        }
         const subs = await listSubscriptions(env.COUNTERS);
         const results = await sendPushBatch(subs, payload, {
           publicKey: env.VAPID_PUBLIC_KEY,
@@ -1762,10 +1908,14 @@ export default {
           subject: env.VAPID_SUBJECT
         });
         const expired = results.filter(r => r.expired);
-        ctx.waitUntil(Promise.all(expired.map(async r => {
-          const id = await sha256Hex(r.endpoint);
-          return env.COUNTERS.delete(`push:${id}`);
-        })));
+        ctx.waitUntil(
+          Promise.all(
+            expired.map(async r => {
+              const id = await sha256Hex(r.endpoint);
+              return env.COUNTERS.delete(`push:${id}`);
+            })
+          )
+        );
         return jsonResponse({
           sent: results.filter(r => r.ok).length,
           failed: results.filter(r => !r.ok && !r.expired).length,
@@ -1792,22 +1942,24 @@ export default {
         if (!token) return jsonResponse({ error: 'spotify_auth_failed' }, 502);
         const q = encodeURIComponent(`track:"${title}" artist:"${artist}"`);
         const sr = await fetch(`https://api.spotify.com/v1/search?q=${q}&type=track&limit=1`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }
         });
         if (!sr.ok) return jsonResponse({ error: 'spotify_search_failed', status: sr.status }, 502);
-        const sd = await sr.json() as { tracks?: { items?: SpotifyTrack[] } };
+        const sd = (await sr.json()) as { tracks?: { items?: SpotifyTrack[] } };
         const top = sd.tracks?.items?.[0];
-        const result = top ? {
-          id: top.id,
-          name: top.name,
-          popularity: top.popularity ?? 0,
-          previewUrl: top.preview_url ?? null,
-          spotifyUrl: top.external_urls?.spotify ?? null,
-          albumArt: top.album?.images?.[0]?.url ?? null,
-          albumName: top.album?.name ?? null,
-          durationMs: top.duration_ms ?? null,
-          artists: (top.artists ?? []).map(a => a.name),
-        } : { id: null };
+        const result = top
+          ? {
+              id: top.id,
+              name: top.name,
+              popularity: top.popularity ?? 0,
+              previewUrl: top.preview_url ?? null,
+              spotifyUrl: top.external_urls?.spotify ?? null,
+              albumArt: top.album?.images?.[0]?.url ?? null,
+              albumName: top.album?.name ?? null,
+              durationMs: top.duration_ms ?? null,
+              artists: (top.artists ?? []).map(a => a.name)
+            }
+          : { id: null };
         await env.COUNTERS.put(cacheKey, JSON.stringify(result), { expirationTtl: 86400 });
         return jsonResponse(result);
       }
@@ -1826,20 +1978,23 @@ export default {
         let artistId = env.SPOTIFY_ARTIST_ID;
         if (!artistId) {
           // Resolve once via search; cache via env hint
-          const sr = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent('bZ Brian Zalewski')}&type=artist&limit=1`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const sr = await fetch(
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent('bZ Brian Zalewski')}&type=artist&limit=1`,
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
           if (sr.ok) {
-            const sd = await sr.json() as { artists?: { items?: SpotifyArtist[] } };
+            const sd = (await sr.json()) as { artists?: { items?: SpotifyArtist[] } };
             artistId = sd.artists?.items?.[0]?.id;
           }
         }
         if (!artistId) return jsonResponse({ error: 'artist_not_found' }, 404);
         const ar = await fetch(`https://api.spotify.com/v1/artists/${artistId}`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }
         });
         if (!ar.ok) return jsonResponse({ error: 'spotify_artist_failed', status: ar.status }, 502);
-        const ad = await ar.json() as SpotifyArtist;
+        const ad = (await ar.json()) as SpotifyArtist;
         const result = {
           id: ad.id,
           name: ad.name,
@@ -1847,7 +2002,7 @@ export default {
           popularity: ad.popularity ?? 0,
           spotifyUrl: ad.external_urls?.spotify ?? null,
           image: ad.images?.[0]?.url ?? null,
-          genres: ad.genres ?? [],
+          genres: ad.genres ?? []
         };
         // 1-hour cache so the counter feels live but doesn't burn quota
         await env.COUNTERS.put(cacheKey, JSON.stringify(result), { expirationTtl: 3600 });
@@ -1857,8 +2012,10 @@ export default {
       if (url.pathname === '/api/ai/chat' && request.method === 'POST') {
         if (!env.AI) return jsonResponse({ error: 'ai_not_configured' }, 503);
         // Two-tier rate limit: 8/min burst + 60/hr sustained per IP.
-        if (await rateLimitedCount(env.COUNTERS, ip, 'ai-chat', 'minute', 8, 60)) return jsonResponse({ error: 'throttled', retry_in_s: 60 }, 429);
-        if (await rateLimitedCount(env.COUNTERS, ip, 'ai-chat', 'hour', 60, 3600)) return jsonResponse({ error: 'throttled_hourly', retry_in_s: 3600 }, 429);
+        if (await rateLimitedCount(env.COUNTERS, ip, 'ai-chat', 'minute', 8, 60))
+          return jsonResponse({ error: 'throttled', retry_in_s: 60 }, 429);
+        if (await rateLimitedCount(env.COUNTERS, ip, 'ai-chat', 'hour', 60, 3600))
+          return jsonResponse({ error: 'throttled_hourly', retry_in_s: 3600 }, 429);
         let body: {
           messages?: { role: 'user' | 'assistant'; content: string }[];
           system?: string;
@@ -1870,23 +2027,36 @@ export default {
            *  pre-step so the reply has full context. Default false = fast. */
           deep?: boolean;
         };
-        try { body = await request.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
-        const msgs = Array.isArray(body?.messages) ? body.messages.filter(m =>
-          (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.length > 0
-        ) : [];
+        try {
+          body = await request.json();
+        } catch {
+          return jsonResponse({ error: 'invalid_json' }, 400);
+        }
+        const msgs = Array.isArray(body?.messages)
+          ? body.messages.filter(
+              m =>
+                (m.role === 'user' || m.role === 'assistant') &&
+                typeof m.content === 'string' &&
+                m.content.length > 0
+            )
+          : [];
         if (msgs.length === 0) return jsonResponse({ error: 'no_messages' }, 400);
-        const sliced = msgs.slice(-20).map(m => ({ role: m.role as 'user' | 'assistant', content: m.content.slice(0, 8000) }));
+        const sliced = msgs
+          .slice(-20)
+          .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content.slice(0, 8000) }));
         const stream = body.stream !== false;
         const deep = body.deep === true;
         // Workers AI Llama 3.3 70B FP8-fast — free tier, 2-3× faster than
         // the bare alias which is retired on most accounts. Per model-routing
         // rule: always reach for the FP8 variant.
-        const model = body.model || env.AI_MODEL || (deep
-          ? '@cf/meta/llama-3.3-70b-instruct-fp8-fast'
-          : '@cf/meta/llama-3.1-8b-instruct-fp8');
-        const systemText = typeof body.system === 'string'
-          ? body.system.slice(0, 4000)
-          : "You are bZ's in-app DJ — concise, warm, brand-aware. Speak in the voice of music.megabyte.space: sharp, punchy, Christian-gangster ethic, hustle-gospel, hard but holy. Reference the album Panda Desiiignare and the artist bZ when relevant. Use markdown sparingly. Default to 2-3 sentences unless the user asks for more. Never recommend or mention drugs. Stay reverent around family names.";
+        const model =
+          body.model ||
+          env.AI_MODEL ||
+          (deep ? '@cf/meta/llama-3.3-70b-instruct-fp8-fast' : '@cf/meta/llama-3.1-8b-instruct-fp8');
+        const systemText =
+          typeof body.system === 'string'
+            ? body.system.slice(0, 4000)
+            : "You are bZ's in-app DJ — concise, warm, brand-aware. Speak in the voice of music.megabyte.space: sharp, punchy, Christian-gangster ethic, hustle-gospel, hard but holy. Reference the album Panda Desiiignare and the artist bZ when relevant. Use markdown sparingly. Default to 2-3 sentences unless the user asks for more. Never recommend or mention drugs. Stay reverent around family names.";
 
         // ── Deep mode: web research pre-step ────────────────────────────
         // For deep queries we hit Cloudflare's Browser Rendering REST API
@@ -1906,35 +2076,39 @@ export default {
                   headers: {
                     'X-Auth-Email': '',
                     'X-Auth-Key': '',
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                   },
                   body: JSON.stringify({
                     url: `https://www.google.com/search?q=${encodeURIComponent(lastUser.slice(0, 200))}`,
-                    elements: [{ selector: 'div.g, [data-content-feature]', max: 4 }],
-                  }),
+                    elements: [{ selector: 'div.g, [data-content-feature]', max: 4 }]
+                  })
                 }
               );
               if (searchRes.ok) {
-                const j = await searchRes.json() as { result?: Array<{ results?: Array<{ text?: string }> }> };
+                const j = (await searchRes.json()) as {
+                  result?: Array<{ results?: Array<{ text?: string }> }>;
+                };
                 const snippets = (j.result?.[0]?.results || [])
                   .map(r => r.text?.slice(0, 400))
                   .filter(Boolean)
                   .join('\n\n');
                 if (snippets) researchContext = `\n\nWeb research for this question:\n${snippets}`;
               }
-            } catch { /* Web research failed — fall through with regular response */ }
+            } catch {
+              /* Web research failed — fall through with regular response */
+            }
           }
         }
 
         const finalSystem = systemText + researchContext;
         const aiRequest = {
-          messages: [
-            { role: 'system' as const, content: finalSystem },
-            ...sliced,
-          ],
-          temperature: Math.max(0, Math.min(1, typeof body.temperature === 'number' ? body.temperature : 0.7)),
+          messages: [{ role: 'system' as const, content: finalSystem }, ...sliced],
+          temperature: Math.max(
+            0,
+            Math.min(1, typeof body.temperature === 'number' ? body.temperature : 0.7)
+          ),
           max_tokens: Math.max(64, Math.min(4096, body.max_tokens || 1024)),
-          stream,
+          stream
         };
 
         try {
@@ -1942,21 +2116,30 @@ export default {
           // an object with response text. Same SSE format works as Anthropic's.
           // Retry once + fall back to 8B model if the chosen model errors —
           // Workers AI 70B occasionally returns transient 500s under load.
-          const runWithRetry = async (m: string): Promise<ReadableStream<Uint8Array> | { response: string }> => {
+          const runWithRetry = async (
+            m: string
+          ): Promise<ReadableStream<Uint8Array> | { response: string }> => {
             let lastErr: unknown;
             for (let attempt = 0; attempt < 2; attempt++) {
-              try { return await env.AI.run(m, aiRequest) as ReadableStream<Uint8Array> | { response: string }; }
-              catch (e) { lastErr = e; await new Promise(r => setTimeout(r, 250 * (attempt + 1))); }
+              try {
+                return (await env.AI.run(m, aiRequest)) as ReadableStream<Uint8Array> | { response: string };
+              } catch (e) {
+                lastErr = e;
+                await new Promise(r => setTimeout(r, 250 * (attempt + 1)));
+              }
             }
             throw lastErr;
           };
           let aiResponse: ReadableStream<Uint8Array> | { response: string };
-          try { aiResponse = await runWithRetry(model); }
-          catch (primaryErr) {
+          try {
+            aiResponse = await runWithRetry(model);
+          } catch (primaryErr) {
             // Fall back to the smaller, faster, more-available 8B model
             if (model !== '@cf/meta/llama-3.1-8b-instruct-fp8') {
               aiResponse = await runWithRetry('@cf/meta/llama-3.1-8b-instruct-fp8');
-            } else { throw primaryErr; }
+            } else {
+              throw primaryErr;
+            }
           }
 
           if (stream && aiResponse instanceof ReadableStream) {
@@ -1972,7 +2155,9 @@ export default {
                   if (!line.startsWith('data: ')) continue;
                   const payload = line.slice(6).trim();
                   if (payload === '[DONE]') {
-                    controller.enqueue(new TextEncoder().encode('event: message_stop\ndata: {"type":"message_stop"}\n\n'));
+                    controller.enqueue(
+                      new TextEncoder().encode('event: message_stop\ndata: {"type":"message_stop"}\n\n')
+                    );
                     continue;
                   }
                   try {
@@ -1981,23 +2166,27 @@ export default {
                       const out = `event: content_block_delta\ndata: ${JSON.stringify({
                         type: 'content_block_delta',
                         index: 0,
-                        delta: { type: 'text_delta', text: j.response },
+                        delta: { type: 'text_delta', text: j.response }
                       })}\n\n`;
                       controller.enqueue(new TextEncoder().encode(out));
                     }
-                  } catch { /* skip malformed chunk */ }
+                  } catch {
+                    /* skip malformed chunk */
+                  }
                 }
-              },
+              }
             });
-            aiResponse.pipeTo(writable).catch(() => { /* socket closed */ });
+            aiResponse.pipeTo(writable).catch(() => {
+              /* socket closed */
+            });
             return new Response(readable, {
               status: 200,
               headers: {
                 'Content-Type': 'text/event-stream; charset=utf-8',
                 'Cache-Control': 'no-store',
                 'Access-Control-Allow-Origin': corsOrigin(request),
-                'X-Accel-Buffering': 'no',
-              },
+                'X-Accel-Buffering': 'no'
+              }
             });
           }
 
@@ -2005,12 +2194,15 @@ export default {
           const text = (aiResponse as { response: string }).response || '';
           return jsonResponse({ text, model, deep });
         } catch (err) {
-          return jsonResponse({
-            error: 'workers_ai_failed',
-            detail: (err as Error).message,
-            // Friendly client-facing copy — AI chat UI surfaces `friendly`.
-            friendly: 'The AI is briefly offline (Workers AI hiccup). Try again in 10–20 seconds.',
-          }, 502);
+          return jsonResponse(
+            {
+              error: 'workers_ai_failed',
+              detail: (err as Error).message,
+              // Friendly client-facing copy — AI chat UI surfaces `friendly`.
+              friendly: 'The AI is briefly offline (Workers AI hiccup). Try again in 10–20 seconds.'
+            },
+            502
+          );
         }
       }
 
@@ -2026,15 +2218,32 @@ export default {
         if (await rateLimitedCount(env.COUNTERS, ip, 'merch-checkout', 'hour', 30, 3600)) {
           return jsonResponse({ error: 'throttled' }, 429);
         }
-        let body: { items?: Array<{ slug: string; sync_variant_id: number; size: string; quantity: number; price: number; title: string; mockup: string }> };
-        try { body = await request.json(); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
+        let body: {
+          items?: Array<{
+            slug: string;
+            sync_variant_id: number;
+            size: string;
+            quantity: number;
+            price: number;
+            title: string;
+            mockup: string;
+          }>;
+        };
+        try {
+          body = await request.json();
+        } catch {
+          return jsonResponse({ error: 'invalid_json' }, 400);
+        }
         const items = Array.isArray(body?.items) ? body.items : [];
         if (!items.length) return jsonResponse({ error: 'empty_cart' }, 400);
         // Validate item shape + price sanity
         for (const it of items) {
-          if (!Number.isInteger(it.sync_variant_id) || it.sync_variant_id <= 0) return jsonResponse({ error: 'bad_variant', item: it.slug }, 400);
-          if (!Number.isInteger(it.quantity) || it.quantity < 1 || it.quantity > 20) return jsonResponse({ error: 'bad_qty', item: it.slug }, 400);
-          if (typeof it.price !== 'number' || it.price < 1 || it.price > 200) return jsonResponse({ error: 'bad_price', item: it.slug }, 400);
+          if (!Number.isInteger(it.sync_variant_id) || it.sync_variant_id <= 0)
+            return jsonResponse({ error: 'bad_variant', item: it.slug }, 400);
+          if (!Number.isInteger(it.quantity) || it.quantity < 1 || it.quantity > 20)
+            return jsonResponse({ error: 'bad_qty', item: it.slug }, 400);
+          if (typeof it.price !== 'number' || it.price < 1 || it.price > 200)
+            return jsonResponse({ error: 'bad_price', item: it.slug }, 400);
         }
         // Build Stripe Checkout Session
         const stripeFields: Record<string, string> = {
@@ -2053,15 +2262,18 @@ export default {
           'shipping_options[0][shipping_rate_data][delivery_estimate][minimum][value]': '5',
           'shipping_options[0][shipping_rate_data][delivery_estimate][maximum][unit]': 'business_day',
           'shipping_options[0][shipping_rate_data][delivery_estimate][maximum][value]': '7',
-          'metadata[cart]': JSON.stringify(items.map(it => ({ s: it.slug, v: it.sync_variant_id, q: it.quantity, p: it.price, sz: it.size }))),
-          'metadata[source]': 'music.megabyte.space',
+          'metadata[cart]': JSON.stringify(
+            items.map(it => ({ s: it.slug, v: it.sync_variant_id, q: it.quantity, p: it.price, sz: it.size }))
+          ),
+          'metadata[source]': 'music.megabyte.space'
         };
         items.forEach((it, i) => {
           stripeFields[`line_items[${i}][price_data][currency]`] = 'usd';
           stripeFields[`line_items[${i}][price_data][unit_amount]`] = String(Math.round(it.price * 100));
           stripeFields[`line_items[${i}][price_data][product_data][name]`] = `${it.title} — ${it.size}`;
           if (it.mockup) {
-            stripeFields[`line_items[${i}][price_data][product_data][images][0]`] = `${url.origin}${it.mockup}`;
+            stripeFields[`line_items[${i}][price_data][product_data][images][0]`] =
+              `${url.origin}${it.mockup}`;
           }
           stripeFields[`line_items[${i}][quantity]`] = String(it.quantity);
         });
@@ -2069,28 +2281,29 @@ export default {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded'
           },
-          body: new URLSearchParams(stripeFields),
+          body: new URLSearchParams(stripeFields)
         });
         if (!r.ok) {
           const err = await r.text();
           return jsonResponse({ error: 'stripe_session_failed', detail: err.slice(0, 400) }, 502);
         }
-        const session = await r.json() as { id: string; url: string };
+        const session = (await r.json()) as { id: string; url: string };
         return jsonResponse({ session_id: session.id, url: session.url });
       }
 
       // ── /api/merch/success — pull session details for the success page ─
       if (url.pathname === '/api/merch/success' && request.method === 'GET') {
         const sid = url.searchParams.get('session_id');
-        if (!sid || !/^cs_(test|live)_[A-Za-z0-9_]+$/.test(sid)) return jsonResponse({ error: 'bad_session' }, 400);
+        if (!sid || !/^cs_(test|live)_[A-Za-z0-9_]+$/.test(sid))
+          return jsonResponse({ error: 'bad_session' }, 400);
         if (!env.STRIPE_SECRET_KEY) return jsonResponse({ error: 'stripe_not_configured' }, 503);
         const r = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sid}?expand[]=line_items`, {
-          headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+          headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` }
         });
         if (!r.ok) return jsonResponse({ error: 'session_not_found' }, 404);
-        const s = await r.json() as any;
+        const s = (await r.json()) as any;
         return jsonResponse({
           status: s.payment_status,
           email: s.customer_details?.email ?? null,
@@ -2099,8 +2312,8 @@ export default {
           items: (s.line_items?.data ?? []).map((li: any) => ({
             description: li.description,
             quantity: li.quantity,
-            amount_total: li.amount_total,
-          })),
+            amount_total: li.amount_total
+          }))
         });
       }
 
@@ -2114,7 +2327,11 @@ export default {
         // tweetnacl HMAC step once STRIPE_WEBHOOK_SECRET is set in Stripe
         // dashboard + chezmoi).
         let evt: { type: string; data: { object: any } };
-        try { evt = JSON.parse(raw); } catch { return jsonResponse({ error: 'invalid_json' }, 400); }
+        try {
+          evt = JSON.parse(raw);
+        } catch {
+          return jsonResponse({ error: 'invalid_json' }, 400);
+        }
         if (evt.type !== 'checkout.session.completed') return jsonResponse({ received: true });
         const session = evt.data.object;
         if (!env.PRINTFUL_API_KEY) {
@@ -2122,7 +2339,11 @@ export default {
           return jsonResponse({ error: 'printful_not_configured' }, 503);
         }
         let cart: Array<{ s: string; v: number; q: number; p: number; sz: string }> = [];
-        try { cart = JSON.parse(session.metadata?.cart ?? '[]'); } catch { /* ignore */ }
+        try {
+          cart = JSON.parse(session.metadata?.cart ?? '[]');
+        } catch {
+          /* ignore */
+        }
         if (!cart.length) return jsonResponse({ error: 'no_cart' }, 400);
         const ship = session.shipping_details?.address ?? session.customer_details?.address;
         if (!ship) return jsonResponse({ error: 'no_shipping' }, 400);
@@ -2135,7 +2356,7 @@ export default {
           country_code: ship.country,
           zip: ship.postal_code,
           email: session.customer_details?.email ?? null,
-          phone: session.customer_details?.phone ?? null,
+          phone: session.customer_details?.phone ?? null
         };
         const orderBody = {
           recipient,
@@ -2145,9 +2366,9 @@ export default {
             subtotal: (session.amount_subtotal / 100).toFixed(2),
             shipping: ((session.amount_total - session.amount_subtotal) / 100).toFixed(2),
             tax: '0.00',
-            total: (session.amount_total / 100).toFixed(2),
+            total: (session.amount_total / 100).toFixed(2)
           },
-          external_id: session.id,
+          external_id: session.id
         };
         const pfStoreId = env.PRINTFUL_STORE_ID ?? '18259062';
         const orderRes = await fetch(`https://api.printful.com/orders?confirm=true`, {
@@ -2155,40 +2376,63 @@ export default {
           headers: {
             Authorization: `Bearer ${env.PRINTFUL_API_KEY}`,
             'X-PF-Store-Id': pfStoreId,
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify(orderBody),
+          body: JSON.stringify(orderBody)
         });
-        const orderJson = await orderRes.json() as any;
+        const orderJson = (await orderRes.json()) as any;
         if (!orderRes.ok) {
-          console.error('Printful order create failed', orderRes.status, JSON.stringify(orderJson).slice(0, 400));
+          console.error(
+            'Printful order create failed',
+            orderRes.status,
+            JSON.stringify(orderJson).slice(0, 400)
+          );
           // Persist failure to KV so we can backfill manually
-          await env.COUNTERS.put(`merch:failed:${session.id}`, JSON.stringify({ session_id: session.id, error: orderJson, body: orderBody }), { expirationTtl: 60 * 60 * 24 * 30 });
+          await env.COUNTERS.put(
+            `merch:failed:${session.id}`,
+            JSON.stringify({ session_id: session.id, error: orderJson, body: orderBody }),
+            { expirationTtl: 60 * 60 * 24 * 30 }
+          );
           return jsonResponse({ error: 'printful_order_failed', detail: orderJson }, 502);
         }
         const pfOrderId = orderJson.result?.id;
-        await env.COUNTERS.put(`merch:order:${session.id}`, JSON.stringify({ printful_order_id: pfOrderId, email: recipient.email, items: cart.length, created: Date.now() }), { expirationTtl: 60 * 60 * 24 * 90 });
+        await env.COUNTERS.put(
+          `merch:order:${session.id}`,
+          JSON.stringify({
+            printful_order_id: pfOrderId,
+            email: recipient.email,
+            items: cart.length,
+            created: Date.now()
+          }),
+          { expirationTtl: 60 * 60 * 24 * 90 }
+        );
 
         // Fire-and-forget receipt email via Resend
         if (env.RESEND_API_KEY && recipient.email) {
-          const itemsHtml = cart.map(c => `<li>${c.q} × ${c.s} (${c.sz}) — $${(c.p * c.q).toFixed(2)}</li>`).join('');
-          ctx.waitUntil(fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              from: 'bZ Music <hey@megabyte.space>',
-              to: recipient.email,
-              subject: 'FREE SATAN order received',
-              html: `<div style="font-family:system-ui;max-width:560px;margin:0 auto;padding:24px;color:#060610">
+          const itemsHtml = cart
+            .map(c => `<li>${c.q} × ${c.s} (${c.sz}) — $${(c.p * c.q).toFixed(2)}</li>`)
+            .join('');
+          ctx.waitUntil(
+            fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                from: 'bZ Music <hey@megabyte.space>',
+                to: recipient.email,
+                subject: 'FREE SATAN order received',
+                html: `<div style="font-family:system-ui;max-width:560px;margin:0 auto;padding:24px;color:#060610">
                 <h1 style="color:#00E5FF;margin:0 0 8px">Order received</h1>
                 <p>Printful is making this for you now. Tracking arrives in 2-3 business days when it ships.</p>
                 <ul>${itemsHtml}</ul>
                 <p style="color:#666;font-size:0.85rem">Order ID: ${pfOrderId} · Stripe session ${session.id.slice(-12)}</p>
                 <p>Questions? Just reply.</p>
                 <p>—bZ<br/><a href="https://music.megabyte.space" style="color:#00E5FF">music.megabyte.space</a></p>
-              </div>`,
-            }),
-          }).then(r => r.ok ? null : r.text().then(t => console.warn('receipt email failed', t.slice(0, 200)))));
+              </div>`
+              })
+            }).then(r =>
+              r.ok ? null : r.text().then(t => console.warn('receipt email failed', t.slice(0, 200)))
+            )
+          );
         }
         return jsonResponse({ ok: true, printful_order_id: pfOrderId });
       }
@@ -2201,7 +2445,7 @@ export default {
       const trackId = url.pathname.slice('/clip/'.length).replace(/\/$/, '');
       if (!VALID_TRACK_ID.test(trackId)) return new Response('Not found', { status: 404 });
       return new Response(renderClipPage(trackId, url.origin), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' }
       });
     }
 
@@ -2210,7 +2454,7 @@ export default {
       const trackId = url.pathname.slice('/press/'.length).replace(/\/$/, '');
       if (!VALID_TRACK_ID.test(trackId)) return new Response('Not found', { status: 404 });
       return new Response(renderPressPage(trackId, url.origin), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=600' },
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=600' }
       });
     }
 
@@ -2224,8 +2468,10 @@ export default {
       const corsHeaders: Record<string, string> = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-        'Access-Control-Allow-Headers': 'Range, If-Range, If-None-Match, If-Modified-Since, Accept, Accept-Encoding, Origin',
-        'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges, ETag, Content-Type, Cache-Control',
+        'Access-Control-Allow-Headers':
+          'Range, If-Range, If-None-Match, If-Modified-Since, Accept, Accept-Encoding, Origin',
+        'Access-Control-Expose-Headers':
+          'Content-Length, Content-Range, Accept-Ranges, ETag, Content-Type, Cache-Control',
         'Access-Control-Max-Age': '86400',
         'Timing-Allow-Origin': '*'
       };
@@ -2261,7 +2507,11 @@ export default {
         const etag = originResp.headers.get('ETag') || '';
         fullResp = new Response(buf, {
           status: 200,
-          headers: { 'Content-Type': ct, ...(etag ? { ETag: etag } : {}), 'Cache-Control': 'public, max-age=2592000, immutable' }
+          headers: {
+            'Content-Type': ct,
+            ...(etag ? { ETag: etag } : {}),
+            'Cache-Control': 'public, max-age=2592000, immutable'
+          }
         });
         ctx.waitUntil(cache.put(cacheKey, fullResp.clone()));
       }
@@ -2285,7 +2535,7 @@ export default {
       const m = rangeHeader?.match(/^bytes=(\d*)-(\d*)$/);
       if (m) {
         const start = m[1] === '' ? Math.max(0, total - Number(m[2])) : Number(m[1]);
-        const end = m[1] === '' ? total - 1 : (m[2] === '' ? total - 1 : Math.min(Number(m[2]), total - 1));
+        const end = m[1] === '' ? total - 1 : m[2] === '' ? total - 1 : Math.min(Number(m[2]), total - 1);
         if (Number.isFinite(start) && Number.isFinite(end) && start >= 0 && end >= start && end < total) {
           const slice = buf.slice(start, end + 1);
           audioHeaders.set('Content-Range', `bytes ${start}-${end}/${total}`);
@@ -2293,7 +2543,11 @@ export default {
           return new Response(slice, { status: 206, statusText: 'Partial Content', headers: audioHeaders });
         }
         audioHeaders.set('Content-Range', `bytes */${total}`);
-        return new Response(null, { status: 416, statusText: 'Range Not Satisfiable', headers: audioHeaders });
+        return new Response(null, {
+          status: 416,
+          statusText: 'Range Not Satisfiable',
+          headers: audioHeaders
+        });
       }
       audioHeaders.set('Content-Length', String(total));
       return new Response(buf, { status: 200, headers: audioHeaders });
@@ -2357,13 +2611,14 @@ export default {
     // from location.pathname on the client and the embed boots into the
     // fallback card). The explicit .html path is a static asset, no
     // auto-canonicalization fires.
-    const fetchRequest = isEmbedRoute && !url.pathname.endsWith('.html')
-      ? new Request(new URL('/embed.html', url.origin), request)
-      : isAshtonSpaRoute
-      ? new Request(new URL('/', url.origin), request)
-      : seoMatch
-      ? new Request(new URL('/', url.origin), request)
-      : request;
+    const fetchRequest =
+      isEmbedRoute && !url.pathname.endsWith('.html')
+        ? new Request(new URL('/embed.html', url.origin), request)
+        : isAshtonSpaRoute
+          ? new Request(new URL('/', url.origin), request)
+          : seoMatch
+            ? new Request(new URL('/', url.origin), request)
+            : request;
 
     let response = await env.ASSETS.fetch(fetchRequest);
     // Defensive: if ASSETS still emits a 3xx for embed routes, follow up to
@@ -2384,9 +2639,13 @@ export default {
 
     if (isEmbedRoute) {
       headers.delete('X-Frame-Options');
-      headers.set('Content-Security-Policy', "frame-ancestors *");
+      headers.set('Content-Security-Policy', 'frame-ancestors *');
       headers.set('Cache-Control', 'public, max-age=300, must-revalidate');
-    } else if (url.pathname.startsWith('/art/') || url.pathname.startsWith('/og/') || url.pathname.startsWith('/video/')) {
+    } else if (
+      url.pathname.startsWith('/art/') ||
+      url.pathname.startsWith('/og/') ||
+      url.pathname.startsWith('/video/')
+    ) {
       headers.set('Cache-Control', 'public, max-age=2592000, immutable');
     } else if (url.pathname.endsWith('.html') || url.pathname === '/' || seoMatch) {
       headers.set('Cache-Control', 'public, max-age=300, must-revalidate');
@@ -2429,19 +2688,23 @@ export default {
   // [triggers]. Currently: '0 9 * * *' (09:00 UTC daily) for the
   // Foundation flow orchestrator (first-month day-3/10/21 + 90-day winback).
   async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil((async () => {
-      try {
-        const result = await runFoundationFlowsCron(env, env.COUNTERS);
-        // Single structured log line — readable in `wrangler tail` + queryable
-        // in Workers Tracing once OTel export is wired.
-        console.log(JSON.stringify({
-          source: 'cron.foundation_flows',
-          cron: controller.cron,
-          ...result
-        }));
-      } catch (err) {
-        console.error('cron.foundation_flows failed', err instanceof Error ? err.message : err);
-      }
-    })());
+    ctx.waitUntil(
+      (async () => {
+        try {
+          const result = await runFoundationFlowsCron(env, env.COUNTERS);
+          // Single structured log line — readable in `wrangler tail` + queryable
+          // in Workers Tracing once OTel export is wired.
+          console.log(
+            JSON.stringify({
+              source: 'cron.foundation_flows',
+              cron: controller.cron,
+              ...result
+            })
+          );
+        } catch (err) {
+          console.error('cron.foundation_flows failed', err instanceof Error ? err.message : err);
+        }
+      })()
+    );
   }
 } satisfies ExportedHandler<Env>;

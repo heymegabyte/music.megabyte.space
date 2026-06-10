@@ -86,9 +86,21 @@ console.log(`Parsed ${ALBUMS.length} albums, ${TRACKS.length} tracks.`);
 
 // SVG overlay: gradient scrim + title + album + vibe + brand mark.
 function svgOverlay({ title, albumName, vibe, accent }) {
-  const safeTitle = String(title).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&apos;');
-  const safeAlbum = String(albumName).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&apos;');
-  const safeVibe = String(vibe).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&apos;');
+  const safeTitle = String(title)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/'/g, '&apos;');
+  const safeAlbum = String(albumName)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/'/g, '&apos;');
+  const safeVibe = String(vibe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/'/g, '&apos;');
   const titleSize = title.length > 22 ? 64 : title.length > 16 ? 76 : 92;
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
@@ -131,12 +143,14 @@ async function buildCard(track) {
 
   // Cover-fill 1200×630 with the cover art (covers extend to right side, scrim handles left).
   const base = sharp(coverPath).resize(1200, 630, { fit: 'cover', position: 'center' });
-  const overlay = Buffer.from(svgOverlay({
-    title: track.title,
-    albumName: album.name,
-    vibe: track.vibe || '',
-    accent
-  }));
+  const overlay = Buffer.from(
+    svgOverlay({
+      title: track.title,
+      albumName: album.name,
+      vibe: track.vibe || '',
+      accent
+    })
+  );
   const composed = await base
     .composite([{ input: overlay, top: 0, left: 0 }])
     .jpeg({ quality: 84, mozjpeg: true })
@@ -153,12 +167,14 @@ async function buildAlbumCard(album) {
   const coverPath = resolve(ROOT, 'public', album.cover.replace(/^\//, ''));
   const t0 = Date.now();
   const base = sharp(coverPath).resize(1200, 630, { fit: 'cover', position: 'center' });
-  const overlay = Buffer.from(svgOverlay({
-    title: album.name,
-    albumName: 'ALBUM',
-    vibe: album.tagline || '',
-    accent
-  }));
+  const overlay = Buffer.from(
+    svgOverlay({
+      title: album.name,
+      albumName: 'ALBUM',
+      vibe: album.tagline || '',
+      accent
+    })
+  );
   const composed = await base
     .composite([{ input: overlay, top: 0, left: 0 }])
     .jpeg({ quality: 84, mozjpeg: true })

@@ -21,11 +21,11 @@ npm run cast:preview
 
 URL parameters:
 
-| param | effect |
-| --- | --- |
-| `?demo=1` | seed every track in `src/data.ts` as the queue, start at index 0 |
+| param         | effect                                                               |
+| ------------- | -------------------------------------------------------------------- |
+| `?demo=1`     | seed every track in `src/data.ts` as the queue, start at index 0     |
 | `?track=<id>` | start the demo at a specific track, e.g. `?track=birch-swing-heaven` |
-| `?autoplay=0` | boot paused so click-to-play / browser-autoplay-policy is testable |
+| `?autoplay=0` | boot paused so click-to-play / browser-autoplay-policy is testable   |
 
 Once the page is open, `window.__castReceiver` exposes a programmatic API for Playwright + devtools — the same surface tests use:
 
@@ -33,9 +33,9 @@ Once the page is open, `window.__castReceiver` exposes a programmatic API for Pl
 window.__castReceiver.loadQueue([{ id, title, artist, album, cover, audio }], 0);
 window.__castReceiver.play();
 window.__castReceiver.seek(30);
-window.__castReceiver.state();   // { playing, position, duration, trackId }
+window.__castReceiver.state(); // { playing, position, duration, trackId }
 window.__castReceiver.current(); // currently-playing item
-window.__castReceiver.runtime;   // mutable state — read-only in tests
+window.__castReceiver.runtime; // mutable state — read-only in tests
 ```
 
 ## Testing doctrine
@@ -48,7 +48,7 @@ Cast surfaces are tested in the same shape they ship in.
 4. **D-pad parity.** Keyboard tests press `ArrowUp`/`ArrowDown` to scroll the queue, `Enter` to play/pause, and `ArrowLeft`/`ArrowRight` to seek — exactly what a TV remote dispatches.
 5. **CAF-only paths get a thin contract test, not a stub.** Anything that only runs under `CrKey/` (e.g. `setMessageInterceptor` for LOAD requests, `ctx.start()` playback config) is asserted at the boundary via a unit test that calls the interceptor with a recorded payload — never a full mock of the SDK.
 
-This matches the broader rule: *all testing should be done in a manner as similar to the final experience as possible.*
+This matches the broader rule: _all testing should be done in a manner as similar to the final experience as possible._
 
 ## Visualizer architecture
 

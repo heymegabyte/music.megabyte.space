@@ -6,16 +6,27 @@
 import type { Page, ConsoleMessage } from '@playwright/test';
 
 const IGNORE_SOURCES = [
-  /contentScript\.bundle\.js/, /refresh\.js/, /executor\.js/, /index\.iife\.js/,
-  /LanguageTool_/, /chrome-extension:/, /moz-extension:/,
+  /contentScript\.bundle\.js/,
+  /refresh\.js/,
+  /executor\.js/,
+  /index\.iife\.js/,
+  /LanguageTool_/,
+  /chrome-extension:/,
+  /moz-extension:/,
   /select_unknown_id|select_app_unavailable|unknown_app_id|cast_sender\.js/,
-  /\/cdn-cgi\/challenge-platform/, /about:blank/,
+  /\/cdn-cgi\/challenge-platform/,
+  /about:blank/,
   // Error/analytics beacons abort on page-leave under Playwright — not a fault.
-  /\/api\/error/, /\/api\/vitals/, /\/api\/csp-report/,
+  /\/api\/error/,
+  /\/api\/vitals/,
+  /\/api\/csp-report/
 ];
 const IGNORE_TEXTS = [
   /Banner not shown: beforeinstallpromptevent\.preventDefault/,
-  /\[cast\]/i, /\[viz\]/i, /\[lyrics\]/i, /\[playback\]/i,
+  /\[cast\]/i,
+  /\[viz\]/i,
+  /\[lyrics\]/i,
+  /\[playback\]/i,
   /cdn-cgi\/challenge-platform/,
   /TrustedTypePolicy named 'goog#html'/,
   /cast_sender.*goog#html/i,
@@ -26,9 +37,11 @@ const IGNORE_TEXTS = [
   // initialises window.chrome.cast — our (handled) init + the SDK's own internals
   // throw here. The REAL site (with the SDK present) casts fine; these are
   // environment artifacts, not prod faults.
-  /AutoJoinPolicy/, /cast options failed/i,
+  /AutoJoinPolicy/,
+  /cast options failed/i,
   /Cannot read properties of undefined \(reading 'media'\)/,
-  /\/api\/error/, /net::ERR_ABORTED/,
+  /\/api\/error/,
+  /net::ERR_ABORTED/
 ];
 
 export function shouldIgnore(text: string, location?: string): boolean {
@@ -38,7 +51,11 @@ export function shouldIgnore(text: string, location?: string): boolean {
   return false;
 }
 
-export interface CapturedMsg { kind: string; text: string; location: string }
+export interface CapturedMsg {
+  kind: string;
+  text: string;
+  location: string;
+}
 
 export function attachConsoleGuard(page: Page): CapturedMsg[] {
   const captured: CapturedMsg[] = [];
@@ -49,11 +66,11 @@ export function attachConsoleGuard(page: Page): CapturedMsg[] {
     if (shouldIgnore(text, url)) return;
     captured.push({ kind: msg.type(), text, location: url });
   });
-  page.on('pageerror', (err) => {
+  page.on('pageerror', err => {
     if (shouldIgnore(err.message)) return;
     captured.push({ kind: 'pageerror', text: err.message, location: '' });
   });
-  page.on('requestfailed', (req) => {
+  page.on('requestfailed', req => {
     const url = req.url();
     if (shouldIgnore(url)) return;
     if (/google-analytics|posthog/.test(url)) return; // beacon abort-on-leave races

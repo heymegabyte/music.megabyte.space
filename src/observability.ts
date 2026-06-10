@@ -59,7 +59,10 @@ window.addEventListener('error', e => {
 });
 
 window.addEventListener('unhandledrejection', e => {
-  const reason = e.reason instanceof Error ? { message: e.reason.message, stack: e.reason.stack } : { message: String(e.reason) };
+  const reason =
+    e.reason instanceof Error
+      ? { message: e.reason.message, stack: e.reason.stack }
+      : { message: String(e.reason) };
   reportError({
     type: 'unhandledrejection',
     ...reason,
@@ -89,20 +92,26 @@ function flushVitals() {
         { type: 'application/json' }
       )
     );
-  } catch { /* no-op */ }
+  } catch {
+    /* no-op */
+  }
 }
 
 if ('PerformanceObserver' in window) {
   try {
     new PerformanceObserver(list => {
       const entries = list.getEntries();
-      const last = entries[entries.length - 1] as PerformanceEntry & { renderTime?: number; loadTime?: number };
+      const last = entries[entries.length - 1] as PerformanceEntry & {
+        renderTime?: number;
+        loadTime?: number;
+      };
       if (last) pushVital('lcp', Math.round(last.renderTime || last.loadTime || last.startTime));
     }).observe({ type: 'largest-contentful-paint', buffered: true });
 
     let cls = 0;
     new PerformanceObserver(list => {
-      for (const e of list.getEntries() as PerformanceEntry[] & { value?: number; hadRecentInput?: boolean }[]) {
+      for (const e of list.getEntries() as PerformanceEntry[] &
+        { value?: number; hadRecentInput?: boolean }[]) {
         const entry = e as PerformanceEntry & { value?: number; hadRecentInput?: boolean };
         if (!entry.hadRecentInput && typeof entry.value === 'number') cls += entry.value;
       }
@@ -118,15 +127,25 @@ if ('PerformanceObserver' in window) {
         if (e.duration > maxDur) maxDur = e.duration;
       }
       pushVital('inp', Math.round(maxDur));
-    }).observe({ type: 'event', buffered: true, durationThreshold: 40 } as PerformanceObserverInit & { durationThreshold: number });
+    }).observe({ type: 'event', buffered: true, durationThreshold: 40 } as PerformanceObserverInit & {
+      durationThreshold: number;
+    });
 
     const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
     if (nav) pushVital('ttfb', Math.round(nav.responseStart - nav.requestStart));
-  } catch { /* observer unsupported on this browser */ }
+  } catch {
+    /* observer unsupported on this browser */
+  }
 }
 
 addEventListener('pagehide', flushVitals, { capture: true });
-addEventListener('visibilitychange', () => { if (document.hidden) flushVitals(); }, { capture: true });
+addEventListener(
+  'visibilitychange',
+  () => {
+    if (document.hidden) flushVitals();
+  },
+  { capture: true }
+);
 
 // ─── PostHog ───────────────────────────────────────────────────────────
 // Cookie-free (persistence: 'memory'), autocapture + pageviews + replay.
@@ -144,13 +163,15 @@ if (POSTHOG_KEY && /^phc_/.test(POSTHOG_KEY)) {
     };
     p.posthog.people = p.posthog.people || [];
     // queue + init shim
-    const stubs = 'capture identify alias set set_once register unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_distinct_id get_property setPersonProperties group get_session_id'.split(
-      ' '
-    );
+    const stubs =
+      'capture identify alias set set_once register unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_distinct_id get_property setPersonProperties group get_session_id'.split(
+        ' '
+      );
     for (const f of stubs) {
-      (p.posthog as any)[f] = ((name: string) => function (...args: any[]) {
-        (p.posthog as any).push([name, args]);
-      })(f);
+      (p.posthog as any)[f] = ((name: string) =>
+        function (...args: any[]) {
+          (p.posthog as any).push([name, args]);
+        })(f);
     }
     const s2 = o.createElement('script');
     s2.async = true;

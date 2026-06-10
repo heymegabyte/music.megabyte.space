@@ -89,9 +89,9 @@ if (!results.length) {
 }
 
 // --pick CLI override (1-indexed); default to 1
-const pickArg = process.argv.find((a) => a.startsWith('--pick='));
+const pickArg = process.argv.find(a => a.startsWith('--pick='));
 const pick = pickArg ? Math.max(1, Math.min(PROMPTS.length, Number(pickArg.split('=')[1]))) : 1;
-const chosen = results.find((r) => r.idx === pick - 1) || results[0];
+const chosen = results.find(r => r.idx === pick - 1) || results[0];
 
 // Promote chosen attempt → logo-spray.png
 const finalPath = resolve(OUT, 'logo-spray.png');
@@ -107,7 +107,7 @@ await writeFile(
       generated_at: new Date().toISOString(),
       chosen_attempt: chosen.idx + 1,
       chosen_prompt: chosen.prompt,
-      attempts: results.map((r) => ({ attempt: r.idx + 1, file: r.file, bytes: r.bytes }))
+      attempts: results.map(r => ({ attempt: r.idx + 1, file: r.file, bytes: r.bytes }))
     },
     null,
     2

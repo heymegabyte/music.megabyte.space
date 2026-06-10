@@ -26,8 +26,10 @@ function parseTracks(src) {
   const start = src.search(/export const TRACKS\s*:\s*Track\[\]\s*=\s*\[/);
   if (start < 0) return [];
   const region = src.slice(start);
-  const blocks = region.match(/\{\s*id:\s*'[^']+'[\s\S]*?file:\s*'[^']+\.mp3'[\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
-  const out = []; const seen = new Set();
+  const blocks =
+    region.match(/\{\s*id:\s*'[^']+'[\s\S]*?file:\s*'[^']+\.mp3'[\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
+  const out = [];
+  const seen = new Set();
   for (const b of blocks) {
     const id = b.match(/id:\s*'([^']+)'/)?.[1];
     const file = b.match(/file:\s*'([^']+\.mp3)'/)?.[1];
@@ -42,7 +44,9 @@ function parseTracks(src) {
 const src = await readFile(DATA_TS, 'utf8');
 const allTracks = parseTracks(src);
 const audioFiles = new Set(await readdir(AUDIO_DIR).catch(() => []));
-const tracks = allTracks.filter(t => audioFiles.has(basename(t.file))).map(t => ({ ...t, base: basename(t.file) }));
+const tracks = allTracks
+  .filter(t => audioFiles.has(basename(t.file)))
+  .map(t => ({ ...t, base: basename(t.file) }));
 
 console.log(`${tracks.length} tracks found · cache dir: ${CACHE_DIR}`);
 
@@ -85,27 +89,40 @@ async function transcribe(track) {
       return { status: 'fail', code: res.status, msg: text.slice(0, 200) };
     }
     const json = await res.json();
-    await writeFile(out, JSON.stringify({
-      words: json.words || [],
-      segments: json.segments || [],
-      duration: json.duration || 0,
-      generatedAt: new Date().toISOString()
-    }));
+    await writeFile(
+      out,
+      JSON.stringify({
+        words: json.words || [],
+        segments: json.segments || [],
+        duration: json.duration || 0,
+        generatedAt: new Date().toISOString()
+      })
+    );
     return { status: 'ok', words: (json.words || []).length, dur: json.duration };
   }
   return { status: 'fail', code: 429, msg: 'retries exhausted' };
 }
 
-let ok = 0, skip = 0, fail = 0;
+let ok = 0,
+  skip = 0,
+  fail = 0;
 const failures = [];
 for (let i = 0; i < tracks.length; i++) {
   const t = tracks[i];
   const tag = `[${i + 1}/${tracks.length}] ${t.id}`.padEnd(40);
   try {
     const r = await transcribe(t);
-    if (r.status === 'ok') { ok++; console.log(`${tag} ✓ ${r.words} words, ${r.dur?.toFixed(1)}s`); }
-    else if (r.status?.startsWith('skip')) { skip++; console.log(`${tag} — ${r.status}`); }
-    else { fail++; failures.push({ id: t.id, ...r }); console.error(`${tag} ✗ ${r.code} ${r.msg}`); }
+    if (r.status === 'ok') {
+      ok++;
+      console.log(`${tag} ✓ ${r.words} words, ${r.dur?.toFixed(1)}s`);
+    } else if (r.status?.startsWith('skip')) {
+      skip++;
+      console.log(`${tag} — ${r.status}`);
+    } else {
+      fail++;
+      failures.push({ id: t.id, ...r });
+      console.error(`${tag} ✗ ${r.code} ${r.msg}`);
+    }
   } catch (err) {
     fail++;
     failures.push({ id: t.id, msg: err?.message || String(err) });

@@ -68,14 +68,14 @@ The same pattern applies to `/lyrics/*.json` — the karaoke renderer has no gra
 
 KV-based, IP-scoped, scope-scoped. The helper is `rateLimited(kv, ip, scope, id, ttlSec)` in `worker/index.ts:46`. Current scopes:
 
-| Scope | TTL | Endpoint |
-| --- | --- | --- |
-| `play` | 1800 s | `/api/play/<id>` (one play per IP per 30 min per track) |
-| `share` | 60 s | `/api/share/<id>` |
-| `subscribe` | 60 s | `/api/subscribe` (per IP) |
-| `subscribe-email` | 120 s | `/api/subscribe` (per email hash) |
-| `push-sub` | 30 s | `/api/push/subscribe` |
-| `ai-chat` | 6 s | `/api/ai/chat` (per IP, prevents tab-spam) |
+| Scope             | TTL    | Endpoint                                                |
+| ----------------- | ------ | ------------------------------------------------------- |
+| `play`            | 1800 s | `/api/play/<id>` (one play per IP per 30 min per track) |
+| `share`           | 60 s   | `/api/share/<id>`                                       |
+| `subscribe`       | 60 s   | `/api/subscribe` (per IP)                               |
+| `subscribe-email` | 120 s  | `/api/subscribe` (per email hash)                       |
+| `push-sub`        | 30 s   | `/api/push/subscribe`                                   |
+| `ai-chat`         | 6 s    | `/api/ai/chat` (per IP, prevents tab-spam)              |
 
 Throttled requests return 429 with `{ "error": "throttled" }` and (where applicable) the current counter so the client doesn't desync.
 

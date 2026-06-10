@@ -985,13 +985,40 @@ export function renderWidgets(widgets?: AiChatWidget[] | null): string {
 }
 
 const VALID_WIDGET_KINDS: ReadonlySet<string> = new Set([
-  'text-card', 'cta', 'link-card', 'photo', 'gallery', 'track-card', 'album-card',
-  'pricing-card', 'faq-accordion', 'mini-table', 'stat-card', 'timeline',
-  'command-palette', 'related-pages', 'citation', 'status-badge', 'alert',
-  'code-snippet', 'audio-card', 'quick-reply', 'progress', 'feedback',
-  'search-results', 'breadcrumb', 'chart', 'person-card', 'event-card',
-  'carousel', 'next-best-action', 'before-after', 'newsletter-signup',
-  'checklist', 'document-card', 'comparison-table'
+  'text-card',
+  'cta',
+  'link-card',
+  'photo',
+  'gallery',
+  'track-card',
+  'album-card',
+  'pricing-card',
+  'faq-accordion',
+  'mini-table',
+  'stat-card',
+  'timeline',
+  'command-palette',
+  'related-pages',
+  'citation',
+  'status-badge',
+  'alert',
+  'code-snippet',
+  'audio-card',
+  'quick-reply',
+  'progress',
+  'feedback',
+  'search-results',
+  'breadcrumb',
+  'chart',
+  'person-card',
+  'event-card',
+  'carousel',
+  'next-best-action',
+  'before-after',
+  'newsletter-signup',
+  'checklist',
+  'document-card',
+  'comparison-table'
 ]);
 
 /**

@@ -48,7 +48,9 @@ export async function acquireWakeLock(): Promise<boolean> {
   if (!('wakeLock' in navigator)) return false;
   try {
     wakeLock = await navigator.wakeLock.request('screen');
-    wakeLock.addEventListener('release', () => { wakeLock = null; });
+    wakeLock.addEventListener('release', () => {
+      wakeLock = null;
+    });
     if (!wakeLockReacquireBound) {
       wakeLockReacquireBound = true;
       document.addEventListener('visibilitychange', () => {
@@ -64,12 +66,17 @@ export async function acquireWakeLock(): Promise<boolean> {
 export async function releaseWakeLock(): Promise<void> {
   try {
     await wakeLock?.release();
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
   wakeLock = null;
 }
 
 export function pipSupported(): boolean {
-  return 'pictureInPictureEnabled' in document && (document as Document & { pictureInPictureEnabled?: boolean }).pictureInPictureEnabled === true;
+  return (
+    'pictureInPictureEnabled' in document &&
+    (document as Document & { pictureInPictureEnabled?: boolean }).pictureInPictureEnabled === true
+  );
 }
 
 export async function requestPip(videoEl: HTMLVideoElement): Promise<boolean> {
@@ -85,7 +92,9 @@ export async function requestPip(videoEl: HTMLVideoElement): Promise<boolean> {
 export async function exitPip(): Promise<void> {
   try {
     if (document.pictureInPictureElement) await document.exitPictureInPicture();
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
 }
 
 interface OdesliLink {
@@ -98,14 +107,17 @@ export interface OdesliResponse {
   linksByPlatform: Record<string, OdesliLink>;
 }
 
-export async function fetchOdesliLinks(trackUrl: string, signal?: AbortSignal): Promise<OdesliResponse | null> {
+export async function fetchOdesliLinks(
+  trackUrl: string,
+  signal?: AbortSignal
+): Promise<OdesliResponse | null> {
   try {
     const res = await fetch(`${ODESLI_BASE}?url=${encodeURIComponent(trackUrl)}&userCountry=US`, {
       cache: 'force-cache',
       signal
     });
     if (!res.ok) return null;
-    return await res.json() as OdesliResponse;
+    return (await res.json()) as OdesliResponse;
   } catch {
     return null;
   }
@@ -121,25 +133,45 @@ export function setMediaSessionPosition(audio: HTMLAudioElement): void {
       playbackRate: audio.playbackRate || 1,
       position: Math.min(audio.currentTime, duration)
     });
-  } catch { /* noop — Safari throws on bad inputs */ }
+  } catch {
+    /* noop — Safari throws on bad inputs */
+  }
 }
 
 export function setMediaSessionPlaybackState(playing: boolean): void {
   if (!('mediaSession' in navigator)) return;
   try {
     navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
 }
 
-type OrientationLock = 'any' | 'natural' | 'landscape' | 'portrait' | 'portrait-primary' | 'portrait-secondary' | 'landscape-primary' | 'landscape-secondary';
+type OrientationLock =
+  | 'any'
+  | 'natural'
+  | 'landscape'
+  | 'portrait'
+  | 'portrait-primary'
+  | 'portrait-secondary'
+  | 'landscape-primary'
+  | 'landscape-secondary';
 
 export function bindOrientationLock(orientation: OrientationLock): () => void {
-  const screenObj = screen as Screen & { orientation?: ScreenOrientation & { lock?: (o: OrientationLock) => Promise<void> } };
+  const screenObj = screen as Screen & {
+    orientation?: ScreenOrientation & { lock?: (o: OrientationLock) => Promise<void> };
+  };
   const lock = screenObj.orientation?.lock;
   if (typeof lock === 'function') {
-    lock.call(screenObj.orientation, orientation).catch(() => { /* user gesture required, ignore */ });
+    lock.call(screenObj.orientation, orientation).catch(() => {
+      /* user gesture required, ignore */
+    });
   }
   return () => {
-    try { screenObj.orientation?.unlock?.(); } catch { /* noop */ }
+    try {
+      screenObj.orientation?.unlock?.();
+    } catch {
+      /* noop */
+    }
   };
 }

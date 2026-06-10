@@ -146,7 +146,7 @@ const browser = await chromium.launch();
 // 1. Wordmark lockup (full "bZ Music" inline)
 const ctx1 = await browser.newContext({
   viewport: { width: W, height: H },
-  deviceScaleFactor: 2,
+  deviceScaleFactor: 2
 });
 const page1 = await ctx1.newPage();
 await page1.setContent(HTML, { waitUntil: 'networkidle' });
@@ -156,14 +156,14 @@ const masterBuf = await page1.screenshot({
   fullPage: false,
   omitBackground: false,
   clip: { x: 0, y: 0, width: W, height: H },
-  scale: 'device',
+  scale: 'device'
 });
 await ctx1.close();
 
 // 2. Mark-only (bZ glyph for favicons)
 const ctx2 = await browser.newContext({
   viewport: { width: MARK_W, height: MARK_H },
-  deviceScaleFactor: 2,
+  deviceScaleFactor: 2
 });
 const page2 = await ctx2.newPage();
 await page2.setContent(MARK_HTML, { waitUntil: 'networkidle' });
@@ -173,14 +173,16 @@ const markBuf = await page2.screenshot({
   fullPage: false,
   omitBackground: false,
   clip: { x: 0, y: 0, width: MARK_W, height: MARK_H },
-  scale: 'device',
+  scale: 'device'
 });
 await ctx2.close();
 
 await browser.close();
 
 writeFileSync('public/art/bzmusic-wordmark-3200.png', masterBuf);
-console.log(`master: 3200×1000 → public/art/bzmusic-wordmark-3200.png (${(masterBuf.length / 1024).toFixed(0)}KB)`);
+console.log(
+  `master: 3200×1000 → public/art/bzmusic-wordmark-3200.png (${(masterBuf.length / 1024).toFixed(0)}KB)`
+);
 
 // Derive a normalized 1600×500 wordmark for direct use on site surfaces.
 await sharp(masterBuf)
@@ -204,7 +206,7 @@ async function squareFavicon(size, paddingRatio = 0.08) {
     .resize(contentSize, Math.round(contentSize * (srcH / srcW)), {
       fit: useMark ? 'cover' : 'contain',
       background: { r: 6, g: 6, b: 16, alpha: 1 },
-      kernel: sharp.kernel.lanczos3,
+      kernel: sharp.kernel.lanczos3
     })
     .toBuffer();
   return sharp({
@@ -212,8 +214,8 @@ async function squareFavicon(size, paddingRatio = 0.08) {
       width: size,
       height: size,
       channels: 4,
-      background: { r: 6, g: 6, b: 16, alpha: 1 },
-    },
+      background: { r: 6, g: 6, b: 16, alpha: 1 }
+    }
   })
     .composite([{ input: resized, gravity: 'center' }])
     .png({ compressionLevel: 9, quality: 95 })

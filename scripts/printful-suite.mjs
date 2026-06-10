@@ -30,7 +30,9 @@ const TOKEN = process.env.PRINTFUL_API_KEY;
 const FORCE = process.argv.includes('--force');
 
 if (!TOKEN) {
-  console.error('Missing PRINTFUL_API_KEY. Run: PRINTFUL_API_KEY=$(get-secret PRINTFUL_API_KEY) node scripts/printful-suite.mjs');
+  console.error(
+    'Missing PRINTFUL_API_KEY. Run: PRINTFUL_API_KEY=$(get-secret PRINTFUL_API_KEY) node scripts/printful-suite.mjs'
+  );
   process.exit(2);
 }
 
@@ -48,9 +50,9 @@ const SUITE = [
     price: 32,
     variantColorHint: 'pepper',
     placement: 'front',
-    overlayScale: 0.40,
+    overlayScale: 0.4,
     overlayYOffset: 0.02,
-    storefrontPath: '/product/free-satan-tee',
+    storefrontPath: '/product/free-satan-tee'
   },
   {
     slug: 'long-sleeve-6014',
@@ -64,7 +66,7 @@ const SUITE = [
     placement: 'front',
     overlayScale: 0.38,
     overlayYOffset: 0.02,
-    storefrontPath: '/product/free-satan-long-sleeve',
+    storefrontPath: '/product/free-satan-long-sleeve'
   },
   {
     slug: 'hoodie-1567',
@@ -78,7 +80,7 @@ const SUITE = [
     placement: 'front',
     overlayScale: 0.38,
     overlayYOffset: 0.06,
-    storefrontPath: '/product/free-satan-hoodie',
+    storefrontPath: '/product/free-satan-hoodie'
   },
   {
     slug: 'crewneck-1566',
@@ -92,7 +94,7 @@ const SUITE = [
     placement: 'front',
     overlayScale: 0.38,
     overlayYOffset: 0.04,
-    storefrontPath: '/product/free-satan-crewneck',
+    storefrontPath: '/product/free-satan-crewneck'
   },
   {
     slug: 'tank-9360',
@@ -105,8 +107,8 @@ const SUITE = [
     variantColorHint: 'pepper',
     placement: 'front',
     overlayScale: 0.34,
-    overlayYOffset: 0.00,
-    storefrontPath: '/product/free-satan-tank',
+    overlayYOffset: 0.0,
+    storefrontPath: '/product/free-satan-tank'
   },
   {
     slug: 'pocket-tee-6030',
@@ -120,7 +122,7 @@ const SUITE = [
     placement: 'back',
     overlayScale: 0.46,
     overlayYOffset: 0.04,
-    storefrontPath: '/product/free-satan-pocket-tee',
+    storefrontPath: '/product/free-satan-pocket-tee'
   },
   {
     slug: 'sweatpants-1469',
@@ -134,7 +136,7 @@ const SUITE = [
     placement: 'front',
     overlayScale: 0.22,
     overlayYOffset: 0.02,
-    storefrontPath: '/product/free-satan-sweatpants',
+    storefrontPath: '/product/free-satan-sweatpants'
   },
   {
     slug: 'tote-allover',
@@ -147,21 +149,28 @@ const SUITE = [
     variantColorHint: '',
     placement: 'front',
     overlayScale: 0.55,
-    overlayYOffset: 0.00,
-    storefrontPath: '/product/free-satan-tote',
-  },
+    overlayYOffset: 0.0,
+    storefrontPath: '/product/free-satan-tote'
+  }
 ];
 
 const SUITE_OUTPUT = resolve(ROOT, 'public/merch/suite.json');
 const MOCKUPS_DIR = resolve(ROOT, 'public/merch/mockups');
 const PRINTFUL_STOREFRONT = 'https://bz-music.printful.me';
 
-async function exists(p) { try { await access(p); return true; } catch { return false; } }
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function exists(p) {
+  try {
+    await access(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function pf(path) {
   const r = await fetch(`https://api.printful.com${path}`, {
-    headers: { Authorization: `Bearer ${TOKEN}` },
+    headers: { Authorization: `Bearer ${TOKEN}` }
   });
   if (!r.ok) throw new Error(`Printful GET ${path} → ${r.status}: ${(await r.text()).slice(0, 300)}`);
   return r.json();
@@ -180,9 +189,9 @@ async function pickVariant(catalogProductId, colorHint) {
   }
   if (!all.length) throw new Error(`No variants for product ${catalogProductId}`);
   const hint = (colorHint || '').toLowerCase();
-  const byColor = all.filter((v) => (v.color || '').toLowerCase().includes(hint));
+  const byColor = all.filter(v => (v.color || '').toLowerCase().includes(hint));
   const pool = byColor.length ? byColor : all;
-  return pool.find((v) => (v.size || '').toUpperCase() === 'M') ?? pool[0];
+  return pool.find(v => (v.size || '').toUpperCase() === 'M') ?? pool[0];
 }
 
 async function fetchVariantImages(variantId) {
@@ -208,17 +217,21 @@ async function buildMockup(item) {
 
   const images = await fetchVariantImages(variant.id);
   // prefer the requested placement; mug uses "default"
-  let img = images.find((i) => i.placement === item.placement)
-    ?? images.find((i) => i.placement === 'front')
-    ?? images.find((i) => i.placement === 'default')
-    ?? images[0];
+  let img =
+    images.find(i => i.placement === item.placement) ??
+    images.find(i => i.placement === 'front') ??
+    images.find(i => i.placement === 'default') ??
+    images[0];
   if (!img) throw new Error(`No images for variant ${variant.id}`);
 
   const blankBuf = await downloadImage(img.image_url);
   const designBuf = await readFile(DESIGN_PATH);
 
   // Resize blank to canonical 1200×1200 work area
-  const blank = sharp(blankBuf).resize(1200, 1200, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } });
+  const blank = sharp(blankBuf).resize(1200, 1200, {
+    fit: 'contain',
+    background: { r: 255, g: 255, b: 255, alpha: 1 }
+  });
   const blankMeta = await blank.metadata();
 
   // Overlay scale relative to canvas width
@@ -254,7 +267,7 @@ async function main() {
     storefront: PRINTFUL_STOREFRONT,
     design_url: '/merch/design-free-satan.png',
     note: 'Composited from real Printful catalog photography via /v2/catalog-variants/{id}/images. Quick Store blocks /mockup-tasks; switch to Manual API store to upgrade to Printful-rendered mockups.',
-    items: [],
+    items: []
   };
 
   for (const item of SUITE) {
@@ -271,7 +284,7 @@ async function main() {
         variantId: result.variant?.id,
         backgroundHex: result.hex || null,
         mockup: `/merch/mockups/${item.slug}.png`,
-        storefrontUrl: `${PRINTFUL_STOREFRONT}${item.storefrontPath}`,
+        storefrontUrl: `${PRINTFUL_STOREFRONT}${item.storefrontPath}`
       });
     } catch (e) {
       console.error(`✗ ${item.slug}: ${e.message}`);
@@ -285,7 +298,7 @@ async function main() {
         catalogProductId: item.catalogProductId,
         mockup: null,
         error: e.message,
-        storefrontUrl: `${PRINTFUL_STOREFRONT}${item.storefrontPath}`,
+        storefrontUrl: `${PRINTFUL_STOREFRONT}${item.storefrontPath}`
       });
     }
     await sleep(400);
@@ -293,7 +306,10 @@ async function main() {
 
   await writeFile(SUITE_OUTPUT, JSON.stringify(manifest, null, 2));
   console.log(`\n✓ Wrote ${SUITE_OUTPUT}`);
-  console.log(`  ${manifest.items.filter((i) => i.mockup).length}/${manifest.items.length} mockups generated.`);
+  console.log(`  ${manifest.items.filter(i => i.mockup).length}/${manifest.items.length} mockups generated.`);
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch(e => {
+  console.error(e);
+  process.exit(1);
+});

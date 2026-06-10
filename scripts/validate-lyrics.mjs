@@ -19,8 +19,8 @@ import { resolve } from 'node:path';
 const ROOT = resolve(import.meta.dirname, '..');
 const LYRICS_DIR = resolve(ROOT, 'public/lyrics');
 
-const MATCH_FLOOR = 0.6;          // below this = almost certainly the wrong take
-const COLLAPSE_MAX = 3;           // >N distinct lines sharing one start = collapsed
+const MATCH_FLOOR = 0.6; // below this = almost certainly the wrong take
+const COLLAPSE_MAX = 3; // >N distinct lines sharing one start = collapsed
 
 // Whisper-can't-hear-this tracks: correct lyrics, un-alignable audio. Timing is
 // best-effort; words are authoritative. Exempt from the match-rate floor only.
@@ -35,17 +35,26 @@ const warnings = [];
 for (const f of files) {
   const id = f.replace('.json', '');
   let d;
-  try { d = JSON.parse(await readFile(resolve(LYRICS_DIR, f), 'utf8')); }
-  catch (e) { failures.push(`${id}: invalid JSON (${e.message})`); continue; }
+  try {
+    d = JSON.parse(await readFile(resolve(LYRICS_DIR, f), 'utf8'));
+  } catch (e) {
+    failures.push(`${id}: invalid JSON (${e.message})`);
+    continue;
+  }
 
   const words = Array.isArray(d.words) ? d.words : [];
   const lines = Array.isArray(d.lines) ? d.lines : [];
-  if (!lines.length) { warnings.push(`${id}: no lines`); continue; }
+  if (!lines.length) {
+    warnings.push(`${id}: no lines`);
+    continue;
+  }
 
   // 1. Match rate (wrong-take detector)
   const mr = d.stats?.matchRate;
   if (typeof mr === 'number' && mr < MATCH_FLOOR && !MATCH_RATE_EXEMPT.has(id)) {
-    failures.push(`${id}: matchRate ${(mr * 100).toFixed(0)}% < ${MATCH_FLOOR * 100}% — likely WRONG TAKE; rebuild via scripts/rebuild-lyrics-from-cache.mjs`);
+    failures.push(
+      `${id}: matchRate ${(mr * 100).toFixed(0)}% < ${MATCH_FLOOR * 100}% — likely WRONG TAKE; rebuild via scripts/rebuild-lyrics-from-cache.mjs`
+    );
   }
 
   // 2. Collapsed lines (outro bug): distinct lines sharing one start time
@@ -73,13 +82,15 @@ for (const f of files) {
     // corruption; tiny equal-time ties are normal.
     let grossOutOfOrder = 0;
     for (let i = 0; i < words.length - 1; i++) if (words[i].s - words[i + 1].s > 2) grossOutOfOrder++;
-    if (grossOutOfOrder) failures.push(`${id}: ${grossOutOfOrder} words grossly out of time order (>2s backwards)`);
+    if (grossOutOfOrder)
+      failures.push(`${id}: ${grossOutOfOrder} words grossly out of time order (>2s backwards)`);
 
     // Zero-span words (per-word glow flicker). Debt was cleared 2026-06 via
     // scripts/clamp-lyric-spans.mjs, so this is now a hard fail — re-run that
     // script after any rebuild to keep it clean.
-    const zero = words.filter(w => (w.e - w.s) <= 0).length;
-    if (zero) failures.push(`${id}: ${zero} zero-span words — run \`node scripts/clamp-lyric-spans.mjs ${id}\``);
+    const zero = words.filter(w => w.e - w.s <= 0).length;
+    if (zero)
+      failures.push(`${id}: ${zero} zero-span words — run \`node scripts/clamp-lyric-spans.mjs ${id}\``);
   }
 }
 
@@ -92,4 +103,6 @@ if (failures.length) {
   for (const f of failures) console.error('  ' + f);
   process.exit(1);
 }
-console.log(`✓ lyric validation passed — ${files.length} files clean (match floor ${MATCH_FLOOR * 100}%, ${MATCH_RATE_EXEMPT.size} match-rate exempt)`);
+console.log(
+  `✓ lyric validation passed — ${files.length} files clean (match floor ${MATCH_FLOOR * 100}%, ${MATCH_RATE_EXEMPT.size} match-rate exempt)`
+);

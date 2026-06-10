@@ -28,11 +28,13 @@ const DESIGN_URL = 'https://music.megabyte.space/merch/design-free-satan.png';
 const PRODUCT_PREFIX = 'FREE SATAN';
 
 if (!TOKEN) {
-  console.error('Missing PRINTFUL_API_KEY. PRINTFUL_API_KEY=$(get-secret PRINTFUL_API_KEY) node scripts/printful-create-products.mjs');
+  console.error(
+    'Missing PRINTFUL_API_KEY. PRINTFUL_API_KEY=$(get-secret PRINTFUL_API_KEY) node scripts/printful-create-products.mjs'
+  );
   process.exit(2);
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function pf(path, opts = {}) {
   const r = await fetch(`https://api.printful.com${path}`, {
@@ -41,8 +43,8 @@ async function pf(path, opts = {}) {
       Authorization: `Bearer ${TOKEN}`,
       'X-PF-Store-Id': String(STORE_ID),
       'Content-Type': 'application/json',
-      ...(opts.headers || {}),
-    },
+      ...(opts.headers || {})
+    }
   });
   if (!r.ok) {
     const txt = await r.text();
@@ -56,14 +58,102 @@ async function pf(path, opts = {}) {
  * variants for the product, filters by color hint + sizes, creates one
  * sync product with N sync variants. */
 const SUITE = [
-  { slug: 'tee-1717-pepper',  catalogId: 586,  title: 'FREE SATAN Heavyweight Tee',     blank: 'Comfort Colors 1717', color: 'Pepper', colorHint: 'pepper', sizes: ['S','M','L','XL','2XL','3XL'], price: '32.00', placements: [{ name: 'front', url: DESIGN_URL }], blurb: '6.1oz garment-dyed cotton · cream FREE SATAN graffiti + caged-devil art.' },
-  { slug: 'long-sleeve-6014', catalogId: 753,  title: 'FREE SATAN Long-Sleeve',         blank: 'Comfort Colors 6014', color: 'Pepper', colorHint: 'pepper', sizes: ['S','M','L','XL','2XL','3XL'], price: '42.00', placements: [{ name: 'front', url: DESIGN_URL }], blurb: 'Heavyweight garment-dyed long-sleeve · same Pepper wash, studio winters.' },
-  { slug: 'hoodie-1567',      catalogId: 970,  title: 'FREE SATAN Hoodie',              blank: 'Comfort Colors 1567', color: 'Black',  colorHint: 'black',  sizes: ['S','M','L','XL','2XL','3XL'], price: '64.00', placements: [{ name: 'front', url: DESIGN_URL }], blurb: 'Heavyweight pullover hoodie · cream art screen-bright on faded black.' },
-  { slug: 'crewneck-1566',    catalogId: 839,  title: 'FREE SATAN Crewneck',            blank: 'Comfort Colors 1566', color: 'Pepper', colorHint: 'pepper', sizes: ['S','M','L','XL','2XL','3XL'], price: '58.00', placements: [{ name: 'front', url: DESIGN_URL }], blurb: 'Garment-dyed crewneck sweatshirt · same canvas, no hood.' },
-  { slug: 'tank-9360',        catalogId: 907,  title: 'FREE SATAN Tank',                blank: 'Comfort Colors 9360', color: 'Pepper', colorHint: 'pepper', sizes: ['S','M','L','XL','2XL','3XL'], price: '30.00', placements: [{ name: 'front', url: DESIGN_URL }], blurb: 'Garment-dyed tank · July sets, gym, "92° and still working" weather.' },
-  { slug: 'pocket-tee-6030',  catalogId: 593,  title: 'FREE SATAN Pocket Tee',          blank: 'Comfort Colors 6030', color: 'Pepper', colorHint: 'pepper', sizes: ['S','M','L','XL','2XL','3XL'], price: '34.00', placements: [{ name: 'front', url: DESIGN_URL }], blurb: 'Heavyweight pocket tee · cream FREE SATAN art over the pocket.' },
-  { slug: 'sweatpants-1469',  catalogId: 898,  title: 'FREE SATAN Sweatpants',          blank: 'Comfort Colors 1469', color: 'Pepper', colorHint: 'pepper', sizes: ['S','M','L','XL','2XL'],       price: '56.00', placements: [{ name: 'front_large', url: DESIGN_URL }], blurb: 'Garment-dyed fleece sweatpants · pairs with the crewneck or hoodie.' },
-  { slug: 'tote-allover',     catalogId: 84,   title: 'FREE SATAN Tote',                blank: 'All-Over Print Tote', color: 'Black',  colorHint: '',       sizes: ['15″×15″'],                     price: '22.00', placements: [{ name: 'front', url: DESIGN_URL }], blurb: 'Heavy cotton tote · carries records, journals, the apron.' },
+  {
+    slug: 'tee-1717-pepper',
+    catalogId: 586,
+    title: 'FREE SATAN Heavyweight Tee',
+    blank: 'Comfort Colors 1717',
+    color: 'Pepper',
+    colorHint: 'pepper',
+    sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+    price: '32.00',
+    placements: [{ name: 'front', url: DESIGN_URL }],
+    blurb: '6.1oz garment-dyed cotton · cream FREE SATAN graffiti + caged-devil art.'
+  },
+  {
+    slug: 'long-sleeve-6014',
+    catalogId: 753,
+    title: 'FREE SATAN Long-Sleeve',
+    blank: 'Comfort Colors 6014',
+    color: 'Pepper',
+    colorHint: 'pepper',
+    sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+    price: '42.00',
+    placements: [{ name: 'front', url: DESIGN_URL }],
+    blurb: 'Heavyweight garment-dyed long-sleeve · same Pepper wash, studio winters.'
+  },
+  {
+    slug: 'hoodie-1567',
+    catalogId: 970,
+    title: 'FREE SATAN Hoodie',
+    blank: 'Comfort Colors 1567',
+    color: 'Black',
+    colorHint: 'black',
+    sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+    price: '64.00',
+    placements: [{ name: 'front', url: DESIGN_URL }],
+    blurb: 'Heavyweight pullover hoodie · cream art screen-bright on faded black.'
+  },
+  {
+    slug: 'crewneck-1566',
+    catalogId: 839,
+    title: 'FREE SATAN Crewneck',
+    blank: 'Comfort Colors 1566',
+    color: 'Pepper',
+    colorHint: 'pepper',
+    sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+    price: '58.00',
+    placements: [{ name: 'front', url: DESIGN_URL }],
+    blurb: 'Garment-dyed crewneck sweatshirt · same canvas, no hood.'
+  },
+  {
+    slug: 'tank-9360',
+    catalogId: 907,
+    title: 'FREE SATAN Tank',
+    blank: 'Comfort Colors 9360',
+    color: 'Pepper',
+    colorHint: 'pepper',
+    sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+    price: '30.00',
+    placements: [{ name: 'front', url: DESIGN_URL }],
+    blurb: 'Garment-dyed tank · July sets, gym, "92° and still working" weather.'
+  },
+  {
+    slug: 'pocket-tee-6030',
+    catalogId: 593,
+    title: 'FREE SATAN Pocket Tee',
+    blank: 'Comfort Colors 6030',
+    color: 'Pepper',
+    colorHint: 'pepper',
+    sizes: ['S', 'M', 'L', 'XL', '2XL', '3XL'],
+    price: '34.00',
+    placements: [{ name: 'front', url: DESIGN_URL }],
+    blurb: 'Heavyweight pocket tee · cream FREE SATAN art over the pocket.'
+  },
+  {
+    slug: 'sweatpants-1469',
+    catalogId: 898,
+    title: 'FREE SATAN Sweatpants',
+    blank: 'Comfort Colors 1469',
+    color: 'Pepper',
+    colorHint: 'pepper',
+    sizes: ['S', 'M', 'L', 'XL', '2XL'],
+    price: '56.00',
+    placements: [{ name: 'front_large', url: DESIGN_URL }],
+    blurb: 'Garment-dyed fleece sweatpants · pairs with the crewneck or hoodie.'
+  },
+  {
+    slug: 'tote-allover',
+    catalogId: 84,
+    title: 'FREE SATAN Tote',
+    blank: 'All-Over Print Tote',
+    color: 'Black',
+    colorHint: '',
+    sizes: ['15″×15″'],
+    price: '22.00',
+    placements: [{ name: 'front', url: DESIGN_URL }],
+    blurb: 'Heavy cotton tote · carries records, journals, the apron.'
+  }
 ];
 
 async function pickVariants(item) {
@@ -78,13 +168,13 @@ async function pickVariants(item) {
     if (all.length > 500) break;
   }
   const hint = item.colorHint.toLowerCase();
-  const byColor = hint ? all.filter((v) => (v.color || '').toLowerCase().includes(hint)) : all;
+  const byColor = hint ? all.filter(v => (v.color || '').toLowerCase().includes(hint)) : all;
   const pool = byColor.length ? byColor : all;
   // Pick one variant per requested size
   const picked = [];
   for (const size of item.sizes) {
     const want = size.toUpperCase();
-    const match = pool.find((v) => (v.size || '').toUpperCase() === want);
+    const match = pool.find(v => (v.size || '').toUpperCase() === want);
     if (match) picked.push(match);
   }
   if (!picked.length) {
@@ -96,7 +186,7 @@ async function pickVariants(item) {
 
 async function deleteExistingFreeSatanProducts() {
   const list = await pf('/store/products?status=all&limit=100');
-  const targets = (list.result ?? []).filter((p) => (p.name || '').startsWith(PRODUCT_PREFIX));
+  const targets = (list.result ?? []).filter(p => (p.name || '').startsWith(PRODUCT_PREFIX));
   for (const p of targets) {
     console.log(`  ⌫ delete ${p.id} ${p.name}`);
     if (!DRY) await pf(`/store/products/${p.id}`, { method: 'DELETE' });
@@ -111,13 +201,13 @@ async function createProduct(item) {
   const body = {
     sync_product: {
       name: item.title,
-      thumbnail: DESIGN_URL,
+      thumbnail: DESIGN_URL
     },
-    sync_variants: variants.map((v) => ({
+    sync_variants: variants.map(v => ({
       variant_id: v.id,
       retail_price: item.price,
-      files: item.placements.map((pl) => ({ placement: pl.name, url: pl.url })),
-    })),
+      files: item.placements.map(pl => ({ placement: pl.name, url: pl.url }))
+    }))
   };
 
   if (DRY) {
@@ -131,7 +221,7 @@ async function createProduct(item) {
 
   // Generate a real Printful mockup for the FIRST variant (we use M size by default)
   // and a representative placement (front, fallback to back/leg/default).
-  const mockVariant = variants.find((v) => (v.size || '').toUpperCase() === 'M') ?? variants[0];
+  const mockVariant = variants.find(v => (v.size || '').toUpperCase() === 'M') ?? variants[0];
   const mockPlacement = item.placements[0];
 
   let mockupUrl = null;
@@ -141,18 +231,22 @@ async function createProduct(item) {
     const task = await pf('/v2/mockup-tasks', {
       method: 'POST',
       body: JSON.stringify({
-        products: [{
-          source: 'catalog',
-          catalog_product_id: item.catalogId,
-          catalog_variant_ids: [mockVariant.id],
-          format: 'png',
-          placements: [{
-            placement: mockPlacement.name,
-            technique: 'dtg',
-            layers: [{ type: 'file', url: mockPlacement.url }],
-          }],
-        }],
-      }),
+        products: [
+          {
+            source: 'catalog',
+            catalog_product_id: item.catalogId,
+            catalog_variant_ids: [mockVariant.id],
+            format: 'png',
+            placements: [
+              {
+                placement: mockPlacement.name,
+                technique: 'dtg',
+                layers: [{ type: 'file', url: mockPlacement.url }]
+              }
+            ]
+          }
+        ]
+      })
     });
     const taskId = task.data?.[0]?.id;
     if (taskId) {
@@ -179,18 +273,22 @@ async function createProduct(item) {
         const task = await pf('/v2/mockup-tasks', {
           method: 'POST',
           body: JSON.stringify({
-            products: [{
-              source: 'catalog',
-              catalog_product_id: item.catalogId,
-              catalog_variant_ids: [mockVariant.id],
-              format: 'png',
-              placements: [{
-                placement: mockPlacement.name,
-                technique: 'dtg',
-                layers: [{ type: 'file', url: mockPlacement.url }],
-              }],
-            }],
-          }),
+            products: [
+              {
+                source: 'catalog',
+                catalog_product_id: item.catalogId,
+                catalog_variant_ids: [mockVariant.id],
+                format: 'png',
+                placements: [
+                  {
+                    placement: mockPlacement.name,
+                    technique: 'dtg',
+                    layers: [{ type: 'file', url: mockPlacement.url }]
+                  }
+                ]
+              }
+            ]
+          })
         });
         const taskId = task.data?.[0]?.id;
         if (taskId) {
@@ -243,8 +341,8 @@ async function main() {
     store_id: STORE_ID,
     storefront: 'https://bz-music.printful.me',
     design_url: '/merch/design-free-satan-v2.png',
-    note: 'Generated via Printful API — real Printful mockups + sync products in Brian\'s Store (native API).',
-    items: [],
+    note: "Generated via Printful API — real Printful mockups + sync products in Brian's Store (native API).",
+    items: []
   };
 
   for (const item of SUITE) {
@@ -261,7 +359,7 @@ async function main() {
         productId: result.id,
         variantCount: result.variants.length,
         mockup: `/merch/mockups/${item.slug}.png`,
-        storefrontUrl: `https://bz-music.printful.me`,
+        storefrontUrl: `https://bz-music.printful.me`
       });
     } catch (e) {
       console.error(`  ✗ ${item.slug}: ${e.message}`);
@@ -272,7 +370,7 @@ async function main() {
         color: item.color,
         blurb: item.blurb,
         price: parseFloat(item.price),
-        error: e.message,
+        error: e.message
       });
     }
     await sleep(800);
@@ -282,7 +380,12 @@ async function main() {
     await writeFile(resolve(ROOT, 'public/merch/suite.json'), JSON.stringify(manifest, null, 2));
     console.log(`\n✓ wrote public/merch/suite.json`);
   }
-  console.log(`\n${manifest.items.filter((i) => i.productId).length}/${manifest.items.length} products created.`);
+  console.log(
+    `\n${manifest.items.filter(i => i.productId).length}/${manifest.items.length} products created.`
+  );
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch(e => {
+  console.error(e);
+  process.exit(1);
+});

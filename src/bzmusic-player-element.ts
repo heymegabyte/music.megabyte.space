@@ -59,7 +59,12 @@ class BzMusicPlayer extends HTMLElement {
 
   private iframe?: HTMLIFrameElement;
   private messageHandler = (ev: MessageEvent) => this.onMessage(ev);
-  private resolveNowPlaying?: (data: { title: string; album: string; currentTime: number; duration: number }) => void;
+  private resolveNowPlaying?: (data: {
+    title: string;
+    album: string;
+    currentTime: number;
+    duration: number;
+  }) => void;
 
   connectedCallback() {
     this.render();
@@ -134,7 +139,9 @@ class BzMusicPlayer extends HTMLElement {
     this.dispatchEvent(new CustomEvent(data.type, { detail: data.payload, bubbles: true }));
 
     if (data.type === 'bzmusic:nowplaying' && this.resolveNowPlaying) {
-      this.resolveNowPlaying(data.payload as { title: string; album: string; currentTime: number; duration: number });
+      this.resolveNowPlaying(
+        data.payload as { title: string; album: string; currentTime: number; duration: number }
+      );
       this.resolveNowPlaying = undefined;
     }
   }
@@ -144,9 +151,15 @@ class BzMusicPlayer extends HTMLElement {
   }
 
   // Public API
-  play() { this.send('bzmusic:play'); }
-  pause() { this.send('bzmusic:pause'); }
-  seek(seconds: number) { this.send('bzmusic:seek', { seconds }); }
+  play() {
+    this.send('bzmusic:play');
+  }
+  pause() {
+    this.send('bzmusic:pause');
+  }
+  seek(seconds: number) {
+    this.send('bzmusic:seek', { seconds });
+  }
   nowPlaying(): Promise<{ title: string; album: string; currentTime: number; duration: number }> {
     return new Promise(resolve => {
       this.resolveNowPlaying = resolve;

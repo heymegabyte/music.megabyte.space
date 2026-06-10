@@ -20,10 +20,15 @@ function extractIds(src) {
   return [...m[1].matchAll(/^\s*id:\s*'([a-z0-9-]+)'/gm)].map(x => x[1]);
 }
 
-async function readCurrent() { return readFile(resolve(ROOT, 'src/data.ts'), 'utf8'); }
+async function readCurrent() {
+  return readFile(resolve(ROOT, 'src/data.ts'), 'utf8');
+}
 function readAtRef(ref) {
-  try { return execFileSync('git', ['show', `${ref}:src/data.ts`], { cwd: ROOT, encoding: 'utf8' }); }
-  catch { return ''; }
+  try {
+    return execFileSync('git', ['show', `${ref}:src/data.ts`], { cwd: ROOT, encoding: 'utf8' });
+  } catch {
+    return '';
+  }
 }
 
 const [now, before] = [await readCurrent(), readAtRef(baseRef)];

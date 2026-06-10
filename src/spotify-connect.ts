@@ -49,7 +49,9 @@ const SCOPES = [
 
 function base64UrlEncode(buf: ArrayBuffer): string {
   return btoa(String.fromCharCode(...new Uint8Array(buf)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
 }
 
 async function sha256(input: string): Promise<ArrayBuffer> {
@@ -69,11 +71,16 @@ function getToken(): SpotifyToken | null {
     const t = JSON.parse(raw) as SpotifyToken;
     if (!t.access_token || !t.expires_at) return null;
     return t;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 function setToken(t: SpotifyToken | null) {
-  if (!t) { localStorage.removeItem(TOKEN_KEY); return; }
+  if (!t) {
+    localStorage.removeItem(TOKEN_KEY);
+    return;
+  }
   localStorage.setItem(TOKEN_KEY, JSON.stringify(t));
 }
 
@@ -81,8 +88,12 @@ function isExpired(t: SpotifyToken): boolean {
   return Date.now() >= t.expires_at - 30_000;
 }
 
-export function isConfigured(): boolean { return !!SPOTIFY_CLIENT_ID; }
-export function isPaired(): boolean { return !!getToken(); }
+export function isConfigured(): boolean {
+  return !!SPOTIFY_CLIENT_ID;
+}
+export function isPaired(): boolean {
+  return !!getToken();
+}
 
 /** Build the Spotify authorize URL with PKCE challenge, then redirect. */
 export async function startPairing(): Promise<void> {
@@ -124,7 +135,13 @@ export async function completePairing(code: string, state: string): Promise<Spot
     body
   });
   if (!res.ok) throw new Error(`token exchange failed: ${res.status}`);
-  const json = await res.json() as { access_token: string; refresh_token?: string; expires_in: number; token_type: string; scope: string };
+  const json = (await res.json()) as {
+    access_token: string;
+    refresh_token?: string;
+    expires_in: number;
+    token_type: string;
+    scope: string;
+  };
   const token: SpotifyToken = {
     access_token: json.access_token,
     refresh_token: json.refresh_token,
@@ -142,7 +159,10 @@ async function refreshIfNeeded(): Promise<SpotifyToken | null> {
   const t = getToken();
   if (!t) return null;
   if (!isExpired(t)) return t;
-  if (!t.refresh_token || !SPOTIFY_CLIENT_ID) { setToken(null); return null; }
+  if (!t.refresh_token || !SPOTIFY_CLIENT_ID) {
+    setToken(null);
+    return null;
+  }
   const body = new URLSearchParams({
     grant_type: 'refresh_token',
     refresh_token: t.refresh_token,
@@ -153,8 +173,17 @@ async function refreshIfNeeded(): Promise<SpotifyToken | null> {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body
   });
-  if (!res.ok) { setToken(null); return null; }
-  const json = await res.json() as { access_token: string; refresh_token?: string; expires_in: number; token_type: string; scope: string };
+  if (!res.ok) {
+    setToken(null);
+    return null;
+  }
+  const json = (await res.json()) as {
+    access_token: string;
+    refresh_token?: string;
+    expires_in: number;
+    token_type: string;
+    scope: string;
+  };
   const updated: SpotifyToken = {
     access_token: json.access_token,
     refresh_token: json.refresh_token || t.refresh_token,
@@ -166,7 +195,9 @@ async function refreshIfNeeded(): Promise<SpotifyToken | null> {
   return updated;
 }
 
-export function unpair(): void { setToken(null); }
+export function unpair(): void {
+  setToken(null);
+}
 
 async function authFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const t = await refreshIfNeeded();
@@ -175,7 +206,10 @@ async function authFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
     ...init,
     headers: { ...(init.headers || {}), Authorization: `Bearer ${t.access_token}` }
   });
-  if (res.status === 401) { setToken(null); throw new Error('unauthorized'); }
+  if (res.status === 401) {
+    setToken(null);
+    throw new Error('unauthorized');
+  }
   if (!res.ok && res.status !== 204) throw new Error(`spotify ${res.status}`);
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
@@ -186,7 +220,12 @@ export async function listDevices(): Promise<SpotifyDevice[]> {
   return body.devices || [];
 }
 
-export async function getAccount(): Promise<{ id: string; display_name: string; product: string; email?: string }> {
+export async function getAccount(): Promise<{
+  id: string;
+  display_name: string;
+  product: string;
+  email?: string;
+}> {
   return authFetch('/me');
 }
 
@@ -255,7 +294,9 @@ async function renderDialogBody(): Promise<void> {
       <button type="button" class="spotify-dialog__cta" id="spotifyPairBtn">Pair with Spotify</button>
     `;
     document.getElementById('spotifyPairBtn')?.addEventListener('click', () => {
-      startPairing().catch(err => { console.error('[spotify] pair failed', err); });
+      startPairing().catch(err => {
+        console.error('[spotify] pair failed', err);
+      });
     });
     return;
   }
@@ -274,15 +315,20 @@ async function renderDialogBody(): Promise<void> {
     if (!list) return;
     list.removeAttribute('aria-busy');
     if (devices.length === 0) {
-      list.innerHTML = '<p class="spotify-dialog__hint">No Spotify Connect devices found. Open Spotify on a device, then refresh.</p>';
+      list.innerHTML =
+        '<p class="spotify-dialog__hint">No Spotify Connect devices found. Open Spotify on a device, then refresh.</p>';
       return;
     }
-    list.innerHTML = devices.map(d => `
+    list.innerHTML = devices
+      .map(
+        d => `
       <button type="button" class="spotify-device${d.is_active ? ' is-active' : ''}" data-device="${d.id}" role="listitem">
         <span class="spotify-device__name">${d.name}</span>
         <span class="spotify-device__type">${d.type}${d.is_active ? ' · active' : ''}</span>
       </button>
-    `).join('');
+    `
+      )
+      .join('');
     list.querySelectorAll<HTMLButtonElement>('.spotify-device').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-device');
@@ -299,7 +345,8 @@ async function renderDialogBody(): Promise<void> {
     });
   } catch (err) {
     const list = document.getElementById('spotifyDevicesList');
-    if (list) list.innerHTML = `<p class="spotify-dialog__hint">Couldn't load devices: ${(err as Error).message}. Try unpairing and re-pairing.</p>`;
+    if (list)
+      list.innerHTML = `<p class="spotify-dialog__hint">Couldn't load devices: ${(err as Error).message}. Try unpairing and re-pairing.</p>`;
   }
 }
 

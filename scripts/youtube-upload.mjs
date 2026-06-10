@@ -51,7 +51,9 @@ function loadClient() {
 
 async function getAccessToken() {
   const client = loadClient();
-  const refresh = execSync('/Users/Apple/.local/bin/get-secret YOUTUBE_REFRESH_TOKEN', { encoding: 'utf8' }).trim();
+  const refresh = execSync('/Users/Apple/.local/bin/get-secret YOUTUBE_REFRESH_TOKEN', {
+    encoding: 'utf8'
+  }).trim();
   if (!refresh || refresh.startsWith('The file')) throw new Error('No refresh token — run `auth` first');
   const r = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
@@ -60,8 +62,8 @@ async function getAccessToken() {
       client_id: client.client_id,
       client_secret: client.client_secret,
       refresh_token: refresh,
-      grant_type: 'refresh_token',
-    }),
+      grant_type: 'refresh_token'
+    })
   });
   if (!r.ok) throw new Error(`Token refresh failed: ${r.status} ${await r.text()}`);
   const j = await r.json();
@@ -79,7 +81,10 @@ async function authFlow() {
       const u = new URL(req.url, 'http://x');
       const c = u.searchParams.get('code');
       res.end('OK — return to terminal.');
-      if (c) { srv.close(); resolve(c); }
+      if (c) {
+        srv.close();
+        resolve(c);
+      }
     });
     srv.listen(43219);
   });
@@ -91,11 +96,16 @@ async function authFlow() {
       client_secret: client.client_secret,
       code,
       redirect_uri: redirect,
-      grant_type: 'authorization_code',
-    }),
+      grant_type: 'authorization_code'
+    })
   });
   const j = await r.json();
-  if (!j.refresh_token) { console.error('No refresh_token returned. Did you previously grant? Revoke at https://myaccount.google.com/permissions and retry.'); process.exit(2); }
+  if (!j.refresh_token) {
+    console.error(
+      'No refresh_token returned. Did you previously grant? Revoke at https://myaccount.google.com/permissions and retry.'
+    );
+    process.exit(2);
+  }
   await writeFile(`${SECRETS}/YOUTUBE_REFRESH_TOKEN`, j.refresh_token + '\n');
   await execSync(`chmod 600 ${SECRETS}/YOUTUBE_REFRESH_TOKEN`);
   console.log('✓ Refresh token saved');
@@ -138,16 +148,18 @@ async function upload(trackId) {
     snippet: {
       title: `${meta.title} — bZ (Official Audio)`,
       description: `"${meta.title}" by bZ\n\n${meta.vibe}\n\nFrom ${meta.album} · 2026\nStream: https://music.megabyte.space/${trackId}\nPress kit: https://music.megabyte.space/press/${trackId}\nSpotify: https://open.spotify.com/artist/0hDEUhE0QAh51cM1Fe2p3T\n\n#hustlegospel #christianhiphop #newark #bzmusic`,
-      tags: ['bZ', 'hustle gospel', 'Christian hip-hop', 'Newark', 'Megabyte Labs', meta.album].filter(Boolean),
+      tags: ['bZ', 'hustle gospel', 'Christian hip-hop', 'Newark', 'Megabyte Labs', meta.album].filter(
+        Boolean
+      ),
       categoryId: '10', // Music
-      defaultLanguage: 'en',
+      defaultLanguage: 'en'
     },
     status: {
       privacyStatus: isPublic ? 'public' : 'unlisted',
       embeddable: true,
       license: 'youtube',
-      madeForKids: false,
-    },
+      madeForKids: false
+    }
   };
 
   // Step 1: create resumable upload session
@@ -159,12 +171,15 @@ async function upload(trackId) {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json; charset=UTF-8',
         'X-Upload-Content-Type': 'video/mp4',
-        'X-Upload-Content-Length': String(buf.length),
+        'X-Upload-Content-Length': String(buf.length)
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(body)
     }
   );
-  if (!init.ok) { console.error('init failed', init.status, await init.text()); process.exit(2); }
+  if (!init.ok) {
+    console.error('init failed', init.status, await init.text());
+    process.exit(2);
+  }
   const uploadUrl = init.headers.get('Location');
 
   // Step 2: PUT video bytes
@@ -172,9 +187,12 @@ async function upload(trackId) {
   const up = await fetch(uploadUrl, {
     method: 'PUT',
     headers: { 'Content-Type': 'video/mp4', 'Content-Length': String(buf.length) },
-    body: buf,
+    body: buf
   });
-  if (!up.ok) { console.error('upload failed', up.status, await up.text()); process.exit(2); }
+  if (!up.ok) {
+    console.error('upload failed', up.status, await up.text());
+    process.exit(2);
+  }
   const result = await up.json();
   const ytUrl = `https://youtu.be/${result.id}`;
   console.log(`✓ Published ${isPublic ? 'PUBLIC' : 'UNLISTED'}: ${ytUrl}`);
@@ -183,7 +201,10 @@ async function upload(trackId) {
 
 if (cmd === 'auth') await authFlow();
 else if (cmd === 'upload') {
-  if (!args[0]) { console.error('Usage: upload <trackId> [--public]'); process.exit(2); }
+  if (!args[0]) {
+    console.error('Usage: upload <trackId> [--public]');
+    process.exit(2);
+  }
   await upload(args[0]);
 } else {
   console.log(`youtube-upload — bZ release pipeline

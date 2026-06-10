@@ -34,11 +34,14 @@ if (!trackId || flags.has('--help')) {
 
 function requireEnv(name) {
   const v = process.env[name];
-  if (!v) { console.error(`Missing env: ${name}`); process.exit(1); }
+  if (!v) {
+    console.error(`Missing env: ${name}`);
+    process.exit(1);
+  }
   return v;
 }
 
-const LISTMONK_URL = (requireEnv('LISTMONK_URL')).replace(/\/+$/, '');
+const LISTMONK_URL = requireEnv('LISTMONK_URL').replace(/\/+$/, '');
 const LISTMONK_API_USER = requireEnv('LISTMONK_API_USER');
 const LISTMONK_API_TOKEN = requireEnv('LISTMONK_API_TOKEN');
 const LISTMONK_LIST_NAME = process.env.LISTMONK_LIST_NAME || DEFAULT_LIST_NAME;
@@ -53,9 +56,17 @@ function lmHeaders() {
 }
 
 async function lmFetch(path, init = {}) {
-  const r = await fetch(`${LISTMONK_URL}${path}`, { ...init, headers: { ...lmHeaders(), ...(init.headers || {}) } });
+  const r = await fetch(`${LISTMONK_URL}${path}`, {
+    ...init,
+    headers: { ...lmHeaders(), ...(init.headers || {}) }
+  });
   const text = await r.text();
-  let json = null; try { json = text ? JSON.parse(text) : null; } catch { /* ignore */ }
+  let json = null;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    /* ignore */
+  }
   if (!r.ok) throw new Error(`Listmonk ${r.status} ${path}: ${text.slice(0, 300)}`);
   return json;
 }
@@ -63,7 +74,7 @@ async function lmFetch(path, init = {}) {
 // Tiny .ts loader — extract ALBUMS + TRACKS const-literal blocks and eval as JS.
 async function loadTracks() {
   const src = await readFile(resolve(ROOT, 'src/data.ts'), 'utf8');
-  const grab = (name) => {
+  const grab = name => {
     const re = new RegExp(`export const ${name}\\s*:\\s*[A-Za-z\\[\\]]+\\s*=\\s*(\\[[\\s\\S]*?\\n\\]);`);
     const m = src.match(re);
     if (!m) throw new Error(`Could not extract ${name} from data.ts`);
@@ -119,7 +130,11 @@ const html = `<!doctype html><html><body style="margin:0;padding:0;background:#0
         <a href="${trackUrl}" style="display:inline-block;background:#00E5FF;color:#060610;text-decoration:none;font-weight:700;letter-spacing:.04em;padding:14px 22px;border-radius:999px">▶  Press play</a>
       </td></tr>
       <tr><td style="padding:28px 0 0;font-size:13px;line-height:1.55;color:#c8d0db">
-        ${track.lyrics.slice(0, 4).map(l => l.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')).map(l => `<p style="margin:0 0 6px">${l}</p>`).join('')}
+        ${track.lyrics
+          .slice(0, 4)
+          .map(l => l.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'))
+          .map(l => `<p style="margin:0 0 6px">${l}</p>`)
+          .join('')}
       </td></tr>
       <tr><td style="padding:32px 0 8px;font-size:12px;color:#6b7280;border-top:1px solid #1a1a2e;margin-top:24px">
         <p style="margin:16px 0 4px">First listen, every drop. No ads. No spam.</p>

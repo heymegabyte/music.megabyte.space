@@ -10,13 +10,16 @@ export interface EQSettings {
 
 export type ReverbPreset = 'dry' | 'room' | 'hall' | 'cathedral' | 'spring' | 'plate';
 
-const REVERB_PRESETS: Record<ReverbPreset, { duration: number; decay: number; reverse: boolean; wet: number }> = {
-  dry:       { duration: 0.4, decay: 4.0, reverse: false, wet: 0.0 },
-  room:      { duration: 1.2, decay: 3.0, reverse: false, wet: 0.12 },
-  hall:      { duration: 2.6, decay: 2.4, reverse: false, wet: 0.22 },
+const REVERB_PRESETS: Record<
+  ReverbPreset,
+  { duration: number; decay: number; reverse: boolean; wet: number }
+> = {
+  dry: { duration: 0.4, decay: 4.0, reverse: false, wet: 0.0 },
+  room: { duration: 1.2, decay: 3.0, reverse: false, wet: 0.12 },
+  hall: { duration: 2.6, decay: 2.4, reverse: false, wet: 0.22 },
   cathedral: { duration: 4.8, decay: 1.8, reverse: false, wet: 0.32 },
-  spring:    { duration: 1.6, decay: 5.0, reverse: false, wet: 0.18 },
-  plate:     { duration: 2.0, decay: 3.5, reverse: true,  wet: 0.20 }
+  spring: { duration: 1.6, decay: 5.0, reverse: false, wet: 0.18 },
+  plate: { duration: 2.0, decay: 3.5, reverse: true, wet: 0.2 }
 };
 
 export class AudioEngine {
@@ -50,8 +53,8 @@ export class AudioEngine {
   rmsFluxSlope = 0;
   dropImminent = false;
   dropPredictedAt = 0;
-  dropEnergy = 0;          // 0-1 smoothed RMS — drives strobe brightness
-  buildPhase = 0;          // 0 = silence/release · 1 = peak build-up
+  dropEnergy = 0; // 0-1 smoothed RMS — drives strobe brightness
+  buildPhase = 0; // 0 = silence/release · 1 = peak build-up
   private rmsHistory: number[] = [];
   private dropCooldownUntil = 0;
   private energyHistory: number[] = [];
@@ -87,7 +90,10 @@ export class AudioEngine {
     this.audio.setAttribute('data-engine', 'bz');
     this.audio.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none;';
     if (typeof document !== 'undefined' && document.body) document.body.appendChild(this.audio);
-    else if (typeof document !== 'undefined') document.addEventListener('DOMContentLoaded', () => document.body.appendChild(this.audio), { once: true });
+    else if (typeof document !== 'undefined')
+      document.addEventListener('DOMContentLoaded', () => document.body.appendChild(this.audio), {
+        once: true
+      });
     this.audio.addEventListener('ended', () => this.emit());
     this.audio.addEventListener('play', () => this.emit());
     this.audio.addEventListener('pause', () => this.emit());
@@ -100,14 +106,22 @@ export class AudioEngine {
     this.audio.addEventListener('error', () => {
       const code = this.audio.error?.code;
       if (!this.current || (code !== 2 && code !== 4)) return; // network/src only
-      if (this.reloadGuard === this.current.id) return;        // already retried this track
+      if (this.reloadGuard === this.current.id) return; // already retried this track
       this.reloadGuard = this.current.id;
       const wasPlaying = !this.audio.paused;
       const at = this.audio.currentTime || 0;
       setTimeout(() => {
         if (!this.audio.src) return;
         this.audio.load();
-        if (wasPlaying) this.audio.play().then(() => { if (at) this.audio.currentTime = at; }).catch(() => { /* gesture/abort */ });
+        if (wasPlaying)
+          this.audio
+            .play()
+            .then(() => {
+              if (at) this.audio.currentTime = at;
+            })
+            .catch(() => {
+              /* gesture/abort */
+            });
       }, 700);
     });
   }
@@ -284,7 +298,11 @@ export class AudioEngine {
     // guard a rapid track-switch (click track 2 while track 1 is still loading)
     // throws "The play() request was interrupted by a new load request".
     if (this.playPromise) {
-      try { await this.playPromise; } catch { /* prior abort is expected on rapid switch */ }
+      try {
+        await this.playPromise;
+      } catch {
+        /* prior abort is expected on rapid switch */
+      }
     }
     if (this.current?.id !== track.id) {
       // Pause first so the in-flight load doesn't race the new src.
@@ -365,10 +383,15 @@ export class AudioEngine {
 
     // Linear regression slope across the window — positive slope = building.
     const n = this.rmsHistory.length;
-    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    let sumX = 0,
+      sumY = 0,
+      sumXY = 0,
+      sumX2 = 0;
     for (let i = 0; i < n; i++) {
-      sumX += i; sumY += this.rmsHistory[i];
-      sumXY += i * this.rmsHistory[i]; sumX2 += i * i;
+      sumX += i;
+      sumY += this.rmsHistory[i];
+      sumXY += i * this.rmsHistory[i];
+      sumX2 += i * i;
     }
     const meanX = sumX / n;
     const meanY = sumY / n;
@@ -455,21 +478,39 @@ export class AudioEngine {
   // Spectral 7-band split + spectral centroid + stereo width — visualizers
   // tap this to drive richer Web-Audio reactivity than raw beatPulse alone.
   bands(): {
-    bass: number; lowMid: number; mid: number; highMid: number;
-    treble: number; presence: number; brilliance: number;
-    centroid: number; stereo: number; flux: number;
+    bass: number;
+    lowMid: number;
+    mid: number;
+    highMid: number;
+    treble: number;
+    presence: number;
+    brilliance: number;
+    centroid: number;
+    stereo: number;
+    flux: number;
   } {
     const f = this.freqData;
     const n = f.length;
     if (n === 0) {
-      return { bass: 0, lowMid: 0, mid: 0, highMid: 0, treble: 0, presence: 0, brilliance: 0, centroid: 0, stereo: 0, flux: 0 };
+      return {
+        bass: 0,
+        lowMid: 0,
+        mid: 0,
+        highMid: 0,
+        treble: 0,
+        presence: 0,
+        brilliance: 0,
+        centroid: 0,
+        stereo: 0,
+        flux: 0
+      };
     }
     const bandAvg = (lo: number, hi: number) => {
       const a = Math.max(0, Math.floor(n * lo));
       const b = Math.min(n, Math.floor(n * hi));
       let s = 0;
       for (let i = a; i < b; i++) s += f[i];
-      return b > a ? (s / (b - a)) / 255 : 0;
+      return b > a ? s / (b - a) / 255 : 0;
     };
     let sumMag = 0;
     let sumWeighted = 0;
@@ -478,25 +519,26 @@ export class AudioEngine {
       sumMag += m;
       sumWeighted += m * i;
     }
-    const centroid = sumMag > 0 ? (sumWeighted / sumMag) / n : 0;
-    const channelDelta = this.freqL.length === this.freqR.length && this.freqL.length > 0
-      ? (() => {
-          let d = 0;
-          for (let i = 0; i < this.freqL.length; i++) d += Math.abs(this.freqL[i] - this.freqR[i]);
-          return d / this.freqL.length / 255;
-        })()
-      : 0;
+    const centroid = sumMag > 0 ? sumWeighted / sumMag / n : 0;
+    const channelDelta =
+      this.freqL.length === this.freqR.length && this.freqL.length > 0
+        ? (() => {
+            let d = 0;
+            for (let i = 0; i < this.freqL.length; i++) d += Math.abs(this.freqL[i] - this.freqR[i]);
+            return d / this.freqL.length / 255;
+          })()
+        : 0;
     return {
-      bass:       bandAvg(0,    0.04),
-      lowMid:     bandAvg(0.04, 0.10),
-      mid:        bandAvg(0.10, 0.22),
-      highMid:    bandAvg(0.22, 0.38),
-      treble:     bandAvg(0.38, 0.58),
-      presence:   bandAvg(0.58, 0.78),
+      bass: bandAvg(0, 0.04),
+      lowMid: bandAvg(0.04, 0.1),
+      mid: bandAvg(0.1, 0.22),
+      highMid: bandAvg(0.22, 0.38),
+      treble: bandAvg(0.38, 0.58),
+      presence: bandAvg(0.58, 0.78),
       brilliance: bandAvg(0.78, 1.0),
       centroid,
-      stereo:     channelDelta,
-      flux:       Math.max(0, Math.min(1, this.rmsFluxSlope * 4 + 0.5))
+      stereo: channelDelta,
+      flux: Math.max(0, Math.min(1, this.rmsFluxSlope * 4 + 0.5))
     };
   }
 

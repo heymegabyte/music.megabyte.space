@@ -52,7 +52,11 @@ function shouldIgnore(text: string, location?: string) {
   return false;
 }
 
-interface CapturedMsg { kind: string; text: string; location: string }
+interface CapturedMsg {
+  kind: string;
+  text: string;
+  location: string;
+}
 
 async function attachCollectors(page: import('@playwright/test').Page) {
   const captured: CapturedMsg[] = [];
@@ -64,11 +68,11 @@ async function attachCollectors(page: import('@playwright/test').Page) {
     if (shouldIgnore(text, url)) return;
     captured.push({ kind: msg.type(), text, location: url });
   });
-  page.on('pageerror', (err) => {
+  page.on('pageerror', err => {
     if (shouldIgnore(err.message)) return;
     captured.push({ kind: 'pageerror', text: err.message, location: '' });
   });
-  page.on('requestfailed', (req) => {
+  page.on('requestfailed', req => {
     const url = req.url();
     if (shouldIgnore(url)) return;
     // Ignore the well-known DNT/abort-on-leave races for analytics beacons.
@@ -148,7 +152,7 @@ test.describe('console hygiene — production sweep', () => {
 
   test('CSP headers — no font-src or style-src violations on Google Fonts load', async ({ page }) => {
     const cspViolations: string[] = [];
-    page.on('console', (msg) => {
+    page.on('console', msg => {
       const t = msg.text();
       if (/Content Security Policy/i.test(t) && /style-src|font-src/i.test(t)) {
         cspViolations.push(t);
@@ -160,7 +164,7 @@ test.describe('console hygiene — production sweep', () => {
 
   test('Trusted Types — no TrustedHTML / TrustedScriptURL violations from our code', async ({ page }) => {
     const ttViolations: string[] = [];
-    page.on('console', (msg) => {
+    page.on('console', msg => {
       const t = msg.text();
       if (!/TrustedHTML|TrustedScript|TrustedTypePolicy/i.test(t)) return;
       // Filter Cast SDK goog#html — allowed in CSP.

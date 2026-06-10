@@ -1,10 +1,5 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
-import {
-  nativeShareSupported,
-  canShareFiles,
-  nativeShare,
-  shareWithFallback
-} from './web-share';
+import { nativeShareSupported, canShareFiles, nativeShare, shareWithFallback } from './web-share';
 
 const restore: Array<() => void> = [];
 
@@ -89,9 +84,7 @@ describe('nativeShare', () => {
   });
 
   it('returns "cancelled" on AbortError (user dismiss)', async () => {
-    const share = vi.fn().mockRejectedValue(
-      Object.assign(new DOMException('cancelled', 'AbortError'))
-    );
+    const share = vi.fn().mockRejectedValue(Object.assign(new DOMException('cancelled', 'AbortError')));
     stubNavigator({ share });
     expect(await nativeShare(payload)).toBe('cancelled');
   });
@@ -108,9 +101,7 @@ describe('nativeShare', () => {
     stubNavigator({ share, canShare });
     const file = new File(['hi'], 'a.txt');
     await nativeShare({ ...payload, files: [file] });
-    expect(share).toHaveBeenCalledWith(
-      expect.objectContaining({ files: [file], title: 't', text: 'x' })
-    );
+    expect(share).toHaveBeenCalledWith(expect.objectContaining({ files: [file], title: 't', text: 'x' }));
   });
 
   it('omits files when canShare returns false', async () => {
@@ -143,9 +134,7 @@ describe('shareWithFallback', () => {
   });
 
   it('uses native sheet on touch devices and does NOT call fallback on cancel', async () => {
-    const share = vi.fn().mockRejectedValue(
-      Object.assign(new DOMException('cancelled', 'AbortError'))
-    );
+    const share = vi.fn().mockRejectedValue(Object.assign(new DOMException('cancelled', 'AbortError')));
     stubNavigator({ share });
     stubMatchMedia(true);
     const fallback = vi.fn();

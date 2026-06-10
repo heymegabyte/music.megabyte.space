@@ -63,25 +63,27 @@ function extractJwt() {
 const JWT = extractJwt();
 if (!JWT && !useCached) {
   console.error('SUNO_COOKIE/SUNO_JWT missing. Paste cookie header from suno.com Network tab:');
-  console.error('  export SUNO_COOKIE=\'<paste>\'');
+  console.error("  export SUNO_COOKIE='<paste>'");
   console.error('OR use --cached to skip the fetch and reuse data/suno-feed.json.');
   process.exit(2);
 }
 
 const baseHeaders = {
-  'Authorization': `Bearer ${JWT}`,
+  Authorization: `Bearer ${JWT}`,
   'User-Agent': REAL_UA,
-  'Accept': 'application/json, text/plain, */*',
+  Accept: 'application/json, text/plain, */*',
   'Accept-Language': 'en-US,en;q=0.9',
-  'Referer': 'https://suno.com/',
-  'Origin': 'https://suno.com'
+  Referer: 'https://suno.com/',
+  Origin: 'https://suno.com'
 };
 
 async function fetchPage(page, attempt = 0) {
   const url = `https://studio-api.prod.suno.com/api/feed/v2?page=${page}&page_size=50`;
   const r = await fetch(url, { headers: baseHeaders });
   if (r.status === 401 || r.status === 403) {
-    throw new Error(`Suno auth failed (${r.status}). Refresh SUNO_COOKIE from your browser (the __session JWT expires ~60min).`);
+    throw new Error(
+      `Suno auth failed (${r.status}). Refresh SUNO_COOKIE from your browser (the __session JWT expires ~60min).`
+    );
   }
   if (r.status === 429) {
     if (attempt >= 4) throw new Error(`Suno rate-limited on page ${page} after ${attempt} retries`);
@@ -179,27 +181,33 @@ function bestMatch(track, clips) {
 // Section-name single-words that Suno sometimes emits without brackets:
 // `Hook` `Verse 1` `Chorus` `Pre-Chorus` `Refrain` `Intro` `Outro` etc.
 // These are structural cues for Suno's model, not lyric content.
-const SECTION_BARE_WORD = /^(hook|verse|chorus|bridge|pre[- ]?chorus|intro|outro|refrain|pre|post|interlude|drop|build|breakdown|tag)(\s*\d+)?$/i;
+const SECTION_BARE_WORD =
+  /^(hook|verse|chorus|bridge|pre[- ]?chorus|intro|outro|refrain|pre|post|interlude|drop|build|breakdown|tag)(\s*\d+)?$/i;
 
 function cleanLyrics(prompt) {
   if (!prompt) return [];
-  return prompt
-    .split('\n')
-    .map(l => l.trim())
-    // Strip lines whose entire content is one or more [tag] groups —
-    // catches both single `[Verse 1]` markers AND production-direction
-    // stacks like `[Hook][gospel choir whisper][soft]` that Suno emits.
-    // A real lyric line will have at least one non-bracket character
-    // outside the brackets.
-    .filter(l => l && !/^(?:\[[^\]]*\]\s*)+$/.test(l))
-    // Also strip bare section-name lines like "Hook", "Verse 1", "OUTRO".
-    .filter(l => !SECTION_BARE_WORD.test(l))
-    .filter(l => l !== '...' && l !== '…');
+  return (
+    prompt
+      .split('\n')
+      .map(l => l.trim())
+      // Strip lines whose entire content is one or more [tag] groups —
+      // catches both single `[Verse 1]` markers AND production-direction
+      // stacks like `[Hook][gospel choir whisper][soft]` that Suno emits.
+      // A real lyric line will have at least one non-bracket character
+      // outside the brackets.
+      .filter(l => l && !/^(?:\[[^\]]*\]\s*)+$/.test(l))
+      // Also strip bare section-name lines like "Hook", "Verse 1", "OUTRO".
+      .filter(l => !SECTION_BARE_WORD.test(l))
+      .filter(l => l !== '...' && l !== '…')
+  );
 }
 
 function condenseTags(tags) {
   if (!tags) return '';
-  const parts = tags.split(/,\s*/).map(s => s.trim()).filter(Boolean);
+  const parts = tags
+    .split(/,\s*/)
+    .map(s => s.trim())
+    .filter(Boolean);
   // First 5 stylistic segments — captures genre + voice + tempo + 1-2 textures.
   return parts.slice(0, 5).join(', ');
 }
@@ -210,15 +218,18 @@ function parseTracks(src) {
   const start = src.search(/export const TRACKS\s*:\s*Track\[\]\s*=\s*\[/);
   if (start < 0) return [];
   const region = src.slice(start);
-  const blocks = region.match(/\{\s*id:\s*'[^']+'[\s\S]*?file:\s*'[^']+\.mp3'[\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
-  return blocks.map(b => ({
-    block: b,
-    id: b.match(/id:\s*'([^']+)'/)?.[1],
-    title: b.match(/title:\s*'([^']+)'/)?.[1] || '',
-    album: b.match(/album:\s*'([^']+)'/)?.[1] || '',
-    file: b.match(/file:\s*'([^']+)'/)?.[1] || '',
-    vibe: b.match(/vibe:\s*'([^']*)'/)?.[1] || ''
-  })).filter(t => t.id);
+  const blocks =
+    region.match(/\{\s*id:\s*'[^']+'[\s\S]*?file:\s*'[^']+\.mp3'[\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
+  return blocks
+    .map(b => ({
+      block: b,
+      id: b.match(/id:\s*'([^']+)'/)?.[1],
+      title: b.match(/title:\s*'([^']+)'/)?.[1] || '',
+      album: b.match(/album:\s*'([^']+)'/)?.[1] || '',
+      file: b.match(/file:\s*'([^']+)'/)?.[1] || '',
+      vibe: b.match(/vibe:\s*'([^']*)'/)?.[1] || ''
+    }))
+    .filter(t => t.id);
 }
 
 // --- Main --------------------------------------------------------------------
@@ -238,7 +249,10 @@ async function main() {
     clips = await fetchAllClips();
     process.stderr.write(`Got ${clips.length} clips.\n`);
     await mkdir(resolve(ROOT, 'data'), { recursive: true });
-    await writeFile(FEED_OUT, JSON.stringify({ fetched_at: new Date().toISOString(), count: clips.length, clips }, null, 2));
+    await writeFile(
+      FEED_OUT,
+      JSON.stringify({ fetched_at: new Date().toISOString(), count: clips.length, clips }, null, 2)
+    );
     process.stderr.write(`Wrote ${FEED_OUT} (${(JSON.stringify(clips).length / 1024).toFixed(1)} KB)\n`);
   }
 
@@ -264,7 +278,10 @@ async function main() {
       sunoCreated: m?.clip?.created_at ?? null
     });
   }
-  await writeFile(MATCH_OUT, JSON.stringify({ generated_at: new Date().toISOString(), min_score: minScore, matches }, null, 2));
+  await writeFile(
+    MATCH_OUT,
+    JSON.stringify({ generated_at: new Date().toISOString(), min_score: minScore, matches }, null, 2)
+  );
   process.stderr.write(`Wrote ${MATCH_OUT}\n\n`);
 
   // Report top + bottom
@@ -279,7 +296,9 @@ async function main() {
   if (unmatched.length) {
     console.log(`\nBelow threshold (${unmatched.length}):`);
     for (const m of unmatched) {
-      console.log(`  ✗ ${m.score.toFixed(2)}  ${m.id.padEnd(28)} (title: "${m.title}", best clip: "${m.sunoTitle || '—'}")`);
+      console.log(
+        `  ✗ ${m.score.toFixed(2)}  ${m.id.padEnd(28)} (title: "${m.title}", best clip: "${m.sunoTitle || '—'}")`
+      );
     }
   }
 
@@ -306,19 +325,17 @@ async function main() {
     const tags = condenseTags(m.sunoTags);
 
     // Match the exact track block in src so we patch ONLY that one.
-    const blockRe = new RegExp(
-      `(\\{\\s*id:\\s*'${m.id}'[\\s\\S]*?lyrics:\\s*\\[)([\\s\\S]*?)(\\n\\s{4}\\])`
-    );
-    const lit = lyrics
-      .map(l => `      '${l.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`)
-      .join(',\n');
+    const blockRe = new RegExp(`(\\{\\s*id:\\s*'${m.id}'[\\s\\S]*?lyrics:\\s*\\[)([\\s\\S]*?)(\\n\\s{4}\\])`);
+    const lit = lyrics.map(l => `      '${l.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`).join(',\n');
     const next = out.replace(blockRe, `$1\n${lit}\n    ]`);
 
     // Optional: refresh vibe with condensed Suno tags ONLY when the current
     // vibe is empty or generic (< 15 chars). Brian's curated vibes are
     // intentional poetry; don't overwrite them.
     let next2 = next;
-    const trackBlockMatch = next.match(new RegExp(`\\{\\s*id:\\s*'${m.id}'[\\s\\S]*?wisdom:[^\\n]+\\n\\s*\\}`));
+    const trackBlockMatch = next.match(
+      new RegExp(`\\{\\s*id:\\s*'${m.id}'[\\s\\S]*?wisdom:[^\\n]+\\n\\s*\\}`)
+    );
     if (tags && trackBlockMatch) {
       // Vibe regex must handle escaped apostrophes (e.g. `can\'t`) — naive
       // `[^']*` capture stops at the first inner `'` and reports a
@@ -341,7 +358,9 @@ async function main() {
   }
 
   if (dryRun) {
-    console.log(`\n[dry] would patch ${patchedIds.length} track(s): ${patchedIds.slice(0, 8).join(', ')}${patchedIds.length > 8 ? '…' : ''}`);
+    console.log(
+      `\n[dry] would patch ${patchedIds.length} track(s): ${patchedIds.slice(0, 8).join(', ')}${patchedIds.length > 8 ? '…' : ''}`
+    );
     console.log(`[dry] would skip ${skipped.length}`);
     return;
   }

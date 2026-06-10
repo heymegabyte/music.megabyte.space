@@ -39,13 +39,12 @@ export interface ContentPage {
 }
 
 const esc = (s: string) =>
-  s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+  s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
 // Section divider — a thin accent rule with optional kicker text. Rendered as an
 // <h4> so the auto-built left-rail TOC (renderContentPageTOC, reads <h4>) picks up
 // every section as a jump link. The .contentpage__divider class keeps the styling.
-const divider = (label: string) =>
-  `<h4 class="contentpage__divider"><span>${esc(label)}</span></h4>`;
+const divider = (label: string) => `<h4 class="contentpage__divider"><span>${esc(label)}</span></h4>`;
 
 // Minor divider — same look, but a <p> (not <h4>) so it does NOT feed the
 // left-rail TOC. Used to keep long pages (e.g. /about) navigable: only the major
@@ -74,41 +73,50 @@ const highlight = (label: string, body: string) =>
 // Vertical timeline — each entry has date + title + body
 const timeline = (entries: Array<{ date: string; title: string; body: string }>) =>
   `<ol class="contentpage__timeline">
-    ${entries.map(e => `<li>
+    ${entries
+      .map(
+        e => `<li>
       <time>${esc(e.date)}</time>
       <h5>${esc(e.title)}</h5>
       <p>${e.body}</p>
-    </li>`).join('')}
+    </li>`
+      )
+      .join('')}
   </ol>`;
 
 // 2-column grid of case-study cards
 const cards = (items: Array<{ title: string; meta?: string; body: string }>) =>
   `<div class="contentpage__cards">
-    ${items.map(c => `<article class="contentpage__card">
+    ${items
+      .map(
+        c => `<article class="contentpage__card">
       <h5>${esc(c.title)}</h5>
       ${c.meta ? `<span class="contentpage__card-meta">${esc(c.meta)}</span>` : ''}
       <p>${c.body}</p>
-    </article>`).join('')}
+    </article>`
+      )
+      .join('')}
   </div>`;
 
 // Inline album thumbnail row — clickable cover chips
-const albumChip = (a: typeof ALBUMS[number]) =>
+const albumChip = (a: (typeof ALBUMS)[number]) =>
   `<a class="contentpage__album-chip" href="/${esc(a.id)}">
     <img src="${esc(a.cover)}" alt="" loading="lazy" />
     <span>${esc(a.name)}</span>
   </a>`;
 
 export const CONTENT_PAGES: ContentPage[] = [
-
   // ═══ ABOUT ════════════════════════════════════════════════════════════
   {
     slug: 'about',
     title: 'About',
     eyebrow: 'who is this',
-    description: 'Brian Zalewski — Newark-based solo artist. Hustle-gospel music. Megabyte Labs founder. Hard but holy.',
+    description:
+      'Brian Zalewski — Newark-based solo artist. Hustle-gospel music. Megabyte Labs founder. Hard but holy.',
     ogImage: '/og/og-about.jpg',
     metaTitle: 'About — artist, theology, process, support',
-    metaDescription: "Brian Zalewski is bZ — solo hustle-gospel artist out of Newark, NJ. The full story: bio, hard-but-holy theology, the 5-stage song-making process, how to support the studio, and how to connect. 6 albums, 50+ tracks.",
+    metaDescription:
+      'Brian Zalewski is bZ — solo hustle-gospel artist out of Newark, NJ. The full story: bio, hard-but-holy theology, the 5-stage song-making process, how to support the studio, and how to connect. 6 albums, 50+ tracks.',
     jsonLdType: 'AboutPage',
     render: () => `
       <article class="contentpage__article">
@@ -125,7 +133,7 @@ export const CONTENT_PAGES: ContentPage[] = [
 
         ${pullquote(`Lifelong passion meets purpose — an open-source studio, a personal portfolio, and a launchpad for ideas worth building.`, 'Megabyte Labs manifesto')}
 
-        ${figure('/art/pages/about-hero.png', 'Brian\'s studio at night', 'The studio · multiple monitors, mic, vinyl, Bible on the desk.')}
+        ${figure('/art/pages/about-hero.png', "Brian's studio at night", 'The studio · multiple monitors, mic, vinyl, Bible on the desk.')}
 
         ${divider('the artist')}
         <p>
@@ -200,19 +208,55 @@ export const CONTENT_PAGES: ContentPage[] = [
 
         ${minorDivider('the journey')}
         ${timeline([
-          { date: '2011', title: 'First public open-source commit', body: 'Cordova plugins, Stencil components. The Megabyte Labs corpus starts taking shape.' },
-          { date: '2018', title: 'Megabyte Labs founded', body: 'Personal brand → open-source studio with hundreds of projects, millions of downloads.' },
-          { date: '2024', title: 'Suno v3 launches', body: 'First experiments with AI-generated music. Hand-written lyrics + machine-rendered takes click immediately.' },
-          { date: '2025', title: 'Panda Desiiignare drops', body: 'First public bZ album. Hustle-gospel born.' },
-          { date: '2026', title: "St. John's Canon + Mercy Drop", body: 'Six-album catalog. Whisper-aligned karaoke + Workers AI chat + cinematic visualizers all shipping from a one-person studio.' },
+          {
+            date: '2011',
+            title: 'First public open-source commit',
+            body: 'Cordova plugins, Stencil components. The Megabyte Labs corpus starts taking shape.'
+          },
+          {
+            date: '2018',
+            title: 'Megabyte Labs founded',
+            body: 'Personal brand → open-source studio with hundreds of projects, millions of downloads.'
+          },
+          {
+            date: '2024',
+            title: 'Suno v3 launches',
+            body: 'First experiments with AI-generated music. Hand-written lyrics + machine-rendered takes click immediately.'
+          },
+          {
+            date: '2025',
+            title: 'Panda Desiiignare drops',
+            body: 'First public bZ album. Hustle-gospel born.'
+          },
+          {
+            date: '2026',
+            title: "St. John's Canon + Mercy Drop",
+            body: 'Six-album catalog. Whisper-aligned karaoke + Workers AI chat + cinematic visualizers all shipping from a one-person studio.'
+          }
         ])}
 
         ${minorDivider('daily rhythm')}
         ${cards([
-          { title: 'Mornings · code', meta: '6am-12pm', body: 'Megabyte Labs consulting + open-source maintenance. Deep work block when caffeine + circadian focus peak.' },
-          { title: 'Afternoons · family', meta: '12-6pm', body: 'Wife. Kids. Real life. No phone, no laptop, no Slack. The day-job hard-stops.' },
-          { title: 'Evenings · music', meta: '8-11pm', body: 'Lyric drafts, Suno takes, audio analysis. The hustle-gospel studio runs on the late shift.' },
-          { title: 'Sunday · church + reset', meta: 'all day', body: 'Sabbath proper. No code, no email. The week resets in a pew + at a soup kitchen.' },
+          {
+            title: 'Mornings · code',
+            meta: '6am-12pm',
+            body: 'Megabyte Labs consulting + open-source maintenance. Deep work block when caffeine + circadian focus peak.'
+          },
+          {
+            title: 'Afternoons · family',
+            meta: '12-6pm',
+            body: 'Wife. Kids. Real life. No phone, no laptop, no Slack. The day-job hard-stops.'
+          },
+          {
+            title: 'Evenings · music',
+            meta: '8-11pm',
+            body: 'Lyric drafts, Suno takes, audio analysis. The hustle-gospel studio runs on the late shift.'
+          },
+          {
+            title: 'Sunday · church + reset',
+            meta: 'all day',
+            body: 'Sabbath proper. No code, no email. The week resets in a pew + at a soup kitchen.'
+          }
         ])}
 
         ${divider('the theology · hard but holy')}
@@ -227,8 +271,14 @@ export const CONTENT_PAGES: ContentPage[] = [
 
         ${minorDivider('what you will + won’t hear')}
         ${cards([
-          { title: 'What you will hear', body: 'Reverence around family — by name and by silence. Discipline framed as freedom. Service of the poor as the throughline. Scripture quoted with chapter + verse. Robert Greene’s 48 Laws as wisdom literature.' },
-          { title: 'What you won’t hear', body: 'Zero drug references, by editorial rule. No misogyny — every woman treated as image-bearer. No cheap grace, no triumphalism. Strong words only in service of weight, never edge.' },
+          {
+            title: 'What you will hear',
+            body: 'Reverence around family — by name and by silence. Discipline framed as freedom. Service of the poor as the throughline. Scripture quoted with chapter + verse. Robert Greene’s 48 Laws as wisdom literature.'
+          },
+          {
+            title: 'What you won’t hear',
+            body: 'Zero drug references, by editorial rule. No misogyny — every woman treated as image-bearer. No cheap grace, no triumphalism. Strong words only in service of weight, never edge.'
+          }
         ])}
         <p>
           "Christian-gangster" isn't an oxymoron — it's lineage. David ran a Robin Hood
@@ -240,9 +290,21 @@ export const CONTENT_PAGES: ContentPage[] = [
 
         ${divider('three pillars')}
         ${cards([
-          { title: 'Mercy', meta: 'James 2:13', body: '"Mercy triumphs over judgment." Every track assumes the listener is hurting somehow, and meets that hurt without flinching, without exploiting.' },
-          { title: 'Discipline', meta: 'Hebrews 12:11', body: '"No discipline seems pleasant at the time." The kingdom + the grind point the same direction. The editorial rules are non-negotiable for a reason.' },
-          { title: 'Service', meta: 'Matthew 25:40', body: `"Whatever you did for the least of these, you did for me." St. John's Soup Kitchen of Newark is the throughline — not the marketing.` },
+          {
+            title: 'Mercy',
+            meta: 'James 2:13',
+            body: '"Mercy triumphs over judgment." Every track assumes the listener is hurting somehow, and meets that hurt without flinching, without exploiting.'
+          },
+          {
+            title: 'Discipline',
+            meta: 'Hebrews 12:11',
+            body: '"No discipline seems pleasant at the time." The kingdom + the grind point the same direction. The editorial rules are non-negotiable for a reason.'
+          },
+          {
+            title: 'Service',
+            meta: 'Matthew 25:40',
+            body: `"Whatever you did for the least of these, you did for me." St. John's Soup Kitchen of Newark is the throughline — not the marketing.`
+          }
         ])}
 
         ${minorDivider('on AI in worship music')}
@@ -288,17 +350,44 @@ export const CONTENT_PAGES: ContentPage[] = [
         ${minorDivider('anatomy of one track')}
         <p>"Chef Lu Stew" from Panda Desiiignare, start to finish:</p>
         ${cards([
-          { title: '1 · Verse caught me', meta: 'Mark 6:42', body: '"They all ate and were satisfied" — the feeding of the 5,000. Image of a chef feeding the line.' },
-          { title: '2 · Lyric draft', meta: '~45min · pen + paper', body: 'Three verses, two-line chorus. Hook: "Chef Lu in the kitchen, fire in the pot." Repeats four times.' },
-          { title: '3 · Suno take', meta: '~2h · 7 takes', body: '<code>boom bap, jazz piano, vinyl crackle, 88 bpm, no autotune</code>. Take 5 nailed it; 1-4 drifted on tempo.' },
-          { title: '4 · Whisper align', meta: '~3min', body: '247 words mapped to timestamps; Needleman-Wunsch repaired 4 misalignments where Suno blurred syllables.' },
-          { title: '5 · BPM measure', meta: '~30s', body: 'aubio confirmed 87.4 bpm, C minor at 0.92 confidence. Visualizer locked to the tempo grid.' },
-          { title: '6 · Shipped', meta: '/desiiignare/chef-lu-stew', body: 'Most-shared track of the album. Played at a parish soup-kitchen benefit.' },
+          {
+            title: '1 · Verse caught me',
+            meta: 'Mark 6:42',
+            body: '"They all ate and were satisfied" — the feeding of the 5,000. Image of a chef feeding the line.'
+          },
+          {
+            title: '2 · Lyric draft',
+            meta: '~45min · pen + paper',
+            body: 'Three verses, two-line chorus. Hook: "Chef Lu in the kitchen, fire in the pot." Repeats four times.'
+          },
+          {
+            title: '3 · Suno take',
+            meta: '~2h · 7 takes',
+            body: '<code>boom bap, jazz piano, vinyl crackle, 88 bpm, no autotune</code>. Take 5 nailed it; 1-4 drifted on tempo.'
+          },
+          {
+            title: '4 · Whisper align',
+            meta: '~3min',
+            body: '247 words mapped to timestamps; Needleman-Wunsch repaired 4 misalignments where Suno blurred syllables.'
+          },
+          {
+            title: '5 · BPM measure',
+            meta: '~30s',
+            body: 'aubio confirmed 87.4 bpm, C minor at 0.92 confidence. Visualizer locked to the tempo grid.'
+          },
+          {
+            title: '6 · Shipped',
+            meta: '/desiiignare/chef-lu-stew',
+            body: 'Most-shared track of the album. Played at a parish soup-kitchen benefit.'
+          }
         ])}
-        ${highlight('~$0.42 per shipped track', `
+        ${highlight(
+          '~$0.42 per shipped track',
+          `
           Suno credits ~$0.30 amortized across the monthly plan, Whisper-1 ~$0.02, aubio free,
           Sharp + Cloudflare Workers ~$0.10/track for storage + delivery over its lifetime.
-        `)}
+        `
+        )}
 
         ${divider('support the studio')}
         <p>
@@ -312,13 +401,16 @@ export const CONTENT_PAGES: ContentPage[] = [
           <li><strong>Sponsor</strong> — recurring via <a href="https://github.com/sponsors/HeyMegabyte" target="_blank" rel="noopener">github.com/sponsors/HeyMegabyte ↗</a>. Predictable runway = committed drop dates.</li>
           <li><strong>Hire the studio</strong> — TypeScript / Cloudflare / mobile work via <a href="https://megabyte.space/connect/" target="_blank" rel="noopener">megabyte.space/connect ↗</a>. The most direct way to fund the music.</li>
         </ol>
-        ${highlight('Where the money goes', `
+        ${highlight(
+          'Where the money goes',
+          `
           Studio cost stack runs ~$75/mo: Cloudflare Workers + R2 + KV (~$30), Suno + Whisper
           (~$20), domain + email + DNS (~$15), Listmonk VPS (~$10). Any surplus routes to
           <strong>St. John's Soup Kitchen of Newark</strong> — serving daily meals since 1981.
           Donate directly at <a href="https://www.njsk.org/" target="_blank" rel="noopener">njsk.org ↗</a>.
           First annual transparency report drops January 2027.
-        `)}
+        `
+        )}
 
         ${minorDivider('what shaped the thinking')}
         <ul>
@@ -331,12 +423,15 @@ export const CONTENT_PAGES: ContentPage[] = [
         </ul>
 
         ${minorDivider("what's next")}
-        ${highlight('Roadmap · 2026-2027', `
+        ${highlight(
+          'Roadmap · 2026-2027',
+          `
           New album every 2 months. First public live show pencilled for Q3 2026.
           The St. John's Canon fundraising hits $10K-give-back milestone. The
           <code>&lt;bzmusic-player&gt;</code> web component publishes to npm.
           Workers AI chat gains web-research deep-mode.
-        `)}
+        `
+        )}
 
         ${divider('connect · best path by intent')}
         <p>A real human reads every message. Replies within 48 hours unless travelling.</p>
@@ -347,12 +442,15 @@ export const CONTENT_PAGES: ContentPage[] = [
           <li><strong>Prayer requests</strong> — DM any social or email; handled privately, never published</li>
           <li><strong>Tech consulting</strong> — via <a href="https://megabyte.space/connect/" target="_blank" rel="noopener">megabyte.space/connect ↗</a></li>
         </ul>
-        ${highlight('Faster replies if you do these first', `
+        ${highlight(
+          'Faster replies if you do these first',
+          `
           <strong>1.</strong> Skim this page — many answers live here.<br>
           <strong>2.</strong> Include specifics (venue date, capacity, project link) instead of "let's hop on a call."<br>
           <strong>3.</strong> For licensing, name the use case (sync, sample, cover, performance).<br>
           <strong>4.</strong> Send one well-formed email instead of three fragments. NDAs signed on request.
-        `)}
+        `
+        )}
 
         ${minorDivider('social + studio')}
         <ul class="contentpage__connect">
@@ -364,7 +462,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           <li><a href="https://www.youtube.com/@HeyMegabyte" target="_blank" rel="noopener">YouTube · @HeyMegabyte ↗</a></li>
         </ul>
       </article>
-    `,
+    `
   },
 
   // ═══ CREDITS ══════════════════════════════════════════════════════════
@@ -372,10 +470,12 @@ export const CONTENT_PAGES: ContentPage[] = [
     slug: 'credits',
     title: 'Tracks',
     eyebrow: 'every song, every dna',
-    description: 'Suno model, BPM source, generation date — auto-rendered from SUNO_META so the catalog audits itself.',
+    description:
+      'Suno model, BPM source, generation date — auto-rendered from SUNO_META so the catalog audits itself.',
     ogImage: '/og/og-credits.jpg',
     metaTitle: 'Credits — per-track DNA + tool credits + licensing',
-    metaDescription: 'Every bZ track shows its Suno model, BPM source, key, generation date. Tool credits, OSS honor roll, licensing summary. Full transparency.',
+    metaDescription:
+      'Every bZ track shows its Suno model, BPM source, key, generation date. Tool credits, OSS honor roll, licensing summary. Full transparency.',
     jsonLdType: 'CollectionPage',
     render: () => {
       const rows = TRACKS.map(t => {
@@ -390,12 +490,14 @@ export const CONTENT_PAGES: ContentPage[] = [
           <td>${m.sunoCreatedAt ? esc(m.sunoCreatedAt.slice(0, 10)) : '—'}</td>
           <td>${m.sunoId ? `<a href="https://suno.com/song/${esc(m.sunoId)}" target="_blank" rel="noopener">↗</a>` : '—'}</td>
         </tr>`;
-      }).filter(Boolean).join('');
+      })
+        .filter(Boolean)
+        .join('');
       const stats = {
         total: TRACKS.length,
         withSuno: TRACKS.filter(t => SUNO_META[t.id]).length,
         withBpm: TRACKS.filter(t => SUNO_META[t.id]?.sunoBpm).length,
-        withKey: TRACKS.filter(t => SUNO_META[t.id]?.sunoKey).length,
+        withKey: TRACKS.filter(t => SUNO_META[t.id]?.sunoKey).length
       };
       return `
         <article class="contentpage__article">
@@ -469,39 +571,94 @@ export const CONTENT_PAGES: ContentPage[] = [
           ${divider('honor roll')}
           <p>Specific open-source maintainers whose work this catalog rides on:</p>
           ${cards([
-            { title: 'Lovell Fuller', meta: 'maintainer · sharp', body: 'Sharp is the image-processing workhorse behind every cover render, favicon set, and DALL-E optimization on this site.' },
-            { title: 'Evan You', meta: 'creator · Vite', body: 'Vite makes the dev loop fast enough that the whole UI can be re-shipped in a single evening. The reason this site has shipped dozens of iterations.' },
-            { title: 'Paul Adenot', meta: 'spec editor · Web Audio API', body: 'The Web Audio API spec work made browser-native FFT analysis a one-liner. Every visualizer + the karaoke alignment owes him.' },
-            { title: 'Daniel Stenberg', meta: 'creator · curl', body: 'curl is the silent dependency under every script in /scripts/. The fetch backbone of the entire pipeline.' },
+            {
+              title: 'Lovell Fuller',
+              meta: 'maintainer · sharp',
+              body: 'Sharp is the image-processing workhorse behind every cover render, favicon set, and DALL-E optimization on this site.'
+            },
+            {
+              title: 'Evan You',
+              meta: 'creator · Vite',
+              body: 'Vite makes the dev loop fast enough that the whole UI can be re-shipped in a single evening. The reason this site has shipped dozens of iterations.'
+            },
+            {
+              title: 'Paul Adenot',
+              meta: 'spec editor · Web Audio API',
+              body: 'The Web Audio API spec work made browser-native FFT analysis a one-liner. Every visualizer + the karaoke alignment owes him.'
+            },
+            {
+              title: 'Daniel Stenberg',
+              meta: 'creator · curl',
+              body: 'curl is the silent dependency under every script in /scripts/. The fetch backbone of the entire pipeline.'
+            }
           ])}
 
           ${divider('model version history')}
           ${timeline([
-            { date: 'Q3 2024', title: 'Suno v3 first takes', body: 'Initial experiments. Lyric coherence weak; vibes occasionally landed.' },
-            { date: 'Q4 2024', title: 'Suno v3.5 — Panda starts', body: 'Coherence + length improved. First catalog-worthy tracks shipped.' },
-            { date: 'Q2 2025', title: 'Suno v4 — Halo + Appeal', body: 'Vocal clarity jumps. Stretched takes from 90s to 3+ min reliably.' },
-            { date: 'Q4 2025', title: 'Suno v4.5 — Wormhole + Mercy + Canon', body: 'Style-tag honoring much tighter. Most takes ship now ship from generation 1-3.' },
-            { date: '2026', title: 'Workers AI Llama 3.3 70B', body: "In-app DJ chat backend swapped from Anthropic Claude to Cloudflare's free-tier Llama. ~40% latency improvement, $0 per chat." },
+            {
+              date: 'Q3 2024',
+              title: 'Suno v3 first takes',
+              body: 'Initial experiments. Lyric coherence weak; vibes occasionally landed.'
+            },
+            {
+              date: 'Q4 2024',
+              title: 'Suno v3.5 — Panda starts',
+              body: 'Coherence + length improved. First catalog-worthy tracks shipped.'
+            },
+            {
+              date: 'Q2 2025',
+              title: 'Suno v4 — Halo + Appeal',
+              body: 'Vocal clarity jumps. Stretched takes from 90s to 3+ min reliably.'
+            },
+            {
+              date: 'Q4 2025',
+              title: 'Suno v4.5 — Wormhole + Mercy + Canon',
+              body: 'Style-tag honoring much tighter. Most takes ship now ship from generation 1-3.'
+            },
+            {
+              date: '2026',
+              title: 'Workers AI Llama 3.3 70B',
+              body: "In-app DJ chat backend swapped from Anthropic Claude to Cloudflare's free-tier Llama. ~40% latency improvement, $0 per chat."
+            }
           ])}
 
           ${divider('made on')}
-          ${highlight('Geography matters', `
+          ${highlight(
+            'Geography matters',
+            `
             Every track was made in Newark, NJ — the same metro as the named subjects of
             half the songs. St. John's Soup Kitchen sits 4 blocks from the studio.
             Sacred Heart Cathedral 6 blocks. The Passaic River 12 blocks. Specificity is
             the gospel — abstraction is the enemy.
-          `)}
+          `
+          )}
 
           ${divider('licensing summary')}
           ${cards([
-            { title: 'Listening · personal use', meta: 'free', body: 'Stream, download, share, add to your personal playlists. Always free.' },
-            { title: 'Sync · film, TV, web', meta: 'license required', body: 'Email brian@megabyte.space with project details + duration. Most non-commercial uses approved within 48 hours, free of charge.' },
-            { title: 'Sampling · for your own track', meta: 'usually yes', body: 'Email with the sample + your track. Almost always yes, no fee, just need attribution + a link.' },
-            { title: 'Cover · live or recorded', meta: 'always yes', body: 'Just record + share. No paperwork needed. Tag @HeyMegabyte so I can hear it.' },
+            {
+              title: 'Listening · personal use',
+              meta: 'free',
+              body: 'Stream, download, share, add to your personal playlists. Always free.'
+            },
+            {
+              title: 'Sync · film, TV, web',
+              meta: 'license required',
+              body: 'Email brian@megabyte.space with project details + duration. Most non-commercial uses approved within 48 hours, free of charge.'
+            },
+            {
+              title: 'Sampling · for your own track',
+              meta: 'usually yes',
+              body: 'Email with the sample + your track. Almost always yes, no fee, just need attribution + a link.'
+            },
+            {
+              title: 'Cover · live or recorded',
+              meta: 'always yes',
+              body: 'Just record + share. No paperwork needed. Tag @HeyMegabyte so I can hear it.'
+            }
           ])}
         </article>
       `;
-    },
+    }
   },
 
   // ═══ PRESS ════════════════════════════════════════════════════════════
@@ -512,15 +669,18 @@ export const CONTENT_PAGES: ContentPage[] = [
     description: 'One-page everything-you-need. Bio + hi-res covers + EPK + booking.',
     ogImage: '/og/og-press.jpg',
     metaTitle: 'Press — bios, covers, brand assets, booking',
-    metaDescription: '50-word + 150-word bios. Hi-res cover art (6 albums). Headshot. Brand voice. Booking + licensing. Interview answers. Embed snippets. Everything writers and curators need.',
+    metaDescription:
+      '50-word + 150-word bios. Hi-res cover art (6 albums). Headshot. Brand voice. Booking + licensing. Interview answers. Embed snippets. Everything writers and curators need.',
     jsonLdType: 'AboutPage',
     render: () => {
-      const covers = ALBUMS.map(a => `
+      const covers = ALBUMS.map(
+        a => `
         <a class="contentpage__cover" href="${esc(a.cover)}" target="_blank" rel="noopener" title="Open ${esc(a.name)} cover full-res">
           <img src="${esc(a.cover)}" alt="${esc(a.name)} cover art" loading="lazy" />
           <span>${esc(a.name)}</span>
         </a>
-      `).join('');
+      `
+      ).join('');
       return `
         <article class="contentpage__article">
           ${divider('one-line')}
@@ -579,10 +739,14 @@ export const CONTENT_PAGES: ContentPage[] = [
               return `<li>
                 <h5>${esc(a.name)}</h5>
                 <div class="contentpage__press-grid">
-                  ${tracks.map(t => `<a class="contentpage__press-chip" href="/press/${esc(t!.id)}">
+                  ${tracks
+                    .map(
+                      t => `<a class="contentpage__press-chip" href="/press/${esc(t!.id)}">
                     <span>${esc(t!.title)}</span>
                     <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
-                  </a>`).join('')}
+                  </a>`
+                    )
+                    .join('')}
                 </div>
               </li>`;
             }).join('')}
@@ -683,13 +847,25 @@ export const CONTENT_PAGES: ContentPage[] = [
 
           ${divider('logo + brand assets')}
           ${cards([
-            { title: 'bz-icon.png', meta: 'transparent · graffiti glyph', body: '<a href="/art/bz-icon.png" target="_blank" rel="noopener">Download ↗</a> · use for header/wordmark applications' },
-            { title: 'bz-app-icon.png', meta: '1024×1024 · halo + dark bg', body: '<a href="/art/bz-app-icon.png" target="_blank" rel="noopener">Download ↗</a> · use for app icon / square contexts' },
-            { title: 'brian-zalewski.png', meta: '400×400 headshot', body: '<a href="/art/brian-zalewski.png" target="_blank" rel="noopener">Download ↗</a> · use for bylines + author pages' },
+            {
+              title: 'bz-icon.png',
+              meta: 'transparent · graffiti glyph',
+              body: '<a href="/art/bz-icon.png" target="_blank" rel="noopener">Download ↗</a> · use for header/wordmark applications'
+            },
+            {
+              title: 'bz-app-icon.png',
+              meta: '1024×1024 · halo + dark bg',
+              body: '<a href="/art/bz-app-icon.png" target="_blank" rel="noopener">Download ↗</a> · use for app icon / square contexts'
+            },
+            {
+              title: 'brian-zalewski.png',
+              meta: '400×400 headshot',
+              body: '<a href="/art/brian-zalewski.png" target="_blank" rel="noopener">Download ↗</a> · use for bylines + author pages'
+            }
           ])}
         </article>
       `;
-    },
+    }
   },
 
   // ═══ MERCH ════════════════════════════════════════════════════════════
@@ -700,7 +876,8 @@ export const CONTENT_PAGES: ContentPage[] = [
     description: 'The full FREE SATAN apparel suite. Hoodies, tees, tanks, more.',
     ogImage: '/merch/mockups/tee-1717-pepper.png',
     metaTitle: 'Merch — bZ · FREE SATAN apparel suite',
-    metaDescription: 'The full FREE SATAN — It’s Animal Abuse apparel suite. Comfort Colors heavyweight tees, hoodies, long-sleeves, tanks. DTG print, ships worldwide via Printful.',
+    metaDescription:
+      'The full FREE SATAN — It’s Animal Abuse apparel suite. Comfort Colors heavyweight tees, hoodies, long-sleeves, tanks. DTG print, ships worldwide via Printful.',
     jsonLdType: 'WebPage',
     render: () => `
       <article class="contentpage__article merch-page">
@@ -731,7 +908,10 @@ export const CONTENT_PAGES: ContentPage[] = [
 
         <h4 class="contentpage__divider" id="merch-suite"><span>the suite</span></h4>
         <div class="merch-grid">
-          ${merchSuite.items.filter((i: any) => i.mockup).map((item: any, idx: number) => `
+          ${merchSuite.items
+            .filter((i: any) => i.mockup)
+            .map(
+              (item: any, idx: number) => `
             <a class="merch-card" href="${esc(item.storefrontUrl)}" target="_blank" rel="noopener noreferrer" data-idx="${idx}">
               ${idx === 0 ? '<span class="merch-card__badge">PRIMARY</span>' : ''}
               ${item.productId ? '<span class="merch-card__badge merch-card__badge--live">LIVE</span>' : ''}
@@ -748,7 +928,9 @@ export const CONTENT_PAGES: ContentPage[] = [
                 </div>
               </div>
             </a>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
 
         <p style="text-align:center; color:var(--ink-mute); font-size:0.85rem; margin-top:18px;">
@@ -817,7 +999,7 @@ export const CONTENT_PAGES: ContentPage[] = [
         </p>
        </div>
       </article>
-    `,
+    `
   },
 
   // ═══ PRIVACY ══════════════════════════════════════════════════════════
@@ -825,9 +1007,11 @@ export const CONTENT_PAGES: ContentPage[] = [
     slug: 'privacy',
     title: 'Privacy',
     eyebrow: 'what we collect (barely anything)',
-    description: 'music.megabyte.space is stateless. No accounts, no ad trackers. Plays are anonymous counts; email is opt-in only.',
+    description:
+      'music.megabyte.space is stateless. No accounts, no ad trackers. Plays are anonymous counts; email is opt-in only.',
     metaTitle: 'Privacy — music.megabyte.space',
-    metaDescription: 'How music.megabyte.space handles data: anonymous play/share counts, opt-in newsletter, Stripe checkout, privacy-aware analytics. No accounts, no ad trackers, no sale of data.',
+    metaDescription:
+      'How music.megabyte.space handles data: anonymous play/share counts, opt-in newsletter, Stripe checkout, privacy-aware analytics. No accounts, no ad trackers, no sale of data.',
     jsonLdType: 'WebPage',
     render: () => `
       <article class="contentpage__article">
@@ -872,7 +1056,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           Full story on the <a href="/about" data-content-page="about">About</a> page.
         </p>
       </article>
-    `,
+    `
   },
 
   // ═══ TERMS ════════════════════════════════════════════════════════════
@@ -880,9 +1064,11 @@ export const CONTENT_PAGES: ContentPage[] = [
     slug: 'terms',
     title: 'Terms',
     eyebrow: 'the short version',
-    description: 'Terms of use for music.megabyte.space — listen freely, music is © bZ, merch ships via Printful + Stripe, no warranties.',
+    description:
+      'Terms of use for music.megabyte.space — listen freely, music is © bZ, merch ships via Printful + Stripe, no warranties.',
     metaTitle: 'Terms of Service — music.megabyte.space',
-    metaDescription: 'Plain-English terms: stream freely for personal use, music + lyrics are © Brian Zalewski, merch via Stripe + Printful, licensing on request, no warranties.',
+    metaDescription:
+      'Plain-English terms: stream freely for personal use, music + lyrics are © Brian Zalewski, merch via Stripe + Printful, licensing on request, no warranties.',
     jsonLdType: 'WebPage',
     render: () => `
       <article class="contentpage__article">
@@ -927,9 +1113,8 @@ export const CONTENT_PAGES: ContentPage[] = [
           <a href="mailto:brian@megabyte.space?subject=terms">brian@megabyte.space</a>.
         </p>
       </article>
-    `,
-  },
-
+    `
+  }
 ];
 
 export const CONTENT_PAGE_BY_SLUG = new Map(CONTENT_PAGES.map(p => [p.slug, p]));

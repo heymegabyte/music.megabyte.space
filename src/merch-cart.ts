@@ -53,7 +53,11 @@ let suiteCache: Suite | null = null;
 let cart: CartLine[] = [];
 
 function loadCart(): CartLine[] {
-  try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; }
+  try {
+    return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  } catch {
+    return [];
+  }
 }
 function saveCart() {
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
@@ -87,7 +91,7 @@ function ensureFab(): { fab: HTMLButtonElement; badge: HTMLSpanElement; drawer: 
     return {
       fab,
       badge: fab.querySelector('.merch-fab__badge')!,
-      drawer: document.getElementById('merchDrawer') as HTMLDivElement,
+      drawer: document.getElementById('merchDrawer') as HTMLDivElement
     };
   }
   fab = document.createElement('button');
@@ -132,7 +136,9 @@ function ensureFab(): { fab: HTMLButtonElement; badge: HTMLSpanElement; drawer: 
   drawer.querySelector('#merchDrawerClose')?.addEventListener('click', closeDrawer);
   drawer.querySelector('#merchDrawerScrim')?.addEventListener('click', closeDrawer);
   drawer.querySelector('#merchDrawerCheckout')?.addEventListener('click', checkout);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !drawer.hidden) closeDrawer(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !drawer.hidden) closeDrawer();
+  });
 
   return { fab, badge: fab.querySelector('.merch-fab__badge')!, drawer };
 }
@@ -155,7 +161,9 @@ function renderDrawer() {
     checkoutBtn.disabled = true;
     return;
   }
-  lines.innerHTML = cart.map((line, i) => `
+  lines.innerHTML = cart
+    .map(
+      (line, i) => `
     <div class="merch-drawer__line" data-idx="${i}">
       <img src="${line.mockup}" alt="" loading="lazy" />
       <div class="merch-drawer__line-body">
@@ -170,7 +178,9 @@ function renderDrawer() {
       </div>
       <div class="merch-drawer__line-price">$${(line.price * line.quantity).toFixed(2)}</div>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
   subtotal.textContent = `$${cartTotal().toFixed(2)}`;
   checkoutBtn.disabled = false;
   lines.querySelectorAll('button[data-act]').forEach(btn => {
@@ -196,7 +206,9 @@ function openDrawer() {
 function closeDrawer() {
   const { drawer } = ensureFab();
   drawer.classList.remove('merch-drawer--open');
-  setTimeout(() => { drawer.hidden = true; }, 260);
+  setTimeout(() => {
+    drawer.hidden = true;
+  }, 260);
 }
 
 async function checkout() {
@@ -218,20 +230,22 @@ async function checkout() {
             quantity: l.quantity,
             price: l.price,
             title: l.title,
-            mockup: item?.mockup ?? '',
+            mockup: item?.mockup ?? ''
           };
-        }),
-      }),
+        })
+      })
     });
     if (!r.ok) {
       const err = await r.text();
       throw new Error(`Checkout failed: ${r.status} ${err.slice(0, 200)}`);
     }
-    const data = await r.json() as { url?: string };
+    const data = (await r.json()) as { url?: string };
     if (data.url) window.location.href = data.url;
     else throw new Error('No checkout URL');
   } catch (e) {
-    alert(`Checkout error — ${(e as Error).message}\n\nIf this persists, you can buy direct at https://bz-music.printful.me`);
+    alert(
+      `Checkout error — ${(e as Error).message}\n\nIf this persists, you can buy direct at https://bz-music.printful.me`
+    );
     btn.disabled = false;
     btn.textContent = 'Checkout →';
   }
@@ -265,7 +279,7 @@ function buildSelectors(card: HTMLAnchorElement) {
 
   const sizeBtns = cta.querySelectorAll('.merch-card__size');
   sizeBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
       sizeBtns.forEach(b => b.classList.remove('is-active'));
@@ -274,7 +288,7 @@ function buildSelectors(card: HTMLAnchorElement) {
   });
 
   const addBtn = cta.querySelector('.merch-card__add') as HTMLButtonElement;
-  addBtn.addEventListener('click', (e) => {
+  addBtn.addEventListener('click', e => {
     e.preventDefault();
     e.stopPropagation();
     const active = cta.querySelector('.merch-card__size.is-active') as HTMLElement;
@@ -292,7 +306,7 @@ function buildSelectors(card: HTMLAnchorElement) {
         sync_variant_id: variant.sync_variant_id,
         price: parseFloat(variant.retail_price),
         mockup: item.mockup,
-        quantity: 1,
+        quantity: 1
       });
     }
     saveCart();
@@ -309,7 +323,7 @@ function buildSelectors(card: HTMLAnchorElement) {
   });
 
   // Whole-card click → open drawer (or do nothing if the click was on a control)
-  card.addEventListener('click', (e) => {
+  card.addEventListener('click', e => {
     const t = e.target as HTMLElement;
     if (t.closest('button')) return; // controls handle their own clicks
     e.preventDefault();
@@ -352,11 +366,17 @@ async function renderSuccessIfPresent() {
   try {
     const r = await fetch(`/api/merch/success?session_id=${encodeURIComponent(sid)}`);
     if (!r.ok) throw new Error(String(r.status));
-    const data = await r.json() as { amount_total: number; email: string; items?: Array<{ description: string; quantity: number; amount_total: number }> };
+    const data = (await r.json()) as {
+      amount_total: number;
+      email: string;
+      items?: Array<{ description: string; quantity: number; amount_total: number }>;
+    };
     const body = document.getElementById('merchSuccessBody');
     if (body) {
       const total = (data.amount_total / 100).toFixed(2);
-      const itemsHtml = (data.items ?? []).map((li) => `<li>${li.quantity} × ${li.description} — $${(li.amount_total / 100).toFixed(2)}</li>`).join('');
+      const itemsHtml = (data.items ?? [])
+        .map(li => `<li>${li.quantity} × ${li.description} — $${(li.amount_total / 100).toFixed(2)}</li>`)
+        .join('');
       body.innerHTML = `
         <p>Receipt sent to <strong>${data.email}</strong>. Order total <strong>$${total}</strong>.</p>
         <ul>${itemsHtml}</ul>
@@ -365,7 +385,9 @@ async function renderSuccessIfPresent() {
     }
   } catch {
     const body = document.getElementById('merchSuccessBody');
-    if (body) body.innerHTML = '<p>Receipt details unavailable, but Printful confirmed the order. Check the email Stripe sent for the receipt.</p>';
+    if (body)
+      body.innerHTML =
+        '<p>Receipt details unavailable, but Printful confirmed the order. Check the email Stripe sent for the receipt.</p>';
   }
 }
 
@@ -417,12 +439,19 @@ function setupTocScrollSpy(): void {
     .filter((el): el is HTMLElement => !!el);
   if (!sections.length) return;
 
-  const io = new IntersectionObserver(entries => {
-    // Pick the topmost intersecting section.
-    const visible = entries.filter(en => en.isIntersecting)
-      .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-    if (visible[0]) { const id = visible[0].target.id; if (byId.has(id)) setActive(id); }
-  }, { root: scroller ?? null, rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+  const io = new IntersectionObserver(
+    entries => {
+      // Pick the topmost intersecting section.
+      const visible = entries
+        .filter(en => en.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visible[0]) {
+        const id = visible[0].target.id;
+        if (byId.has(id)) setActive(id);
+      }
+    },
+    { root: scroller ?? null, rootMargin: '-10% 0px -70% 0px', threshold: 0 }
+  );
   sections.forEach(s => io.observe(s));
   setActive(sections[0].id);
 }

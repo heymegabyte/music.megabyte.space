@@ -50,34 +50,71 @@ function parseTracks(src) {
   const region = src.slice(start);
   // Accept both single- and double-quoted id/title fields so freshly
   // imported tracks (which often serialize as double-quoted) parse too.
-  const blocks = region.match(/\{\s*id:\s*['"][^'"]+['"],\s*title:\s*['"][^'"]+['"][\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
-  return blocks.map(b => {
-    const id = b.match(/id:\s*['"]([^'"]+)['"]/)?.[1];
-    const lyricsBlock = b.match(/lyrics:\s*\[([\s\S]*?)\n\s{4}\]/)?.[1] ?? '';
-    // Match both 'single' and "double" quoted lyric strings.
-    const lines = [...lyricsBlock.matchAll(/(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g)].map(m =>
-      (m[1] ?? m[2] ?? '').replace(/\\'/g, "'").replace(/\\"/g, '"')
-    );
-    return id ? { id, lines } : null;
-  }).filter(Boolean);
+  const blocks =
+    region.match(/\{\s*id:\s*['"][^'"]+['"],\s*title:\s*['"][^'"]+['"][\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
+  return blocks
+    .map(b => {
+      const id = b.match(/id:\s*['"]([^'"]+)['"]/)?.[1];
+      const lyricsBlock = b.match(/lyrics:\s*\[([\s\S]*?)\n\s{4}\]/)?.[1] ?? '';
+      // Match both 'single' and "double" quoted lyric strings.
+      const lines = [...lyricsBlock.matchAll(/(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g)].map(m =>
+        (m[1] ?? m[2] ?? '').replace(/\\'/g, "'").replace(/\\"/g, '"')
+      );
+      return id ? { id, lines } : null;
+    })
+    .filter(Boolean);
 }
 
 // ---------- Tokenization + normalization -----------------------------------
 
 const CONTRACTIONS = new Map([
-  ["i'm", 'i am'], ["i've", 'i have'], ["i'll", 'i will'], ["i'd", 'i would'],
-  ["you're", 'you are'], ["you've", 'you have'], ["you'll", 'you will'], ["you'd", 'you would'],
-  ["he's", 'he is'], ["she's", 'she is'], ["it's", 'it is'],
-  ["we're", 'we are'], ["we've", 'we have'], ["we'll", 'we will'], ["we'd", 'we would'],
-  ["they're", 'they are'], ["they've", 'they have'], ["they'll", 'they will'], ["they'd", 'they would'],
-  ["don't", 'do not'], ["doesn't", 'does not'], ["didn't", 'did not'],
-  ["won't", 'will not'], ["wouldn't", 'would not'], ["shouldn't", 'should not'],
-  ["can't", 'can not'], ["cannot", 'can not'], ["couldn't", 'could not'],
-  ["isn't", 'is not'], ["aren't", 'are not'], ["wasn't", 'was not'], ["weren't", 'were not'],
-  ["that's", 'that is'], ["there's", 'there is'], ["what's", 'what is'], ["where's", 'where is'],
-  ["who's", 'who is'], ["how's", 'how is'], ["let's", 'let us'],
-  ["ain't", 'is not'], ["y'all", 'you all'], ["gonna", 'going to'], ["wanna", 'want to'], ["gotta", 'got to'],
-  ["'em", 'them'], ["'cause", 'because'], ["'til", 'until']
+  ["i'm", 'i am'],
+  ["i've", 'i have'],
+  ["i'll", 'i will'],
+  ["i'd", 'i would'],
+  ["you're", 'you are'],
+  ["you've", 'you have'],
+  ["you'll", 'you will'],
+  ["you'd", 'you would'],
+  ["he's", 'he is'],
+  ["she's", 'she is'],
+  ["it's", 'it is'],
+  ["we're", 'we are'],
+  ["we've", 'we have'],
+  ["we'll", 'we will'],
+  ["we'd", 'we would'],
+  ["they're", 'they are'],
+  ["they've", 'they have'],
+  ["they'll", 'they will'],
+  ["they'd", 'they would'],
+  ["don't", 'do not'],
+  ["doesn't", 'does not'],
+  ["didn't", 'did not'],
+  ["won't", 'will not'],
+  ["wouldn't", 'would not'],
+  ["shouldn't", 'should not'],
+  ["can't", 'can not'],
+  ['cannot', 'can not'],
+  ["couldn't", 'could not'],
+  ["isn't", 'is not'],
+  ["aren't", 'are not'],
+  ["wasn't", 'was not'],
+  ["weren't", 'were not'],
+  ["that's", 'that is'],
+  ["there's", 'there is'],
+  ["what's", 'what is'],
+  ["where's", 'where is'],
+  ["who's", 'who is'],
+  ["how's", 'how is'],
+  ["let's", 'let us'],
+  ["ain't", 'is not'],
+  ["y'all", 'you all'],
+  ['gonna', 'going to'],
+  ['wanna', 'want to'],
+  ['gotta', 'got to'],
+  ["'em", 'them'],
+  ["'cause", 'because'],
+  ["'til", 'until']
 ]);
 
 function normWord(w) {
@@ -157,35 +194,60 @@ function tokenizeWhisperWords(words) {
  *  Standard NW with match=+2, mismatch=-1, gap=-1.5. For long lyrics
  *  (~500 words × ~500 words = 250k cells) this is fast enough (~20ms). */
 function needlemanWunsch(a, b) {
-  const n = a.length, m = b.length;
-  const MATCH = 2, MISMATCH = -1, GAP = -1.5;
+  const n = a.length,
+    m = b.length;
+  const MATCH = 2,
+    MISMATCH = -1,
+    GAP = -1.5;
   // Use Int32Array for the score matrix to keep memory small.
   // For n*m up to 1M cells we'd need 4MB — fine.
   const score = new Float32Array((n + 1) * (m + 1));
-  const trace = new Uint8Array((n + 1) * (m + 1));  // 0=stop, 1=diag, 2=up, 3=left
-  for (let i = 1; i <= n; i++) { score[i * (m + 1)] = i * GAP; trace[i * (m + 1)] = 2; }
-  for (let j = 1; j <= m; j++) { score[j] = j * GAP; trace[j] = 3; }
+  const trace = new Uint8Array((n + 1) * (m + 1)); // 0=stop, 1=diag, 2=up, 3=left
+  for (let i = 1; i <= n; i++) {
+    score[i * (m + 1)] = i * GAP;
+    trace[i * (m + 1)] = 2;
+  }
+  for (let j = 1; j <= m; j++) {
+    score[j] = j * GAP;
+    trace[j] = 3;
+  }
   for (let i = 1; i <= n; i++) {
     for (let j = 1; j <= m; j++) {
       const idx = i * (m + 1) + j;
       const diag = score[(i - 1) * (m + 1) + (j - 1)] + (a[i - 1].w === b[j - 1].w ? MATCH : MISMATCH);
       const up = score[(i - 1) * (m + 1) + j] + GAP;
       const left = score[i * (m + 1) + (j - 1)] + GAP;
-      let best = diag, t = 1;
-      if (up > best) { best = up; t = 2; }
-      if (left > best) { best = left; t = 3; }
+      let best = diag,
+        t = 1;
+      if (up > best) {
+        best = up;
+        t = 2;
+      }
+      if (left > best) {
+        best = left;
+        t = 3;
+      }
       score[idx] = best;
       trace[idx] = t;
     }
   }
   // Trace-back
   const pairs = [];
-  let i = n, j = m;
+  let i = n,
+    j = m;
   while (i > 0 || j > 0) {
     const t = trace[i * (m + 1) + j];
-    if (i > 0 && j > 0 && t === 1) { pairs.push({ a: i - 1, b: j - 1 }); i--; j--; }
-    else if (i > 0 && t === 2) { pairs.push({ a: i - 1, b: -1 }); i--; }
-    else { pairs.push({ a: -1, b: j - 1 }); j--; }
+    if (i > 0 && j > 0 && t === 1) {
+      pairs.push({ a: i - 1, b: j - 1 });
+      i--;
+      j--;
+    } else if (i > 0 && t === 2) {
+      pairs.push({ a: i - 1, b: -1 });
+      i--;
+    } else {
+      pairs.push({ a: -1, b: j - 1 });
+      j--;
+    }
   }
   pairs.reverse();
   return pairs;
@@ -236,7 +298,10 @@ async function alignTrack(id, polishedLines) {
   let firstMatched = polishedTimes.findIndex(p => p);
   let lastMatched = -1;
   for (let i = polishedTimes.length - 1; i >= 0; i--) {
-    if (polishedTimes[i]) { lastMatched = i; break; }
+    if (polishedTimes[i]) {
+      lastMatched = i;
+      break;
+    }
   }
   if (firstMatched < 0) firstMatched = 0;
   if (lastMatched < 0) lastMatched = polishedTokens.length - 1;
@@ -244,7 +309,11 @@ async function alignTrack(id, polishedLines) {
   // Sentinel: head + tail interpolation pins
   if (!polishedTimes[0]) {
     const headEnd = polishedTimes[firstMatched]?.s ?? 0;
-    polishedTimes[0] = { s: Math.max(0, headEnd * 0.3), e: Math.max(0.1, headEnd * 0.3 + 0.2), matched: false };
+    polishedTimes[0] = {
+      s: Math.max(0, headEnd * 0.3),
+      e: Math.max(0.1, headEnd * 0.3 + 0.2),
+      matched: false
+    };
   }
   if (!polishedTimes[polishedTokens.length - 1]) {
     const tailStart = polishedTimes[lastMatched]?.e ?? totalDuration;
@@ -255,13 +324,19 @@ async function alignTrack(id, polishedLines) {
   // Linear interpolation pass
   let i = 0;
   while (i < polishedTimes.length) {
-    if (polishedTimes[i]) { i++; continue; }
+    if (polishedTimes[i]) {
+      i++;
+      continue;
+    }
     // Find anchors before + after
     let before = i - 1;
     while (before >= 0 && !polishedTimes[before]) before--;
     let after = i;
     while (after < polishedTimes.length && !polishedTimes[after]) after++;
-    if (before < 0 || after >= polishedTimes.length) { i++; continue; }
+    if (before < 0 || after >= polishedTimes.length) {
+      i++;
+      continue;
+    }
     const beforeT = polishedTimes[before].e;
     const afterT = polishedTimes[after].s;
     const gap = after - before;
@@ -382,7 +457,9 @@ if (targets.length) {
 }
 console.log(`Processing ${toProcess.length} track(s)…`);
 
-let ok = 0, skip = 0, fail = 0;
+let ok = 0,
+  skip = 0,
+  fail = 0;
 const summaries = [];
 for (let i = 0; i < toProcess.length; i++) {
   const t = toProcess[i];
@@ -397,7 +474,9 @@ for (let i = 0; i < toProcess.length; i++) {
         console.log(`${tag} — cached (rate ${(existing.stats.matchRate * 100).toFixed(0)}%)`);
         continue;
       }
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
   const r = await alignTrack(t.id, t.lines);
   if (r.status === 'ok') {

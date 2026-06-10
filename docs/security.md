@@ -31,14 +31,14 @@ The worker treats every request body as untrusted. The patterns to follow when a
 
 KV-backed, IP-scoped, per-scope. Helper: `rateLimited(kv, ip, scope, id, ttlSec)` at `worker/index.ts:46`. Current scopes:
 
-| Scope | TTL | Purpose |
-| --- | --- | --- |
-| `play` | 1800 s | One play per IP per 30 min per track |
-| `share` | 60 s | Anti-spam on `/api/share/<id>` |
-| `subscribe` | 60 s | Per-IP cooldown on `/api/subscribe` |
-| `subscribe-email` | 120 s | Per-email-hash cooldown on `/api/subscribe` |
-| `push-sub` | 30 s | Per-IP cooldown on `/api/push/subscribe` |
-| `ai-chat` | 6 s | Per-IP cooldown on `/api/ai/chat`, prevents tab-spam |
+| Scope             | TTL    | Purpose                                              |
+| ----------------- | ------ | ---------------------------------------------------- |
+| `play`            | 1800 s | One play per IP per 30 min per track                 |
+| `share`           | 60 s   | Anti-spam on `/api/share/<id>`                       |
+| `subscribe`       | 60 s   | Per-IP cooldown on `/api/subscribe`                  |
+| `subscribe-email` | 120 s  | Per-email-hash cooldown on `/api/subscribe`          |
+| `push-sub`        | 30 s   | Per-IP cooldown on `/api/push/subscribe`             |
+| `ai-chat`         | 6 s    | Per-IP cooldown on `/api/ai/chat`, prevents tab-spam |
 
 Throttled requests get `429` with `{ "error": "throttled" }` and the current counter where applicable so the UI can re-sync without re-fetching.
 

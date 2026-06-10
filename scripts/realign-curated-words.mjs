@@ -38,7 +38,10 @@ const dataSource = await readFile(DATA_TS, 'utf8');
 // Same robust track parser as align-curated-lyrics.mjs — requires `file:` +
 // `wisdom:` to disqualify album literals + handles escaped apostrophes
 // inside the `lyrics:` array strings.
-const blocks = dataSource.match(/\{\s*id:\s*'[^']+',\s*title:\s*'[^']+',\s*artist:\s*'[^']+',\s*file:\s*'\/audio\/[^']+'[\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
+const blocks =
+  dataSource.match(
+    /\{\s*id:\s*'[^']+',\s*title:\s*'[^']+',\s*artist:\s*'[^']+',\s*file:\s*'\/audio\/[^']+'[\s\S]*?wisdom:[^\n]+\n\s*\}/g
+  ) || [];
 const TRACK_LYRICS = new Map();
 for (const b of blocks) {
   const id = b.match(/id:\s*'([^']+)'/)?.[1];
@@ -61,7 +64,12 @@ function syllableCount(word) {
   return Math.max(1, count);
 }
 function lineSyllables(line) {
-  return line.split(/\s+/).filter(Boolean).reduce((a, w) => a + syllableCount(w), 0) || 1;
+  return (
+    line
+      .split(/\s+/)
+      .filter(Boolean)
+      .reduce((a, w) => a + syllableCount(w), 0) || 1
+  );
 }
 
 // Vocal window = first audible (non-emoji, non-empty) word start → last
@@ -167,7 +175,9 @@ for (const id of trackIds) {
   }
   try {
     const r = await realignTrackAsync(id, polished);
-    console.log(`✓ ${r.id} — ${r.lines} lines, ${r.words} words across ${r.vocalStart}s–${r.vocalEnd}s (audio ${r.duration.toFixed(1)}s)`);
+    console.log(
+      `✓ ${r.id} — ${r.lines} lines, ${r.words} words across ${r.vocalStart}s–${r.vocalEnd}s (audio ${r.duration.toFixed(1)}s)`
+    );
   } catch (err) {
     console.error(`✗ ${id} — ${err.message}`);
     process.exitCode = 1;

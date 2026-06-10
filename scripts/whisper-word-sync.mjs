@@ -18,7 +18,9 @@ const MAX_RETRIES = 3;
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 if (!OPENAI_API_KEY) {
-  console.error('OPENAI_API_KEY missing — `set -a; source /Users/apple/emdash-projects/worktrees/rare-chefs-film-8op/.env.local; set +a`');
+  console.error(
+    'OPENAI_API_KEY missing — `set -a; source /Users/apple/emdash-projects/worktrees/rare-chefs-film-8op/.env.local; set +a`'
+  );
   process.exit(1);
 }
 
@@ -30,7 +32,8 @@ function parseTracks(src) {
   if (tracksStart < 0) return [];
   const region = src.slice(tracksStart);
   // Match each track object: requires both `file:` AND `wisdom:` to disqualify album entries.
-  const blocks = region.match(/\{\s*id:\s*'[^']+'[\s\S]*?file:\s*'[^']+\.mp3'[\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
+  const blocks =
+    region.match(/\{\s*id:\s*'[^']+'[\s\S]*?file:\s*'[^']+\.mp3'[\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
   const out = [];
   const seen = new Set();
   for (const b of blocks) {
@@ -57,7 +60,9 @@ for (const t of allTracks) {
   else missingMp3.push(t.id);
 }
 
-console.log(`Found ${allTracks.length} tracks in data.ts → ${tracks.length} have mp3 files (${missingMp3.length} missing audio: ${missingMp3.slice(0, 5).join(', ')}${missingMp3.length > 5 ? '…' : ''})`);
+console.log(
+  `Found ${allTracks.length} tracks in data.ts → ${tracks.length} have mp3 files (${missingMp3.length} missing audio: ${missingMp3.slice(0, 5).join(', ')}${missingMp3.length > 5 ? '…' : ''})`
+);
 
 function packLinesFromSegments(segments, words) {
   const lines = [];
@@ -81,7 +86,10 @@ function packLinesFromSegments(segments, words) {
   }
   // Any trailing words → last line
   if (lines.length) {
-    while (wi < words.length) { words[wi].line = lines.length - 1; wi++; }
+    while (wi < words.length) {
+      words[wi].line = lines.length - 1;
+      wi++;
+    }
   }
   return lines;
 }
@@ -90,9 +98,12 @@ function packLinesFromWords(words, perLine = 7, maxGap = 1.2) {
   const lines = [];
   let cur = [];
   for (const w of words) {
-    if (!cur.length) { cur.push(w); continue; }
+    if (!cur.length) {
+      cur.push(w);
+      continue;
+    }
     const prev = cur[cur.length - 1];
-    if (cur.length >= perLine || (w.s - prev.e) > maxGap) {
+    if (cur.length >= perLine || w.s - prev.e > maxGap) {
       lines.push(toLine(cur));
       cur = [w];
     } else {
@@ -118,9 +129,16 @@ async function transcribeOne(track) {
     try {
       const existing = JSON.parse(await readFile(out, 'utf8'));
       if (existing.source === 'whisper' && Array.isArray(existing.words) && existing.words.length) {
-        return { status: 'skip-cached', words: existing.words.length, lines: existing.lines?.length ?? 0, dur: existing.duration ?? 0 };
+        return {
+          status: 'skip-cached',
+          words: existing.words.length,
+          lines: existing.lines?.length ?? 0,
+          dur: existing.duration ?? 0
+        };
       }
-    } catch { /* fall through, regenerate */ }
+    } catch {
+      /* fall through, regenerate */
+    }
   }
 
   const mp3Path = resolve(AUDIO_DIR, track.base);
@@ -148,7 +166,9 @@ async function transcribeOne(track) {
     });
     if (res.status === 429) {
       const txt = await res.text().catch(() => '');
-      console.warn(`  429 rate-limit on ${track.id} (attempt ${attempt}/${MAX_RETRIES}) — sleeping ${RETRY_SLEEP_MS}ms · ${txt.slice(0, 120)}`);
+      console.warn(
+        `  429 rate-limit on ${track.id} (attempt ${attempt}/${MAX_RETRIES}) — sleeping ${RETRY_SLEEP_MS}ms · ${txt.slice(0, 120)}`
+      );
       await new Promise(r => setTimeout(r, RETRY_SLEEP_MS));
       continue;
     }
@@ -162,9 +182,7 @@ async function transcribeOne(track) {
       .map(w => ({ w: String(w.word ?? '').trim(), s: Number(w.start ?? 0), e: Number(w.end ?? 0), line: 0 }))
       .filter(w => w.w.length);
     const segments = Array.isArray(json.segments) ? json.segments : [];
-    const lines = segments.length
-      ? packLinesFromSegments(segments, words)
-      : packLinesFromWords(words);
+    const lines = segments.length ? packLinesFromSegments(segments, words) : packLinesFromWords(words);
     const duration = Number(json.duration ?? 0);
     const payload = {
       words: words.map(w => ({ w: w.w, s: +w.s.toFixed(3), e: +w.e.toFixed(3), line: w.line | 0 })),
@@ -218,7 +236,9 @@ for (let i = 0; i < tracks.length; i++) {
 }
 
 console.log('');
-console.log(`Summary: ${okCount} generated · ${skipCount} skipped · ${failCount} failed · total audio ${(totalDur / 60).toFixed(1)}min`);
+console.log(
+  `Summary: ${okCount} generated · ${skipCount} skipped · ${failCount} failed · total audio ${(totalDur / 60).toFixed(1)}min`
+);
 if (failures.length) {
   console.log('Failures:');
   for (const f of failures) console.log(`  ${f.id}: [${f.code}] ${f.msg}`);

@@ -21,9 +21,9 @@ await build({
   minify: true,
   outfile: 'dist/embed.js',
   banner: {
-    js: '/* bzmusic.win <bzmusic-player> web component · https://bzmusic.win/embed.js */',
+    js: '/* bzmusic.win <bzmusic-player> web component · https://bzmusic.win/embed.js */'
   },
-  legalComments: 'none',
+  legalComments: 'none'
 });
 
 console.log('✓ dist/embed.js (web component) built');

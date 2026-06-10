@@ -58,10 +58,7 @@ console.log(`[apple-touch 180px] ${(apple.length / 1024).toFixed(1)}KB → ./pub
 
 // 3) icon-maskable-1024 — Android maskable spec: keep ~70% center safe zone, pad with #060610.
 //    Render the spray tag at 70% of 1024 (≈716px) on a 1024 #060610 canvas, centered.
-const maskCenter = await sharp(SRC)
-  .resize(716, 716, { fit: 'contain', background: BG })
-  .png()
-  .toBuffer();
+const maskCenter = await sharp(SRC).resize(716, 716, { fit: 'contain', background: BG }).png().toBuffer();
 const maskable = await sharp({
   create: { width: 1024, height: 1024, channels: 3, background: BG }
 })
@@ -73,17 +70,15 @@ console.log(`[maskable 1024px] ${(maskable.length / 1024).toFixed(1)}KB → ./pu
 
 // 4) favicon.ico — multi-res 16/32/48 via ImageMagick (sharp can't write ICO containers).
 const icoOut = resolve(PUB, 'favicon.ico');
-await execFileAsync(MAGICK, [
-  SRC,
-  '-resize', '256x256',
-  '-define', 'icon:auto-resize=16,32,48',
-  icoOut
-]);
+await execFileAsync(MAGICK, [SRC, '-resize', '256x256', '-define', 'icon:auto-resize=16,32,48', icoOut]);
 const icoStat = await stat(icoOut);
 console.log(`[ico multi-res 16/32/48] ${(icoStat.size / 1024).toFixed(1)}KB → ./public/favicon.ico`);
 
 // 5) Brand assets in public/art/
-const logoMaster = await sharp(SRC).resize(1024, 1024, { fit: 'cover' }).png({ compressionLevel: 9 }).toBuffer();
+const logoMaster = await sharp(SRC)
+  .resize(1024, 1024, { fit: 'cover' })
+  .png({ compressionLevel: 9 })
+  .toBuffer();
 await writeFile(resolve(ART, 'logo.png'), logoMaster);
 console.log(`[logo.png 1024×1024] ${(logoMaster.length / 1024).toFixed(1)}KB → ./public/art/logo.png`);
 
@@ -93,7 +88,9 @@ console.log(`[logo-sm.png 320×320] ${(logoSm.length / 1024).toFixed(1)}KB → .
 
 const brandMark = await sharp(SRC).resize(128, 128, { fit: 'cover' }).png({ compressionLevel: 9 }).toBuffer();
 await writeFile(resolve(ART, 'brand-mark.png'), brandMark);
-console.log(`[brand-mark.png 128×128] ${(brandMark.length / 1024).toFixed(1)}KB → ./public/art/brand-mark.png`);
+console.log(
+  `[brand-mark.png 128×128] ${(brandMark.length / 1024).toFixed(1)}KB → ./public/art/brand-mark.png`
+);
 
 // 6) Mirror PWA icons into /art/ for backward compat with site.webmanifest paths if needed.
 for (const size of [192, 256, 384, 512]) {
@@ -101,9 +98,7 @@ for (const size of [192, 256, 384, 512]) {
   await writeFile(resolve(ART, `icon-${size}.png`), buf);
   console.log(`[art/icon-${size}.png] ${(buf.length / 1024).toFixed(1)}KB`);
 }
-const maskArt = await sharp(SRC)
-  .resize(716, 716, { fit: 'contain', background: BG })
-  .toBuffer();
+const maskArt = await sharp(SRC).resize(716, 716, { fit: 'contain', background: BG }).toBuffer();
 const maskableArt = await sharp({ create: { width: 1024, height: 1024, channels: 3, background: BG } })
   .composite([{ input: maskArt, gravity: 'center' }])
   .png({ compressionLevel: 9 })

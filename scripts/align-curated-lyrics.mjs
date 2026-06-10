@@ -29,21 +29,29 @@ const src = await readFile(DATA_TS, 'utf8');
 // Match track blocks: { id, title, artist, file, ... wisdom }. Tight enough that
 // the preceding album-literal block (which has `description:` and no `artist:`)
 // cannot be consumed into the lazy [\s\S]*? span.
-const blocks = src.match(/\{\s*id:\s*'[^']+',\s*title:\s*'[^']+',\s*artist:\s*'[^']+',\s*file:\s*'\/audio\/[^']+'[\s\S]*?wisdom:[^\n]+\n\s*\}/g) || [];
-const tracks = blocks.map(b => {
-  const id = b.match(/id:\s*'([^']+)'/)?.[1];
-  const file = b.match(/file:\s*'([^']+)'/)?.[1];
-  const lyricsBlock = b.match(/lyrics:\s*\[([\s\S]*?)\]/)?.[1] ?? '';
-  const lyrics = [...lyricsBlock.matchAll(/'((?:[^'\\]|\\.)*)'/g)].map(m =>
-    m[1].replace(/\\'/g, "'").replace(/\\"/g, '"')
-  );
-  return id && file && lyrics.length ? { id, file, lyrics } : null;
-}).filter(Boolean);
+const blocks =
+  src.match(
+    /\{\s*id:\s*'[^']+',\s*title:\s*'[^']+',\s*artist:\s*'[^']+',\s*file:\s*'\/audio\/[^']+'[\s\S]*?wisdom:[^\n]+\n\s*\}/g
+  ) || [];
+const tracks = blocks
+  .map(b => {
+    const id = b.match(/id:\s*'([^']+)'/)?.[1];
+    const file = b.match(/file:\s*'([^']+)'/)?.[1];
+    const lyricsBlock = b.match(/lyrics:\s*\[([\s\S]*?)\]/)?.[1] ?? '';
+    const lyrics = [...lyricsBlock.matchAll(/'((?:[^'\\]|\\.)*)'/g)].map(m =>
+      m[1].replace(/\\'/g, "'").replace(/\\"/g, '"')
+    );
+    return id && file && lyrics.length ? { id, file, lyrics } : null;
+  })
+  .filter(Boolean);
 
 console.log(`tracks parsed: ${tracks.length}`);
 
 function syllableCount(line) {
-  const cleaned = line.toLowerCase().replace(/[^a-z\s']/g, ' ').trim();
+  const cleaned = line
+    .toLowerCase()
+    .replace(/[^a-z\s']/g, ' ')
+    .trim();
   if (!cleaned) return 1;
   const words = cleaned.split(/\s+/).filter(Boolean);
   let total = 0;
@@ -58,9 +66,12 @@ function syllableCount(line) {
 
 async function probeDuration(absPath) {
   const { stdout } = await exec('ffprobe', [
-    '-v', 'error',
-    '-show_entries', 'format=duration',
-    '-of', 'default=nw=1:nk=1',
+    '-v',
+    'error',
+    '-show_entries',
+    'format=duration',
+    '-of',
+    'default=nw=1:nk=1',
     absPath
   ]);
   return Number.parseFloat(stdout.trim());
@@ -96,24 +107,39 @@ async function alignOne(track) {
     return { s: round2(s), e: round2(e), text };
   });
 
-  await writeFile(out, JSON.stringify({
-    lines,
-    duration: round2(duration),
-    source: 'aligned',
-    intro: round2(intro),
-    outro: round2(outro)
-  }, null, 2));
-  console.log(`✓ ${track.id} (${duration.toFixed(1)}s, intro ${intro.toFixed(1)}s, outro ${outro.toFixed(1)}s)`);
+  await writeFile(
+    out,
+    JSON.stringify(
+      {
+        lines,
+        duration: round2(duration),
+        source: 'aligned',
+        intro: round2(intro),
+        outro: round2(outro)
+      },
+      null,
+      2
+    )
+  );
+  console.log(
+    `✓ ${track.id} (${duration.toFixed(1)}s, intro ${intro.toFixed(1)}s, outro ${outro.toFixed(1)}s)`
+  );
 }
 
-function round2(n) { return Math.round(n * 100) / 100; }
+function round2(n) {
+  return Math.round(n * 100) / 100;
+}
 
 const concurrency = 4;
 let i = 0;
 async function worker() {
   while (i < tracks.length) {
     const t = tracks[i++];
-    try { await alignOne(t); } catch (err) { console.error(`✗ ${t.id} → ${err.message}`); }
+    try {
+      await alignOne(t);
+    } catch (err) {
+      console.error(`✗ ${t.id} → ${err.message}`);
+    }
   }
 }
 await Promise.all(Array.from({ length: concurrency }, worker));

@@ -20,12 +20,12 @@ export const STALE_MS = 6000; // no tick in this window → request full state
 export const MAX_QUEUE = 200;
 
 export type CastMsgType =
-  | 'hello'           // sender→receiver: handshake on session start
-  | 'queue:load'      // sender→receiver: replace queue, optionally start playing
-  | 'queue:insert'    // sender→receiver: append items
-  | 'queue:remove'    // sender→receiver: remove by id
-  | 'queue:reorder'   // sender→receiver: move by id
-  | 'queue:select'    // sender→receiver: jump to track id
+  | 'hello' // sender→receiver: handshake on session start
+  | 'queue:load' // sender→receiver: replace queue, optionally start playing
+  | 'queue:insert' // sender→receiver: append items
+  | 'queue:remove' // sender→receiver: remove by id
+  | 'queue:reorder' // sender→receiver: move by id
+  | 'queue:select' // sender→receiver: jump to track id
   | 'transport:play'
   | 'transport:pause'
   | 'transport:seek'
@@ -33,22 +33,22 @@ export type CastMsgType =
   | 'transport:prev'
   | 'transport:volume'
   | 'transport:mute'
-  | 'view:set'        // sender→receiver: focus a UI surface
-  | 'palette:set'     // sender→receiver: palette colors
-  | 'lyrics:set'      // sender→receiver: synced lyrics for current track
-  | 'state:request'   // sender→receiver: send full state now
-  | 'state:full'      // receiver→sender: snapshot
-  | 'state:tick'      // receiver→sender: lightweight tick
-  | 'state:error'     // receiver→sender: surfaced error
+  | 'view:set' // sender→receiver: focus a UI surface
+  | 'palette:set' // sender→receiver: palette colors
+  | 'lyrics:set' // sender→receiver: synced lyrics for current track
+  | 'state:request' // sender→receiver: send full state now
+  | 'state:full' // receiver→sender: snapshot
+  | 'state:tick' // receiver→sender: lightweight tick
+  | 'state:error' // receiver→sender: surfaced error
   | 'ping'
   | 'pong'
-  | 'log';            // either side: forward console events for diagnostics
+  | 'log'; // either side: forward console events for diagnostics
 
 export interface CastMsg<T = unknown> {
-  v: number;        // PROTOCOL_VERSION
+  v: number; // PROTOCOL_VERSION
   type: CastMsgType;
-  seq: number;      // monotonic per-sender
-  ts: number;       // ms since epoch
+  seq: number; // monotonic per-sender
+  ts: number; // ms since epoch
   payload?: T;
 }
 
@@ -61,12 +61,21 @@ export interface ReceiverQueueItem {
   audio: string;
   duration?: number;
   vibe?: string;
-  bpm?: number;        // authoritative tempo from Suno provenance (rounded)
+  bpm?: number; // authoritative tempo from Suno provenance (rounded)
   musicalKey?: string; // e.g. "C minor" — Suno-detected key
 }
 
-export interface ReceiverWord { w: string; s: number; e: number; }
-export interface ReceiverLine { t: number; text: string; e?: number; words?: ReceiverWord[]; }
+export interface ReceiverWord {
+  w: string;
+  s: number;
+  e: number;
+}
+export interface ReceiverLine {
+  t: number;
+  text: string;
+  e?: number;
+  words?: ReceiverWord[];
+}
 
 export type ReceiverView = 'now-playing' | 'queue' | 'settings';
 
@@ -97,14 +106,33 @@ export interface QueueLoadPayload {
   loop?: 'off' | 'one' | 'all';
 }
 
-export interface SeekPayload { position: number; }
-export interface VolumePayload { level: number; }
-export interface MutePayload { muted: boolean; }
-export interface SelectPayload { id: string; position?: number; }
-export interface InsertPayload { items: ReceiverQueueItem[]; afterId?: string; }
-export interface RemovePayload { id: string; }
-export interface ReorderPayload { id: string; toIndex: number; }
-export interface ViewPayload { view: ReceiverView; }
+export interface SeekPayload {
+  position: number;
+}
+export interface VolumePayload {
+  level: number;
+}
+export interface MutePayload {
+  muted: boolean;
+}
+export interface SelectPayload {
+  id: string;
+  position?: number;
+}
+export interface InsertPayload {
+  items: ReceiverQueueItem[];
+  afterId?: string;
+}
+export interface RemovePayload {
+  id: string;
+}
+export interface ReorderPayload {
+  id: string;
+  toIndex: number;
+}
+export interface ViewPayload {
+  view: ReceiverView;
+}
 export interface PalettePayload {
   bg: string;
   ink: string;
@@ -113,13 +141,31 @@ export interface PalettePayload {
   muted: string;
   swatches: string[];
 }
-export interface LyricsPayload { trackId: string; lines: ReceiverLine[]; }
-export interface ErrorPayload { code: string; message: string; recoverable: boolean; }
-export interface LogPayload { level: 'info' | 'warn' | 'error'; tag: string; message: string; data?: unknown; }
-export interface HelloPayload { senderId: string; appVersion: string; }
+export interface LyricsPayload {
+  trackId: string;
+  lines: ReceiverLine[];
+}
+export interface ErrorPayload {
+  code: string;
+  message: string;
+  recoverable: boolean;
+}
+export interface LogPayload {
+  level: 'info' | 'warn' | 'error';
+  tag: string;
+  message: string;
+  data?: unknown;
+}
+export interface HelloPayload {
+  senderId: string;
+  appVersion: string;
+}
 
 /** Monotonic per-process sequence counter for {@link packMsg}. */
-export const newSeq = (() => { let n = 0; return () => ++n; })();
+export const newSeq = (() => {
+  let n = 0;
+  return () => ++n;
+})();
 
 /**
  * Build a versioned, sequenced, timestamped Cast message. Always use this
@@ -138,5 +184,10 @@ export function packMsg<T>(type: CastMsgType, payload?: T): CastMsg<T> {
 export function isCastMsg(x: unknown): x is CastMsg<unknown> {
   if (!x || typeof x !== 'object') return false;
   const m = x as Record<string, unknown>;
-  return typeof m.type === 'string' && typeof m.seq === 'number' && typeof m.ts === 'number' && typeof m.v === 'number';
+  return (
+    typeof m.type === 'string' &&
+    typeof m.seq === 'number' &&
+    typeof m.ts === 'number' &&
+    typeof m.v === 'number'
+  );
 }

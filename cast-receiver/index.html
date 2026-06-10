@@ -3,12 +3,28 @@
   <head>
     <meta charset="utf-8" />
     <script>
-      try { window.trustedTypes && window.trustedTypes.createPolicy('default', { createHTML: function(s){return s;}, createScript: function(s){return s;}, createScriptURL: function(s){return s;} }); } catch (e) {}
+      try {
+        window.trustedTypes &&
+          window.trustedTypes.createPolicy('default', {
+            createHTML: function (s) {
+              return s;
+            },
+            createScript: function (s) {
+              return s;
+            },
+            createScriptURL: function (s) {
+              return s;
+            }
+          });
+      } catch (e) {}
     </script>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
     <title>BZ Music · Cast</title>
-    <meta name="description" content="Custom Chromecast receiver for music.megabyte.space — navigable queue, synced lyrics, live visualizer." />
+    <meta
+      name="description"
+      content="Custom Chromecast receiver for music.megabyte.space — navigable queue, synced lyrics, live visualizer."
+    />
     <link rel="canonical" href="https://music.megabyte.space/cast-receiver/" />
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#06030f" />
@@ -72,10 +88,17 @@
         <div class="idle__inner">
           <p class="idle__eyebrow">BZ Music · Cast</p>
           <h1 class="idle__title">Pick a track to start the show.</h1>
-          <p class="idle__sub">Open <strong>music.megabyte.space</strong> on phone or laptop, tap the cast icon.</p>
+          <p class="idle__sub">
+            Open <strong>music.megabyte.space</strong> on phone or laptop, tap the cast icon.
+          </p>
           <div class="idle__qr-wrap">
             <div class="idle__qr">
-              <img src="/qr-cast-join.svg" alt="Scan to open music.megabyte.space on your phone" width="220" height="220" />
+              <img
+                src="/qr-cast-join.svg"
+                alt="Scan to open music.megabyte.space on your phone"
+                width="220"
+                height="220"
+              />
             </div>
             <p class="idle__qr-hint">Scan to join · phone becomes the remote</p>
           </div>
@@ -109,7 +132,23 @@
     </div>
 
     <div class="vol-osd" id="volOsd" aria-hidden="true" role="status">
-      <svg class="vol-osd__icon" id="volOsdIcon" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path class="vol-osd__wave" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="vol-osd__wave" d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+      <svg
+        class="vol-osd__icon"
+        id="volOsdIcon"
+        viewBox="0 0 24 24"
+        width="28"
+        height="28"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M11 5 6 9H2v6h4l5 4z" />
+        <path class="vol-osd__wave" d="M15.5 8.5a5 5 0 0 1 0 7" />
+        <path class="vol-osd__wave" d="M18.5 5.5a9 9 0 0 1 0 13" />
+      </svg>
       <div class="vol-osd__track"><div class="vol-osd__fill" id="volOsdFill"></div></div>
       <span class="vol-osd__pct" id="volOsdPct">100%</span>
     </div>

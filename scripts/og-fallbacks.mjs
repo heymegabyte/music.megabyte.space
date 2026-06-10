@@ -34,14 +34,18 @@ fs.unlinkSync(tmp);
 const { ALBUMS, TRACKS, ALBUM_BY_ID } = data;
 console.log(`Loaded ${ALBUMS.length} albums, ${TRACKS.length} tracks`);
 
-let made = 0, skipped = 0;
+let made = 0,
+  skipped = 0;
 for (const track of TRACKS) {
   const out = path.join(OG_DIR, `${track.id}.png`);
-  if (fs.existsSync(out)) { skipped++; continue; }
+  if (fs.existsSync(out)) {
+    skipped++;
+    continue;
+  }
   const album = ALBUM_BY_ID.get(track.album);
   const sourcePath = path.join(ROOT, 'public', track.cover.replace(/^\//, ''));
   const fallback = album ? path.join(ROOT, 'public', album.cover.replace(/^\//, '')) : '';
-  const useSrc = fs.existsSync(sourcePath) ? sourcePath : (fallback && fs.existsSync(fallback) ? fallback : '');
+  const useSrc = fs.existsSync(sourcePath) ? sourcePath : fallback && fs.existsSync(fallback) ? fallback : '';
   if (!useSrc) {
     console.warn(`MISSING for ${track.id}`);
     continue;
@@ -57,9 +61,15 @@ for (const track of TRACKS) {
 // Album OG cards
 for (const album of ALBUMS) {
   const out = path.join(OG_DIR, `album-${album.id}.png`);
-  if (fs.existsSync(out)) { skipped++; continue; }
+  if (fs.existsSync(out)) {
+    skipped++;
+    continue;
+  }
   const src = path.join(ROOT, 'public', album.cover.replace(/^\//, ''));
-  if (!fs.existsSync(src)) { console.warn(`MISSING album cover for ${album.id}`); continue; }
+  if (!fs.existsSync(src)) {
+    console.warn(`MISSING album cover for ${album.id}`);
+    continue;
+  }
   await sharp(src)
     .resize(1200, 630, { fit: 'cover', position: 'center' })
     .png({ quality: 88, compressionLevel: 9 })

@@ -16,7 +16,11 @@ import { test, expect } from '@playwright/test';
 test.describe('merch cart', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      try { localStorage.removeItem('bz-merch-cart-v1'); } catch { /* ignore */ }
+      try {
+        localStorage.removeItem('bz-merch-cart-v1');
+      } catch {
+        /* ignore */
+      }
     });
   });
 
@@ -52,7 +56,11 @@ test.describe('merch cart', () => {
     // the client won't actually navigate to within the assertion window.
     let captured: { items?: Array<{ slug: string; quantity: number }> } | null = null;
     await page.route('**/api/merch/checkout', async route => {
-      try { captured = route.request().postDataJSON(); } catch { /* leave null */ }
+      try {
+        captured = route.request().postDataJSON();
+      } catch {
+        /* leave null */
+      }
       await route.fulfill({
         status: 200,
         contentType: 'application/json',

@@ -9,13 +9,30 @@
       // through this default policy instead of logging TT violations. Every
       // HTML/script source in this app is built from internal data, never
       // from user input, so passthrough is correct. See src/trusted-types.ts.
-      try { window.trustedTypes && window.trustedTypes.createPolicy('default', { createHTML: function(s){return s;}, createScript: function(s){return s;}, createScriptURL: function(s){return s;} }); } catch (e) {}
+      try {
+        window.trustedTypes &&
+          window.trustedTypes.createPolicy('default', {
+            createHTML: function (s) {
+              return s;
+            },
+            createScript: function (s) {
+              return s;
+            },
+            createScriptURL: function (s) {
+              return s;
+            }
+          });
+      } catch (e) {}
       // Pre-paint topbar mode: if the URL is a content-page slug, flip
       // <html> into story mode BEFORE the bundle paints so the topbar
       // boots in chip-rail layout instead of flickering from main-nav
       // → chip-rail mid-render.
       try {
-        if (/^\/(?:about|process|theology|credits|press|contact|support|merch)\/?$/.test(location.pathname)) {
+        if (
+          /^\/(?:about|process|theology|credits|press|contact|support|merch)\/?$/.test(
+            location.pathname
+          )
+        ) {
           document.documentElement.classList.add('is-story-mode');
         }
       } catch (e) {}
@@ -23,7 +40,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
     <title>Panda Desiiignare — bZ presents the cyan flag album</title>
-    <meta name="description" content="Click anywhere. Every region of the screen plays a different bZ track. Web Audio FFT visualizer, Chromecast-ready, hustle-gospel hard but holy." />
+    <meta
+      name="description"
+      content="Click anywhere. Every region of the screen plays a different bZ track. Web Audio FFT visualizer, Chromecast-ready, hustle-gospel hard but holy."
+    />
     <link rel="canonical" href="https://music.megabyte.space/" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
     <meta name="theme-color" content="#060610" />
@@ -59,12 +79,18 @@
 
     <meta property="og:type" content="music.album" />
     <meta property="og:title" content="Panda Desiiignare — bZ" />
-    <meta property="og:description" content="bZ + Suno + the Holy Spirit. Click anywhere on the screen — every region plays a different track." />
+    <meta
+      property="og:description"
+      content="bZ + Suno + the Holy Spirit. Click anywhere on the screen — every region plays a different track."
+    />
     <meta property="og:url" content="https://music.megabyte.space/" />
     <meta property="og:site_name" content="Panda Desiiignare" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:image" content="https://music.megabyte.space/og/album-desiiignare.jpg" />
-    <meta property="og:image:secure_url" content="https://music.megabyte.space/og/album-desiiignare.jpg" />
+    <meta
+      property="og:image:secure_url"
+      content="https://music.megabyte.space/og/album-desiiignare.jpg"
+    />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:type" content="image/jpeg" />
@@ -72,7 +98,10 @@
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Panda Desiiignare — bZ" />
-    <meta name="twitter:description" content="Hustle-gospel music. Click anywhere on the screen — every region plays a different track." />
+    <meta
+      name="twitter:description"
+      content="Hustle-gospel music. Click anywhere on the screen — every region plays a different track."
+    />
     <meta name="twitter:image" content="https://music.megabyte.space/og/album-desiiignare.jpg" />
     <meta name="twitter:image:alt" content="Panda Desiiignare — branded album card by bZ" />
 
@@ -80,15 +109,34 @@
          Slack autoplay these on link preview; X plays via the iframe embed
          pointing at the standalone /embed/desiiignare/chef-lu-stew widget. -->
     <meta property="og:audio" content="https://music.megabyte.space/audio/Chef_Lu_Stew.mp3" />
-    <meta property="og:audio:secure_url" content="https://music.megabyte.space/audio/Chef_Lu_Stew.mp3" />
+    <meta
+      property="og:audio:secure_url"
+      content="https://music.megabyte.space/audio/Chef_Lu_Stew.mp3"
+    />
     <meta property="og:audio:type" content="audio/mpeg" />
-    <meta name="twitter:player" content="https://music.megabyte.space/embed/desiiignare/chef-lu-stew" />
+    <meta
+      name="twitter:player"
+      content="https://music.megabyte.space/embed/desiiignare/chef-lu-stew"
+    />
     <meta name="twitter:player:width" content="480" />
     <meta name="twitter:player:height" content="160" />
-    <meta name="twitter:player:stream" content="https://music.megabyte.space/audio/Chef_Lu_Stew.mp3" />
+    <meta
+      name="twitter:player:stream"
+      content="https://music.megabyte.space/audio/Chef_Lu_Stew.mp3"
+    />
     <meta name="twitter:player:stream:content_type" content="audio/mpeg" />
-    <link rel="alternate" type="application/json+oembed" href="https://music.megabyte.space/api/oembed?url=https%3A%2F%2Fmusic.megabyte.space%2F&format=json" title="bZ — oEmbed JSON" />
-    <link rel="alternate" type="text/xml+oembed" href="https://music.megabyte.space/api/oembed?url=https%3A%2F%2Fmusic.megabyte.space%2F&format=xml" title="bZ — oEmbed XML" />
+    <link
+      rel="alternate"
+      type="application/json+oembed"
+      href="https://music.megabyte.space/api/oembed?url=https%3A%2F%2Fmusic.megabyte.space%2F&format=json"
+      title="bZ — oEmbed JSON"
+    />
+    <link
+      rel="alternate"
+      type="text/xml+oembed"
+      href="https://music.megabyte.space/api/oembed?url=https%3A%2F%2Fmusic.megabyte.space%2F&format=xml"
+      title="bZ — oEmbed XML"
+    />
 
     <link rel="dns-prefetch" href="https://www.gstatic.com" />
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
@@ -117,7 +165,6 @@
       href="/art/cover-panda-desiiignare-v2.jpg"
       fetchpriority="high"
     />
-
 
     <!-- Speculation Rules — prerender same-origin nav targets on hover/focus.
          `moderate` eagerness keeps bandwidth sane while delivering instant
@@ -178,7 +225,11 @@
         "@type": "WebSite",
         "name": "music.megabyte.space",
         "url": "https://music.megabyte.space/",
-        "publisher": { "@type": "MusicGroup", "name": "bZ", "url": "https://music.megabyte.space/" },
+        "publisher": {
+          "@type": "MusicGroup",
+          "name": "bZ",
+          "url": "https://music.megabyte.space/"
+        },
         "potentialAction": {
           "@type": "SearchAction",
           "target": "https://music.megabyte.space/?q={search_term_string}",

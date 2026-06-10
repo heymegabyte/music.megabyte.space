@@ -936,8 +936,7 @@ describe('parseAiWidgets', () => {
   });
 
   it('drops entries with unknown kinds', () => {
-    const input =
-      '```aiwidgets\n[{"kind":"text-card","body":"ok"},{"kind":"nope","body":"x"}]\n```';
+    const input = '```aiwidgets\n[{"kind":"text-card","body":"ok"},{"kind":"nope","body":"x"}]\n```';
     const out = parseAiWidgets(input);
     expect(out.widgets).toHaveLength(1);
     expect((out.widgets[0] as { kind: string }).kind).toBe('text-card');

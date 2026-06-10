@@ -3,12 +3,28 @@
   <head>
     <meta charset="utf-8" />
     <script>
-      try { window.trustedTypes && window.trustedTypes.createPolicy('default', { createHTML: function(s){return s;}, createScript: function(s){return s;}, createScriptURL: function(s){return s;} }); } catch (e) {}
+      try {
+        window.trustedTypes &&
+          window.trustedTypes.createPolicy('default', {
+            createHTML: function (s) {
+              return s;
+            },
+            createScript: function (s) {
+              return s;
+            },
+            createScriptURL: function (s) {
+              return s;
+            }
+          });
+      } catch (e) {}
     </script>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
     <title>Ashton + Mila — the appeal from bZ — Panda Desiiignare</title>
-    <meta name="description" content="bZ's open letter to Ashton Kutcher and Mila Kunis: brightest minds on one issue. Watch the proof video, read the appeal, then visit mission.megabyte.space." />
+    <meta
+      name="description"
+      content="bZ's open letter to Ashton Kutcher and Mila Kunis: brightest minds on one issue. Watch the proof video, read the appeal, then visit mission.megabyte.space."
+    />
     <link rel="canonical" href="https://music.megabyte.space/ashton.html" />
     <meta name="robots" content="index,follow" />
     <meta name="theme-color" content="#060610" />
@@ -22,95 +38,205 @@
 
     <meta property="og:type" content="article" />
     <meta property="og:title" content="Ashton + Mila — the appeal from bZ" />
-    <meta property="og:description" content="Brightest minds on one issue. Watch the proof video, read the open letter, share the link." />
+    <meta
+      property="og:description"
+      content="Brightest minds on one issue. Watch the proof video, read the open letter, share the link."
+    />
     <meta property="og:url" content="https://music.megabyte.space/ashton.html" />
     <meta property="og:site_name" content="Panda Desiiignare" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://music.megabyte.space/art/cover-panda-desiiignare.png" />
-    <meta property="og:image:secure_url" content="https://music.megabyte.space/art/cover-panda-desiiignare.png" />
+    <meta
+      property="og:image"
+      content="https://music.megabyte.space/art/cover-panda-desiiignare.png"
+    />
+    <meta
+      property="og:image:secure_url"
+      content="https://music.megabyte.space/art/cover-panda-desiiignare.png"
+    />
     <meta property="og:image:width" content="1024" />
     <meta property="og:image:height" content="1024" />
     <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:alt" content="Panda Desiiignare cover, used as the Ashton appeal hero" />
+    <meta
+      property="og:image:alt"
+      content="Panda Desiiignare cover, used as the Ashton appeal hero"
+    />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Ashton + Mila — the appeal from bZ" />
-    <meta name="twitter:description" content="Brightest minds on one issue. Watch the proof video and read the open letter from bZ." />
-    <meta name="twitter:image" content="https://music.megabyte.space/art/cover-panda-desiiignare.png" />
-    <meta name="twitter:image:alt" content="Panda Desiiignare cover, used as the Ashton appeal hero" />
+    <meta
+      name="twitter:description"
+      content="Brightest minds on one issue. Watch the proof video and read the open letter from bZ."
+    />
+    <meta
+      name="twitter:image"
+      content="https://music.megabyte.space/art/cover-panda-desiiignare.png"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="Panda Desiiignare cover, used as the Ashton appeal hero"
+    />
 
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap");
+      @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
       :root {
-        --bg: #060610; --ink: #f4f4ff; --ink-soft: rgba(244,244,255,0.82);
-        --ink-mute: rgba(244,244,255,0.5);
+        --bg: #060610;
+        --ink: #f4f4ff;
+        --ink-soft: rgba(244, 244, 255, 0.82);
+        --ink-mute: rgba(244, 244, 255, 0.5);
         /* Neon palette parity with bzmusic.win — electric cyan (was #00e5ff),
            electric magenta-violet (was #7c3aed), hot-pink (was #ff2da0),
            electric yellow (was #f5c24a). All chosen for max chroma at high
            lightness so they pop against #060610. */
-        --accent: #00FFFF; --violet: #C76BFF;
-        --hot: #FF1F8F; --gold: #FFE600;
-        --line: rgba(244,244,255,0.1);
+        --accent: #00ffff;
+        --violet: #c76bff;
+        --hot: #ff1f8f;
+        --gold: #ffe600;
+        --line: rgba(244, 244, 255, 0.1);
         /* Contrast-safe text variant of --accent — OKLCH-clamped to guarantee
            luminance ≥ 0.78 so accent text stays neon even when used over the
            radial-gradient bg's brighter regions. */
         --ink-accent: oklch(from var(--accent) max(l, 0.82) max(c, 0.2) h);
         --text-bg-dark: rgba(6, 6, 16, 0.85);
       }
-      * { box-sizing: border-box; }
-      html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
-        font-family: "Space Grotesk", system-ui, sans-serif; line-height: 1.6;
-        font-size: clamp(15px, 1vw + 12px, 19px); }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        line-height: 1.6;
+        font-size: clamp(15px, 1vw + 12px, 19px);
+      }
       body {
         background:
-          radial-gradient(900px 500px at 12% -10%, rgba(0,229,255,0.1), transparent 70%),
-          radial-gradient(800px 500px at 90% 20%, rgba(124,58,237,0.1), transparent 70%),
-          radial-gradient(900px 600px at 50% 110%, rgba(255,45,160,0.06), transparent 70%),
+          radial-gradient(900px 500px at 12% -10%, rgba(0, 229, 255, 0.1), transparent 70%),
+          radial-gradient(800px 500px at 90% 20%, rgba(124, 58, 237, 0.1), transparent 70%),
+          radial-gradient(900px 600px at 50% 110%, rgba(255, 45, 160, 0.06), transparent 70%),
           var(--bg);
         min-height: 100vh;
       }
-      a { color: var(--ink-accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .2s; }
-      a:hover, a:focus-visible { border-bottom-color: var(--accent); }
-      .wrap { max-width: 920px; margin: 0 auto; padding: clamp(28px, 5vw, 80px); }
-      .eyebrow { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.85rem;
-        letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-accent); margin: 0 0 14px; }
+      a {
+        color: var(--ink-accent);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.2s;
+      }
+      a:hover,
+      a:focus-visible {
+        border-bottom-color: var(--accent);
+      }
+      .wrap {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: clamp(28px, 5vw, 80px);
+      }
+      .eyebrow {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 0.85rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ink-accent);
+        margin: 0 0 14px;
+      }
       h1 {
-        font-family: "Sora", system-ui, sans-serif; font-weight: 800; line-height: 0.98;
-        font-size: clamp(2.4rem, 6vw, 5rem); margin: 0 0 24px; letter-spacing: -0.025em;
+        font-family: 'Sora', system-ui, sans-serif;
+        font-weight: 800;
+        line-height: 0.98;
+        font-size: clamp(2.4rem, 6vw, 5rem);
+        margin: 0 0 24px;
+        letter-spacing: -0.025em;
         background: linear-gradient(120deg, #fff 0%, var(--accent) 50%, var(--violet) 100%);
-        background-clip: text; -webkit-background-clip: text; color: transparent;
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
         text-wrap: balance;
       }
-      h2 { font-family: "Sora", system-ui, sans-serif; font-size: clamp(1.4rem, 2vw + 1rem, 2rem);
-        margin: 32px 0 12px; letter-spacing: -0.02em; }
-      p { color: var(--ink-soft); max-width: 70ch; text-wrap: pretty; }
-      strong { color: var(--ink-accent); font-weight: 700; }
-      em { color: var(--gold); font-style: italic; }
+      h2 {
+        font-family: 'Sora', system-ui, sans-serif;
+        font-size: clamp(1.4rem, 2vw + 1rem, 2rem);
+        margin: 32px 0 12px;
+        letter-spacing: -0.02em;
+      }
+      p {
+        color: var(--ink-soft);
+        max-width: 70ch;
+        text-wrap: pretty;
+      }
+      strong {
+        color: var(--ink-accent);
+        font-weight: 700;
+      }
+      em {
+        color: var(--gold);
+        font-style: italic;
+      }
       video {
-        width: 100%; border-radius: 28px; margin-top: 12px;
-        box-shadow: 0 30px 80px -30px rgba(0,229,255,0.5), 0 0 0 1px var(--line);
+        width: 100%;
+        border-radius: 28px;
+        margin-top: 12px;
+        box-shadow:
+          0 30px 80px -30px rgba(0, 229, 255, 0.5),
+          0 0 0 1px var(--line);
       }
-      .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
       .btn {
-        display: inline-flex; align-items: center; gap: 10px;
-        padding: 14px 22px; border-radius: 999px; border: 1px solid var(--line);
-        background: rgba(10,10,24,0.6); color: var(--ink);
-        font-family: "Sora", system-ui, sans-serif; font-weight: 600;
-        cursor: pointer; transition: transform .2s, border-color .2s, box-shadow .2s, color .2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 22px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(10, 10, 24, 0.6);
+        color: var(--ink);
+        font-family: 'Sora', system-ui, sans-serif;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          border-color 0.2s,
+          box-shadow 0.2s,
+          color 0.2s;
       }
-      .btn:hover { transform: translateY(-2px); border-color: var(--accent);
-        box-shadow: 0 18px 40px -18px rgba(0,229,255,0.6); color: var(--ink); }
+      .btn:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+        box-shadow: 0 18px 40px -18px rgba(0, 229, 255, 0.6);
+        color: var(--ink);
+      }
       .btn--primary {
         background: linear-gradient(120deg, var(--accent), var(--violet));
-        color: #00131a; border-color: transparent;
-        box-shadow: 0 18px 40px -18px rgba(0,229,255,0.65);
+        color: #00131a;
+        border-color: transparent;
+        box-shadow: 0 18px 40px -18px rgba(0, 229, 255, 0.65);
       }
-      .btn--primary:hover { color: #00131a; }
-      blockquote { border-left: 3px solid var(--accent); margin: 24px 0;
-        padding: 12px 18px; background: rgba(0,229,255,0.05); border-radius: 0 14px 14px 0;
-        color: var(--ink); font-size: 1.08rem; }
-      .signoff { font-family: "Sora"; font-weight: 700; color: var(--ink-accent);
-        font-size: 1.1rem; margin-top: 32px; }
+      .btn--primary:hover {
+        color: #00131a;
+      }
+      blockquote {
+        border-left: 3px solid var(--accent);
+        margin: 24px 0;
+        padding: 12px 18px;
+        background: rgba(0, 229, 255, 0.05);
+        border-radius: 0 14px 14px 0;
+        color: var(--ink);
+        font-size: 1.08rem;
+      }
+      .signoff {
+        font-family: 'Sora';
+        font-weight: 700;
+        color: var(--ink-accent);
+        font-size: 1.1rem;
+        margin-top: 32px;
+      }
     </style>
   </head>
   <body>
@@ -119,61 +245,70 @@
       <h1>Ashton, Mila — let's go bro.</h1>
 
       <p>
-        Hey Ashton. Hey Mila. I'm bZ. I work in code, I freestyle on top of Suno tracks, and I built the
-        site you're standing on in a single weekend. I have a request.
+        Hey Ashton. Hey Mila. I'm bZ. I work in code, I freestyle on top of Suno tracks, and I built
+        the site you're standing on in a single weekend. I have a request.
       </p>
 
       <p>
         We need to make sure our brightest minds are <strong>ALL</strong> working on
         <em>one</em> issue — the one we host at
-        <a href="https://mission.megabyte.space" rel="noopener" target="_top">mission.megabyte.space</a>. Not seven
-        priorities. Not eleven OKRs. <strong>One.</strong> Click through, read the brief, and tell me
-        I'm wrong. I'll wait.
+        <a href="https://mission.megabyte.space" rel="noopener" target="_top"
+          >mission.megabyte.space</a
+        >. Not seven priorities. Not eleven OKRs. <strong>One.</strong> Click through, read the
+        brief, and tell me I'm wrong. I'll wait.
       </p>
 
       <h2>Watch the proof first</h2>
       <p>
-        This is a 90-second clip. No edits, no studio. Just the laptop, the headphones, and the one human
-        I trust to put bars on top of a Suno backing track without leaning on a single body-word, drug
-        reference, or piece of malice. JC-inspired. Lit. Fit. Corporate. Get-to-it gospel.
+        This is a 90-second clip. No edits, no studio. Just the laptop, the headphones, and the one
+        human I trust to put bars on top of a Suno backing track without leaning on a single
+        body-word, drug reference, or piece of malice. JC-inspired. Lit. Fit. Corporate. Get-to-it
+        gospel.
       </p>
       <video controls preload="metadata" poster="/art/cover-panda-desiiignare.png">
-        <source src="/video/appeal.mp4" type="video/mp4">
+        <source src="/video/appeal.mp4" type="video/mp4" />
         Sorry — your browser can't render embedded video. The MP4 is at
         <a href="/video/appeal.mp4">/video/appeal.mp4</a>.
       </video>
 
       <h2>The pitch in one paragraph</h2>
       <p>
-        I'm corporate, lit, fit, and, shit, <strong>Ashton for President</strong>. Half-joke, half-not.
-        The full job description is at <a href="https://mission.megabyte.space" rel="noopener" target="_top">mission.megabyte.space</a>.
-        It doesn't require you to leave Hollywood. It doesn't require you to start a campaign. It
+        I'm corporate, lit, fit, and, shit, <strong>Ashton for President</strong>. Half-joke,
+        half-not. The full job description is at
+        <a href="https://mission.megabyte.space" rel="noopener" target="_top"
+          >mission.megabyte.space</a
+        >. It doesn't require you to leave Hollywood. It doesn't require you to start a campaign. It
         requires <strong>one signal</strong> from you that the brightest minds should converge on
         <em>this</em> issue, and the rest of us will follow.
       </p>
 
       <blockquote>
-        Court attention at all costs — <em>but only when the throne you want puts the brightest minds on
-        one issue.</em> Robert Greene, edited for the kingdom.
+        Court attention at all costs —
+        <em>but only when the throne you want puts the brightest minds on one issue.</em> Robert
+        Greene, edited for the kingdom.
       </blockquote>
 
       <h2>Why now</h2>
       <p>
-        Suno proved that one human plus AI can produce a full record in a weekend. That's leverage we've
-        never had. The throne of AI is up for grabs and it has not been defined yet — we either define it
-        with intention, or someone else defines it through neglect. The first option is faster. The
-        second one is louder. I want option one.
+        Suno proved that one human plus AI can produce a full record in a weekend. That's leverage
+        we've never had. The throne of AI is up for grabs and it has not been defined yet — we
+        either define it with intention, or someone else defines it through neglect. The first
+        option is faster. The second one is louder. I want option one.
       </p>
 
       <p>
-        <strong>Let's go bro. Let's go for the win bro. Let's go Ashton. Let's fucking go Ashton.</strong>
+        <strong
+          >Let's go bro. Let's go for the win bro. Let's go Ashton. Let's fucking go Ashton.</strong
+        >
       </p>
 
       <p class="signoff">— bZ, hitting send.</p>
 
       <div class="cta-row">
         <a class="btn btn--primary" id="ctaBack" href="/">← Back to the album</a>
-        <a class="btn" href="https://mission.megabyte.space" rel="noopener" target="_top">Open mission.megabyte.space →</a>
+        <a class="btn" href="https://mission.megabyte.space" rel="noopener" target="_top"
+          >Open mission.megabyte.space →</a
+        >
       </div>
     </main>
     <script>
@@ -185,8 +320,11 @@
         if (back) {
           back.addEventListener('click', function (e) {
             e.preventDefault();
-            try { window.parent.postMessage({ type: 'panda-appeal-close' }, location.origin); }
-            catch (err) { window.top.location.href = '/'; }
+            try {
+              window.parent.postMessage({ type: 'panda-appeal-close' }, location.origin);
+            } catch (err) {
+              window.top.location.href = '/';
+            }
           });
         }
       })();

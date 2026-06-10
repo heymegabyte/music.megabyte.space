@@ -186,11 +186,12 @@ npx wrangler deploy        # ships worker + static SPA + assets
 ```
 
 Required Cloudflare account features:
+
 - Workers (free tier OK)
 - Workers AI (Llama 3.3 70B FP8-fast) — free tier OK for low traffic
 - KV namespace named `COUNTERS`
-- *(Optional)* Browser Rendering — used by `/clip` for automated MP4 capture
-- *(Optional)* Workers Tracing — set `[observability] enabled = true` in `wrangler.toml`
+- _(Optional)_ Browser Rendering — used by `/clip` for automated MP4 capture
+- _(Optional)_ Workers Tracing — set `[observability] enabled = true` in `wrangler.toml`
 
 <hr/>
 
@@ -237,19 +238,19 @@ Required Cloudflare account features:
 
 ## Stack
 
-| Concern | Choice |
-| --- | --- |
-| Frontend | Vanilla TypeScript + Vite v6 — **no UI framework** |
-| Runtime | Cloudflare Workers (edge), Wrangler v4 |
-| State | KV `COUNTERS` (plays, shares, rate limits, push subs, listmonk cache) |
-| Audio | Web Audio API · `AnalyserNode` FFT · Krumhansl-Schmuckler key detection |
-| AI | Workers AI Llama 3.3 70B FP8-fast (chat) · 3.1 8B fallback |
-| Lyrics sync | OpenAI Whisper-1 + Needleman-Wunsch alignment |
-| Image gen | OpenAI gpt-image-1 (album covers, OG cards, content figures) |
-| Email | Resend + Listmonk |
-| Push | Web Push w/ VAPID |
-| Cast | Chromecast default receiver + custom app `228565CB` |
-| Tests | Playwright v1.59 E2E @ 6 breakpoints vs `PROD_URL` |
+| Concern     | Choice                                                                  |
+| ----------- | ----------------------------------------------------------------------- |
+| Frontend    | Vanilla TypeScript + Vite v6 — **no UI framework**                      |
+| Runtime     | Cloudflare Workers (edge), Wrangler v4                                  |
+| State       | KV `COUNTERS` (plays, shares, rate limits, push subs, listmonk cache)   |
+| Audio       | Web Audio API · `AnalyserNode` FFT · Krumhansl-Schmuckler key detection |
+| AI          | Workers AI Llama 3.3 70B FP8-fast (chat) · 3.1 8B fallback              |
+| Lyrics sync | OpenAI Whisper-1 + Needleman-Wunsch alignment                           |
+| Image gen   | OpenAI gpt-image-1 (album covers, OG cards, content figures)            |
+| Email       | Resend + Listmonk                                                       |
+| Push        | Web Push w/ VAPID                                                       |
+| Cast        | Chromecast default receiver + custom app `228565CB`                     |
+| Tests       | Playwright v1.59 E2E @ 6 breakpoints vs `PROD_URL`                      |
 
 <hr/>
 
@@ -258,6 +259,7 @@ Required Cloudflare account features:
 Every track in `src/data.ts` gets a `/press/{trackId}` URL with zero per-track configuration. The Worker renders the page server-side using the track title (slug → Title Case), looks up Spotify metadata on demand for the album art + duration + popularity, falls back to the local `/art/cover-{trackId}.jpg` if no Spotify match.
 
 **Send to a curator:**
+
 ```
 Hi [name],
 bZ — Newark hustle-gospel. "Chef Lu Stew" is a 2:59 cinematic gospel-trap cut.
@@ -290,6 +292,7 @@ https://music.megabyte.space/clip/chef-lu-stew
 `⌘K` opens the panel. Powered by Cloudflare Workers AI (Llama 3.3 70B FP8-fast for normal mode, 3.1 8B as automatic fallback on transient failures). The chat is page-aware — it knows what track is playing, what content page you're reading, your recent listens. Drag-drop any file from the page to attach context. `/shortcommands` lists every slash command.
 
 **Examples:**
+
 - `/track birch-swing-heaven` — open the track details widget
 - `/album canopy` — load the album metadata
 - `/pin <note>` — pin a fact for the chat to remember
@@ -300,7 +303,7 @@ https://music.megabyte.space/clip/chef-lu-stew
 
 ## Adding a new release
 
-The *Bootleg From Tomorrow* album was added in a single session using this flow:
+The _Bootleg From Tomorrow_ album was added in a single session using this flow:
 
 1. Drop MP3s into `public/audio/{slug}.mp3` (kebab-case filenames)
 2. Run `node scripts/fetch-suno-lyrics.mjs` to pull source lyrics from your Suno feed

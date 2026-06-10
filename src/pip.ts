@@ -27,7 +27,11 @@ export interface PipHooks {
 
 interface PipApiWindow extends Window {
   documentPictureInPicture?: {
-    requestWindow: (opts: { width?: number; height?: number; preferInitialWindowPlacement?: boolean }) => Promise<Window>;
+    requestWindow: (opts: {
+      width?: number;
+      height?: number;
+      preferInitialWindowPlacement?: boolean;
+    }) => Promise<Window>;
     window: Window | null;
   };
 }
@@ -46,14 +50,22 @@ export function createPipController(hooks: PipHooks): PipController {
   let progressTotal: HTMLElement | null = null;
   let progressTrack: HTMLElement | null = null;
   let lastTrack: { title: string; artist: string; cover: string; album: string } | null = null;
-  let lastPalette: { bg: string; ink: string; accent: string } = { bg: '#06030f', ink: '#f4ecd8', accent: '#a586ff' };
+  let lastPalette: { bg: string; ink: string; accent: string } = {
+    bg: '#06030f',
+    ink: '#f4ecd8',
+    accent: '#a586ff'
+  };
   let lastPlaying = false;
   let lastPosition = 0;
   let lastDuration = 0;
 
   function close(): void {
     if (pipWindow && !pipWindow.closed) {
-      try { pipWindow.close(); } catch { /* noop */ }
+      try {
+        pipWindow.close();
+      } catch {
+        /* noop */
+      }
     }
     pipWindow = null;
     coverEl = titleEl = artistEl = albumEl = null;
@@ -152,9 +164,18 @@ export function createPipController(hooks: PipHooks): PipController {
     });
     progressTrack?.addEventListener('keydown', (e: Event) => {
       const evt = e as KeyboardEvent;
-      if (evt.key === 'ArrowLeft') { hooks.onSeek(Math.max(0, lastPosition - 5)); evt.preventDefault(); }
-      if (evt.key === 'ArrowRight') { hooks.onSeek(Math.min(lastDuration, lastPosition + 5)); evt.preventDefault(); }
-      if (evt.key === ' ' || evt.key === 'Enter') { hooks.onPlayPause(); evt.preventDefault(); }
+      if (evt.key === 'ArrowLeft') {
+        hooks.onSeek(Math.max(0, lastPosition - 5));
+        evt.preventDefault();
+      }
+      if (evt.key === 'ArrowRight') {
+        hooks.onSeek(Math.min(lastDuration, lastPosition + 5));
+        evt.preventDefault();
+      }
+      if (evt.key === ' ' || evt.key === 'Enter') {
+        hooks.onPlayPause();
+        evt.preventDefault();
+      }
     });
 
     if (lastTrack) syncTrack(lastTrack);
@@ -165,7 +186,10 @@ export function createPipController(hooks: PipHooks): PipController {
   function syncTrack(opts: { title: string; artist: string; cover: string; album: string }): void {
     lastTrack = opts;
     if (!pipWindow || pipWindow.closed) return;
-    if (coverEl) { coverEl.src = opts.cover; coverEl.alt = opts.title; }
+    if (coverEl) {
+      coverEl.src = opts.cover;
+      coverEl.alt = opts.title;
+    }
     if (titleEl) titleEl.textContent = opts.title;
     if (artistEl) artistEl.textContent = opts.artist;
     if (albumEl) albumEl.textContent = opts.album;
@@ -209,13 +233,22 @@ export function createPipController(hooks: PipHooks): PipController {
     isOpen: () => Boolean(pipWindow && !pipWindow.closed),
     async toggle() {
       if (!SUPPORTED) return;
-      if (pipWindow && !pipWindow.closed) { close(); return; }
+      if (pipWindow && !pipWindow.closed) {
+        close();
+        return;
+      }
       const api = (window as PipApiWindow).documentPictureInPicture;
       if (!api) return;
       try {
         const win = await api.requestWindow({ width: 320, height: 420 });
         pipWindow = win;
-        win.addEventListener('pagehide', () => { pipWindow = null; }, { once: true });
+        win.addEventListener(
+          'pagehide',
+          () => {
+            pipWindow = null;
+          },
+          { once: true }
+        );
         buildDocument(win);
       } catch (err) {
         console.warn('[pip] requestWindow failed', err);

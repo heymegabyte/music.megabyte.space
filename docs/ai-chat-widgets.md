@@ -22,42 +22,42 @@ A client message is `ChatMessage`. The renderer in `ai-chat.ts` appends `renderW
 
 ## Kinds
 
-| `kind`            | Use it for                                            | Required fields                                        |
-| ----------------- | ----------------------------------------------------- | ------------------------------------------------------ |
-| `text-card`       | Short prose block with optional title                 | `body`                                                 |
-| `cta`             | One or two action buttons under a headline            | `title`, `primary{label,href}`                         |
-| `link-card`       | Single tile linking to an internal or external page   | `title`, `href`                                        |
-| `photo`           | Inline image with caption + credit                    | `src`, `alt`                                           |
-| `gallery`         | Grid of up to 12 thumbnails                           | `items[].src`, `items[].alt`                           |
-| `track-card`      | Highlight one track from `src/data.ts`                | `trackId`, `title`, `album`, `href`                    |
-| `album-card`      | Highlight one album                                   | `albumId`, `name`, `trackCount`, `href`                |
-| `pricing-card`    | Tier headline + bullet features + optional CTA        | `tier`, `price`, `features[]`                          |
-| `faq-accordion`   | `<details>`-driven Q/A list                           | `items[].q`, `items[].a`                               |
-| `mini-table`      | Tabular comparison (cell count clamped to header len) | `headers[]`, `rows[][]`                                |
-| `stat-card`       | One headline metric with delta + hint                 | `label`, `value`                                       |
-| `timeline`        | Ordered list of dated events                          | `items[].when`, `items[].title`                        |
-| `command-palette` | Grouped, clickable `/`-commands                       | `groups[].label`, `groups[].items[].cmd`, `items[].desc` |
-| `related-pages`   | Navigation list to sibling routes                     | `items[].label`, `items[].href`                        |
-| `citation`        | Numbered source list with optional pull-quotes        | `sources[].label`, `sources[].href`                    |
-| `status-badge`    | Single inline tone-coded pill                         | `label`, `tone`                                        |
-| `alert`           | Banner with `role=alert`/`role=status` based on tone  | `title`, `tone`                                        |
-| `code-snippet`    | Highlighted code with copy button                     | `code`                                                 |
-| `audio-card`      | Mini player teaser linking into the catalog           | `trackId`, `title`, `href`                             |
-| `quick-reply`     | Tap-to-send reply chips                               | `options[].label`                                      |
-| `progress`        | Progress bar plus optional step list                  | `percent` or `steps[]`                                 |
-| `feedback`        | Inline thumbs-up/down with `aichat:feedback` dispatch | `responseId` (optional)                                |
-| `search-results`  | Result list with title, href, snippet                 | `results[].title`, `results[].href`                    |
-| `breadcrumb`      | Inline breadcrumb trail                               | `items[].label`                                        |
-| `chart`           | Pure-SVG sparkline or bar chart                       | `series[]`                                             |
-| `person-card`     | Avatar, role, bio, and link row                       | `name`                                                 |
-| `event-card`      | Date/time/place card with optional CTA                | `title`, `when`                                        |
-| `carousel`        | Horizontal-scroll image carousel                      | `items[].src`, `items[].alt`                           |
-| `next-best-action`| Headlined recommendation with primary/secondary CTA   | `primary.label`                                        |
-| `before-after`    | Side-by-side comparison of two images                 | `before.src`, `before.alt`, `after.src`, `after.alt`   |
-| `newsletter-signup` | Email capture wired to `POST /api/subscribe`        | (none — emits `aichat:newsletter` on success)          |
-| `checklist`       | Tickable item list with progress bar                  | `items[].label`                                        |
-| `document-card`   | Downloadable doc tile with format and size            | `title`, `href`                                        |
-| `comparison-table`| Feature matrix with boolean ✓/— cells + highlight col | `columns[]`, `rows[].label`, `rows[].values[]`         |
+| `kind`              | Use it for                                            | Required fields                                          |
+| ------------------- | ----------------------------------------------------- | -------------------------------------------------------- |
+| `text-card`         | Short prose block with optional title                 | `body`                                                   |
+| `cta`               | One or two action buttons under a headline            | `title`, `primary{label,href}`                           |
+| `link-card`         | Single tile linking to an internal or external page   | `title`, `href`                                          |
+| `photo`             | Inline image with caption + credit                    | `src`, `alt`                                             |
+| `gallery`           | Grid of up to 12 thumbnails                           | `items[].src`, `items[].alt`                             |
+| `track-card`        | Highlight one track from `src/data.ts`                | `trackId`, `title`, `album`, `href`                      |
+| `album-card`        | Highlight one album                                   | `albumId`, `name`, `trackCount`, `href`                  |
+| `pricing-card`      | Tier headline + bullet features + optional CTA        | `tier`, `price`, `features[]`                            |
+| `faq-accordion`     | `<details>`-driven Q/A list                           | `items[].q`, `items[].a`                                 |
+| `mini-table`        | Tabular comparison (cell count clamped to header len) | `headers[]`, `rows[][]`                                  |
+| `stat-card`         | One headline metric with delta + hint                 | `label`, `value`                                         |
+| `timeline`          | Ordered list of dated events                          | `items[].when`, `items[].title`                          |
+| `command-palette`   | Grouped, clickable `/`-commands                       | `groups[].label`, `groups[].items[].cmd`, `items[].desc` |
+| `related-pages`     | Navigation list to sibling routes                     | `items[].label`, `items[].href`                          |
+| `citation`          | Numbered source list with optional pull-quotes        | `sources[].label`, `sources[].href`                      |
+| `status-badge`      | Single inline tone-coded pill                         | `label`, `tone`                                          |
+| `alert`             | Banner with `role=alert`/`role=status` based on tone  | `title`, `tone`                                          |
+| `code-snippet`      | Highlighted code with copy button                     | `code`                                                   |
+| `audio-card`        | Mini player teaser linking into the catalog           | `trackId`, `title`, `href`                               |
+| `quick-reply`       | Tap-to-send reply chips                               | `options[].label`                                        |
+| `progress`          | Progress bar plus optional step list                  | `percent` or `steps[]`                                   |
+| `feedback`          | Inline thumbs-up/down with `aichat:feedback` dispatch | `responseId` (optional)                                  |
+| `search-results`    | Result list with title, href, snippet                 | `results[].title`, `results[].href`                      |
+| `breadcrumb`        | Inline breadcrumb trail                               | `items[].label`                                          |
+| `chart`             | Pure-SVG sparkline or bar chart                       | `series[]`                                               |
+| `person-card`       | Avatar, role, bio, and link row                       | `name`                                                   |
+| `event-card`        | Date/time/place card with optional CTA                | `title`, `when`                                          |
+| `carousel`          | Horizontal-scroll image carousel                      | `items[].src`, `items[].alt`                             |
+| `next-best-action`  | Headlined recommendation with primary/secondary CTA   | `primary.label`                                          |
+| `before-after`      | Side-by-side comparison of two images                 | `before.src`, `before.alt`, `after.src`, `after.alt`     |
+| `newsletter-signup` | Email capture wired to `POST /api/subscribe`          | (none — emits `aichat:newsletter` on success)            |
+| `checklist`         | Tickable item list with progress bar                  | `items[].label`                                          |
+| `document-card`     | Downloadable doc tile with format and size            | `title`, `href`                                          |
+| `comparison-table`  | Feature matrix with boolean ✓/— cells + highlight col | `columns[]`, `rows[].label`, `rows[].values[]`           |
 
 ## Example payload
 

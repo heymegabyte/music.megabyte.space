@@ -8,13 +8,32 @@
 import type { Track } from './types';
 import { asScriptURL } from './trusted-types';
 import {
-  CAST_NAMESPACE, CAST_APP_ID, RECEIVER_FALLBACK, PROTOCOL_VERSION, SENDER_TICK_HZ, STALE_MS,
-  packMsg, isCastMsg,
-  type CastMsg, type ReceiverState, type ReceiverQueueItem, type ReceiverLine,
-  type QueueLoadPayload, type SeekPayload, type VolumePayload, type MutePayload,
-  type SelectPayload, type InsertPayload, type RemovePayload, type ReorderPayload,
-  type ViewPayload, type PalettePayload, type LyricsPayload, type HelloPayload,
-  type ErrorPayload, type LogPayload
+  CAST_NAMESPACE,
+  CAST_APP_ID,
+  RECEIVER_FALLBACK,
+  PROTOCOL_VERSION,
+  SENDER_TICK_HZ,
+  STALE_MS,
+  packMsg,
+  isCastMsg,
+  type CastMsg,
+  type ReceiverState,
+  type ReceiverQueueItem,
+  type ReceiverLine,
+  type QueueLoadPayload,
+  type SeekPayload,
+  type VolumePayload,
+  type MutePayload,
+  type SelectPayload,
+  type InsertPayload,
+  type RemovePayload,
+  type ReorderPayload,
+  type ViewPayload,
+  type PalettePayload,
+  type LyricsPayload,
+  type HelloPayload,
+  type ErrorPayload,
+  type LogPayload
 } from './cast-protocol';
 
 declare global {
@@ -74,7 +93,8 @@ export class CastBridge {
   private remoteController: any = null;
   private queueAdvance: ((from: 'cast') => void) | null = null;
   private lastTrackId: string | null = null;
-  private lastLoad: { trackId: string; title: string; artist: string; album: string; cover: string } | null = null;
+  private lastLoad: { trackId: string; title: string; artist: string; album: string; cover: string } | null =
+    null;
   private session: any = null;
   private inboundLastAt = 0;
   private outboundQueue: PendingMessage[] = [];
@@ -99,7 +119,9 @@ export class CastBridge {
   // revert to the Default Media Receiver so the TV reappears — see watchCastState.
   private filteredPickerTimer = 0;
   private pickerHealed = false;
-  private get usesCustomReceiver(): boolean { return this.appId !== RECEIVER_FALLBACK; }
+  private get usesCustomReceiver(): boolean {
+    return this.appId !== RECEIVER_FALLBACK;
+  }
 
   /** Switch to the custom branded receiver. Only call after the device is known
    * to be bound to App ID 228565CB (e.g. dev devices, or after the user enables
@@ -162,7 +184,10 @@ export class CastBridge {
         androidReceiverCompatible: true
       });
     } catch (err: unknown) {
-      this.emit({ type: 'error', message: 'cast options failed: ' + (err instanceof Error ? err.message : String(err)) });
+      this.emit({
+        type: 'error',
+        message: 'cast options failed: ' + (err instanceof Error ? err.message : String(err))
+      });
     }
   }
 
@@ -177,7 +202,11 @@ export class CastBridge {
 
   private emit(e: CastEvent) {
     for (const l of this.listeners) {
-      try { l(e); } catch { /* swallow */ }
+      try {
+        l(e);
+      } catch {
+        /* swallow */
+      }
     }
   }
 
@@ -242,7 +271,11 @@ export class CastBridge {
               this.pickerHealed = true;
               this.appId = RECEIVER_FALLBACK;
               this.applyOptions(ctx);
-              this.emit({ type: 'error', message: 'No cast devices found with the branded receiver — switched to the default so your TV reappears.' });
+              this.emit({
+                type: 'error',
+                message:
+                  'No cast devices found with the branded receiver — switched to the default so your TV reappears.'
+              });
             }
           }, 6000);
         }
@@ -263,10 +296,18 @@ export class CastBridge {
       this.emit({ type: 'state', playing: this.isPlaying });
     });
     this.remoteController.addEventListener(E.CURRENT_TIME_CHANGED, () => {
-      this.emit({ type: 'progress', currentTime: this.remotePlayer.currentTime ?? 0, duration: this.remotePlayer.duration ?? 0 });
+      this.emit({
+        type: 'progress',
+        currentTime: this.remotePlayer.currentTime ?? 0,
+        duration: this.remotePlayer.duration ?? 0
+      });
     });
     this.remoteController.addEventListener(E.DURATION_CHANGED, () => {
-      this.emit({ type: 'progress', currentTime: this.remotePlayer.currentTime ?? 0, duration: this.remotePlayer.duration ?? 0 });
+      this.emit({
+        type: 'progress',
+        currentTime: this.remotePlayer.currentTime ?? 0,
+        duration: this.remotePlayer.duration ?? 0
+      });
     });
     this.remoteController.addEventListener(E.VOLUME_LEVEL_CHANGED, () => {
       this.volumeLevel = this.remotePlayer.volumeLevel ?? 1;
@@ -302,8 +343,11 @@ export class CastBridge {
       session.addMessageListener(CAST_NAMESPACE, (_ns: string, raw: string) => {
         this.inboundLastAt = Date.now();
         let msg: unknown;
-        try { msg = JSON.parse(raw); }
-        catch { return; }
+        try {
+          msg = JSON.parse(raw);
+        } catch {
+          return;
+        }
         if (!isCastMsg(msg)) return;
         this.handleReceiverMessage(msg);
       });
@@ -342,7 +386,8 @@ export class CastBridge {
         if (p) this.emit({ type: 'receiver-log', level: p.level, tag: p.tag, message: p.message });
         break;
       }
-      case 'pong': /* heartbeat acknowledged */ break;
+      case 'pong':
+        /* heartbeat acknowledged */ break;
     }
   }
 
@@ -384,10 +429,17 @@ export class CastBridge {
     const period = Math.round(1000 / SENDER_TICK_HZ);
     this.senderTickTimer = window.setInterval(() => {
       if (!this.active) return;
-      this.sendCustom('ping', { ts: Date.now() }).catch(() => {/* tick failure surfaced via error event */});
+      this.sendCustom('ping', { ts: Date.now() }).catch(() => {
+        /* tick failure surfaced via error event */
+      });
     }, period);
   }
-  private stopSenderTick() { if (this.senderTickTimer) { clearInterval(this.senderTickTimer); this.senderTickTimer = 0; } }
+  private stopSenderTick() {
+    if (this.senderTickTimer) {
+      clearInterval(this.senderTickTimer);
+      this.senderTickTimer = 0;
+    }
+  }
 
   private startStaleWatch() {
     this.stopStaleWatch();
@@ -396,13 +448,20 @@ export class CastBridge {
       const silent = Date.now() - this.inboundLastAt;
       if (silent > STALE_MS) {
         this.setStatus('stale', `no inbound for ${Math.round(silent / 1000)}s`);
-        this.sendCustom('state:request', null).catch(() => {/* swallow */});
+        this.sendCustom('state:request', null).catch(() => {
+          /* swallow */
+        });
       } else if (silent < 2500) {
         this.setStatus('live');
       }
     }, 2000);
   }
-  private stopStaleWatch() { if (this.staleWatchTimer) { clearInterval(this.staleWatchTimer); this.staleWatchTimer = 0; } }
+  private stopStaleWatch() {
+    if (this.staleWatchTimer) {
+      clearInterval(this.staleWatchTimer);
+      this.staleWatchTimer = 0;
+    }
+  }
 
   /** If custom App ID load fails (unregistered receiver crashes immediately),
    * retry once with the default media receiver so audio still plays. Custom UI
@@ -476,7 +535,13 @@ export class CastBridge {
     try {
       await session.loadMedia(request);
       this.lastTrackId = track.id;
-      this.lastLoad = { trackId: track.id, title: track.title, artist: track.artist, album: albumName, cover };
+      this.lastLoad = {
+        trackId: track.id,
+        title: track.title,
+        artist: track.artist,
+        album: albumName,
+        cover
+      };
       this.emit({ type: 'loaded', ...this.lastLoad });
     } catch (err: unknown) {
       this.emit({ type: 'error', message: err instanceof Error ? err.message : String(err) });
@@ -491,7 +556,9 @@ export class CastBridge {
   toggleMute() {
     if (!this.active) return;
     if (this.customChannelOpen) {
-      this.sendCustom('transport:mute', { muted: !this.muted } as MutePayload).catch(() => this.remoteController?.muteOrUnmute());
+      this.sendCustom('transport:mute', { muted: !this.muted } as MutePayload).catch(() =>
+        this.remoteController?.muteOrUnmute()
+      );
     } else {
       this.remoteController?.muteOrUnmute();
     }
@@ -503,7 +570,7 @@ export class CastBridge {
     try {
       await ctx.requestSession();
     } catch (err: unknown) {
-      const msg = typeof err === 'string' ? err : (err instanceof Error ? err.message : 'cast cancelled');
+      const msg = typeof err === 'string' ? err : err instanceof Error ? err.message : 'cast cancelled';
       if (msg === 'cancel') return;
       // select_unknown_id (905) = receiver app not registered to the picked
       // device. Fall back to default media receiver and retry once so the user
@@ -515,7 +582,8 @@ export class CastBridge {
           await ctx.requestSession();
           return;
         } catch (err2: unknown) {
-          const msg2 = typeof err2 === 'string' ? err2 : (err2 instanceof Error ? err2.message : 'cast cancelled');
+          const msg2 =
+            typeof err2 === 'string' ? err2 : err2 instanceof Error ? err2.message : 'cast cancelled';
           if (msg2 === 'cancel') return;
           this.emit({ type: 'error', message: msg2 });
           return;
@@ -540,7 +608,10 @@ export class CastBridge {
     const pos = Math.max(0, seconds);
     if (this.customChannelOpen) {
       this.sendCustom('transport:seek', { position: pos } as SeekPayload).catch(() => {
-        if (this.remotePlayer) { this.remotePlayer.currentTime = pos; this.remoteController?.seek(); }
+        if (this.remotePlayer) {
+          this.remotePlayer.currentTime = pos;
+          this.remoteController?.seek();
+        }
       });
     } else if (this.remotePlayer) {
       this.remotePlayer.currentTime = pos;
@@ -567,11 +638,19 @@ export class CastBridge {
    * don't jolt the listener with a step change when the slider is dragged. */
   private applyVolumeFallback(target: number, ramp: boolean, duration: number) {
     if (!this.remotePlayer || !this.remoteController) return;
-    if (this.volumeRampFrame) { cancelAnimationFrame(this.volumeRampFrame); this.volumeRampFrame = 0; }
-    const start = typeof this.remotePlayer.volumeLevel === 'number' ? this.remotePlayer.volumeLevel : this.volumeLevel;
+    if (this.volumeRampFrame) {
+      cancelAnimationFrame(this.volumeRampFrame);
+      this.volumeRampFrame = 0;
+    }
+    const start =
+      typeof this.remotePlayer.volumeLevel === 'number' ? this.remotePlayer.volumeLevel : this.volumeLevel;
     if (!ramp || Math.abs(target - start) < 0.02 || duration <= 0) {
       this.remotePlayer.volumeLevel = target;
-      try { this.remoteController.setVolumeLevel(); } catch { /* swallow */ }
+      try {
+        this.remoteController.setVolumeLevel();
+      } catch {
+        /* swallow */
+      }
       this.volumeLevel = target;
       return;
     }
@@ -583,7 +662,9 @@ export class CastBridge {
       try {
         this.remotePlayer.volumeLevel = v;
         this.remoteController.setVolumeLevel();
-      } catch { /* receiver may have ended mid-ramp */ }
+      } catch {
+        /* receiver may have ended mid-ramp */
+      }
       this.volumeLevel = v;
       if (k < 1 && this.active) {
         this.volumeRampFrame = requestAnimationFrame(step);
@@ -594,8 +675,12 @@ export class CastBridge {
     this.volumeRampFrame = requestAnimationFrame(step);
   }
 
-  next(): Promise<void> { return this.sendCustom('transport:next'); }
-  prev(): Promise<void> { return this.sendCustom('transport:prev'); }
+  next(): Promise<void> {
+    return this.sendCustom('transport:next');
+  }
+  prev(): Promise<void> {
+    return this.sendCustom('transport:prev');
+  }
 
   endSession(stopReceiver = true) {
     if (!this.active) return;

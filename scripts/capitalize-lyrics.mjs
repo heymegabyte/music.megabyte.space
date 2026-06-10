@@ -84,7 +84,7 @@ async function main() {
   while ((m = blockRe.exec(src)) !== null) {
     const [whole, head, body, tail] = m;
     const innerLines = body.split('\n');
-    const tracked = innerLines.map((line) => {
+    const tracked = innerLines.map(line => {
       const lm = line.match(lineRe);
       if (!lm) return { line, mutable: false };
       const [, indent, content, comma] = lm;
@@ -100,8 +100,8 @@ async function main() {
   }
 
   // Convert source-form escapes to plain text for transformation, then re-escape.
-  const unescape = (s) => s.replace(/\\(.)/g, '$1');
-  const reescape = (s) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  const unescape = s => s.replace(/\\(.)/g, '$1');
+  const reescape = s => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   const plainLines = allLines.map(unescape);
 
   let plainCorrected;
@@ -119,7 +119,10 @@ async function main() {
     out += src.slice(cursor, b.start);
     out += b.head;
     for (const t of b.tracked) {
-      if (!t.mutable) { out += '\n' + t.line; continue; }
+      if (!t.mutable) {
+        out += '\n' + t.line;
+        continue;
+      }
       const newPlain = plainCorrected[t.idx];
       const newLine = `${t.indent}'${reescape(newPlain)}'${t.comma}`;
       if (newLine !== t.line) changed++;
@@ -152,4 +155,7 @@ async function main() {
   console.log(`Updated ${changed} line(s) in src/data.ts`);
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

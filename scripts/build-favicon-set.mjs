@@ -58,13 +58,19 @@ const ANDROID_SIZES = [192, 512];
 const ART_SIZES = [16, 32, 96, 180, 192, 256, 384, 512];
 
 for (const size of FAVICON_ROOT_SIZES) {
-  const buf = await sharp(master).resize(size, size, { kernel: sharp.kernel.lanczos3 }).png({ compressionLevel: 9 }).toBuffer();
+  const buf = await sharp(master)
+    .resize(size, size, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
   writeFileSync(`public/favicon-${size}x${size}.png`, buf);
 }
 console.log(`✓ /favicon-{${FAVICON_ROOT_SIZES.join(',')}}x{}.png`);
 
 for (const size of APPLE_SIZES) {
-  const buf = await sharp(master).resize(size, size, { kernel: sharp.kernel.lanczos3 }).png({ compressionLevel: 9 }).toBuffer();
+  const buf = await sharp(master)
+    .resize(size, size, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
   writeFileSync(`public/apple-touch-icon-${size}x${size}.png`, buf);
 }
 // Default apple-touch-icon = 180×180
@@ -73,7 +79,10 @@ copyFileSync('public/apple-touch-icon-180x180.png', 'public/apple-touch-icon-pre
 console.log(`✓ /apple-touch-icon{-${APPLE_SIZES.join(',-')}}.png + default + precomposed`);
 
 for (const size of ANDROID_SIZES) {
-  const buf = await sharp(master).resize(size, size, { kernel: sharp.kernel.lanczos3 }).png({ compressionLevel: 9 }).toBuffer();
+  const buf = await sharp(master)
+    .resize(size, size, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
   writeFileSync(`public/android-chrome-${size}x${size}.png`, buf);
 }
 console.log(`✓ /android-chrome-{${ANDROID_SIZES.join(',')}}x{}.png`);
@@ -81,7 +90,10 @@ console.log(`✓ /android-chrome-{${ANDROID_SIZES.join(',')}}x{}.png`);
 // 3. /art duplicates — used by manifest + cinematic surfaces
 mkdirSync('public/art', { recursive: true });
 for (const size of ART_SIZES) {
-  const buf = await sharp(master).resize(size, size, { kernel: sharp.kernel.lanczos3 }).png({ compressionLevel: 9 }).toBuffer();
+  const buf = await sharp(master)
+    .resize(size, size, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9 })
+    .toBuffer();
   writeFileSync(`public/art/bz-app-icon-${size}.png`, buf);
 }
 console.log(`✓ /art/bz-app-icon-{${ART_SIZES.join(',')}}.png`);
@@ -91,9 +103,11 @@ const maskInner = 1024 - 2 * Math.round(1024 * 0.09);
 const maskable = await sharp(master)
   .resize(maskInner, maskInner, { kernel: sharp.kernel.lanczos3 })
   .extend({
-    top: (1024 - maskInner) / 2, bottom: (1024 - maskInner) / 2,
-    left: (1024 - maskInner) / 2, right: (1024 - maskInner) / 2,
-    background: { r: 6, g: 6, b: 16, alpha: 1 },
+    top: (1024 - maskInner) / 2,
+    bottom: (1024 - maskInner) / 2,
+    left: (1024 - maskInner) / 2,
+    right: (1024 - maskInner) / 2,
+    background: { r: 6, g: 6, b: 16, alpha: 1 }
   })
   .png({ compressionLevel: 9 })
   .toBuffer();
@@ -101,7 +115,10 @@ writeFileSync('public/art/bz-app-icon-maskable-1024.png', maskable);
 console.log('✓ /art/bz-app-icon-maskable-1024.png');
 
 // 5. mstile (Windows tile) — 150×150
-const mstile = await sharp(master).resize(150, 150, { kernel: sharp.kernel.lanczos3 }).png({ compressionLevel: 9 }).toBuffer();
+const mstile = await sharp(master)
+  .resize(150, 150, { kernel: sharp.kernel.lanczos3 })
+  .png({ compressionLevel: 9 })
+  .toBuffer();
 writeFileSync('public/mstile-150x150.png', mstile);
 console.log('✓ /mstile-150x150.png');
 
@@ -115,7 +132,7 @@ try {
   const icoBuf = await pngToIco([
     'public/favicon-16x16.png',
     'public/favicon-32x32.png',
-    'public/favicon-48x48.png',
+    'public/favicon-48x48.png'
   ]);
   writeFileSync('public/favicon.ico', icoBuf);
   console.log('✓ /favicon.ico (multi-res 16+32+48)');
@@ -131,7 +148,9 @@ if (!icoOk) {
 }
 
 // 7. browserconfig.xml — Windows Pinned Tile metadata
-writeFileSync('public/browserconfig.xml', `<?xml version="1.0" encoding="utf-8"?>
+writeFileSync(
+  'public/browserconfig.xml',
+  `<?xml version="1.0" encoding="utf-8"?>
 <browserconfig>
   <msapplication>
     <tile>
@@ -140,19 +159,22 @@ writeFileSync('public/browserconfig.xml', `<?xml version="1.0" encoding="utf-8"?
     </tile>
   </msapplication>
 </browserconfig>
-`);
+`
+);
 console.log('✓ /browserconfig.xml');
 
 // 8. safari-pinned-tab.svg — monochrome silhouette. Just embed the master
 //    as a base64 image since deriving a real silhouette would require
 //    OpenCV-style edge detection; modern Safari accepts color SVGs too.
 const masterB64 = master.toString('base64');
-writeFileSync('public/safari-pinned-tab.svg',
+writeFileSync(
+  'public/safari-pinned-tab.svg',
   `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <image href="data:image/png;base64,${masterB64}" width="1024" height="1024"/>
 </svg>
-`);
+`
+);
 console.log('✓ /safari-pinned-tab.svg');
 
 console.log('\nDone. Bump the ?v= cache-bust in index.html + site.webmanifest to v=4 to force refresh.');

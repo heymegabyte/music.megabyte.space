@@ -7,9 +7,9 @@ export interface PushSubscriptionRecord {
 }
 
 interface VapidConfig {
-  publicKey: string;   // base64url, raw P-256 65 bytes (0x04 || X(32) || Y(32))
-  privateKey: string;  // base64url, raw 32-byte d
-  subject: string;     // mailto:... or https://...
+  publicKey: string; // base64url, raw P-256 65 bytes (0x04 || X(32) || Y(32))
+  privateKey: string; // base64url, raw 32-byte d
+  subject: string; // mailto:... or https://...
 }
 
 type Bytes = Uint8Array<ArrayBuffer>;
@@ -44,7 +44,10 @@ function concat(...parts: Bytes[]): Bytes {
   const len = parts.reduce((n, p) => n + p.length, 0);
   const out = asBytes(len);
   let o = 0;
-  for (const p of parts) { out.set(p, o); o += p.length; }
+  for (const p of parts) {
+    out.set(p, o);
+    o += p.length;
+  }
   return out;
 }
 
@@ -105,7 +108,9 @@ async function signVapidJwt(privateJwk: JsonWebKey, audience: string, subject: s
   return `${signingInput}.${b64uEncode(sigBuf)}`;
 }
 
-interface EncryptResult { body: Bytes; }
+interface EncryptResult {
+  body: Bytes;
+}
 
 async function encryptAes128Gcm(
   payload: Bytes,
@@ -117,10 +122,16 @@ async function encryptAes128Gcm(
   const salt = crypto.getRandomValues(asBytes(16));
 
   // Ephemeral server ECDH keypair
-  const serverKp = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveBits']);
+  const serverKp = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, [
+    'deriveBits'
+  ]);
   const serverPubRaw = await exportRawPublic(serverKp.publicKey);
   const clientPubKey = await importEcdhPublic(clientP256dh);
-  const ecdhSecretBuf = await crypto.subtle.deriveBits({ name: 'ECDH', public: clientPubKey }, serverKp.privateKey, 256);
+  const ecdhSecretBuf = await crypto.subtle.deriveBits(
+    { name: 'ECDH', public: clientPubKey },
+    serverKp.privateKey,
+    256
+  );
   const ecdhSecret = new Uint8Array(ecdhSecretBuf) as Bytes;
 
   // Step 1: PRK_key = HKDF-Extract(auth, ECDH) → 32B PRK; key_info = "WebPush: info\0" || ua_pub || as_pub
@@ -128,7 +139,12 @@ async function encryptAes128Gcm(
   const ikm = await hkdf(clientAuth, ecdhSecret, concat(keyInfo, fromArray([0x01])), 32);
 
   // Step 2: CEK = HKDF(salt, ikm, "Content-Encoding: aes128gcm\0", 16)
-  const cek = await hkdf(salt, ikm, concat(encodeUtf8('Content-Encoding: aes128gcm\0'), fromArray([0x01])), 16);
+  const cek = await hkdf(
+    salt,
+    ikm,
+    concat(encodeUtf8('Content-Encoding: aes128gcm\0'), fromArray([0x01])),
+    16
+  );
   // Step 3: nonce = HKDF(salt, ikm, "Content-Encoding: nonce\0", 12)
   const nonce = await hkdf(salt, ikm, concat(encodeUtf8('Content-Encoding: nonce\0'), fromArray([0x01])), 12);
 
@@ -136,7 +152,11 @@ async function encryptAes128Gcm(
   const plaintext = concat(payload, fromArray([0x02]));
 
   const cekKey = await crypto.subtle.importKey('raw', cek, { name: 'AES-GCM' }, false, ['encrypt']);
-  const ctBuf = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: nonce, tagLength: 128 }, cekKey, plaintext);
+  const ctBuf = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: nonce, tagLength: 128 },
+    cekKey,
+    plaintext
+  );
   const ciphertext = new Uint8Array(ctBuf) as Bytes;
 
   // Header: salt(16) || rs(4 BE) || idlen(1) || keyid(serverPubRaw)
@@ -179,11 +199,11 @@ export async function sendPush(
   const enc = await encryptAes128Gcm(body, b64uDecode(sub.keys.p256dh), b64uDecode(sub.keys.auth));
 
   const headers: Record<string, string> = {
-    'Authorization': `vapid t=${jwt}, k=${vapid.publicKey}`,
+    Authorization: `vapid t=${jwt}, k=${vapid.publicKey}`,
     'Content-Encoding': 'aes128gcm',
     'Content-Type': 'application/octet-stream',
-    'TTL': String(opts.ttl ?? 86400),
-    'Urgency': opts.urgency ?? 'normal'
+    TTL: String(opts.ttl ?? 86400),
+    Urgency: opts.urgency ?? 'normal'
   };
   if (opts.topic) headers['Topic'] = opts.topic;
 
@@ -203,11 +223,18 @@ export async function sendPushBatch(
   vapid: VapidConfig & { privateJwk: JsonWebKey },
   opts: SendOptions = {}
 ): Promise<SendResult[]> {
-  return Promise.all(subs.map(s => sendPush(s, payload, vapid, opts).catch(err => ({
-    endpoint: s.endpoint,
-    status: 0,
-    ok: false,
-    expired: false,
-    error: err instanceof Error ? err.message : String(err)
-  }) as SendResult)));
+  return Promise.all(
+    subs.map(s =>
+      sendPush(s, payload, vapid, opts).catch(
+        err =>
+          ({
+            endpoint: s.endpoint,
+            status: 0,
+            ok: false,
+            expired: false,
+            error: err instanceof Error ? err.message : String(err)
+          }) as SendResult
+      )
+    )
+  );
 }

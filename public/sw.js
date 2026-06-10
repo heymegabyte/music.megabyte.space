@@ -4,7 +4,14 @@ const RUNTIME_CACHE = `${VERSION}-runtime`;
 const AUDIO_CACHE = `${VERSION}-audio`;
 const IMAGE_CACHE = `${VERSION}-image`;
 
-const PRECACHE = ['/', '/ashton.html', '/offline.html', '/site.webmanifest', '/favicon.ico', '/apple-touch-icon.png'];
+const PRECACHE = [
+  '/',
+  '/ashton.html',
+  '/offline.html',
+  '/site.webmanifest',
+  '/favicon.ico',
+  '/apple-touch-icon.png'
+];
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -51,8 +58,11 @@ function isCacheable(request, response) {
 
 async function safePut(cache, request, response) {
   if (!isCacheable(request, response)) return;
-  try { await cache.put(request, response.clone()); }
-  catch { /* range/partial/quota — skip silently, never reject the fetch */ }
+  try {
+    await cache.put(request, response.clone());
+  } catch {
+    /* range/partial/quota — skip silently, never reject the fetch */
+  }
 }
 
 async function networkFirst(request, cacheName, timeoutMs = 3000) {
@@ -127,8 +137,11 @@ self.addEventListener('message', event => {
 
 self.addEventListener('push', event => {
   let data = {};
-  try { data = event.data ? event.data.json() : {}; }
-  catch { data = { title: 'bZ', body: event.data?.text() || 'Tap to listen.' }; }
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { title: 'bZ', body: event.data?.text() || 'Tap to listen.' };
+  }
   const title = data.title || 'bZ — new drop';
   const body = data.body || 'Tap to listen.';
   const url = data.url || '/';
@@ -137,11 +150,18 @@ self.addEventListener('push', event => {
   const image = data.image;
   const tag = data.tag || 'bz-broadcast';
   const options = {
-    body, icon, badge, tag, image,
+    body,
+    icon,
+    badge,
+    tag,
+    image,
     data: { url },
     renotify: true,
     requireInteraction: false,
-    actions: [{ action: 'open', title: 'Listen' }, { action: 'dismiss', title: 'Later' }]
+    actions: [
+      { action: 'open', title: 'Listen' },
+      { action: 'dismiss', title: 'Later' }
+    ]
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
@@ -165,18 +185,25 @@ self.addEventListener('notificationclick', event => {
 });
 
 self.addEventListener('pushsubscriptionchange', event => {
-  event.waitUntil((async () => {
-    const reg = self.registration;
-    const oldSub = event.oldSubscription;
-    const appServerKey = oldSub?.options?.applicationServerKey;
-    if (!appServerKey) return;
-    try {
-      const newSub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: appServerKey });
-      await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSub.toJSON())
-      });
-    } catch { /* user revoked or service unavailable */ }
-  })());
+  event.waitUntil(
+    (async () => {
+      const reg = self.registration;
+      const oldSub = event.oldSubscription;
+      const appServerKey = oldSub?.options?.applicationServerKey;
+      if (!appServerKey) return;
+      try {
+        const newSub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: appServerKey
+        });
+        await fetch('/api/push/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newSub.toJSON())
+        });
+      } catch {
+        /* user revoked or service unavailable */
+      }
+    })()
+  );
 });
