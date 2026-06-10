@@ -22,6 +22,7 @@ import { TRACK_TAGS, getTrackTags } from './tags';
 import { CONTENT_PAGE_BY_SLUG, CONTENT_PAGES } from './content-pages';
 import { bootIfMerchPage } from './merch-cart';
 import { fmtTime, fmtClock, fmtHz, hzToNote } from './format';
+import { TRACK_DURATIONS } from './durations';
 import type { Track, Album } from './types';
 import { cast } from './cast';
 import type { ReceiverQueueItem, ReceiverLine, ReceiverState, PalettePayload } from './cast-protocol';
@@ -3073,6 +3074,19 @@ async function play(track: Track) {
   pushTrackUrl(track);
   recordPlayStart(track.id);
   currentTrackId = track.id;
+  // Seed the playbar's total-time from the probed duration so it shows the real
+  // length INSTANTLY on track-change — before the audio element fetches metadata
+  // (otherwise it lingers on the previous track's total or 0:00). The real
+  // audio.duration confirms it on loadedmetadata; the two match (same file).
+  {
+    const seeded = TRACK_DURATIONS[track.id];
+    const totalEl = $('#transportTotal');
+    if (totalEl) totalEl.textContent = seeded ? fmtClock(seeded) : '0:00';
+    const nowEl = $('#transportNow');
+    if (nowEl) nowEl.textContent = '0:00';
+    const fillEl = $('#transportFill');
+    if (fillEl) fillEl.style.width = '0%';
+  }
   updateTransportSpotifyChip(track);
   // Wake the visualizer if it deferred its start (mobile / low-power)
   document.dispatchEvent(new CustomEvent('panda-track-play', { detail: { id: track.id } }));
@@ -6723,7 +6737,13 @@ function bindUi() {
     const now = $('#transportNow');
     const total = $('#transportTotal');
     if (now) now.textContent = fmtTime(s.currentTime);
-    if (total) total.textContent = fmtTime(s.duration);
+    // Before the audio element loads metadata, s.duration is 0 — fall back to the
+    // probed duration (src/durations.ts) so the total never flickers to 0:00 on
+    // track change. Real audio.duration takes over once it's known.
+    if (total) {
+      const dur = s.duration > 0 ? s.duration : currentTrackId ? TRACK_DURATIONS[currentTrackId] || 0 : 0;
+      total.textContent = fmtTime(dur);
+    }
     const fill = $('#transportFill') as HTMLElement | null;
     const thumb = $('#transportThumb') as HTMLElement | null;
     const buf = $('#transportBuffer') as HTMLElement | null;
