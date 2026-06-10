@@ -1,0 +1,15 @@
+# Cloudflare Workers Assets — files in dist/ that must NOT be uploaded/served.
+# These large PNGs are BUILD SOURCES only: gen-covers.mjs / gen-og-cards.mjs /
+# process-bz-assets.mjs / build-favicon-set.mjs read them at build time to emit
+# the optimized .jpg covers, OG cards, favicons. Users are served the .jpg /
+# generated outputs — the multi-MB source PNGs are dead weight in the deploy.
+# Keeping them in public/ (so the build scripts still find them) but excluding
+# them here trims ~12 MB off every deploy. Paths are relative to the assets dir.
+art/cover-st-johns-canon.png
+art/cover-galactic-gospel.png
+art/cover-panda-desiiignare.png
+art/cover-panda-dump.png
+art/cover-canopy-dispatch.png
+art/cover-panda-desiiignare-v2.png
+art/bz-app-icon-source.png
+art/bz-icon-source.png
