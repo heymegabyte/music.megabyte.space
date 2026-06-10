@@ -1125,7 +1125,7 @@ function setupShell(root: HTMLElement) {
           <span class="viz__hero-album" id="heroAlbum">BZ · CYAN FLAG</span>
           <h1 class="viz__hero-title" id="heroTitle">PRESS PLAY</h1>
           <p class="viz__hero-vibe" id="heroVibe">Web Audio API live. Hard but holy.</p>
-          <div class="viz__hero-tags" id="heroTags" aria-label="Track tags" hidden></div>
+          <div class="viz__hero-tags" id="heroTags" role="group" aria-label="Track tags" hidden></div>
         </div>
 
         <div class="hud" id="hud" aria-live="polite">
@@ -1488,12 +1488,12 @@ function setupShell(root: HTMLElement) {
             <p class="np-panel__label" id="npPanelLabel">bZ</p>
             <h3 class="np-panel__title" id="npPanelTitle">Press play</h3>
             <div class="np-panel__time" id="npPanelTime"><span id="npPanelElapsed">0:00</span> <span class="np-panel__time-sep">/</span> <span id="npPanelDur">—:—</span></div>
-            <div class="np-panel__stats" id="npPanelStats" aria-label="Track stats">
+            <div class="np-panel__stats" id="npPanelStats" role="group" aria-label="Track stats">
               <span class="np-panel__stat" id="npPanelStatBpm" hidden><strong>—</strong> bpm</span>
               <span class="np-panel__stat" id="npPanelStatKey" hidden><strong>—</strong> key</span>
               <span class="np-panel__stat" id="npPanelStatPlays" hidden><strong>0</strong> plays</span>
             </div>
-            <div class="np-panel__tags" id="npPanelTags" aria-label="Track tags"></div>
+            <div class="np-panel__tags" id="npPanelTags" role="group" aria-label="Track tags"></div>
           </div>
         </div>
 
@@ -1527,7 +1527,7 @@ function setupShell(root: HTMLElement) {
         <!-- Live lyric preview: previous + active + next line. Mirrors the
              karaoke overlay's word-perfect sync via the same activeLyrics
              bundle, but in a static 3-line view inside the modal. -->
-        <div class="np-panel__lyricbox" id="npPanelLyricBox" hidden aria-label="Lyric preview">
+        <div class="np-panel__lyricbox" id="npPanelLyricBox" hidden role="group" aria-label="Lyric preview">
           <p class="np-panel__lyric np-panel__lyric--prev" id="npPanelLyricPrev"></p>
           <p class="np-panel__lyric np-panel__lyric--now" id="npPanelLyricNow"></p>
           <p class="np-panel__lyric np-panel__lyric--next" id="npPanelLyricNext"></p>
@@ -1535,11 +1535,11 @@ function setupShell(root: HTMLElement) {
 
         <!-- Smart-links row: opens the track on external platforms when
              a same-id-or-title match exists on Spotify/Apple/YouTube/Suno. -->
-        <div class="np-panel__platforms" id="npPanelPlatforms" hidden aria-label="Open on platform"></div>
+        <div class="np-panel__platforms" id="npPanelPlatforms" hidden role="group" aria-label="Open on platform"></div>
 
         <!-- Related tracks: top 3 by shared-tag cosine similarity. Click a
              cover to jump straight to it without leaving the modal. -->
-        <div class="np-panel__related" id="npPanelRelated" hidden aria-label="Related tracks">
+        <div class="np-panel__related" id="npPanelRelated" hidden role="group" aria-label="Related tracks">
           <p class="np-panel__section-label">If you like this, try</p>
           <div class="np-panel__related-grid" id="npPanelRelatedGrid"></div>
         </div>
@@ -1661,7 +1661,7 @@ function setupShell(root: HTMLElement) {
       <p class="karaoke__next karaoke__next--2" id="karaokeNext2"></p>
       <!-- Chord hint row — shows the I→V→vi→IV progression for the
            current track's detected key. Hidden when no key data. -->
-      <div class="karaoke__chords" id="karaokeChords" aria-label="Chord hints" hidden></div>
+      <div class="karaoke__chords" id="karaokeChords" role="group" aria-label="Chord hints" hidden></div>
     </aside>
 
     <!-- Full-screen karaoke -->
@@ -1786,7 +1786,7 @@ function setupShell(root: HTMLElement) {
               <p class="cast-tv__bpm"><span id="castBpm">—</span> BPM · <span id="castKey">live</span></p>
             </hgroup>
 
-            <div class="cast-tv__lyrics" id="castLyrics" aria-live="polite" aria-label="Synced lyrics">
+            <div class="cast-tv__lyrics" id="castLyrics" aria-live="polite" role="group" aria-label="Synced lyrics">
               <p class="cast-tv__lyrics-empty" id="castLyricsEmpty">Lyrics syncing…</p>
             </div>
           </section>
@@ -2013,7 +2013,7 @@ function renderListenOn(album: Album): string {
   const chips = present
     .map(([label, href, key]) => `<a class="album__platform album__platform--${key}" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="Listen on ${label}">${label}</a>`)
     .join('');
-  return `<div class="album__platforms" aria-label="Listen on">${preSaveChip}${chips}</div>`;
+  return `<div class="album__platforms" role="group" aria-label="Listen on">${preSaveChip}${chips}</div>`;
 }
 
 function renderAlbums(host: HTMLElement) {
@@ -2030,7 +2030,7 @@ function renderAlbums(host: HTMLElement) {
       <header class="ai-playlist__head">
         <span class="ai-playlist__eyebrow">Aeon's Choice</span>
       </header>
-      <div class="ai-playlist__list" id="aiPlaylist" role="list"></div>
+      <div class="ai-playlist__list" id="aiPlaylist" role="group" aria-label="Aeon's Choice picks"></div>
     </aside>`;
   host.innerHTML = back + aiPlaylistModule + visible.map(album => {
     const tracks = album.trackIds.map(id => TRACK_BY_ID.get(id)).filter(Boolean) as Track[];

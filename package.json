@@ -40,10 +40,11 @@
     "sharp": "^0.34.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@cloudflare/workers-types": "^4.20260504.1",
     "@playwright/test": "^1.59.1",
     "@types/node": "^25.9.1",
-    "lefthook": "^1.13.7",
+    "lefthook": "^1.13.6",
     "prettier": "^3.3.3",
     "typescript": "^5.6.3",
     "vite": "^6.0.7",

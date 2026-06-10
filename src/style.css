@@ -8914,9 +8914,14 @@ body.cast-tv-open .transport {
   pointer-events: auto;
   transform: translateX(102%);
   opacity: 0;
+  /* visibility:hidden when closed removes the offscreen panel from the a11y tree
+     so its buttons aren't focusable / aria-hidden-focus flagged. Delayed on close
+     so the slide-out animation still plays; instant on open (see .is-open). */
+  visibility: hidden;
   transition:
     transform var(--duration-slow) var(--ease-out),
-    opacity var(--duration-medium) var(--ease-out);
+    opacity var(--duration-medium) var(--ease-out),
+    visibility 0s linear var(--duration-slow);
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
   box-shadow:
@@ -8980,6 +8985,11 @@ body.cast-tv-open .transport {
 .aichat__panel.is-open {
   transform: translateX(0);
   opacity: 1;
+  visibility: visible;
+  transition:
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-medium) var(--ease-out),
+    visibility 0s;
 }
 @media (prefers-reduced-motion: reduce) {
   .aichat__panel {
