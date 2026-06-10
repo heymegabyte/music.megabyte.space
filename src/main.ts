@@ -1453,8 +1453,8 @@ function setupShell(root: HTMLElement) {
             </a>
           </div>
         </header>
-        <!-- Floating right-rail TOC, populated from <h4> headings post-render.
-             Sticky positioned on desktop, hidden on mobile. -->
+        <!-- Floating right-rail TOC, populated from <h3> divider headings
+             post-render. Sticky positioned on desktop, hidden on mobile. -->
         <nav class="contentpage__toc" id="contentpageToc" aria-label="On this page" hidden></nav>
         <div class="contentpage__body" id="contentpageBody"></div>
       </div>
@@ -5109,7 +5109,7 @@ function setupContentPageScrollIn() {
 }
 
 // ── Content page: floating right-rail TOC ────────────────────────────
-// Generated from <h4> headings inside .contentpage__body after every
+// Generated from <h3> divider headings inside .contentpage__body after every
 // render. Clicking a TOC entry scrolls the dialog to that section.
 // IntersectionObserver highlights the active section while reading.
 let tocObserver: IntersectionObserver | null = null;
@@ -5126,10 +5126,10 @@ function renderContentPageTOC() {
     toc.innerHTML = '';
     return;
   }
-  // Find section headings + assign ids if missing. Exclude product-card titles
-  // (Merch's `.merch-card__title` h4s) so the rail lists real sections, not
-  // every product.
-  const headings = Array.from(body.querySelectorAll<HTMLElement>('h4:not(.merch-card__title)'));
+  // Find section dividers (now <h3 class="contentpage__divider">) + assign ids if
+  // missing. Targeting the divider class lists real sections only — the Merch
+  // hero (`.merch-hero__head`, also an h3) is naturally excluded.
+  const headings = Array.from(body.querySelectorAll<HTMLElement>('h3.contentpage__divider'));
   if (headings.length < 3) {
     toc.hidden = true;
     toc.innerHTML = '';

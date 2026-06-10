@@ -3,9 +3,10 @@
  *
  * About is the consolidated hub: it absorbs the former Process, Theology,
  * Support, and Connect pages (those slugs 301 → /about in worker/index.ts).
- * Every page gets an auto-built sticky left-rail TOC from its <h4> section
- * dividers (renderContentPageTOC in main.ts); product-card titles
- * (.merch-card__title) are excluded so Merch's rail lists sections, not products.
+ * Every page gets an auto-built sticky left-rail TOC from its <h3> section
+ * dividers (renderContentPageTOC in main.ts); the merch hero heading
+ * (.merch-hero__head) is excluded so Merch's rail lists sections, not the hero.
+ * Heading order is h2 (page title) → h3 (divider) → h4 (entry) — no skips.
  *
  * Each opens as a non-modal <dialog> over the main shell so the audio
  * element + visualizer keep playing across navigation. Routed by URL path.
@@ -42,11 +43,11 @@ const esc = (s: string) =>
   s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
 // Section divider — a thin accent rule with optional kicker text. Rendered as an
-// <h4> so the auto-built left-rail TOC (renderContentPageTOC, reads <h4>) picks up
+// <h3> so the auto-built left-rail TOC (renderContentPageTOC, reads <h3>) picks up
 // every section as a jump link. The .contentpage__divider class keeps the styling.
-const divider = (label: string) => `<h4 class="contentpage__divider"><span>${esc(label)}</span></h4>`;
+const divider = (label: string) => `<h3 class="contentpage__divider"><span>${esc(label)}</span></h3>`;
 
-// Minor divider — same look, but a <p> (not <h4>) so it does NOT feed the
+// Minor divider — same look, but a <p> (not <h3>) so it does NOT feed the
 // left-rail TOC. Used to keep long pages (e.g. /about) navigable: only the major
 // sections appear in the rail, sub-sections still get a visual divider.
 const minorDivider = (label: string) =>
@@ -77,7 +78,7 @@ const timeline = (entries: Array<{ date: string; title: string; body: string }>)
       .map(
         e => `<li>
       <time>${esc(e.date)}</time>
-      <h5>${esc(e.title)}</h5>
+      <h4>${esc(e.title)}</h4>
       <p>${e.body}</p>
     </li>`
       )
@@ -90,7 +91,7 @@ const cards = (items: Array<{ title: string; meta?: string; body: string }>) =>
     ${items
       .map(
         c => `<article class="contentpage__card">
-      <h5>${esc(c.title)}</h5>
+      <h4>${esc(c.title)}</h4>
       ${c.meta ? `<span class="contentpage__card-meta">${esc(c.meta)}</span>` : ''}
       <p>${c.body}</p>
     </article>`
@@ -737,7 +738,7 @@ export const CONTENT_PAGES: ContentPage[] = [
               const tracks = a.trackIds.map(id => TRACKS.find(t => t.id === id)).filter(Boolean);
               if (!tracks.length) return '';
               return `<li>
-                <h5>${esc(a.name)}</h5>
+                <h4>${esc(a.name)}</h4>
                 <div class="contentpage__press-grid">
                   ${tracks
                     .map(
@@ -909,7 +910,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           </div>
         </div>
 
-        <h4 class="contentpage__divider" id="merch-suite"><span>the suite</span></h4>
+        <h3 class="contentpage__divider" id="merch-suite"><span>the suite</span></h3>
         <div class="merch-grid">
           ${merchSuite.items
             .filter((i: any) => i.mockup)
@@ -942,7 +943,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           <a href="https://bz-music.printful.me" target="_blank" rel="noopener noreferrer">bz-music.printful.me ↗</a>.
         </p>
 
-        <h4 class="contentpage__divider" id="merch-meaning"><span>what it means</span></h4>
+        <h3 class="contentpage__divider" id="merch-meaning"><span>what it means</span></h3>
         <p>
           “FREE SATAN” on the headline + “it’s Animal Abuse” on the banner
           stages the joke that frames the gospel. Christ descended into hell and emancipated the
@@ -950,7 +951,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           If you don’t want to have that conversation, this isn’t the shirt.
         </p>
 
-        <h4 class="contentpage__divider" id="merch-blanks"><span>the blanks</span></h4>
+        <h3 class="contentpage__divider" id="merch-blanks"><span>the blanks</span></h3>
         <ul>
           <li><strong>Comfort Colors 1717</strong> — 6.1oz garment-dyed heavyweight tee, ring-spun cotton</li>
           <li><strong>Comfort Colors 6014</strong> — garment-dyed heavyweight long-sleeve</li>
@@ -967,7 +968,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           Printful US fulfillment centers.
         </p>
 
-        <h4 class="contentpage__divider" id="merch-integration"><span>the integration</span></h4>
+        <h3 class="contentpage__divider" id="merch-integration"><span>the integration</span></h3>
         <p>
           End-to-end: <strong>add to cart on this page → Stripe Checkout →
           Printful order auto-created on payment</strong>. The cart lives in
@@ -985,7 +986,7 @@ export const CONTENT_PAGES: ContentPage[] = [
           New design? Re-run the script; the whole catalog refreshes in ~3 minutes.
         </p>
 
-        <h4 class="contentpage__divider" id="merch-money"><span>where the money goes</span></h4>
+        <h3 class="contentpage__divider" id="merch-money"><span>where the money goes</span></h3>
         <p>
           100% of profit splits two ways: <strong>60% studio operating costs</strong>
           (Cloudflare, Suno, OpenAI, mastering, distribution) and

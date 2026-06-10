@@ -14097,7 +14097,7 @@ a.aichat__widget:hover {
 .contentpage__article li {
   margin-bottom: 6px;
 }
-.contentpage__article h4 {
+.contentpage__article h3 {
   margin: 22px 0 10px;
   font-family: var(--font-mono);
   font-size: 0.7rem;
@@ -14756,7 +14756,7 @@ a.aichat__widget:hover {
   color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink-accent)));
   margin-bottom: 4px;
 }
-.contentpage__timeline h5 {
+.contentpage__timeline h4 {
   margin: 0 0 4px;
   font-family: var(--font-display);
   font-weight: 700;
@@ -14790,7 +14790,7 @@ a.aichat__widget:hover {
   border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 40%, var(--line));
   transform: translateY(-2px);
 }
-.contentpage__card h5 {
+.contentpage__card h4 {
   margin: 0 0 6px;
   font-family: var(--font-display);
   font-weight: 700;
@@ -15287,7 +15287,7 @@ select:focus-visible,
   flex-direction: column;
   gap: 24px;
 }
-.contentpage__press-list h5 {
+.contentpage__press-list h4 {
   margin: 0 0 10px;
   font-family: var(--font-mono);
   font-size: 0.6rem;
@@ -15705,7 +15705,7 @@ select:focus-visible,
     padding: 0;
   }
   .contentpage__title,
-  .contentpage__article h4,
+  .contentpage__article h3,
   .contentpage__sub,
   .contentpage__lead,
   .contentpage__article {
@@ -15730,7 +15730,7 @@ select:focus-visible,
     max-width: 100% !important;
     page-break-inside: avoid;
   }
-  .contentpage__article h4 {
+  .contentpage__article h3 {
     page-break-after: avoid;
   }
 }
@@ -15955,7 +15955,7 @@ select:focus-visible,
   background: color-mix(in srgb, var(--album-accent, var(--accent)) 6%, transparent);
   transform: translateY(-2px);
 }
-.contentpage__card h5 {
+.contentpage__card h4 {
   margin: 0 0 6px;
   font-family: var(--font-display);
   font-weight: 800;
@@ -15980,11 +15980,11 @@ select:focus-visible,
   color: rgba(244, 244, 255, 0.85);
 }
 /* Anchor link on h4 — show a # on hover for linkable sections */
-.contentpage__article h4 {
+.contentpage__article h3 {
   position: relative;
   scroll-margin-top: 80px;
 }
-.contentpage__article h4::before {
+.contentpage__article h3::before {
   content: '#';
   position: absolute;
   left: -22px;
@@ -15992,7 +15992,7 @@ select:focus-visible,
   opacity: 0;
   transition: opacity 200ms ease;
 }
-.contentpage__article h4:hover::before {
+.contentpage__article h3:hover::before {
   opacity: 0.6;
 }
 /* Scroll-in entrance for major elements */
@@ -16038,7 +16038,7 @@ select:focus-visible,
 .contentpage__article p {
   margin: 0 0 18px;
 }
-.contentpage__article h4 {
+.contentpage__article h3 {
   margin: 30px 0 12px;
   font-family: var(--font-display);
   font-weight: 800;
@@ -16367,11 +16367,15 @@ select:focus-visible,
   gap: 6px;
 }
 .merch-card__title {
+  /* Self-sufficient now that dividers (the old generic .contentpage__article h4)
+     no longer cascade here — card titles are proper display-font headings. */
   margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
   line-height: 1.25;
   letter-spacing: -0.01em;
+  color: var(--ink);
 }
 .merch-card__meta {
   margin: 0;
