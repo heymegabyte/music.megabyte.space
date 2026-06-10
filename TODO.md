@@ -40,5 +40,8 @@ oEmbed, and player polish. What remains needs a decision or an external unblock.
 
 - Feed `enclosure length` is exact now; consider a podcast-directory submission
   flow (Apple Podcasts rejects music feeds — target generic RSS readers only).
-- Loop cadence: `85ba5daf` runs every 10 min. The autonomous surface is largely
-  mined — consider hourly until the blockers above clear, to cut churn.
+- Loop cadence: now hourly (`f275eb92`) — dropped from every-10-min to cut churn
+  while the surface is largely mined. Content-page heading-order (A11y 99→100,
+  site-wide) shipped 2026-06-10; every audited route now scores Lighthouse
+  A11y/BP/SEO/Agentic = 100. Next un-audited: `/credits`, `/appeal`,
+  `cast-receiver`.
