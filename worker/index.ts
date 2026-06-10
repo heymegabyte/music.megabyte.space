@@ -2672,7 +2672,14 @@ export default {
       url.pathname.startsWith('/video/')
     ) {
       headers.set('Cache-Control', 'public, max-age=2592000, immutable');
-    } else if (url.pathname.endsWith('.html') || url.pathname === '/' || seoMatch) {
+    } else if (url.pathname === '/') {
+      // The homepage HTML is rewritten per request (SSR ranking + telemetry) and
+      // its <head> (SEO, preconnects, JSON-LD) must always reflect the latest
+      // deploy. A shared 300s edge cache here got STUCK serving a stale copy that
+      // survived purge_everything + file + host purges — so never edge-cache it.
+      // The worker is fast (one KV read + a streamed rewrite); freshness wins.
+      headers.set('Cache-Control', 'no-store');
+    } else if (url.pathname.endsWith('.html') || seoMatch) {
       headers.set('Cache-Control', 'public, max-age=300, must-revalidate');
     }
 
