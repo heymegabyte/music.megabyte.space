@@ -23,6 +23,8 @@ describe('buildRssFeed', () => {
     expect(feed).toContain('rel="self" type="application/rss+xml"');
     expect(feed).toContain('<enclosure url="https://music.megabyte.space/audio/');
     expect(feed).toMatch(/<itunes:duration>\d+:\d{2}/);
+    // enclosure length is real bytes, not the 0 placeholder
+    expect(feed).toMatch(/<enclosure [^>]*length="[1-9]\d{4,}"/);
   });
 
   it('escapes XML special characters (no raw & < > in text nodes)', () => {

@@ -3,7 +3,7 @@
 // gives "new drops" syndication. Built from the same TRACKS/ALBUMS data + the
 // probed TRACK_DURATIONS (so itunes:duration is accurate).
 import { ALBUMS, TRACK_BY_ID } from './data';
-import { TRACK_DURATIONS } from './durations';
+import { TRACK_DURATIONS, TRACK_BYTES } from './durations';
 
 const SITE = 'https://music.megabyte.space';
 const ARTIST = 'bZ';
@@ -53,7 +53,7 @@ export function buildRssFeed(origin: string = SITE): string {
       <guid isPermaLink="true">${xml(url)}</guid>
       <description>${xml(desc)}</description>
       <pubDate>${rfc822(album.releasedAt, -i)}</pubDate>
-      <enclosure url="${xml(origin + t.file)}" type="audio/mpeg" length="0" />
+      <enclosure url="${xml(origin + t.file)}" type="audio/mpeg" length="${TRACK_BYTES[t.id] || 0}" />
       <itunes:author>${xml(ARTIST)}</itunes:author>
       <itunes:summary>${xml(desc)}</itunes:summary>${
         secs ? `\n      <itunes:duration>${itunesDuration(secs)}</itunes:duration>` : ''
