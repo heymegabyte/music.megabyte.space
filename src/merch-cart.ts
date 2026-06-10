@@ -259,11 +259,16 @@ function buildSelectors(card: HTMLAnchorElement) {
   const variants = (item.variants ?? []).filter(v => v.in_stock);
   if (!variants.length) return;
 
-  // Remove the existing storefront-link behavior; convert to button
-  card.removeAttribute('href');
-  card.removeAttribute('target');
-  card.removeAttribute('rel');
+  // Keep the storefront href so the card stays a CRAWLABLE link (Lighthouse
+  // crawlable-anchors / SEO — stripping it left a dead <a> that search engines
+  // can't follow), but preventDefault on bare-card clicks so it reads as an
+  // interactive add-to-cart widget instead of navigating away. The size/add
+  // buttons stopPropagation, so only clicks on the card chrome are caught here.
   card.classList.add('merch-card--interactive');
+  card.addEventListener('click', e => {
+    if ((e.target as HTMLElement).closest('.merch-card__cta')) return;
+    e.preventDefault();
+  });
 
   // Find the CTA row and replace its contents
   const cta = card.querySelector('.merch-card__cta');
