@@ -1,0 +1,9 @@
+# Cloudflare Workers Assets — headers for statically-served files (JS/CSS/img/
+# font/audio) that bypass the Worker (anything not in wrangler.toml
+# run_worker_first). The zone Transform Rule already sets X-Frame-Options,
+# Referrer-Policy, and X-Content-Type-Options on every response, but NOT HSTS —
+# the Worker only adds HSTS on the routes it handles, leaving direct-served
+# assets without it. Add HSTS here so every response on this deployment carries
+# it (defense-in-depth; matches the Worker's SECURITY_HEADERS value exactly).
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
