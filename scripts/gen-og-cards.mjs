@@ -30,7 +30,7 @@ const COVER_Y = (HEIGHT - COVER_SIZE) / 2;
 const dataSrc = await fs.readFile(DATA_PATH, 'utf-8');
 const dataMtime = statSync(DATA_PATH).mtimeMs;
 
-// Parse COVERS map → { c2: '/art/chatgpt-2.png', ... }
+// Parse COVERS map → { c2: '/art/chatgpt-2.jpg', ... }
 const coversMatch = dataSrc.match(/const COVERS\s*=\s*\{([^}]+)\}/);
 if (!coversMatch) throw new Error('COVERS map not found in data.ts');
 const COVERS = Object.fromEntries([...coversMatch[1].matchAll(/(\w+):\s*'([^']+)'/g)].map(m => [m[1], m[2]]));

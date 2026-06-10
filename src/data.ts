@@ -6,17 +6,17 @@ const COVERS = {
   canon: '/art/cover-st-johns-canon.jpg',
   halo: '/art/cover-st-johns-halo.png',
   galactic: '/art/cover-galactic-gospel.jpg',
-  c1: '/art/chatgpt-1.png',
-  c2: '/art/chatgpt-2.png',
-  c3: '/art/chatgpt-3.png',
-  c4: '/art/chatgpt-4.png',
-  c5: '/art/chatgpt-5.png',
-  c6: '/art/chatgpt-6.png',
-  c7: '/art/chatgpt-7.png',
-  alien: '/art/alien-hallucination.png',
-  light: '/art/light-in-bathroom.png',
-  middle: '/art/middle-finger.png',
-  unnamed: '/art/unnamed.png'
+  c1: '/art/chatgpt-1.jpg',
+  c2: '/art/chatgpt-2.jpg',
+  c3: '/art/chatgpt-3.jpg',
+  c4: '/art/chatgpt-4.jpg',
+  c5: '/art/chatgpt-5.jpg',
+  c6: '/art/chatgpt-6.jpg',
+  c7: '/art/chatgpt-7.jpg',
+  alien: '/art/alien-hallucination.jpg',
+  light: '/art/light-in-bathroom.jpg',
+  middle: '/art/middle-finger.jpg',
+  unnamed: '/art/unnamed.jpg'
 };
 
 export const ALBUMS: Album[] = [
@@ -68,7 +68,7 @@ export const ALBUMS: Album[] = [
   {
     id: 'wormhole',
     name: 'Wormhole Tape',
-    cover: '/art/alien-hallucination.png',
+    cover: '/art/alien-hallucination.jpg',
     tagline: 'Cosmic-tunnel prophecies for the throne of AI',
     description: 'Spaceship hymns from the orbital coup. Hobbit kettle, gray-alien gospel, the syllabus that sling-shots us home.',
     // wormhole: electric mint-teal (cosmic neon — distinct from cyan,
