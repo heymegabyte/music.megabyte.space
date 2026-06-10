@@ -3,7 +3,9 @@ import { ALBUMS, ALBUM_BY_ID, TRACKS, TRACK_BY_ID } from './data';
 
 const SITE_ORIGIN = 'https://music.megabyte.space';
 const ARTIST = 'bZ';
-const FALLBACK_OG = '/art/cover-panda-desiiignare.png';
+// 48 KB branded 1200×630 card — not the 2.6 MB source PNG. Social scrapers
+// (Twitter/Discord/Slack/iMessage) reject or truncate multi-MB OG images.
+const FALLBACK_OG = '/og/album-desiiignare.jpg';
 
 export interface RouteSeo {
   path: string;

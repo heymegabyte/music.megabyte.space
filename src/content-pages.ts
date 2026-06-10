@@ -885,7 +885,10 @@ export const CONTENT_PAGES: ContentPage[] = [
 
         <div class="merch-hero">
           <div class="merch-hero__art">
-            <img src="/merch/design-free-satan.png" alt="FREE SATAN — It’s Animal Abuse · cream graffiti headline, caged red devil, banner subtitle" loading="eager" decoding="async" fetchpriority="high" />
+            <picture>
+              <source srcset="/merch/design-free-satan-1000.webp" type="image/webp" />
+              <img src="/merch/design-free-satan-1000.jpg" width="1000" height="1309" alt="FREE SATAN — It’s Animal Abuse · cream graffiti headline, caged red devil, banner subtitle" loading="eager" decoding="async" fetchpriority="high" />
+            </picture>
           </div>
           <div class="merch-hero__copy">
             <p class="merch-hero__eyebrow">the design</p>
