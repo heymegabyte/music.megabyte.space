@@ -1,5 +1,6 @@
 import { SEO_INDEX, type RouteSeo } from '../src/track-meta';
 import { TRACK_BY_ID, ALBUM_BY_ID } from '../src/data';
+import { buildRssFeed } from '../src/feed';
 import { sendPushBatch, type PushSubscriptionRecord } from './web-push';
 import { escapeXmlText, escapeHtmlAttr } from './escape';
 import { serializeJsonLd } from './json-ld';
@@ -1388,6 +1389,16 @@ export default {
       return new Response(null, {
         status: 301,
         headers: { Location: `${url.origin}/about`, 'Cache-Control': 'no-store' }
+      });
+    }
+
+    if (url.pathname === '/feed.xml' || url.pathname === '/rss.xml') {
+      return new Response(buildRssFeed(url.origin), {
+        headers: {
+          'Content-Type': 'application/rss+xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600',
+          'X-Content-Type-Options': 'nosniff'
+        }
       });
     }
 
