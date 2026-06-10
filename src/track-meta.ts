@@ -44,6 +44,7 @@ function merchItemListJsonLd(): object {
           price: p.price ?? 0,
           priceCurrency: 'USD',
           availability: 'https://schema.org/InStock',
+          itemCondition: 'https://schema.org/NewCondition',
           url: p.storefrontUrl || MERCH_FALLBACK_STORE
         }
       }
