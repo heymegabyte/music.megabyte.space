@@ -466,7 +466,7 @@ function refreshAiPlaylist() {
       // global --accent fallback. Without this every pick rendered cyan
       // regardless of which album it came from.
       const tint = album?.accent ?? '#00E5FF';
-      return `<button type="button" class="ai-pick${isCurrent ? ' is-current' : ''}" data-ai-pick="${pick.trackId}" style="--ai-pick-score:${pick.score.toFixed(3)}; --album-accent:${tint}" aria-label="Play ${t.title} from ${album?.name ?? 'bZ'} — Aeon's pick #${idx + 1}, score ${pct}">
+      return `<button type="button" class="ai-pick${isCurrent ? ' is-current' : ''}" data-ai-pick="${pick.trackId}" style="--ai-pick-score:${pick.score.toFixed(3)}; --album-accent:${tint}" aria-label="${t.title} ${album?.name ?? 'bZ'} — play, Aeon's pick #${idx + 1}, score ${pct}">
       <span class="ai-pick__rank" aria-hidden="true">${idx + 1}</span>
       <img class="ai-pick__cover" src="${album?.cover ?? '/art/cover-panda-desiiignare.jpg'}" alt="" width="38" height="38" loading="lazy" />
       <span class="ai-pick__meta">
