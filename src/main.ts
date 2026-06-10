@@ -3965,7 +3965,10 @@ function syncCastSheetProgress(currentTime: number, duration: number): void {
   const thumb = $('#castThumb') as HTMLElement | null;
   const bar = $('#castBar') as HTMLElement | null;
   if (now) now.textContent = fmtClock(currentTime);
-  if (total && duration > 0) total.textContent = fmtClock(duration);
+  // Seed the cast-sheet total from the probed duration until the receiver reports
+  // a real one, so it never sits at its placeholder on track change.
+  const shownTotal = duration > 0 ? duration : currentTrackId ? TRACK_DURATIONS[currentTrackId] || 0 : 0;
+  if (total && shownTotal > 0) total.textContent = fmtClock(shownTotal);
   const ratio = duration > 0 ? Math.max(0, Math.min(1, currentTime / duration)) : 0;
   if (fill) fill.style.width = `${ratio * 100}%`;
   if (thumb) thumb.style.left = `${ratio * 100}%`;
@@ -5538,7 +5541,9 @@ function startHud() {
       if (timeEl) {
         const a = engine.audio;
         const cur = fmtClock(a.currentTime || 0);
-        const tot = a.duration && Number.isFinite(a.duration) ? fmtClock(a.duration) : '—:—';
+        const probed = currentTrackId ? TRACK_DURATIONS[currentTrackId] || 0 : 0;
+        const totSecs = a.duration && Number.isFinite(a.duration) ? a.duration : probed;
+        const tot = totSecs > 0 ? fmtClock(totSecs) : '—:—';
         if (cur !== lastCur || tot !== lastTot) {
           timeEl.textContent = `${cur} / ${tot}`;
           lastCur = cur;
@@ -7688,7 +7693,12 @@ function npRefreshProgress() {
     bar.style.strokeDashoffset = String(100 - pct);
   }
   if (elapsed) elapsed.textContent = npFormatTime(t);
-  if (dur) dur.textContent = d > 0 ? npFormatTime(d) : '—:—';
+  if (dur) {
+    // Seed from the probed duration (src/durations.ts) before audio metadata
+    // loads so the NP panel shows the real length instead of —:—.
+    const shown = d > 0 ? d : currentTrackId ? TRACK_DURATIONS[currentTrackId] || 0 : 0;
+    dur.textContent = shown > 0 ? npFormatTime(shown) : '—:—';
+  }
 }
 
 // NP-panel lyric state — track last-rendered line + word so we only mutate
