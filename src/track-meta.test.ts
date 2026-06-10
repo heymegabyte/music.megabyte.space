@@ -99,8 +99,11 @@ describe('SEO contract (every route)', () => {
 describe('SEO_INDEX uniqueness', () => {
   const entries = Object.values(SEO_INDEX);
 
-  it('has one entry per album + per track', () => {
-    expect(entries.length).toBe(ALBUMS.length + TRACKS.length);
+  it('has one entry per album + per track (+ content pages)', () => {
+    // SEO_INDEX = albums + tracks + the 6 static content pages
+    // (about/credits/press/merch/privacy/terms) added in buildSeoIndex.
+    const CONTENT_PAGE_COUNT = 6;
+    expect(entries.length).toBe(ALBUMS.length + TRACKS.length + CONTENT_PAGE_COUNT);
   });
 
   it('keys every entry by a leading-slash path matching seo.path', () => {
