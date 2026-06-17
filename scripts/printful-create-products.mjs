@@ -141,18 +141,6 @@ const SUITE = [
     price: '56.00',
     placements: [{ name: 'front_large', url: DESIGN_URL }],
     blurb: 'Garment-dyed fleece sweatpants · pairs with the crewneck or hoodie.'
-  },
-  {
-    slug: 'tote-allover',
-    catalogId: 84,
-    title: 'FREE SATAN Tote',
-    blank: 'All-Over Print Tote',
-    color: 'Black',
-    colorHint: '',
-    sizes: ['15″×15″'],
-    price: '22.00',
-    placements: [{ name: 'front', url: DESIGN_URL }],
-    blurb: 'Heavy cotton tote · carries records, journals, the apron.'
   }
 ];
 

@@ -137,20 +137,6 @@ const SUITE = [
     overlayScale: 0.22,
     overlayYOffset: 0.02,
     storefrontPath: '/product/free-satan-sweatpants'
-  },
-  {
-    slug: 'tote-allover',
-    catalogProductId: 84,
-    title: 'FREE SATAN Tote',
-    blank: 'All-Over Print Cotton Tote',
-    color: 'Natural',
-    blurb: 'Heavy cotton tote · carries records, journals, the soup-kitchen volunteer apron.',
-    price: 22,
-    variantColorHint: '',
-    placement: 'front',
-    overlayScale: 0.55,
-    overlayYOffset: 0.0,
-    storefrontPath: '/product/free-satan-tote'
   }
 ];
 

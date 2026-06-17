@@ -429,32 +429,6 @@
       "price": 56,
       "error": "Printful POST /store/products → 400: {\"code\":400,\"result\":\"thread_colors_apparel option is missing or incorrect! Allowed values: #FFFFFF, #000000, #96A1A8, #A67843, #FFCC00, #E25C27, #CC3366, #CC3333, #660000, #333366, #005397, #3399FF, #6B5294, #01784E, #7BA35A\",\"error\":{\"reason\":\"BadRequest\",\"message\":\"thread_colors_apparel option is missing or incorrect! Allowed values: #FFFFFF, #000000, #96A1A8, #A67843, #FFCC00, #E25C27, #CC3366, #CC3333, #660000, #333366, #005397, #3399FF, #6B5294, #01784E, #7BA35A\"}}",
       "variants": []
-    },
-    {
-      "slug": "tote-allover",
-      "title": "FREE SATAN Tote",
-      "blank": "All-Over Print Tote",
-      "color": "Black",
-      "blurb": "Heavy cotton tote · carries records, journals, the apron.",
-      "price": 22,
-      "catalogProductId": 84,
-      "productId": 435960081,
-      "variantCount": 1,
-      "mockup": "/merch/mockups/tote-allover.png",
-      "storefrontUrl": "https://bz-music.printful.me",
-      "variants": [
-        {
-          "sync_variant_id": 5332599855,
-          "catalog_variant_id": 4533,
-          "name": "FREE SATAN Tote / Black / 15″×15″",
-          "size": "15″×15″",
-          "color": "Black",
-          "retail_price": "22.00",
-          "currency": "USD",
-          "in_stock": true,
-          "external_id": "6a1b8c9bd8e168"
-        }
-      ]
     }
   ],
   "synced_at": "2026-05-31T01:27:42.783Z"
