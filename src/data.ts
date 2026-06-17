@@ -3485,10 +3485,10 @@ export const TRACKS: Track[] = [
     wisdom: '"Re-create yourself" — Greene, Law 25 (in the kitchen)'
   },
   {
-    id: "bootleg-from-tomorrow",
-    title: "Bootleg From Tomorrow",
+    id: 'bootleg-from-tomorrow',
+    title: 'Bootleg From Tomorrow',
     artist: 'bZ',
-    file: "/audio/bootleg-from-tomorrow.mp3",
+    file: '/audio/bootleg-from-tomorrow.mp3',
     cover: '/art/cover-bootleg-from-tomorrow.jpg',
     album: 'bootleg-from-tomorrow',
     vibe: "Title cut. The mixtape that arrived before its release date.",
@@ -3556,10 +3556,10 @@ export const TRACKS: Track[] = [
     wisdom: "\"Conceal your intentions\" — Greene, Law 3"
   },
   {
-    id: "baby-sharks-destiny",
-    title: "Baby Sharks Destiny",
+    id: 'baby-sharks-destiny',
+    title: 'Baby Sharks Destiny',
     artist: 'bZ',
-    file: "/audio/baby-sharks-destiny.mp3",
+    file: '/audio/baby-sharks-destiny.mp3',
     cover: '/art/cover-bootleg-from-tomorrow.jpg',
     album: 'bootleg-from-tomorrow',
     vibe: "Cinematic eco-gospel. Generations of fins.",
@@ -3625,10 +3625,10 @@ export const TRACKS: Track[] = [
     wisdom: "\"So much depends upon reputation\" — Greene, Law 5"
   },
   {
-    id: "guadalajara-sin-talla",
-    title: "Guadalajara Sin Talla",
+    id: 'guadalajara-sin-talla',
+    title: 'Guadalajara Sin Talla',
     artist: 'bZ',
-    file: "/audio/guadalajara-sin-talla.mp3",
+    file: '/audio/guadalajara-sin-talla.mp3',
     cover: '/art/cover-bootleg-from-tomorrow.jpg',
     album: 'bootleg-from-tomorrow',
     vibe: "Latin gospel trap. No size, no limit.",
@@ -3698,10 +3698,10 @@ export const TRACKS: Track[] = [
     wisdom: "\"Court attention at all cost\" — Greene, Law 6"
   },
   {
-    id: "fire-runs-out",
-    title: "Fire Runs Out",
+    id: 'fire-runs-out',
+    title: 'Fire Runs Out',
     artist: 'bZ',
-    file: "/audio/fire-runs-out.mp3",
+    file: '/audio/fire-runs-out.mp3',
     cover: '/art/cover-bootleg-from-tomorrow.jpg',
     album: 'bootleg-from-tomorrow',
     vibe: "Apocalyptic gospel. What burns when the fuel is gone.",
@@ -3768,10 +3768,10 @@ export const TRACKS: Track[] = [
     wisdom: "\"Use the surrender tactic\" — Greene, Law 22"
   },
   {
-    id: "loaded-dice",
-    title: "Loaded Dice",
+    id: 'loaded-dice',
+    title: 'Loaded Dice',
     artist: 'bZ',
-    file: "/audio/loaded-dice.mp3",
+    file: '/audio/loaded-dice.mp3',
     cover: '/art/cover-bootleg-from-tomorrow.jpg',
     album: 'bootleg-from-tomorrow',
     vibe: "Soul-blues rock. The house always wins, except this one.",
@@ -3841,10 +3841,10 @@ export const TRACKS: Track[] = [
     wisdom: "\"Concentrate your forces\" — Greene, Law 23"
   },
   {
-    id: "gray-skies-amen",
-    title: "Gray Skies Amen",
+    id: 'gray-skies-amen',
+    title: 'Gray Skies Amen',
     artist: 'bZ',
-    file: "/audio/gray-skies-amen.mp3",
+    file: '/audio/gray-skies-amen.mp3',
     cover: '/art/cover-bootleg-from-tomorrow.jpg',
     album: 'bootleg-from-tomorrow',
     vibe: "Cinematic prayer rap. Weather as worship.",
@@ -3915,10 +3915,10 @@ export const TRACKS: Track[] = [
     wisdom: "\"Plan all the way to the end\" — Greene, Law 29"
   },
   {
-    id: "sleep-like",
-    title: "Sleep Like",
+    id: 'sleep-like',
+    title: 'Sleep Like',
     artist: 'bZ',
-    file: "/audio/sleep-like.mp3",
+    file: '/audio/sleep-like.mp3',
     cover: '/art/cover-bootleg-from-tomorrow.jpg',
     album: 'bootleg-from-tomorrow',
     vibe: "Uplifting folk-pop. How the saints rest.",
