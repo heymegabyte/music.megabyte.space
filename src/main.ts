@@ -6048,6 +6048,17 @@ function bindUi() {
 
   const moreBtn = $('#btnMore');
   const moreMenu = $('#moreMenu');
+  // Lift the fixed-position player overlays OUT of `.app` to <body>. `.app`
+  // establishes a stacking context (position:relative; z-index:1), which traps
+  // every descendant below it — so the More menu / full-screen lyrics / Queue
+  // panel could never paint above the body-level FABs (.aichat z:90,
+  // .merch-fab z:9990) no matter how high their own z-index. Moving them to the
+  // body stacking level lets their z:10000 win. Fixed positioning is
+  // viewport-relative (no transformed ancestor), so the move doesn't shift them.
+  for (const id of ['moreMenu', 'lyricsFs', 'queuePanel']) {
+    const el = document.getElementById(id);
+    if (el && el.parentElement !== document.body) document.body.appendChild(el);
+  }
   const closeMoreMenu = () => {
     if (!moreMenu) return;
     moreMenu.hidden = true;
