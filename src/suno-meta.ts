@@ -1250,6 +1250,34 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/72c2706e-7e16-4402-9256-4a6556187a34'
   },
+  'mercy-steel': {
+    sunoId: 'ed3f77d6-2fe1-461a-87fd-9978783e90ac',
+    sunoTitle: 'Mercy Steel',
+    sunoConcept: null,
+    sunoStyle:
+      'Cinematic gospel rap, conscious hip hop, orchestral trap, soulful choir, spiritual anthem, street sermon',
+    sunoStyleFull:
+      'Cinematic gospel rap, conscious hip hop, orchestral trap, soulful choir, spiritual anthem, street sermon, powerful male rap vocals, huge gospel choir hook, layered harmonies, deep 808s, warm piano, swelling strings, dramatic build, inspirational, righteous, redemptive, victorious, emotional, persuasive, epic, mercy as strength, mercy as wisdom, mercy as legacy',
+    sunoDisplayTags: 'cinematic gospel rap, conscious hip hop, orchestral trap',
+    sunoBpm: 131.7,
+    sunoBpmSource: 'audio',
+    sunoKey: 'C minor',
+    sunoKeyConfidence: 0.819,
+    sunoKeySource: 'audio',
+    sunoModel: 'v5.5',
+    sunoModelName: 'chirp-fenix',
+    sunoDuration: 232.28,
+    sunoHasHook: false,
+    sunoIsRemix: false,
+    sunoIsInstrumental: false,
+    sunoExplicit: false,
+    sunoCreatedAt: '2026-06-08T20:48:36.825Z',
+    sunoAudioUrl: 'https://cdn1.suno.ai/ed3f77d6-2fe1-461a-87fd-9978783e90ac.mp3',
+    sunoImageUrl: 'https://cdn2.suno.ai/image_large_ed3f77d6-2fe1-461a-87fd-9978783e90ac.jpeg',
+    sunoVideoUrl: null,
+    sunoHandle: 'brian404',
+    sunoUrl: 'https://suno.com/song/ed3f77d6-2fe1-461a-87fd-9978783e90ac'
+  },
   'millstone-prophecy': {
     sunoId: 'ed1ca8ed-018e-4888-8a2b-040757287d3d',
     sunoTitle: 'Millstone Prophecy',
@@ -1277,6 +1305,34 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoVideoUrl: null,
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/ed1ca8ed-018e-4888-8a2b-040757287d3d'
+  },
+  'one-hard-date': {
+    sunoId: '8aa4cf86-9e15-4586-8824-40d004e53e66',
+    sunoTitle: 'One Hard Date',
+    sunoConcept: null,
+    sunoStyle:
+      'Uplifting motivational rap anthem, cinematic hip-hop, confident founder energy, modern trap drums, warm piano chords, inspiring synth pads',
+    sunoStyleFull:
+      'Uplifting motivational rap anthem, cinematic hip-hop, confident founder energy, modern trap drums, warm piano chords, inspiring synth pads, punchy 808s, crisp hi-hats, big stadium hook, soulful background vocals, polished mainstream mix, aspirational entrepreneur lyrics, AI engineer success theme, emotional but powerful delivery, fast rhythmic verses, anthemic chorus, luxury-but-grounded vibe, triumphant outro, clean motivational energy, wealthy mindset, discipline, health, code, business, influence, legacy',
+    sunoDisplayTags: 'cinematic hip-hop, motivational rap, trap',
+    sunoBpm: 81,
+    sunoBpmSource: 'audio',
+    sunoKey: 'A minor',
+    sunoKeyConfidence: 0.902,
+    sunoKeySource: 'audio',
+    sunoModel: 'v5.5',
+    sunoModelName: 'chirp-fenix',
+    sunoDuration: 249.92,
+    sunoHasHook: false,
+    sunoIsRemix: false,
+    sunoIsInstrumental: false,
+    sunoExplicit: false,
+    sunoCreatedAt: '2026-06-08T21:17:11.286Z',
+    sunoAudioUrl: 'https://cdn1.suno.ai/8aa4cf86-9e15-4586-8824-40d004e53e66.mp3',
+    sunoImageUrl: 'https://cdn2.suno.ai/image_large_8aa4cf86-9e15-4586-8824-40d004e53e66.jpeg',
+    sunoVideoUrl: null,
+    sunoHandle: 'brian404',
+    sunoUrl: 'https://suno.com/song/8aa4cf86-9e15-4586-8824-40d004e53e66'
   },
   'one-stop-higher': {
     sunoId: '7cbde3f5-2916-42f7-b327-0447bfee7384',
@@ -1989,6 +2045,35 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoVideoUrl: null,
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/e2b2b1e4-f992-4917-8013-a83b3c05731a'
+  },
+  'timestamp-jumps': {
+    sunoId: 'dd125d55-bf64-4fef-9ea1-5b0dbd0697f2',
+    sunoTitle: 'Timestamp Jumps',
+    sunoConcept: null,
+    sunoStyle:
+      'Cinematic AI trap, futuristic hip-hop, cyber-gospel anthem, dark synthwave, orchestral trap, glitch rap',
+    sunoStyleFull:
+      'Cinematic AI trap, futuristic hip-hop, cyber-gospel anthem, dark synthwave, orchestral trap, glitch rap, motivational tech rap, intense male vocals, huge chant hook, deep 808s, distorted bass, glowing synth arps, dramatic strings, hacker movie energy, supernatural mystery, time-travel paranoia, ghost-in-the-machine atmosphere, angelic transmissions, demonic legacy code, victorious engineer anthem, eerie but triumphant, Robert Stack / Unsolved Mysteries vibe, Adderall focus, TypeScript flow, epic build, clean powerful chorus',
+    sunoDisplayTags:
+      'cinematic AI trap, futuristic hip-hop, cyber-gospel, dark synthwave, orchestral trap, glitch rap',
+    sunoBpm: 74.7,
+    sunoBpmSource: 'audio',
+    sunoKey: 'F major',
+    sunoKeyConfidence: 0.801,
+    sunoKeySource: 'audio',
+    sunoModel: 'v5.5',
+    sunoModelName: 'chirp-fenix',
+    sunoDuration: 132.36,
+    sunoHasHook: false,
+    sunoIsRemix: false,
+    sunoIsInstrumental: false,
+    sunoExplicit: false,
+    sunoCreatedAt: '2026-06-08T20:57:20.647Z',
+    sunoAudioUrl: 'https://cdn1.suno.ai/dd125d55-bf64-4fef-9ea1-5b0dbd0697f2.mp3',
+    sunoImageUrl: 'https://cdn2.suno.ai/image_large_dd125d55-bf64-4fef-9ea1-5b0dbd0697f2.jpeg',
+    sunoVideoUrl: null,
+    sunoHandle: 'brian404',
+    sunoUrl: 'https://suno.com/song/dd125d55-bf64-4fef-9ea1-5b0dbd0697f2'
   },
   'white-flag-prayer': {
     sunoId: '3743a35c-2624-4373-b998-f707562e3c88',
