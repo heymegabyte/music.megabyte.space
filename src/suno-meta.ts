@@ -1710,34 +1710,6 @@ export const SUNO_META: Record<string, SunoMeta> = {
     sunoHandle: 'brian404',
     sunoUrl: 'https://suno.com/song/e2b2b1e4-f992-4917-8013-a83b3c05731a'
   },
-  'usb-down': {
-    sunoId: '81e08ef1-673e-47f6-8d12-fa7144e35d52',
-    sunoTitle: 'USB Down',
-    sunoConcept: '"Kia boys put the usb down"',
-    sunoStyle:
-      'Drill rap with sliding 808s and clipped hi-hat triplets; verse rides tense, street-level storytelling, pre-chorus tightens with halftime snare gaps, chorus hits as a short chant with gang doubles. Vocal is gritty and close-mic with sharp ad-lib pops, tape-stop transitions into the hook, reversed swells before drops',
-    sunoStyleFull:
-      'Drill rap with sliding 808s and clipped hi-hat triplets; verse rides tense, street-level storytelling, pre-chorus tightens with halftime snare gaps, chorus hits as a short chant with gang doubles. Vocal is gritty and close-mic with sharp ad-lib pops, tape-stop transitions into the hook, reversed swells before drops, and a cold, punchy low-end mix.',
-    sunoDisplayTags: 'drill rap, trap, grime',
-    sunoBpm: null,
-    sunoBpmSource: null,
-    sunoKey: null,
-    sunoKeyConfidence: null,
-    sunoKeySource: null,
-    sunoModel: 'v5.5',
-    sunoModelName: 'chirp-fenix',
-    sunoDuration: 115.84,
-    sunoHasHook: false,
-    sunoIsRemix: false,
-    sunoIsInstrumental: false,
-    sunoExplicit: false,
-    sunoCreatedAt: '2026-05-23T22:09:01.104Z',
-    sunoAudioUrl: 'https://cdn1.suno.ai/81e08ef1-673e-47f6-8d12-fa7144e35d52.mp3',
-    sunoImageUrl: 'https://cdn2.suno.ai/image_large_81e08ef1-673e-47f6-8d12-fa7144e35d52.jpeg',
-    sunoVideoUrl: null,
-    sunoHandle: 'brian404',
-    sunoUrl: 'https://suno.com/song/81e08ef1-673e-47f6-8d12-fa7144e35d52'
-  },
   'white-flag-prayer': {
     sunoId: '3743a35c-2624-4373-b998-f707562e3c88',
     sunoTitle: 'White Flag Prayer',
