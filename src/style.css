@@ -9332,6 +9332,9 @@ body.cast-tv-open .transport {
   bottom: 0;
   width: var(--aichat-w);
   max-width: 92vw;
+  /* The chat is a vertical surface — never scroll horizontally (clips decorative
+     aurora/shimmer pseudo-elements that would otherwise widen the scroll box). */
+  overflow-x: hidden;
   background: linear-gradient(180deg, rgba(8, 8, 22, 0.84) 0%, rgba(4, 4, 12, 0.92) 100%);
   border-left: 1px solid color-mix(in srgb, var(--aichat-accent) 18%, rgba(255, 255, 255, 0.05));
   color: var(--ink);
@@ -9372,6 +9375,21 @@ body.cast-tv-open .transport {
 }
 .aichat__body {
   grid-area: body;
+  /* Never scroll horizontally — long words / URLs / code wrap instead. min-width:0
+     lets the grid child actually shrink below its content's intrinsic width. */
+  min-width: 0;
+  overflow-x: hidden;
+}
+/* Wrapping contract for everything inside the chat: long unbreakable strings
+   (URLs, tokens, code, IDs) break rather than force a horizontal scrollbar. */
+.aichat__body,
+.aichat__msg,
+.aichat__msg-body,
+.aichat__widget,
+.aichat__widget * {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .aichat__compose-stack {
   grid-area: compose;
@@ -10817,6 +10835,9 @@ body.cast-tv-open .transport {
   border-radius: 5px;
   font-family: var(--font-mono);
   font-size: 0.84em;
+  /* Inline code with a long token / URL breaks instead of widening the bubble. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .aichat__msg-body a {
   color: var(--aichat-accent);
