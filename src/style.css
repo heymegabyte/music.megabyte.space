@@ -9156,6 +9156,13 @@ body.cast-tv-open .transport {
   z-index: 90;
   font-family: var(--font-body);
 }
+/* Album theme (default) — the chat accent follows the currently-playing
+   song/album's extracted theme color (--album-accent on :root), so the whole
+   AI Chat surface (glow, borders, buttons, widgets, spectro) matches the music.
+   Falls back to the site accent / cyan when nothing is playing. */
+.aichat[data-theme='album'] {
+  --aichat-accent: var(--album-accent, var(--accent, #00e5ff));
+}
 .aichat[data-theme='cyan'] {
   --aichat-accent: #00e5ff;
   --aichat-hue: 188;

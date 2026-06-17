@@ -51,7 +51,7 @@ interface Settings {
   systemOverride: string;
   pinned: string[];
   width: number;
-  theme: 'cyan' | 'violet' | 'amber' | 'rose';
+  theme: 'album' | 'cyan' | 'violet' | 'amber' | 'rose';
   density: 'compact' | 'cozy' | 'roomy';
   sendOnEnter: boolean;
   autoScroll: boolean;
@@ -307,6 +307,7 @@ export function mountAIChat(opts: MountOpts = {}) {
             <div class="aichat__field aichat__field--row">
               <span class="aichat__field-label">Accent color</span>
               <div class="aichat__swatch" data-aichat="themeSwatch" role="radiogroup" aria-label="Accent color">
+                <button type="button" data-theme="album"  style="--c:var(--album-accent,#00E5FF)" aria-label="Album — follows the playing song"></button>
                 <button type="button" data-theme="cyan"   style="--c:#00E5FF" aria-label="Cyan"></button>
                 <button type="button" data-theme="violet" style="--c:#b78aff" aria-label="Violet"></button>
                 <button type="button" data-theme="amber"  style="--c:#ffb347" aria-label="Amber"></button>
@@ -602,7 +603,7 @@ export function mountAIChat(opts: MountOpts = {}) {
       systemOverride: '',
       pinned: [],
       width: 460,
-      theme: 'cyan',
+      theme: 'album',
       density: 'cozy',
       sendOnEnter: true,
       autoScroll: true,
