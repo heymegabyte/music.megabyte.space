@@ -497,7 +497,9 @@ body {
   position: fixed;
   top: -100px;
   left: 12px;
-  z-index: 10000;
+  /* Stay above the focal overlays (more-menu / lyrics-fs / queue-panel at z:10000)
+     so the keyboard skip-link is always reachable on first Tab. */
+  z-index: 10001;
   padding: 10px 16px;
   background: var(--accent);
   color: #060610;
@@ -1345,11 +1347,14 @@ html.is-playing .brand__logo {
   border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 4px;
+  text-align: center;
 }
 .rail__foot-links {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 4px 9px;
 }
 .rail__foot-links a {
@@ -6858,9 +6863,10 @@ button:not(:disabled):active {
 }
 .more-menu {
   position: fixed;
-  /* Must out-stack .aichat (z:90) so the hamburger menu draws above the
-     Ask AI FAB pill instead of being obscured by it. */
-  z-index: 100;
+  /* Must out-stack BOTH floating action buttons — the Ask-AI FAB (.aichat, z:90)
+     and the cart FAB (.merch-fab, z:9990) — so the menu draws above them instead
+     of being obscured. Sits just under the a11y skip-link (z:10001). */
+  z-index: 10000;
   min-width: 240px;
   max-width: 280px;
   padding: 6px;
@@ -7065,7 +7071,8 @@ button:not(:disabled):active {
 .lyrics-fs {
   position: fixed;
   inset: 0;
-  z-index: 90;
+  /* Fullscreen focal view — must cover both FABs (Ask-AI z:90, cart z:9990). */
+  z-index: 10000;
   background: rgba(6, 6, 16, 0.96);
   backdrop-filter: blur(20px);
   display: flex;
@@ -7215,7 +7222,8 @@ button:not(:disabled):active {
 .queue-panel {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  /* Queue & Library overlay — must cover both FABs (Ask-AI z:90, cart z:9990). */
+  z-index: 10000;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.24s ease;
@@ -7743,6 +7751,7 @@ button:not(:disabled):active {
   box-shadow: 0 18px 60px -20px rgba(0, 0, 0, 0.7);
   font-size: 13px;
   color: var(--ink);
+  min-width: 310px;
   max-width: calc(100vw - 32px);
 }
 .install-banner[hidden] {
@@ -15605,11 +15614,14 @@ select:focus-visible,
 }
 
 /* ── Skip-to-content link ───────────────────────────────────────── */
+/* NOTE: this is the cascade-winning .skip-link rule (a second block lives near
+   the top of the file). Keep z-index above the focal overlays (more-menu /
+   lyrics-fs / queue-panel at z:10000) so keyboard skip stays reachable. */
 .skip-link {
   position: absolute;
   top: -100px;
   left: 0;
-  z-index: 100;
+  z-index: 10001;
   padding: 10px 14px;
   background: var(--bg);
   color: var(--ink-album-accent-neon, var(--ink-accent-neon, var(--ink)));

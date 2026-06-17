@@ -1505,7 +1505,7 @@ function setupShell(root: HTMLElement) {
           <!-- Inline branded SVG icon grid — compact, gorgeous, each icon
                sets its own --share-brand var for branded hover color. -->
           <div class="share__networks" id="shareNetworks">
-            <button class="share__icon share__icon--native" id="shareNative" type="button" hidden style="--share-brand:#00E5FF">
+            <button class="share__icon share__icon--native" id="shareNative" type="button" hidden title="Share via your device" style="--share-brand:#00E5FF">
               <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
               <span>Share</span>
             </button>
@@ -6317,11 +6317,17 @@ function bindUi() {
   // Populate the story-mode chip rail from CONTENT_PAGES so the link set
   // stays in sync with the page registry. Each chip carries the same
   // data-content-page hook the existing click delegate already handles.
+  // Privacy + Terms are legal/footer pages, not story chapters — keep them
+  // in the footer only, out of the Story nav.
+  const STORY_NAV_EXCLUDE = new Set(['privacy', 'terms']);
+  const storyNavPages = CONTENT_PAGES.filter(p => !STORY_NAV_EXCLUDE.has(p.slug));
   if (storyNavChips) {
-    storyNavChips.innerHTML = CONTENT_PAGES.map(p => {
-      const label = p.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '');
-      return `<a href="/${p.slug}" data-content-page="${p.slug}" class="topbar__story-chip">${escapeHtml(label)}</a>`;
-    }).join('');
+    storyNavChips.innerHTML = storyNavPages
+      .map(p => {
+        const label = p.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '');
+        return `<a href="/${p.slug}" data-content-page="${p.slug}" class="topbar__story-chip">${escapeHtml(label)}</a>`;
+      })
+      .join('');
   }
   // Mobile dropdown — same link set, vertical bottom sheet. Click the
   // trigger to open; click a link to navigate (delegate handles it);
@@ -6330,14 +6336,16 @@ function bindUi() {
   const storyMobileTrigger = $('#btnStoryNavMobile') as HTMLButtonElement | null;
   const storyMobileLabel = $('#topbarStoryNavMobileLabel');
   if (storySheet) {
-    storySheet.innerHTML = CONTENT_PAGES.map(p => {
-      const label = p.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '');
-      const sub = p.eyebrow;
-      return `<a href="/${p.slug}" data-content-page="${p.slug}" class="topbar__story-sheet-item" role="menuitem">
+    storySheet.innerHTML = storyNavPages
+      .map(p => {
+        const label = p.title.replace(/^bz\s+/i, '').replace(/\s—.*$/, '');
+        const sub = p.eyebrow;
+        return `<a href="/${p.slug}" data-content-page="${p.slug}" class="topbar__story-sheet-item" role="menuitem">
         <strong>${escapeHtml(label)}</strong>
         <span>${escapeHtml(sub)}</span>
       </a>`;
-    }).join('');
+      })
+      .join('');
   }
   function setMobileSheetOpen(on: boolean) {
     if (storySheet) storySheet.hidden = !on;
