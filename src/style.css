@@ -1839,6 +1839,15 @@ body[data-subscribed='1'] .album-list-end {
   padding-bottom: 0.1em;
   letter-spacing: -0.04em;
   text-transform: uppercase;
+  /* Title may span the full hero width, but NEVER more than 2 lines — long
+     titles use the width before they're hard-clamped to 2 lines (ellipsis only
+     in the rare case 2 full-width lines still aren't enough). */
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
   /* Pure white text — no scrim. Heavy halo + accent glow handles
      legibility against any visualizer canvas, including bright frames.
      Per Brian: big-title backgrounds should be transparent. */
