@@ -277,7 +277,9 @@ function buildSelectors(card: HTMLAnchorElement) {
   // can't follow), but preventDefault on bare-card clicks so it reads as an
   // interactive add-to-cart widget instead of navigating away. The size/add
   // buttons stopPropagation, so only clicks on the card chrome are caught here.
-  card.classList.add('merch-card--interactive');
+  // The card stays an <a href> (crawlable) but a bare-card click does NOTHING —
+  // no navigation, no cart-open. Only the size/Add buttons act. Regular cursor
+  // (no zoom-in affordance) is set on .merch-card in CSS.
   card.addEventListener('click', e => {
     if ((e.target as HTMLElement).closest('.merch-card__cta')) return;
     e.preventDefault();

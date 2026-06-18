@@ -16358,6 +16358,9 @@ select:focus-visible,
   position: relative;
   display: flex;
   flex-direction: column;
+  /* Regular cursor — the card pane itself has no click action (no zoom, no
+     cart-open); only the size/Add buttons inside are interactive. */
+  cursor: default;
   background: color-mix(in srgb, var(--bg) 90%, var(--accent) 6%);
   border: 1px solid var(--line-strong);
   border-radius: 16px;
@@ -16508,9 +16511,6 @@ select:focus-visible,
 }
 
 /* ── Cart: size-picker + Add button (replaces View-link CTA on interactive cards) ── */
-.merch-card--interactive {
-  cursor: zoom-in;
-}
 .merch-card__cta:has(.merch-card__size-picker) {
   flex-direction: column;
   align-items: stretch;
