@@ -417,8 +417,16 @@ async function renderSuccessIfPresent() {
 export async function setupMerchCart(): Promise<void> {
   cart = loadCart();
   ensureFab();
-  updateFab();
   await loadSuite();
+  // Prune stale / invalid persisted lines so a "ghost" item never shows up
+  // auto-added: drop anything that no longer maps to a current in-stock variant
+  // (removed products like the old tote, schema drift, or corrupt entries).
+  const beforeLen = cart.length;
+  cart = cart.filter(
+    l => l && typeof l.sync_variant_id === 'number' && l.quantity > 0 && !!findVariant(l.slug, l.size)
+  );
+  if (cart.length !== beforeLen) saveCart();
+  updateFab();
 
   // Bind each merch card
   const cards = document.querySelectorAll<HTMLAnchorElement>('.merch-card');
