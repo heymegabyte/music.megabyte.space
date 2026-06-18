@@ -325,6 +325,9 @@ function buildSelectors(card: HTMLAnchorElement) {
     }, 1200);
     // Tiny haptic on mobile
     if ('vibrate' in navigator) navigator.vibrate(15);
+    // Surface checkout immediately — open the cart drawer so a single added item
+    // is one click from Stripe Checkout (Link / Apple Pay / Google Pay).
+    openDrawer();
   });
 
   // Whole-card click → open drawer (or do nothing if the click was on a control)
