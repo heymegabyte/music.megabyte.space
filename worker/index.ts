@@ -2379,6 +2379,54 @@ export default {
         } catch {
           return jsonResponse({ error: 'invalid_json' }, 400);
         }
+        // Failed / abandoned checkouts — async-method failure or an expired
+        // session. No charge was made; nudge the buyer back + ping admin.
+        if (evt.type === 'checkout.session.async_payment_failed' || evt.type === 'checkout.session.expired') {
+          const s = evt.data.object;
+          const email = s.customer_details?.email;
+          const expired = evt.type === 'checkout.session.expired';
+          if (env.RESEND_API_KEY && email) {
+            ctx.waitUntil(
+              fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${env.RESEND_API_KEY}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  from: 'bZ Music <hey@megabyte.space>',
+                  to: email,
+                  subject: expired
+                    ? 'Your FREE SATAN cart is still here'
+                    : "Your FREE SATAN payment didn't go through",
+                  html: `<div style="font-family:system-ui;max-width:560px;margin:0 auto;padding:24px;color:#060610">
+                <h1 style="color:#00E5FF;margin:0 0 8px">${expired ? 'Cart still warm' : "Payment didn't complete"}</h1>
+                <p>${expired ? 'Your checkout expired before payment was confirmed.' : "Your payment didn't go through."} No charge was made — pick up where you left off:</p>
+                <p><a href="https://music.megabyte.space/merch" style="color:#00E5FF">Return to the FREE SATAN suite →</a></p>
+                <p>—bZ</p></div>`
+                })
+              }).then(r => (r.ok ? null : r.text().then(t => console.warn('fail-email', t.slice(0, 200)))))
+            );
+          }
+          if (env.RESEND_API_KEY) {
+            ctx.waitUntil(
+              fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${env.RESEND_API_KEY}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  from: 'bZ Music <hey@megabyte.space>',
+                  to: 'hey@megabyte.space',
+                  subject: `merch ${evt.type}`,
+                  html: `<p>${evt.type} · session ${s.id} · ${email || 'no email'}</p>`
+                })
+              }).catch(() => {})
+            );
+          }
+          return jsonResponse({ received: true });
+        }
         if (evt.type !== 'checkout.session.completed') return jsonResponse({ received: true });
         const session = evt.data.object;
         if (!env.PRINTFUL_API_KEY) {
@@ -2479,6 +2527,24 @@ export default {
             }).then(r =>
               r.ok ? null : r.text().then(t => console.warn('receipt email failed', t.slice(0, 200)))
             )
+          );
+        }
+        // Admin notification — new sale
+        if (env.RESEND_API_KEY) {
+          ctx.waitUntil(
+            fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                from: 'bZ Music <hey@megabyte.space>',
+                to: 'hey@megabyte.space',
+                subject: `💸 New merch order — $${(session.amount_total / 100).toFixed(2)}`,
+                html: `<p>${cart.length} item(s) · ${recipient.email || 'no email'} · Printful #${pfOrderId} · Stripe ${session.id.slice(-12)}</p>`
+              })
+            }).catch(() => {})
           );
         }
         return jsonResponse({ ok: true, printful_order_id: pfOrderId });
