@@ -15465,42 +15465,6 @@ select:focus-visible,
   display: none;
 }
 
-.transport__np-spotify {
-  display: inline-flex;
-  margin-top: 3px;
-}
-.transport__np-spotify a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, #1db954 40%, transparent);
-  background: color-mix(in srgb, #1db954 12%, transparent);
-  color: #1db954;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition:
-    background 180ms ease,
-    transform 140ms ease;
-}
-.transport__np-spotify a:hover {
-  background: #1db954;
-  color: #fff;
-  transform: translateY(-1px);
-}
-/* On smaller screens the play bar is cramped — drop the Spotify "Stream" chip so
-   the title + transport controls keep their room. (Overrides the inline-flex set
-   when JS removes the [hidden] attr; the chip still shows on desktop.) */
-@media (max-width: 768px) {
-  .transport__np-spotify {
-    display: none !important;
-  }
-}
-
 /* ── Reading progress hairline ──────────────────────────────────── */
 .contentpage__progress {
   position: absolute;
@@ -16674,11 +16638,16 @@ select:focus-visible,
   opacity: 0;
   transition: opacity 240ms ease;
   pointer-events: none;
+  /* Scrim sits BELOW the panel — it's a sibling that comes after the panel in
+     the DOM, so without this it painted on top and swallowed every click inside
+     the cart (remove / qty / checkout). z-index keeps it strictly behind. */
+  z-index: 0;
 }
 .merch-drawer__panel {
   position: absolute;
   top: 0;
   right: 0;
+  z-index: 1;
   height: 100%;
   width: min(440px, 90vw);
   background: color-mix(in srgb, var(--bg) 96%, var(--ink) 4%);

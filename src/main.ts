@@ -1349,12 +1349,6 @@ function setupShell(root: HTMLElement) {
           <span class="transport__np-title" id="transportNpTitle">Press play</span>
           <span class="transport__np-sub" id="transportNpSub">bZ</span>
           <span class="transport__np-suno" id="transportNpSuno" aria-hidden="true"></span>
-          <span class="transport__np-spotify" id="transportNpSpotify" hidden>
-            <a id="transportNpSpotifyLink" href="#" target="_blank" rel="noopener noreferrer" aria-label="Stream on Spotify">
-              <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.59 14.41a.7.7 0 0 1-.96.23c-2.63-1.61-5.94-1.97-9.84-1.08a.7.7 0 0 1-.31-1.36c4.27-.97 7.94-.56 10.88 1.25.33.2.43.65.23.96zm1.23-2.74a.87.87 0 0 1-1.2.29c-3.01-1.85-7.6-2.39-11.16-1.31a.87.87 0 0 1-.51-1.66c4.07-1.24 9.13-.64 12.59 1.48.41.25.54.79.28 1.2zm.1-2.86c-3.61-2.14-9.57-2.34-13.02-1.29a1.05 1.05 0 1 1-.61-2.01c3.96-1.2 10.55-.97 14.7 1.49a1.05 1.05 0 1 1-1.07 1.81z"/></svg>
-              <span id="transportNpSpotifyText">Stream</span>
-            </a>
-          </span>
         </div>
       </div>
       <div class="transport__controls">
@@ -3091,7 +3085,6 @@ async function play(track: Track) {
     const fillEl = $('#transportFill');
     if (fillEl) fillEl.style.width = '0%';
   }
-  updateTransportSpotifyChip(track);
   // Wake the visualizer if it deferred its start (mobile / low-power)
   document.dispatchEvent(new CustomEvent('panda-track-play', { detail: { id: track.id } }));
   // 260ms visualizer cross-fade hook — body[data-track-changing] is CSS-
@@ -5319,25 +5312,6 @@ async function resolveSpotifyTrack(title: string): Promise<SpotifyTrackInfo | nu
   } catch {
     return null;
   }
-}
-async function updateTransportSpotifyChip(track: Track) {
-  const wrap = $('#transportNpSpotify');
-  const link = $('#transportNpSpotifyLink') as HTMLAnchorElement | null;
-  const text = $('#transportNpSpotifyText');
-  if (!wrap || !link) return;
-  wrap.hidden = true;
-  const info = await resolveSpotifyTrack(track.title);
-  if (!info || !info.id || !info.spotifyUrl) return;
-  link.href = info.spotifyUrl;
-  if (text) {
-    if (typeof info.popularity === 'number' && info.popularity > 0) {
-      text.textContent = `Stream · ${info.popularity}`;
-      text.title = `Spotify popularity ${info.popularity}/100`;
-    } else {
-      text.textContent = 'Stream';
-    }
-  }
-  wrap.hidden = false;
 }
 // Resolve once at boot — the follower count + cover image render in the
 // topbar Follow button. Cached server-side for 1h so calling on every

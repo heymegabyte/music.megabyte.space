@@ -198,16 +198,21 @@ function renderDrawer() {
 }
 
 function openDrawer() {
-  const { drawer } = ensureFab();
+  const { drawer, fab } = ensureFab();
   renderDrawer();
   drawer.hidden = false;
+  // Hide the floating cart button while the drawer is open — otherwise it
+  // floats over the panel and a "click the cart" lands on it / the scrim and
+  // closes the drawer. The drawer's own ✕ + scrim handle closing.
+  fab.style.display = 'none';
   requestAnimationFrame(() => drawer.classList.add('merch-drawer--open'));
 }
 function closeDrawer() {
-  const { drawer } = ensureFab();
+  const { drawer, fab } = ensureFab();
   drawer.classList.remove('merch-drawer--open');
   setTimeout(() => {
     drawer.hidden = true;
+    fab.style.display = '';
   }, 260);
 }
 
