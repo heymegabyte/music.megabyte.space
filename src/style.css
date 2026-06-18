@@ -5204,6 +5204,46 @@ html.is-appeal-open {
   }
 }
 
+/* Tablet (between phone ≤760 and desktop): the 5-column transport grid
+   (np | controls | progress | vol | actions) overflows off-screen. Switch to a
+   flex-wrap so the now-playing + controls + volume + actions share the top row
+   (wrapping as needed) and the progress/waveform drops to its own full-width
+   row — nothing pushed off-screen. */
+@media (min-width: 761px) and (max-width: 1024px) {
+  .transport {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    column-gap: var(--space-3);
+    row-gap: var(--space-2);
+  }
+  .transport__np {
+    flex: 1 1 240px;
+    min-width: 0;
+    order: 1;
+  }
+  .transport__controls {
+    flex: 0 0 auto;
+    order: 2;
+  }
+  .transport__vol-wrap {
+    flex: 0 0 auto;
+    order: 3;
+  }
+  .transport__actions {
+    flex: 0 1 auto;
+    order: 4;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .transport__progress {
+    flex: 1 1 100%;
+    order: 5;
+    min-width: 0;
+  }
+}
+
 @media (max-width: 760px) {
   :root {
     --rail-w: 100%;

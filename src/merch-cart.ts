@@ -136,6 +136,24 @@ function ensureFab(): { fab: HTMLButtonElement; badge: HTMLSpanElement; drawer: 
   drawer.querySelector('#merchDrawerClose')?.addEventListener('click', closeDrawer);
   drawer.querySelector('#merchDrawerScrim')?.addEventListener('click', closeDrawer);
   drawer.querySelector('#merchDrawerCheckout')?.addEventListener('click', checkout);
+  // Delegated qty/remove handler — bound ONCE on the persistent lines container,
+  // so it survives every renderDrawer() innerHTML rebuild. (Re-binding per render
+  // was the flaky path that let the Remove button silently no-op.)
+  drawer.querySelector('#merchDrawerLines')?.addEventListener('click', e => {
+    const btn = (e.target as HTMLElement).closest('button[data-act]') as HTMLElement | null;
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const idx = parseInt(btn.dataset.idx ?? '-1', 10);
+    if (idx < 0 || idx >= cart.length) return;
+    const act = btn.dataset.act;
+    if (act === 'inc' && cart[idx].quantity < 20) cart[idx].quantity++;
+    else if (act === 'dec' && cart[idx].quantity > 1) cart[idx].quantity--;
+    else if (act === 'rm') cart.splice(idx, 1);
+    saveCart();
+    updateFab();
+    renderDrawer();
+  });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && !drawer.hidden) closeDrawer();
   });
@@ -183,18 +201,8 @@ function renderDrawer() {
     .join('');
   subtotal.textContent = `$${cartTotal().toFixed(2)}`;
   checkoutBtn.disabled = false;
-  lines.querySelectorAll('button[data-act]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt((btn as HTMLElement).dataset.idx!, 10);
-      const act = (btn as HTMLElement).dataset.act;
-      if (act === 'inc' && cart[idx].quantity < 20) cart[idx].quantity++;
-      else if (act === 'dec' && cart[idx].quantity > 1) cart[idx].quantity--;
-      else if (act === 'rm') cart.splice(idx, 1);
-      saveCart();
-      updateFab();
-      renderDrawer();
-    });
-  });
+  // NOTE: qty/remove clicks are handled by ONE delegated listener bound once in
+  // ensureFab() — not re-bound here. Re-binding per render was the flaky path.
 }
 
 function openDrawer() {
