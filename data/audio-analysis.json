@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-24T16:48:18",
+  "generated_at": "2026-06-17T09:59:48",
   "tracks": {
     "chef-lu-stew": {
       "bpm": 88.7,
@@ -306,6 +306,156 @@
       "key": "C major",
       "keyConfidence": 0.827,
       "duration": 157.6
+    },
+    "bootleg-from-tomorrow": {
+      "bpm": 129.7,
+      "key": "F major",
+      "keyConfidence": 0.673,
+      "duration": 191.12
+    },
+    "baby-sharks-destiny": {
+      "bpm": 135.3,
+      "key": "D minor",
+      "keyConfidence": 0.703,
+      "duration": 226.12
+    },
+    "guadalajara-sin-talla": {
+      "bpm": 119.5,
+      "key": "C# minor",
+      "keyConfidence": 0.817,
+      "duration": 218.04
+    },
+    "fire-runs-out": {
+      "bpm": 134.3,
+      "key": "F major",
+      "keyConfidence": 0.693,
+      "duration": 232.12
+    },
+    "loaded-dice": {
+      "bpm": 79.9,
+      "key": "F major",
+      "keyConfidence": 0.745,
+      "duration": 269.88
+    },
+    "gray-skies-amen": {
+      "bpm": 79.4,
+      "key": "C minor",
+      "keyConfidence": 0.72,
+      "duration": 233.04
+    },
+    "sleep-like": {
+      "bpm": 93.2,
+      "key": "D minor",
+      "keyConfidence": 0.753,
+      "duration": 219.92
+    },
+    "betelgeuse-passover": {
+      "bpm": 70.2,
+      "key": "F major",
+      "keyConfidence": 0.637,
+      "duration": 240.92
+    },
+    "betelgeuse-credit": {
+      "bpm": 71.8,
+      "key": "C minor",
+      "keyConfidence": 0.669,
+      "duration": 196.32
+    },
+    "atm-mercy": {
+      "bpm": 135.0,
+      "key": "C minor",
+      "keyConfidence": 0.782,
+      "duration": 212.68
+    },
+    "cardboard-sign-mercy": {
+      "bpm": 95.0,
+      "key": "A minor",
+      "keyConfidence": 0.797,
+      "duration": 194.64
+    },
+    "ash-not-ashes": {
+      "bpm": 136.8,
+      "key": "C minor",
+      "keyConfidence": 0.769,
+      "duration": 234.92
+    },
+    "temple-prescription": {
+      "bpm": 103.2,
+      "key": "C minor",
+      "keyConfidence": 0.584,
+      "duration": 214.8
+    },
+    "stairmaster-prayer": {
+      "bpm": 138.5,
+      "key": "A# minor",
+      "keyConfidence": 0.781,
+      "duration": 317.88
+    },
+    "seven-red-lines": {
+      "bpm": 72.8,
+      "key": "C minor",
+      "keyConfidence": 0.776,
+      "duration": 249.72
+    },
+    "boo-back-mind": {
+      "bpm": 80.6,
+      "key": "A minor",
+      "keyConfidence": 0.878,
+      "duration": 204.8
+    },
+    "danny-s-strike-suit": {
+      "bpm": 117.3,
+      "key": "G major",
+      "keyConfidence": 0.767,
+      "duration": 161.52
+    },
+    "can-t-buy-sky": {
+      "bpm": 71.7,
+      "key": "D minor",
+      "keyConfidence": 0.805,
+      "duration": 122.84
+    },
+    "aire-inhalado": {
+      "bpm": 88.7,
+      "key": "F major",
+      "keyConfidence": 0.605,
+      "duration": 230.72
+    },
+    "one-hard-date": {
+      "bpm": 81.0,
+      "key": "A minor",
+      "keyConfidence": 0.902,
+      "duration": 249.92
+    },
+    "timestamp-jumps": {
+      "bpm": 74.7,
+      "key": "F major",
+      "keyConfidence": 0.801,
+      "duration": 202.6
+    },
+    "mercy-steel": {
+      "bpm": 131.7,
+      "key": "C minor",
+      "keyConfidence": 0.819,
+      "duration": 239.2
+    },
+    "atm-confetti": {
+      "bpm": 131.3,
+      "key": "C minor",
+      "keyConfidence": 0.773,
+      "duration": 199.56
+    },
+    "stone-number-mercy": {
+      "bpm": 137.5,
+      "key": "D# major",
+      "keyConfidence": 0.734,
+      "duration": 259.08
+    },
+    "48-hours": {
+      "bpm": 95.3,
+      "key": "C minor",
+      "keyConfidence": 0.83,
+      "duration": 227.96
     }
   }
 }
