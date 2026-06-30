@@ -82,7 +82,15 @@ export const TRACK_DURATIONS: Record<string, number> = {
   'the-ancients-and-the-pool-bot': 322,
   'pine-tree-dare': 160,
   'stop-by-shanna': 202,
-  'chris-kalwa': 187
+  'chris-kalwa': 187,
+  'bermuda-prophecy': 315,
+  'five-thousand-lotus-flames': 188,
+  'free-satan-from-hell': 249,
+  'franks-got-flags': 172,
+  'other-side-of-the-fall': 230,
+  'quarter-in-the-psychic-machine': 309,
+  'static-moonbounce': 161,
+  'the-tooltip-gospel': 328
 };
 
 export const TRACK_BYTES: Record<string, number> = {
@@ -165,5 +173,13 @@ export const TRACK_BYTES: Record<string, number> = {
   'the-ancients-and-the-pool-bot': 7615113,
   'pine-tree-dare': 3758220,
   'stop-by-shanna': 4658035,
-  'chris-kalwa': 4269327
+  'chris-kalwa': 4269327,
+  'bermuda-prophecy': 7035991,
+  'five-thousand-lotus-flames': 4388860,
+  'free-satan-from-hell': 5650726,
+  'franks-got-flags': 4081886,
+  'other-side-of-the-fall': 5028906,
+  'quarter-in-the-psychic-machine': 7198915,
+  'static-moonbounce': 3984492,
+  'the-tooltip-gospel': 7500166
 };
