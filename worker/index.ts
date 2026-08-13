@@ -2592,7 +2592,9 @@ export default {
         return new Response(null, { status: 204, headers: corsHeaders });
       }
       const cache = (caches as unknown as { default: Cache }).default;
-      const cacheKey = new Request(`${url.origin}${url.pathname}#full`, { method: 'GET' });
+      // #v3: bump on catalog changes that delete/rename audio so stale
+      // Cache API entries (30d immutable) can't ghost-serve removed files.
+      const cacheKey = new Request(`${url.origin}${url.pathname}#v3`, { method: 'GET' });
       let fullResp = await cache.match(cacheKey);
       if (!fullResp) {
         // Retry transient origin failures up to 6 times with exponential backoff
@@ -2606,8 +2608,16 @@ export default {
           if (attempt > 0) await new Promise(r => setTimeout(r, 100 * Math.pow(3, attempt - 1)));
           originResp = await env.ASSETS.fetch(new Request(`${url.origin}${url.pathname}`, { method: 'GET' }));
           lastStatus = originResp.status;
-          if (originResp.status === 200 && originResp.body) break;
           if (originResp.status === 404) return originResp; // genuine miss — don't retry
+          if (originResp.status === 200 && originResp.body) {
+            // ASSETS is configured with SPA fallback: missing files come back
+            // as 200 text/html (the index shell), not 404. Sniff the type so
+            // deleted audio can't ghost-serve the app shell as audio/mpeg.
+            const ct = originResp.headers.get('Content-Type') || '';
+            if (!ct.startsWith('text/html')) break;
+            originResp = new Response(null, { status: 404 });
+            return originResp;
+          }
         }
         if (!originResp || originResp.status !== 200 || !originResp.body) {
           return new Response(JSON.stringify({ error: 'audio_unavailable', status: lastStatus }), {
@@ -2671,7 +2681,9 @@ export default {
     // engine), so absorb transient ASSETS faults here.
     if (url.pathname.startsWith('/lyrics/') && url.pathname.endsWith('.json')) {
       const cache = (caches as unknown as { default: Cache }).default;
-      const cacheKey = new Request(`${url.origin}${url.pathname}#lyrics`, { method: 'GET' });
+      // #v3: bump on catalog changes that delete/rename tracks so stale
+      // Cache API entries (30d immutable) can't ghost-serve removed files.
+      const cacheKey = new Request(`${url.origin}${url.pathname}#v3`, { method: 'GET' });
       let cached = await cache.match(cacheKey);
       if (!cached) {
         let originResp: Response | null = null;
