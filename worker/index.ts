@@ -2592,9 +2592,9 @@ export default {
         return new Response(null, { status: 204, headers: corsHeaders });
       }
       const cache = (caches as unknown as { default: Cache }).default;
-      // #v6: bump on catalog changes that delete/rename audio so stale
+      // #v7: bump on catalog changes that delete/rename audio so stale
       // Cache API entries (30d immutable) can't ghost-serve removed files.
-      const cacheKey = new Request(`${url.origin}${url.pathname}#v6`, { method: 'GET' });
+      const cacheKey = new Request(`${url.origin}${url.pathname}#v7`, { method: 'GET' });
       let fullResp = await cache.match(cacheKey);
       if (!fullResp) {
         // Retry transient origin failures up to 6 times with exponential backoff
@@ -2681,9 +2681,9 @@ export default {
     // engine), so absorb transient ASSETS faults here.
     if (url.pathname.startsWith('/lyrics/') && url.pathname.endsWith('.json')) {
       const cache = (caches as unknown as { default: Cache }).default;
-      // #v6: bump on catalog changes that delete/rename tracks so stale
+      // #v7: bump on catalog changes that delete/rename tracks so stale
       // Cache API entries (30d immutable) can't ghost-serve removed files.
-      const cacheKey = new Request(`${url.origin}${url.pathname}#v6`, { method: 'GET' });
+      const cacheKey = new Request(`${url.origin}${url.pathname}#v7`, { method: 'GET' });
       let cached = await cache.match(cacheKey);
       if (!cached) {
         let originResp: Response | null = null;
