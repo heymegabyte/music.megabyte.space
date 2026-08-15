@@ -33,8 +33,6 @@ run_worker_first = [
   "/mercy-drop/*",
   "/betelgeuse-passover",
   "/betelgeuse-passover/*",
-  "/bootleg-from-tomorrow",
-  "/bootleg-from-tomorrow/*",
   "/embed/*",
   "/ashton/*",
   "/ashton-letter/*",

@@ -163,21 +163,6 @@ export const ALBUMS: Album[] = [
     }
   },
   {
-    id: 'bootleg-from-tomorrow',
-    name: 'Bootleg From Tomorrow',
-    cover: '/art/cover-bootleg-from-tomorrow.jpg',
-    tagline: 'Eight cuts smuggled back from a future that already heard them',
-    description: 'A late-night bootleg from a release that hasn\'t shipped yet — cinematic gospel-trap, drill, soul-blues, Latin gospel, folk-pop. Eight tracks, one cassette, hard but holy.',
-    accent: '#FF9D00',
-    releasedAt: '2026-05-29',
-    trackIds: [
-      "guadalajara-sin-talla",
-      "loaded-dice",
-      "gray-skies-amen",
-      "sleep-like"
-    ]
-  },
-  {
     id: 'betelgeuse-passover',
     name: 'Betelgeuse Passover',
     cover: '/art/cover-betelgeuse-passover.jpg',
@@ -203,30 +188,23 @@ export const ALBUMS: Album[] = [
     ]
   },
   {
-    id: 'strange-but-real',
-    name: 'Strange but Real',
-    cover: '/art/cover-strange-but-real.jpg',
-    tagline: 'Six oddball hymns from the edge of the bZ universe',
-    description: 'Story-songs and character pieces — a parasite parable, an Irish rebel ballad, a pool-robot comedy, a woods romance, a neighborly blessing, a best-friend birthday anthem. Strange but real, hard but holy.',
-    accent: '#8AA0FF',
-    releasedAt: '2026-06-26',
-    trackIds: [
-      'wexford-bridge',
-      'chris-kalwa'
-    ]
-  },
-  {
     id: 'signals',
     name: 'Signals From the Other Side',
     cover: '/art/cover-signals.jpg',
-    tagline: 'Eight transmissions from the edge of mercy, stars, and static',
-    description: 'A grab-bag signal from the other side of everything — gospel bus through the Bermuda Triangle, tarot-card cosmology, black-hole hope, Indian-buffet PTSD, a neighbor\'s flags on Huron Avenue, and the question no one asks out loud. Creative, cosmic, hard but holy.',
+    tagline: 'Nine transmissions from the edge of mercy, stars, and static',
+    description: 'The combined signal — gospel bus through the Bermuda Triangle, tarot-card cosmology, Irish rebel ballads, Latin-gospel street anthems, soul-blues loaded dice, and a bootleg smuggled back from tomorrow. Three albums folded into one. Creative, cosmic, hard but holy.',
     accent: '#B98FFF',
     releasedAt: '2026-06-30',
     trackIds: [
       'bermuda-prophecy',
       'other-side-of-the-fall',
       'quarter-in-the-psychic-machine',
+      'guadalajara-sin-talla',
+      'loaded-dice',
+      'gray-skies-amen',
+      'sleep-like',
+      'wexford-bridge',
+      'chris-kalwa'
     ]
   },
   {
@@ -3553,8 +3531,8 @@ export const TRACKS: Track[] = [
     title: 'Guadalajara Sin Talla',
     artist: 'bZ',
     file: '/audio/guadalajara-sin-talla.mp3',
-    cover: '/art/cover-bootleg-from-tomorrow.jpg',
-    album: 'bootleg-from-tomorrow',
+    cover: '/art/cover-signals.jpg',
+    album: 'signals',
     vibe: "Latin gospel trap. No size, no limit.",
     zone: { row: 12, col: 2 },
     lyrics: [
@@ -3626,8 +3604,8 @@ export const TRACKS: Track[] = [
     title: 'Loaded Dice',
     artist: 'bZ',
     file: '/audio/loaded-dice.mp3',
-    cover: '/art/cover-bootleg-from-tomorrow.jpg',
-    album: 'bootleg-from-tomorrow',
+    cover: '/art/cover-signals.jpg',
+    album: 'signals',
     vibe: "Soul-blues rock. The house always wins, except this one.",
     zone: { row: 12, col: 4 },
     lyrics: [
@@ -3699,8 +3677,8 @@ export const TRACKS: Track[] = [
     title: 'Gray Skies Amen',
     artist: 'bZ',
     file: '/audio/gray-skies-amen.mp3',
-    cover: '/art/cover-bootleg-from-tomorrow.jpg',
-    album: 'bootleg-from-tomorrow',
+    cover: '/art/cover-signals.jpg',
+    album: 'signals',
     vibe: "Cinematic prayer rap. Weather as worship.",
     zone: { row: 12, col: 5 },
     lyrics: [
@@ -3773,8 +3751,8 @@ export const TRACKS: Track[] = [
     title: 'Sleep Like',
     artist: 'bZ',
     file: '/audio/sleep-like.mp3',
-    cover: '/art/cover-bootleg-from-tomorrow.jpg',
-    album: 'bootleg-from-tomorrow',
+    cover: '/art/cover-signals.jpg',
+    album: 'signals',
     vibe: "Uplifting folk-pop. How the saints rest.",
     zone: { row: 12, col: 6 },
     lyrics: [
@@ -4950,8 +4928,8 @@ export const TRACKS: Track[] = [
     title: 'Wexford Bridge',
     artist: 'bZ',
     file: '/audio/wexford-bridge.mp3',
-    cover: '/art/cover-strange-but-real.jpg',
-    album: 'strange-but-real',
+    cover: '/art/cover-signals.jpg',
+    album: 'signals',
     vibe: 'Cinematic Irish rebel folk ballad',
     zone: { row: 16, col: 1 },
     lyrics: [
@@ -5031,8 +5009,8 @@ export const TRACKS: Track[] = [
     title: 'Chris Kalwa',
     artist: 'bZ',
     file: '/audio/chris-kalwa.mp3',
-    cover: '/art/cover-strange-but-real.jpg',
-    album: 'strange-but-real',
+    cover: '/art/cover-signals.jpg',
+    album: 'signals',
     vibe: 'Pop-rock birthday anthem',
     zone: { row: 16, col: 5 },
     lyrics: [
