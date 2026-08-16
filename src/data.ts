@@ -45,7 +45,7 @@ export const ALBUMS: Album[] = [
     id: 'appeal',
     name: 'The Appeal',
     cover: '/art/cover-galactic-gospel.jpg',
-    tagline: 'Open letter to Ashton + Mila in 12 movements',
+    tagline: 'Open letter to Ashton + Mila in six movements',
     description: 'Petitions, prophecies, and white-flag prayers. The case for clemency, set to drum machines.',
     // appeal: ultra-neon magenta-violet — bumped from #C76BFF (OKLCH 0.67 L)
     // to OKLCH ~0.82 L / 0.26 C / 305 H for max-pop neon brightness against
@@ -211,8 +211,8 @@ export const ALBUMS: Album[] = [
     id: 'hobbit-passover',
     name: 'Hobbit Passover',
     cover: '/art/cover-hobbit-passover.jpg',
-    tagline: 'Two dispatches from the Shire seder table',
-    description: 'A cosmic star-gospel epic and a street-drill cautionary tale, served at a hobbit-sized Passover table. Algenib burns blue-white above Pegasus while the USB stays in the ignition. Hard but holy, Shire-style.',
+    tagline: 'Six dispatches from the Shire seder table',
+    description: 'Six dispatches from the Shire seder table — Algenib star-worship, a deep-space peace litany, eco-rock sirens from Guadalajara, an anti-war trap manifesto, AI-text spirituality, and the title-track humanitarian epic. Hard but holy, Shire-style.',
     accent: '#FFD700',
     releasedAt: '2026-07-26',
     trackIds: [
@@ -228,8 +228,8 @@ export const ALBUMS: Album[] = [
     id: 'flawless-execution',
     name: 'Flawless Execution',
     cover: '/art/cover-flawless-execution.jpg',
-    tagline: 'Fifteen dispatches from the edge of precision, dragons, and divine coincidence',
-    description: 'A maximalist manifesto in 15 movements — dragon-slaying as self-rescue, Milwaukee heist prayers, Slurpee spirituality, banana-peel resurrection theology, MUD-core nostalgia horror, and economic justice mathematics. Crown without a sound, kill your dragon, rob the right bank, fix the world. Flawless execution, every time.',
+    tagline: 'Fourteen dispatches from the edge of precision, dragons, and divine coincidence',
+    description: 'A maximalist manifesto in 14 movements — dragon-slaying as self-rescue, Milwaukee heist prayers, Slurpee spirituality, banana-peel resurrection theology, MUD-core nostalgia horror, and economic justice mathematics. Crown without a sound, kill your dragon, rob the right bank, fix the world. Flawless execution, every time.',
     accent: '#FFD700',
     releasedAt: '2026-08-06',
     trackIds: [
