@@ -382,7 +382,13 @@ async function main() {
     const tags = condenseTags(m.sunoTags);
 
     // Match the exact track block in src so we patch ONLY that one.
-    const blockRe = new RegExp(`(\\{\\s*id:\\s*'${m.id}'[\\s\\S]*?lyrics:\\s*\\[)([\\s\\S]*?)(\\n\\s{4}\\])`);
+    // Require `title:` immediately after the id — TRACK blocks have `title:`,
+    // ALBUM literals have `name:` — so a title-track album sharing the track
+    // id ('welcome-to-the-multiverse') can't hijack the match and spill
+    // `[\s\S]*?lyrics:` into the first track in the TRACKS array.
+    const blockRe = new RegExp(
+      `(\\{\\s*id:\\s*'${m.id}',\\s*title:\\s*(?:'[^']*'|'[^'\\\\]*(?:\\\\.[^'\\\\]*)*'),[\\s\\S]*?lyrics:\\s*\\[)([\\s\\S]*?)(\\n\\s{4}\\])`
+    );
     const lit = lyrics.map(l => `      '${l.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`).join(',\n');
     const next = out.replace(blockRe, `$1\n${lit}\n    ]`);
 
