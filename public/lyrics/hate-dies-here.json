@@ -1,1 +1,5500 @@
-{"words":[{"w":"HATE","s":0,"e":0.2,"line":0},{"w":"DIES","s":0.2,"e":0.28,"line":0},{"w":"HERE","s":0,"e":2,"line":0},{"w":"Yeah—","s":2.02,"e":4.28,"line":2},{"w":"Bring","s":7.78,"e":7.88,"line":3},{"w":"that","s":7.88,"e":8.14,"line":3},{"w":"bitterness","s":8.14,"e":8.38,"line":3},{"w":"to","s":8.38,"e":8.66,"line":3},{"w":"the","s":8.66,"e":9.2,"line":3},{"w":"border,","s":9.2,"e":9.38,"line":3},{"w":"bring","s":10.92,"e":11.96,"line":4},{"w":"that","s":11.96,"e":12.26,"line":4},{"w":"venom","s":12.26,"e":12.42,"line":4},{"w":"to","s":12.42,"e":12.68,"line":4},{"w":"the","s":12.68,"e":13.2,"line":4},{"w":"venue,","s":13.2,"e":13.38,"line":4},{"w":"bring","s":14.88,"e":16.82,"line":5},{"w":"that","s":16.82,"e":17.12,"line":5},{"w":"poison","s":17.12,"e":17.46,"line":5},{"w":"to","s":17.46,"e":17.7,"line":5},{"w":"the","s":17.7,"e":18.32,"line":5},{"w":"pavement—","s":18.32,"e":18.5,"line":5},{"w":"it","s":18.68,"e":20.62,"line":6},{"w":"ain’t","s":20.62,"e":20.76,"line":6},{"w":"passin’","s":20.76,"e":21.12,"line":6},{"w":"through.","s":21.12,"e":21.7,"line":6},{"w":"**Hate","s":30.96,"e":31.56,"line":7},{"w":"dies","s":31.56,"e":32.22,"line":7},{"w":"here.**","s":32.22,"e":33.16,"line":7},{"w":"They","s":36.32,"e":36.64,"line":9},{"w":"been","s":36.64,"e":36.84,"line":9},{"w":"passin’","s":36.84,"e":37.08,"line":9},{"w":"down","s":37.08,"e":37.5,"line":9},{"w":"pain","s":37.5,"e":37.76,"line":9},{"w":"like","s":37.76,"e":37.98,"line":9},{"w":"a","s":37.98,"e":38.58,"line":9},{"w":"family","s":38.58,"e":38.66,"line":9},{"w":"name,","s":38.58,"e":39.08,"line":9},{"w":"same","s":39.24,"e":39.66,"line":10},{"w":"small","s":39.66,"e":40.1,"line":10},{"w":"spite","s":40.1,"e":40.36,"line":10},{"w":"in","s":40.36,"e":40.62,"line":10},{"w":"a","s":40.62,"e":40.76,"line":10},{"w":"brand-new","s":41.02,"e":41.4,"line":10},{"w":"frame,","s":41.4,"e":41.66,"line":10},{"w":"same","s":41.9,"e":42.3,"line":11},{"w":"cheap","s":42.3,"e":42.62,"line":11},{"w":"shots,","s":42.62,"e":43.02,"line":11},{"w":"same","s":43.04,"e":43.32,"line":11},{"w":"blame-game","s":43.68,"e":43.94,"line":11},{"w":"flame,","s":43.94,"e":44.26,"line":11},{"w":"whole","s":44.32,"e":44.66,"line":12},{"w":"bloodline","s":44.66,"e":45.26,"line":12},{"w":"burnin’","s":45.26,"e":45.56,"line":12},{"w":"and","s":45.56,"e":45.88,"line":12},{"w":"nobody","s":45.88,"e":46.48,"line":12},{"w":"changed.","s":46.48,"e":46.96,"line":12},{"w":"Nah,","s":47.06,"e":47.54,"line":13},{"w":"not","s":47.54,"e":47.88,"line":13},{"w":"me—I’m","s":48.44,"e":48.6,"line":13},{"w":"breakin’","s":48.6,"e":48.82,"line":13},{"w":"that","s":48.82,"e":49.24,"line":13},{"w":"chain,","s":49.24,"e":49.5,"line":13},{"w":"cut","s":49.6,"e":50.12,"line":14},{"w":"that","s":50.12,"e":50.52,"line":14},{"w":"cord,","s":50.52,"e":50.84,"line":14},{"w":"let","s":50.84,"e":51.1,"line":14},{"w":"compassion","s":51.1,"e":51.58,"line":14},{"w":"reign,","s":51.58,"e":52.1,"line":14},{"w":"you","s":52.1,"e":52.3,"line":15},{"w":"can","s":52.3,"e":52.68,"line":15},{"w":"bark","s":52.68,"e":52.76,"line":15},{"w":"that","s":52.74,"e":53.12,"line":15},{"w":"bias,","s":53.12,"e":53.52,"line":15},{"w":"broadcast","s":53.84,"e":54.36,"line":15},{"w":"blame,","s":54.36,"e":54.72,"line":15},{"w":"I","s":54.72,"e":54.87,"line":16},{"w":"won’t","s":55.02,"e":55.18,"line":16},{"w":"let","s":55.18,"e":55.48,"line":16},{"w":"your","s":55.48,"e":55.76,"line":16},{"w":"poison","s":55.76,"e":56,"line":16},{"w":"get","s":56,"e":56.4,"line":16},{"w":"packed","s":56.4,"e":56.6,"line":16},{"w":"in","s":56.6,"e":56.8,"line":16},{"w":"my","s":56.8,"e":57.38,"line":16},{"w":"veins.","s":57.38,"e":57.56,"line":16},{"w":"Big-mouth","s":58,"e":58.28,"line":17},{"w":"bully","s":58.28,"e":58.6,"line":17},{"w":"with","s":58.6,"e":58.84,"line":17},{"w":"a","s":59.02,"e":59.24,"line":17},{"w":"bargain-bin","s":59.24,"e":59.62,"line":17},{"w":"grudge,","s":59.62,"e":60.02,"line":17},{"w":"talkin’","s":60.28,"e":60.56,"line":18},{"w":"real","s":60.56,"e":60.98,"line":18},{"w":"tough","s":60.98,"e":61.18,"line":18},{"w":"but","s":61.2,"e":61.44,"line":18},{"w":"your","s":61.44,"e":61.68,"line":18},{"w":"heart","s":61.68,"e":61.92,"line":18},{"w":"won’t","s":61.92,"e":62.08,"line":18},{"w":"budge,","s":62.24,"e":62.66,"line":18},{"w":"judgin’","s":62.74,"e":63.2,"line":19},{"w":"whole","s":63.2,"e":63.6,"line":19},{"w":"lives","s":63.6,"e":63.88,"line":19},{"w":"off","s":63.88,"e":64.08,"line":19},{"w":"a","s":64.08,"e":64.28,"line":19},{"w":"look","s":64.28,"e":64.56,"line":19},{"w":"and","s":64.56,"e":64.74,"line":19},{"w":"a","s":64.74,"e":64.88,"line":19},{"w":"label,","s":64.88,"e":65.12,"line":19},{"w":"bro,","s":65.12,"e":65.34,"line":20},{"w":"that","s":65.34,"e":65.62,"line":20},{"w":"weak","s":65.62,"e":65.86,"line":20},{"w":"little","s":65.86,"e":66.18,"line":20},{"w":"worldview","s":66.18,"e":66.6,"line":20},{"w":"barely","s":66.6,"e":67.04,"line":20},{"w":"stays","s":67.04,"e":67.4,"line":20},{"w":"stable.","s":67.4,"e":67.72,"line":20},{"w":"You","s":67.78,"e":67.92,"line":21},{"w":"can","s":67.92,"e":68.22,"line":21},{"w":"spit","s":68.22,"e":68.4,"line":21},{"w":"that","s":68.4,"e":68.76,"line":21},{"w":"slick","s":68.76,"e":69.04,"line":21},{"w":"disrespect","s":69.04,"e":69.62,"line":21},{"w":"for","s":69.62,"e":70.02,"line":21},{"w":"clout,","s":70.02,"e":70.14,"line":21},{"w":"hate","s":70.48,"e":70.66,"line":22},{"w":"gets","s":70.66,"e":71.06,"line":22},{"w":"hungry","s":71.06,"e":71.5,"line":22},{"w":"when","s":71.5,"e":71.84,"line":22},{"w":"you","s":71.84,"e":72.04,"line":22},{"w":"hand","s":72.04,"e":72.28,"line":22},{"w":"it","s":72.28,"e":72.42,"line":22},{"w":"a","s":72.42,"e":72.5,"line":22},{"w":"route.","s":72.42,"e":72.7,"line":22},{"w":"So","s":72.8,"e":73.14,"line":23},{"w":"I","s":73.14,"e":73.32,"line":23},{"w":"shut","s":73.32,"e":73.46,"line":23},{"w":"that","s":73.46,"e":73.72,"line":23},{"w":"shit","s":73.72,"e":73.98,"line":23},{"w":"down,","s":73.98,"e":74.28,"line":23},{"w":"no","s":74.28,"e":74.64,"line":23},{"w":"scenic","s":74.64,"e":75,"line":23},{"w":"detour—","s":75,"e":75.46,"line":23},{"w":"you","s":75.52,"e":75.7,"line":24},{"w":"brought","s":75.7,"e":75.96,"line":24},{"w":"hate","s":75.96,"e":76.14,"line":24},{"w":"to","s":76.14,"e":76.4,"line":24},{"w":"my","s":76.4,"e":76.7,"line":24},{"w":"gate?","s":76.7,"e":76.86,"line":24},{"w":"It","s":76.86,"e":77.14,"line":25},{"w":"don’t","s":77.14,"e":77.23,"line":25},{"w":"leave","s":77.32,"e":77.6,"line":25},{"w":"here","s":77.6,"e":78.02,"line":25},{"w":"anymore.","s":78.02,"e":78.48,"line":25},{"w":"No","s":78.58,"e":79.18,"line":27},{"w":"pass,","s":79.18,"e":79.52,"line":27},{"w":"no","s":79.6,"e":79.84,"line":27},{"w":"platform,","s":79.84,"e":80.3,"line":27},{"w":"no","s":80.34,"e":80.52,"line":27},{"w":"place","s":80.52,"e":80.76,"line":27},{"w":"in","s":80.76,"e":80.9,"line":27},{"w":"my","s":80.9,"e":81.38,"line":27},{"w":"crew,","s":81.38,"e":81.48,"line":27},{"w":"no","s":81.48,"e":81.76,"line":28},{"w":"recycled","s":81.76,"e":82.44,"line":28},{"w":"rage","s":82.44,"e":82.78,"line":28},{"w":"gettin’","s":82.78,"e":83.14,"line":28},{"w":"routed","s":83.14,"e":83.48,"line":28},{"w":"on","s":83.48,"e":83.86,"line":28},{"w":"through.","s":83.86,"e":84.06,"line":28},{"w":"If","s":84.06,"e":84.44,"line":29},{"w":"somebody","s":84.82,"e":84.9,"line":29},{"w":"taught","s":84.82,"e":85.26,"line":29},{"w":"you","s":85.26,"e":85.52,"line":29},{"w":"everybody’s","s":85.52,"e":86.2,"line":29},{"w":"your","s":86.2,"e":86.62,"line":29},{"w":"foe,","s":86.62,"e":86.76,"line":29},{"w":"you","s":86.76,"e":86.9,"line":30},{"w":"can","s":86.9,"e":87.16,"line":30},{"w":"unlearn","s":87.16,"e":87.48,"line":30},{"w":"that","s":87.48,"e":87.82,"line":30},{"w":"garbage—","s":87.82,"e":88.16,"line":30},{"w":"we","s":88.3,"e":88.52,"line":31},{"w":"grow.","s":88.52,"e":88.88,"line":31},{"w":"**HATE","s":89.08,"e":89.32,"line":33},{"w":"DIES","s":89.38,"e":89.72,"line":33},{"w":"HERE.**","s":89.72,"e":89.94,"line":33},{"w":"Yeah,","s":90.1,"e":90.22,"line":34},{"w":"the","s":90.22,"e":90.3,"line":34},{"w":"line","s":90.22,"e":90.8,"line":34},{"w":"gets","s":90.8,"e":90.98,"line":34},{"w":"drawn","s":90.98,"e":91.28,"line":34},{"w":"right","s":91.28,"e":91.66,"line":34},{"w":"here.","s":91.66,"e":91.9,"line":34},{"w":"All","s":91.9,"e":92.1,"line":35},{"w":"that","s":92.1,"e":92.28,"line":35},{"w":"fear","s":92.28,"e":92.54,"line":35},{"w":"dressed","s":92.6,"e":92.88,"line":35},{"w":"tough","s":92.88,"e":93.2,"line":35},{"w":"disappears","s":93.24,"e":93.8,"line":35},{"w":"right","s":93.8,"e":94.26,"line":35},{"w":"here.","s":94.26,"e":94.52,"line":35},{"w":"Bring","s":94.88,"e":95.36,"line":36},{"w":"that","s":95.36,"e":95.58,"line":36},{"w":"venom,","s":95.58,"e":95.76,"line":36},{"w":"that","s":95.88,"e":96.22,"line":36},{"w":"vicious","s":96.22,"e":96.44,"line":36},{"w":"veneer—","s":96.44,"e":97.04,"line":36},{"w":"but","s":97.04,"e":97.28,"line":37},{"w":"the","s":97.28,"e":97.5,"line":37},{"w":"buck","s":97.5,"e":97.7,"line":37},{"w":"stops,","s":97.7,"e":98.1,"line":37},{"w":"bruh—","s":98.3,"e":98.64,"line":37},{"w":"**HATE","s":98.74,"e":99.14,"line":38},{"w":"DIES","s":99.52,"e":100.1,"line":38},{"w":"HERE.**","s":100.3,"e":100.38,"line":38},{"w":"No","s":100.32,"e":100.7,"line":39},{"w":"hand-me-down","s":101.08,"e":101.42,"line":39},{"w":"hatred,","s":101.42,"e":101.66,"line":39},{"w":"no","s":101.74,"e":102.1,"line":39},{"w":"heirloom","s":102.1,"e":102.64,"line":39},{"w":"fear,","s":102.64,"e":102.94,"line":39},{"w":"no","s":102.94,"e":103.16,"line":40},{"w":"“my","s":103.16,"e":103.34,"line":40},{"w":"people","s":103.34,"e":103.64,"line":40},{"w":"versus","s":103.64,"e":103.98,"line":40},{"w":"yours”","s":103.98,"e":104.28,"line":40},{"w":"in","s":104.28,"e":104.54,"line":40},{"w":"another","s":104.54,"e":104.88,"line":40},{"w":"kid’s","s":104.88,"e":105.48,"line":40},{"w":"ear.","s":105.48,"e":105.56,"line":40},{"w":"We","s":105.52,"e":105.9,"line":41},{"w":"ain’t","s":105.9,"e":106.01,"line":41},{"w":"sendin’","s":106.12,"e":106.2,"line":41},{"w":"that","s":106.18,"e":106.62,"line":41},{"w":"sickness","s":106.62,"e":106.82,"line":41},{"w":"to","s":106.82,"e":107.14,"line":41},{"w":"another","s":107.14,"e":107.46,"line":41},{"w":"damn","s":107.46,"e":107.9,"line":41},{"w":"year—","s":107.9,"e":108.16,"line":41},{"w":"chain","s":108.2,"e":108.56,"line":42},{"w":"breaks,","s":108.56,"e":108.84,"line":42},{"w":"game","s":108.88,"e":109.2,"line":42},{"w":"changes—","s":109.2,"e":109.7,"line":42},{"w":"**HATE","s":109.7,"e":109.78,"line":43},{"w":"DIES","s":109.7,"e":109.78,"line":43},{"w":"HERE.**","s":109.7,"e":109.78,"line":43},{"w":"Hate","s":109.7,"e":110.16,"line":45},{"w":"loves","s":110.16,"e":110.98,"line":45},{"w":"hype,","s":111.8,"e":112.44,"line":45},{"w":"hashtags,","s":112.44,"e":112.7,"line":45},{"w":"heat,","s":112.94,"e":113.42,"line":45},{"w":"half-truth","s":113.42,"e":113.8,"line":46},{"w":"headlines","s":114.16,"e":114.36,"line":46},{"w":"on","s":114.36,"e":114.62,"line":46},{"w":"a","s":114.62,"e":114.8,"line":46},{"w":"hundred","s":114.8,"e":115.02,"line":46},{"w":"feeds,","s":115.02,"e":115.48,"line":46},{"w":"quick-click","s":115.94,"e":116.2,"line":47},{"w":"conflict,","s":116.2,"e":116.66,"line":47},{"w":"comment-section","s":117.12,"e":117.46,"line":47},{"w":"carnage,","s":117.46,"e":118.02,"line":47},{"w":"everybody","s":118.08,"e":118.54,"line":48},{"w":"actin’","s":118.54,"e":118.96,"line":48},{"w":"savage","s":118.96,"e":119.24,"line":48},{"w":"like","s":119.24,"e":119.5,"line":48},{"w":"compassion","s":119.5,"e":119.94,"line":48},{"w":"ain’t","s":119.94,"e":120.09,"line":48},{"w":"solid.","s":120.24,"e":120.58,"line":48},{"w":"Nah,","s":120.68,"e":120.96,"line":49},{"w":"fam—kindness","s":121.5,"e":121.96,"line":49},{"w":"got","s":121.96,"e":122.3,"line":49},{"w":"backbone","s":122.3,"e":122.76,"line":49},{"w":"too,","s":122.76,"e":123.22,"line":49},{"w":"mercy","s":123.26,"e":123.84,"line":50},{"w":"ain’t","s":123.84,"e":124.01,"line":50},{"w":"soft","s":124.18,"e":124.52,"line":50},{"w":"when","s":124.52,"e":124.7,"line":50},{"w":"the","s":124.7,"e":124.96,"line":50},{"w":"mob","s":124.96,"e":125.18,"line":50},{"w":"wants","s":125.18,"e":125.46,"line":50},{"w":"blood","s":125.46,"e":125.76,"line":50},{"w":"from","s":125.76,"e":126,"line":50},{"w":"you.","s":126,"e":126.3,"line":50},{"w":"Takes","s":126.3,"e":126.6,"line":51},{"w":"guts","s":126.6,"e":126.88,"line":51},{"w":"to","s":126.88,"e":127.16,"line":51},{"w":"go,","s":127.16,"e":127.48,"line":51},{"w":"“Nah,","s":127.48,"e":127.56,"line":51},{"w":"I","s":127.48,"e":127.56,"line":51},{"w":"ain’t","s":127.48,"e":127.66,"line":51},{"w":"hatin’","s":128.24,"e":128.38,"line":51},{"w":"that","s":128.38,"e":128.8,"line":51},{"w":"dude","s":128.8,"e":129.08,"line":51},{"w":"just","s":129.08,"e":129.32,"line":52},{"w":"’cause","s":129.32,"e":129.44,"line":52},{"w":"somebody","s":129.44,"e":130.06,"line":52},{"w":"viral","s":130.06,"e":130.4,"line":52},{"w":"said","s":130.4,"e":130.68,"line":52},{"w":"that’s","s":130.68,"e":130.83,"line":52},{"w":"what","s":130.98,"e":131.14,"line":52},{"w":"we","s":131.14,"e":131.4,"line":52},{"w":"do.”","s":131.4,"e":131.54,"line":52},{"w":"I","s":131.54,"e":131.88,"line":53},{"w":"seen","s":131.88,"e":131.98,"line":53},{"w":"slick","s":131.98,"e":132.36,"line":53},{"w":"little","s":132.36,"e":132.74,"line":53},{"w":"slurs","s":132.74,"e":132.98,"line":53},{"w":"turn","s":132.98,"e":133.28,"line":53},{"w":"friends","s":133.28,"e":133.7,"line":53},{"w":"into","s":133.7,"e":133.98,"line":53},{"w":"factions,","s":133.98,"e":134.5,"line":53},{"w":"one","s":134.62,"e":135,"line":54},{"w":"dumb","s":135,"e":135.3,"line":54},{"w":"word","s":135.3,"e":135.64,"line":54},{"w":"turn","s":135.64,"e":135.94,"line":54},{"w":"hurt","s":135.94,"e":136.3,"line":54},{"w":"into","s":136.3,"e":136.6,"line":54},{"w":"actions.","s":136.6,"e":137.16,"line":54},{"w":"Words","s":137.38,"e":137.56,"line":55},{"w":"got","s":137.56,"e":137.94,"line":55},{"w":"weight,","s":137.94,"e":138.16,"line":55},{"w":"every","s":138.26,"e":138.62,"line":55},{"w":"phrase","s":138.62,"e":138.82,"line":55},{"w":"got","s":138.82,"e":139.2,"line":55},{"w":"traction—","s":139.2,"e":139.68,"line":55},{"w":"mouth","s":139.76,"e":140.08,"line":56},{"w":"move","s":140.08,"e":140.44,"line":56},{"w":"first,","s":140.44,"e":140.82,"line":56},{"w":"then","s":140.82,"e":141.06,"line":56},{"w":"the","s":141.06,"e":141.26,"line":56},{"w":"whole","s":141.26,"e":141.5,"line":56},{"w":"world","s":141.5,"e":141.78,"line":56},{"w":"fractures.","s":141.78,"e":142.26,"line":56},{"w":"So","s":142.34,"e":142.54,"line":57},{"w":"check","s":142.54,"e":142.78,"line":57},{"w":"that","s":142.78,"e":143.16,"line":57},{"w":"chatter","s":143.16,"e":143.4,"line":57},{"w":"before","s":143.4,"e":143.72,"line":57},{"w":"chatter","s":143.72,"e":144.04,"line":57},{"w":"checks","s":144.04,"e":144.38,"line":57},{"w":"you,","s":144.38,"e":144.6,"line":57},{"w":"before","s":144.62,"e":144.88,"line":58},{"w":"disrespect","s":144.88,"e":145.54,"line":58},{"w":"becomes","s":145.54,"e":145.9,"line":58},{"w":"what","s":145.9,"e":146.08,"line":58},{"w":"they","s":146.08,"e":146.26,"line":58},{"w":"expect","s":146.26,"e":146.68,"line":58},{"w":"you","s":146.68,"e":146.84,"line":58},{"w":"to","s":146.84,"e":147.16,"line":58},{"w":"do.","s":147.16,"e":147.32,"line":58},{"w":"You","s":147.32,"e":147.54,"line":59},{"w":"ain’t","s":147.54,"e":147.63,"line":59},{"w":"gotta","s":147.72,"e":147.89,"line":59},{"w":"inherit","s":148.06,"e":148.54,"line":59},{"w":"every","s":148.54,"e":149.02,"line":59},{"w":"ignorant","s":149.02,"e":149.44,"line":59},{"w":"view—","s":149.44,"e":149.92,"line":59},{"w":"old-school","s":150.28,"e":150.58,"line":60},{"w":"hatred?","s":150.58,"e":150.88,"line":60},{"w":"We","s":150.94,"e":151.16,"line":61},{"w":"makin’","s":151.16,"e":151.46,"line":61},{"w":"that","s":151.46,"e":151.58,"line":61},{"w":"obsolete","s":151.58,"e":152.2,"line":61},{"w":"too.","s":152.2,"e":152.6,"line":61},{"w":"Yeah,","s":152.6,"e":152.78,"line":62},{"w":"the","s":152.78,"e":153.2,"line":62},{"w":"line","s":153.2,"e":153.42,"line":62},{"w":"gets","s":153.42,"e":153.58,"line":62},{"w":"drawn","s":153.58,"e":153.88,"line":62},{"w":"right","s":153.88,"e":154.26,"line":62},{"w":"here.","s":154.26,"e":154.48,"line":62},{"w":"All","s":154.48,"e":154.7,"line":63},{"w":"that","s":154.7,"e":154.9,"line":63},{"w":"fear","s":154.9,"e":155.14,"line":63},{"w":"dressed","s":155.16,"e":155.48,"line":63},{"w":"tough","s":155.48,"e":155.82,"line":63},{"w":"disappears","s":155.84,"e":156.44,"line":63},{"w":"right","s":156.44,"e":156.9,"line":63},{"w":"here.","s":156.9,"e":157.18,"line":63},{"w":"Bring","s":157.76,"e":157.96,"line":64},{"w":"that","s":157.96,"e":158.16,"line":64},{"w":"venom,","s":158.16,"e":158.4,"line":64},{"w":"that","s":158.54,"e":158.82,"line":64},{"w":"vicious","s":158.82,"e":159.06,"line":64},{"w":"veneer—","s":159.06,"e":159.64,"line":64},{"w":"but","s":159.64,"e":159.88,"line":65},{"w":"the","s":159.88,"e":160.1,"line":65},{"w":"buck","s":160.1,"e":160.34,"line":65},{"w":"stops,","s":160.34,"e":160.7,"line":65},{"w":"bruh—","s":161.3,"e":161.38,"line":65},{"w":"**HATE","s":161.36,"e":161.76,"line":66},{"w":"DIES","s":161.98,"e":162.7,"line":66},{"w":"HERE.**","s":162.7,"e":162.98,"line":66},{"w":"No","s":163,"e":163.34,"line":67},{"w":"hand-me-down","s":163.68,"e":163.96,"line":67},{"w":"hatred,","s":163.96,"e":164.22,"line":67},{"w":"no","s":164.3,"e":164.66,"line":67},{"w":"heirloom","s":164.66,"e":165.24,"line":67},{"w":"fear,","s":165.24,"e":165.56,"line":67},{"w":"no","s":165.56,"e":165.76,"line":68},{"w":"“my","s":165.76,"e":165.96,"line":68},{"w":"people","s":165.96,"e":166.22,"line":68},{"w":"versus","s":166.22,"e":166.58,"line":68},{"w":"yours”","s":166.58,"e":166.92,"line":68},{"w":"in","s":166.92,"e":167.16,"line":68},{"w":"another","s":167.16,"e":167.48,"line":68},{"w":"kid’s","s":167.48,"e":168.06,"line":68},{"w":"ear.","s":168.06,"e":168.18,"line":68},{"w":"We","s":168.2,"e":168.48,"line":69},{"w":"ain’t","s":168.48,"e":168.61,"line":69},{"w":"sendin’","s":168.74,"e":168.86,"line":69},{"w":"that","s":168.86,"e":169.2,"line":69},{"w":"sickness","s":169.2,"e":169.44,"line":69},{"w":"to","s":169.44,"e":169.7,"line":69},{"w":"another","s":169.7,"e":170.06,"line":69},{"w":"damn","s":170.06,"e":170.5,"line":69},{"w":"year—","s":170.5,"e":170.74,"line":69},{"w":"chain","s":170.82,"e":171.18,"line":70},{"w":"breaks,","s":171.18,"e":171.46,"line":70},{"w":"game","s":171.46,"e":171.96,"line":70},{"w":"changes—","s":171.96,"e":172.32,"line":70},{"w":"**HATE","s":172.32,"e":172.78,"line":71},{"w":"DIES","s":172.78,"e":173.16,"line":71},{"w":"HERE.**","s":173.16,"e":173.38,"line":71},{"w":"I","s":173.44,"e":173.54,"line":73},{"w":"don’t","s":173.54,"e":173.66,"line":73},{"w":"need","s":173.66,"e":173.88,"line":73},{"w":"everybody","s":173.88,"e":174.34,"line":73},{"w":"thinkin’","s":174.34,"e":174.82,"line":73},{"w":"like","s":174.82,"e":175.04,"line":73},{"w":"me,","s":175.04,"e":175.32,"line":73},{"w":"same","s":175.48,"e":175.66,"line":74},{"w":"faith,","s":175.66,"e":176,"line":74},{"w":"same","s":176.06,"e":176.34,"line":74},{"w":"face,","s":176.34,"e":176.7,"line":74},{"w":"same","s":176.78,"e":176.98,"line":74},{"w":"flag,","s":176.98,"e":177.3,"line":74},{"w":"same","s":177.44,"e":177.6,"line":74},{"w":"scene.","s":177.6,"e":178.12,"line":74},{"w":"Difference","s":178.18,"e":178.72,"line":75},{"w":"ain’t","s":178.72,"e":178.82,"line":75},{"w":"danger,","s":178.92,"e":179.26,"line":75},{"w":"disagreement","s":179.48,"e":179.86,"line":75},{"w":"ain’t","s":179.86,"e":180.07,"line":75},{"w":"beef,","s":180.28,"e":180.58,"line":75},{"w":"we","s":180.6,"e":180.78,"line":76},{"w":"can","s":180.78,"e":181,"line":76},{"w":"clash","s":181,"e":181.28,"line":76},{"w":"on","s":181.28,"e":181.48,"line":76},{"w":"the","s":181.48,"e":181.64,"line":76},{"w":"facts","s":181.64,"e":181.76,"line":76},{"w":"without","s":181.76,"e":182.06,"line":76},{"w":"crushin’","s":182.06,"e":182.4,"line":76},{"w":"somebody’s","s":182.4,"e":182.88,"line":76},{"w":"peace.","s":182.88,"e":183.08,"line":76},{"w":"That’s","s":183.08,"e":183.21,"line":77},{"w":"grown-man","s":183.6,"e":183.92,"line":77},{"w":"energy,","s":183.92,"e":184.42,"line":77},{"w":"grown-woman","s":184.88,"e":185.46,"line":77},{"w":"grace,","s":185.46,"e":185.82,"line":77},{"w":"say","s":185.86,"e":186.14,"line":78},{"w":"what","s":186.14,"e":186.34,"line":78},{"w":"you","s":186.34,"e":186.7,"line":78},{"w":"mean","s":186.7,"e":186.78,"line":78},{"w":"without","s":186.76,"e":187.16,"line":78},{"w":"dehumanizin’","s":187.16,"e":187.9,"line":78},{"w":"a","s":187.9,"e":188.2,"line":78},{"w":"face.","s":188.2,"e":188.44,"line":78},{"w":"Real","s":188.8,"e":189.14,"line":79},{"w":"ones","s":189.14,"e":189.42,"line":79},{"w":"reason,","s":189.42,"e":189.9,"line":79},{"w":"weak","s":190.14,"e":190.46,"line":79},{"w":"ones","s":190.46,"e":190.68,"line":79},{"w":"rage—","s":190.68,"e":191.04,"line":79},{"w":"I’d","s":191.1,"e":191.24,"line":80},{"w":"rather","s":191.38,"e":191.46,"line":80},{"w":"build","s":191.46,"e":191.72,"line":80},{"w":"one","s":191.72,"e":192.12,"line":80},{"w":"bridge","s":192.12,"e":192.32,"line":80},{"w":"than","s":192.32,"e":192.54,"line":80},{"w":"burn","s":192.54,"e":193.02,"line":80},{"w":"ten","s":193.02,"e":193.3,"line":80},{"w":"stages.","s":193.3,"e":193.84,"line":80},{"w":"Black,","s":194.04,"e":194.32,"line":81},{"w":"white,","s":194.38,"e":194.6,"line":81},{"w":"brown,","s":194.88,"e":195.02,"line":81},{"w":"rich,","s":195.02,"e":195.26,"line":81},{"w":"broke,","s":195.42,"e":195.58,"line":81},{"w":"strange,","s":195.92,"e":196.5,"line":81},{"w":"pray","s":196.7,"e":196.88,"line":82},{"w":"different","s":196.88,"e":197.3,"line":82},{"w":"prayers,","s":197.3,"e":197.56,"line":82},{"w":"talk","s":197.62,"e":197.9,"line":82},{"w":"different","s":197.9,"e":198.4,"line":82},{"w":"slang—","s":198.4,"e":199.14,"line":82},{"w":"everybody","s":199.2,"e":199.72,"line":83},{"w":"got","s":199.72,"e":200.04,"line":83},{"w":"somebody","s":200.04,"e":200.44,"line":83},{"w":"they’d","s":200.44,"e":200.7,"line":83},{"w":"die","s":200.7,"e":200.83,"line":83},{"w":"to","s":200.83,"e":200.96,"line":83},{"w":"defend,","s":200.96,"e":201.48,"line":83},{"w":"everybody","s":201.6,"e":202.06,"line":84},{"w":"been","s":202.06,"e":202.42,"line":84},{"w":"shattered,","s":202.42,"e":202.76,"line":84},{"w":"everybody","s":202.9,"e":203.3,"line":84},{"w":"gotta","s":203.3,"e":203.66,"line":84},{"w":"mend.","s":203.86,"e":204.08,"line":84},{"w":"So","s":204.08,"e":204.34,"line":85},{"w":"miss","s":204.34,"e":204.64,"line":85},{"w":"me","s":204.64,"e":204.78,"line":85},{"w":"with","s":204.82,"e":205.14,"line":85},{"w":"the","s":205.14,"e":205.32,"line":85},{"w":"“us","s":205.32,"e":205.82,"line":85},{"w":"versus","s":205.82,"e":206,"line":85},{"w":"them”","s":206,"e":206.38,"line":85},{"w":"gimmick,","s":206.38,"e":206.66,"line":85},{"w":"that","s":206.66,"e":206.94,"line":86},{"w":"dusty","s":206.94,"e":207.4,"line":86},{"w":"division","s":207.4,"e":207.94,"line":86},{"w":"got","s":208.02,"e":208.22,"line":86},{"w":"a","s":208.22,"e":208.38,"line":86},{"w":"tired-ass","s":208.76,"e":208.96,"line":86},{"w":"limit.","s":208.96,"e":209.24,"line":86},{"w":"We","s":209.26,"e":209.48,"line":87},{"w":"can","s":209.48,"e":209.76,"line":87},{"w":"disagree","s":209.76,"e":210.16,"line":87},{"w":"heavy","s":210.16,"e":210.6,"line":87},{"w":"and","s":210.6,"e":210.74,"line":87},{"w":"still","s":210.74,"e":211.08,"line":87},{"w":"keep","s":211.08,"e":211.48,"line":87},{"w":"dignity","s":211.48,"e":211.98,"line":87},{"w":"in","s":211.98,"e":212.34,"line":87},{"w":"it—","s":212.34,"e":212.42,"line":87},{"w":"that’s","s":212.38,"e":212.66,"line":88},{"w":"strength,","s":212.66,"e":212.92,"line":88},{"w":"my","s":213.04,"e":213.26,"line":88},{"w":"guy.","s":213.26,"e":213.5,"line":88},{"w":"Put","s":213.56,"e":213.74,"line":89},{"w":"some","s":213.74,"e":213.96,"line":89},{"w":"humanity","s":213.96,"e":214.4,"line":89},{"w":"in","s":214.4,"e":214.76,"line":89},{"w":"it.","s":214.76,"e":214.94,"line":89},{"w":"My","s":215.44,"e":215.76,"line":91},{"w":"father’s","s":215.76,"e":216.22,"line":91},{"w":"fear","s":216.22,"e":216.48,"line":91},{"w":"doesn’t","s":216.48,"e":216.65,"line":91},{"w":"have","s":216.82,"e":217.14,"line":91},{"w":"to","s":217.14,"e":217.34,"line":91},{"w":"be","s":217.34,"e":217.58,"line":91},{"w":"mine.","s":217.58,"e":218.16,"line":91},{"w":"My","s":218.18,"e":218.5,"line":92},{"w":"mother’s","s":218.5,"e":219.08,"line":92},{"w":"wounds","s":219.08,"e":219.16,"line":92},{"w":"don’t","s":219.08,"e":219.22,"line":92},{"w":"determine","s":219.36,"e":219.82,"line":92},{"w":"my","s":219.82,"e":220.22,"line":92},{"w":"mind.","s":220.22,"e":220.66,"line":92},{"w":"My","s":220.7,"e":220.8,"line":93},{"w":"neighborhood’s","s":220.8,"e":221.74,"line":93},{"w":"anger","s":221.74,"e":221.94,"line":93},{"w":"don’t","s":221.94,"e":222.07,"line":93},{"w":"own","s":222.2,"e":222.4,"line":93},{"w":"my","s":222.4,"e":222.68,"line":93},{"w":"design.","s":222.68,"e":223.12,"line":93},{"w":"I","s":223.18,"e":223.34,"line":94},{"w":"can","s":223.34,"e":223.6,"line":94},{"w":"love","s":223.6,"e":223.78,"line":94},{"w":"my","s":223.78,"e":224.12,"line":94},{"w":"own","s":224.12,"e":224.28,"line":94},{"w":"people","s":224.28,"e":224.66,"line":94},{"w":"without","s":224.66,"e":225.22,"line":95},{"w":"hatin’","s":225.22,"e":225.88,"line":95},{"w":"your","s":225.88,"e":226.2,"line":95},{"w":"kind.","s":226.2,"e":226.66,"line":95},{"w":"If","s":226.66,"e":226.9,"line":96},{"w":"hate","s":226.9,"e":227.16,"line":96},{"w":"came","s":227.16,"e":227.56,"line":96},{"w":"knockin’","s":227.56,"e":227.78,"line":96},{"w":"before","s":227.78,"e":228.38,"line":96},{"w":"I","s":228.38,"e":228.62,"line":96},{"w":"was","s":228.62,"e":228.8,"line":96},{"w":"born,","s":228.8,"e":229.2,"line":96},{"w":"I","s":229.22,"e":229.38,"line":97},{"w":"can","s":229.38,"e":229.52,"line":97},{"w":"still","s":229.52,"e":229.88,"line":97},{"w":"be","s":229.88,"e":230.08,"line":97},{"w":"the","s":230.08,"e":230.42,"line":97},{"w":"house","s":230.42,"e":230.54,"line":97},{"w":"where","s":230.54,"e":230.72,"line":97},{"w":"the","s":230.72,"e":231.12,"line":97},{"w":"habit","s":231.12,"e":231.22,"line":97},{"w":"gets","s":231.22,"e":231.56,"line":97},{"w":"torn.","s":231.56,"e":231.88,"line":97},{"w":"I","s":231.92,"e":232.08,"line":98},{"w":"can","s":232.08,"e":232.24,"line":98},{"w":"be","s":232.24,"e":232.42,"line":98},{"w":"the","s":232.42,"e":232.62,"line":98},{"w":"last","s":232.62,"e":232.94,"line":98},{"w":"link,","s":232.94,"e":233.22,"line":98},{"w":"last","s":233.52,"e":233.6,"line":98},{"w":"lie,","s":233.58,"e":233.94,"line":98},{"w":"last","s":234.14,"e":234.24,"line":98},{"w":"thorn—","s":234.24,"e":234.56,"line":98},{"w":"turn","s":234.58,"e":234.92,"line":99},{"w":"generational","s":234.92,"e":235.82,"line":99},{"w":"grief","s":235.82,"e":236.28,"line":99},{"w":"into","s":236.28,"e":236.78,"line":100},{"w":"a","s":236.78,"e":237.06,"line":100},{"w":"different","s":237.06,"e":237.62,"line":100},{"w":"dawn.","s":237.62,"e":238.56,"line":100},{"w":"Who","s":239.74,"e":240,"line":102},{"w":"taught","s":240,"e":240.26,"line":102},{"w":"you","s":240.26,"e":240.7,"line":102},{"w":"hate?","s":240.7,"e":240.84,"line":102},{"w":"Who","s":241.34,"e":241.9,"line":103},{"w":"made","s":241.9,"e":242.24,"line":103},{"w":"you","s":242.24,"e":242.5,"line":103},{"w":"scared?","s":242.5,"e":242.76,"line":103},{"w":"Who","s":242.78,"e":242.94,"line":104},{"w":"got","s":242.94,"e":243.22,"line":104},{"w":"paid","s":243.22,"e":243.66,"line":104},{"w":"every","s":244.04,"e":244.42,"line":105},{"w":"time","s":244.42,"e":244.9,"line":105},{"w":"you","s":244.9,"e":245.22,"line":105},{"w":"stared","s":245.22,"e":245.64,"line":105},{"w":"at","s":245.72,"e":245.92,"line":106},{"w":"another","s":245.92,"e":246.34,"line":106},{"w":"human","s":246.34,"e":246.64,"line":106},{"w":"like","s":246.64,"e":246.9,"line":106},{"w":"they","s":246.9,"e":247.18,"line":106},{"w":"shouldn’t","s":247.18,"e":247.33,"line":106},{"w":"be","s":247.48,"e":247.76,"line":106},{"w":"there?","s":247.76,"e":248.16,"line":106},{"w":"Nah.","s":248.58,"e":248.94,"line":107},{"w":"Look","s":248.94,"e":249.46,"line":107},{"w":"again.","s":249.46,"e":249.98,"line":107},{"w":"That’s","s":249.98,"e":250.11,"line":108},{"w":"somebody’s","s":250.56,"e":251.5,"line":108},{"w":"baby,","s":251.5,"e":251.68,"line":108},{"w":"somebody’s","s":251.76,"e":252.68,"line":109},{"w":"brother,","s":252.68,"e":252.86,"line":109},{"w":"somebody’s","s":253.02,"e":254.04,"line":110},{"w":"sister,","s":254.04,"e":254.22,"line":110},{"w":"somebody’s","s":254.32,"e":255.3,"line":111},{"w":"mother.","s":255.3,"e":255.48,"line":111},{"w":"Different","s":255.9,"e":256.08,"line":112},{"w":"story.","s":256.08,"e":256.7,"line":112},{"w":"Same","s":257.16,"e":257.32,"line":112},{"w":"storm.","s":257.32,"e":257.88,"line":112},{"w":"Same","s":258.4,"e":258.66,"line":113},{"w":"tears","s":258.66,"e":259.04,"line":113},{"w":"when","s":259.04,"e":259.26,"line":113},{"w":"a","s":259.26,"e":259.56,"line":113},{"w":"loved","s":259.56,"e":259.78,"line":113},{"w":"one’s","s":259.78,"e":260.56,"line":113},{"w":"gone.","s":260.56,"e":260.74,"line":113},{"w":"**HATE","s":260.84,"e":261.06,"line":115},{"w":"DIES","s":261.06,"e":261.42,"line":115},{"w":"HERE.**","s":261.42,"e":261.66,"line":115},{"w":"Put","s":261.68,"e":261.9,"line":116},{"w":"the","s":261.9,"e":262.08,"line":116},{"w":"whole","s":262.08,"e":262.36,"line":116},{"w":"damn","s":262.36,"e":262.72,"line":116},{"w":"world","s":262.72,"e":262.98,"line":116},{"w":"on","s":263.18,"e":263.38,"line":116},{"w":"notice","s":263.38,"e":263.62,"line":116},{"w":"this","s":263.62,"e":264.06,"line":116},{"w":"year.","s":264.06,"e":264.18,"line":116},{"w":"Manufactured","s":264.32,"e":265.1,"line":117},{"w":"madness","s":265.1,"e":265.52,"line":117},{"w":"disappears","s":265.52,"e":266.16,"line":117},{"w":"right","s":266.16,"e":266.6,"line":117},{"w":"here.","s":266.6,"e":266.78,"line":117},{"w":"No","s":266.78,"e":267.16,"line":118},{"w":"slur","s":267.16,"e":267.52,"line":118},{"w":"gets","s":267.66,"e":268.06,"line":118},{"w":"a","s":268.22,"e":268.7,"line":118},{"w":"successor,","s":268.7,"e":268.92,"line":118},{"w":"no","s":268.92,"e":269.2,"line":118},{"w":"prejudice","s":269.2,"e":269.74,"line":118},{"w":"heir—","s":269.86,"e":270.44,"line":118},{"w":"**HATE","s":270.68,"e":271.14,"line":119},{"w":"DIES","s":271.14,"e":271.78,"line":119},{"w":"HERE.**","s":271.78,"e":272.08,"line":119},{"w":"Let","s":272.08,"e":272.3,"line":120},{"w":"the","s":272.3,"e":272.48,"line":120},{"w":"next","s":272.48,"e":272.82,"line":120},{"w":"generation","s":272.82,"e":273.5,"line":120},{"w":"inherit","s":273.5,"e":273.94,"line":120},{"w":"somethin’","s":273.94,"e":274.4,"line":120},{"w":"clear:","s":274.4,"e":274.78,"line":120},{"w":"more","s":274.82,"e":274.98,"line":121},{"w":"love,","s":274.98,"e":275.42,"line":121},{"w":"less","s":275.56,"e":275.68,"line":121},{"w":"labels,","s":275.68,"e":276.02,"line":121},{"w":"more","s":276.08,"e":276.36,"line":121},{"w":"truth,","s":276.36,"e":276.66,"line":121},{"w":"less","s":276.76,"e":276.92,"line":121},{"w":"fear.","s":276.92,"e":277.24,"line":121},{"w":"We","s":277.36,"e":277.44,"line":122},{"w":"can","s":277.42,"e":277.68,"line":122},{"w":"bury","s":277.68,"e":277.94,"line":122},{"w":"that","s":277.94,"e":278.24,"line":122},{"w":"bullshit","s":278.24,"e":278.56,"line":122},{"w":"we","s":278.56,"e":278.74,"line":122},{"w":"been","s":278.92,"e":279.06,"line":122},{"w":"draggin’","s":279.06,"e":279.28,"line":122},{"w":"for","s":279.28,"e":279.72,"line":122},{"w":"years—","s":279.72,"e":280.12,"line":122},{"w":"chain","s":280.12,"e":280.9,"line":123},{"w":"breaks,","s":280.9,"e":281.32,"line":123},{"w":"hearts","s":281.54,"e":282.14,"line":123},{"w":"change—","s":282.14,"e":283.14,"line":123},{"w":"Not","s":283.8,"e":284.02,"line":124},{"w":"tomorrow.","s":284.02,"e":284.56,"line":124},{"w":"Not","s":284.82,"e":285.46,"line":125},{"w":"someday.","s":285.46,"e":286.16,"line":125},{"w":"Right","s":286.98,"e":287.46,"line":126},{"w":"here.","s":287.46,"e":287.7,"line":126},{"w":"No","s":287.74,"e":288.06,"line":127},{"w":"forwarding","s":288.06,"e":288.72,"line":127},{"w":"address.","s":288.72,"e":289.24,"line":127},{"w":"No","s":289.38,"e":289.9,"line":128},{"w":"next","s":289.9,"e":290.36,"line":128},{"w":"generation.","s":290.36,"e":291.14,"line":128},{"w":"No","s":291.36,"e":292.06,"line":129},{"w":"encore.","s":292.06,"e":292.94,"line":129},{"w":"Let","s":293.62,"e":294.28,"line":130},{"w":"that","s":294.28,"e":294.62,"line":130},{"w":"hatred","s":294.62,"e":294.76,"line":130},{"w":"hit","s":294.76,"e":295.04,"line":130},{"w":"the","s":295.04,"e":295.52,"line":130},{"w":"floor—","s":295.52,"e":295.6,"line":130},{"w":"**and","s":295.52,"e":296.6,"line":131},{"w":"die","s":296.6,"e":297.02,"line":131},{"w":"here.**","s":303.14,"e":303.46,"line":131}],"lines":[{"s":0,"e":2,"text":"# HATE DIES HERE"},{"s":2,"e":2.5,"text":"**[Intro]**"},{"s":2.02,"e":4.28,"text":"Yeah—"},{"s":7.78,"e":9.38,"text":"Bring that bitterness to the border,"},{"s":10.92,"e":13.38,"text":"bring that venom to the venue,"},{"s":14.88,"e":18.5,"text":"bring that poison to the pavement—"},{"s":18.68,"e":21.7,"text":"it ain’t passin’ through."},{"s":30.96,"e":33.16,"text":"**Hate dies here.**"},{"s":33.16,"e":33.66,"text":"**[Verse 1]**"},{"s":36.32,"e":39.08,"text":"They been passin’ down pain like a family name,"},{"s":39.24,"e":41.66,"text":"same small spite in a brand-new frame,"},{"s":41.9,"e":44.26,"text":"same cheap shots, same blame-game flame,"},{"s":44.32,"e":46.96,"text":"whole bloodline burnin’ and nobody changed."},{"s":47.06,"e":49.5,"text":"Nah, not me—I’m breakin’ that chain,"},{"s":49.6,"e":52.1,"text":"cut that cord, let compassion reign,"},{"s":52.1,"e":54.72,"text":"you can bark that bias, broadcast blame,"},{"s":54.72,"e":57.56,"text":"I won’t let your poison get packed in my veins."},{"s":58,"e":60.02,"text":"Big-mouth bully with a bargain-bin grudge,"},{"s":60.28,"e":62.66,"text":"talkin’ real tough but your heart won’t budge,"},{"s":62.74,"e":65.12,"text":"judgin’ whole lives off a look and a label,"},{"s":65.12,"e":67.72,"text":"bro, that weak little worldview barely stays stable."},{"s":67.78,"e":70.14,"text":"You can spit that slick disrespect for clout,"},{"s":70.48,"e":72.7,"text":"hate gets hungry when you hand it a route."},{"s":72.8,"e":75.46,"text":"So I shut that shit down, no scenic detour—"},{"s":75.52,"e":76.86,"text":"you brought hate to my gate?"},{"s":76.86,"e":78.48,"text":"It don’t leave here anymore."},{"s":78.48,"e":78.98,"text":"**[Pre-Chorus]**"},{"s":78.58,"e":81.48,"text":"No pass, no platform, no place in my crew,"},{"s":81.48,"e":84.06,"text":"no recycled rage gettin’ routed on through."},{"s":84.06,"e":86.76,"text":"If somebody taught you everybody’s your foe,"},{"s":86.76,"e":88.16,"text":"you can unlearn that garbage—"},{"s":88.3,"e":88.88,"text":"we grow."},{"s":88.88,"e":89.38,"text":"**[Chorus]**"},{"s":89.08,"e":89.94,"text":"**HATE DIES HERE.**"},{"s":90.1,"e":91.9,"text":"Yeah, the line gets drawn right here."},{"s":91.9,"e":94.52,"text":"All that fear dressed tough disappears right here."},{"s":94.88,"e":97.04,"text":"Bring that venom, that vicious veneer—"},{"s":97.04,"e":98.64,"text":"but the buck stops, bruh—"},{"s":98.74,"e":100.38,"text":"**HATE DIES HERE.**"},{"s":100.32,"e":102.94,"text":"No hand-me-down hatred, no heirloom fear,"},{"s":102.94,"e":105.56,"text":"no “my people versus yours” in another kid’s ear."},{"s":105.52,"e":108.16,"text":"We ain’t sendin’ that sickness to another damn year—"},{"s":108.2,"e":109.7,"text":"chain breaks, game changes—"},{"s":109.7,"e":109.78,"text":"**HATE DIES HERE.**"},{"s":109.7,"e":110.2,"text":"**[Verse 2]**"},{"s":109.7,"e":113.42,"text":"Hate loves hype, hashtags, heat,"},{"s":113.42,"e":115.48,"text":"half-truth headlines on a hundred feeds,"},{"s":115.94,"e":118.02,"text":"quick-click conflict, comment-section carnage,"},{"s":118.08,"e":120.58,"text":"everybody actin’ savage like compassion ain’t solid."},{"s":120.68,"e":123.22,"text":"Nah, fam—kindness got backbone too,"},{"s":123.26,"e":126.3,"text":"mercy ain’t soft when the mob wants blood from you."},{"s":126.3,"e":129.08,"text":"Takes guts to go, “Nah, I ain’t hatin’ that dude"},{"s":129.08,"e":131.54,"text":"just ’cause somebody viral said that’s what we do.”"},{"s":131.54,"e":134.5,"text":"I seen slick little slurs turn friends into factions,"},{"s":134.62,"e":137.16,"text":"one dumb word turn hurt into actions."},{"s":137.38,"e":139.68,"text":"Words got weight, every phrase got traction—"},{"s":139.76,"e":142.26,"text":"mouth move first, then the whole world fractures."},{"s":142.34,"e":144.6,"text":"So check that chatter before chatter checks you,"},{"s":144.62,"e":147.32,"text":"before disrespect becomes what they expect you to do."},{"s":147.32,"e":149.92,"text":"You ain’t gotta inherit every ignorant view—"},{"s":150.28,"e":150.88,"text":"old-school hatred?"},{"s":150.94,"e":152.6,"text":"We makin’ that obsolete too."},{"s":152.6,"e":154.48,"text":"Yeah, the line gets drawn right here."},{"s":154.48,"e":157.18,"text":"All that fear dressed tough disappears right here."},{"s":157.76,"e":159.64,"text":"Bring that venom, that vicious veneer—"},{"s":159.64,"e":161.38,"text":"but the buck stops, bruh—"},{"s":161.36,"e":162.98,"text":"**HATE DIES HERE.**"},{"s":163,"e":165.56,"text":"No hand-me-down hatred, no heirloom fear,"},{"s":165.56,"e":168.18,"text":"no “my people versus yours” in another kid’s ear."},{"s":168.2,"e":170.74,"text":"We ain’t sendin’ that sickness to another damn year—"},{"s":170.82,"e":172.32,"text":"chain breaks, game changes—"},{"s":172.32,"e":173.38,"text":"**HATE DIES HERE.**"},{"s":173.38,"e":173.88,"text":"**[Verse 3]**"},{"s":173.44,"e":175.32,"text":"I don’t need everybody thinkin’ like me,"},{"s":175.48,"e":178.12,"text":"same faith, same face, same flag, same scene."},{"s":178.18,"e":180.58,"text":"Difference ain’t danger, disagreement ain’t beef,"},{"s":180.6,"e":183.08,"text":"we can clash on the facts without crushin’ somebody’s peace."},{"s":183.08,"e":185.82,"text":"That’s grown-man energy, grown-woman grace,"},{"s":185.86,"e":188.44,"text":"say what you mean without dehumanizin’ a face."},{"s":188.8,"e":191.04,"text":"Real ones reason, weak ones rage—"},{"s":191.1,"e":193.84,"text":"I’d rather build one bridge than burn ten stages."},{"s":194.04,"e":196.5,"text":"Black, white, brown, rich, broke, strange,"},{"s":196.7,"e":199.14,"text":"pray different prayers, talk different slang—"},{"s":199.2,"e":201.48,"text":"everybody got somebody they’d die to defend,"},{"s":201.6,"e":204.08,"text":"everybody been shattered, everybody gotta mend."},{"s":204.08,"e":206.66,"text":"So miss me with the “us versus them” gimmick,"},{"s":206.66,"e":209.24,"text":"that dusty division got a tired-ass limit."},{"s":209.26,"e":212.42,"text":"We can disagree heavy and still keep dignity in it—"},{"s":212.38,"e":213.5,"text":"that’s strength, my guy."},{"s":213.56,"e":214.94,"text":"Put some humanity in it."},{"s":214.94,"e":215.44,"text":"**[Bridge]**"},{"s":215.44,"e":218.16,"text":"My father’s fear doesn’t have to be mine."},{"s":218.18,"e":220.66,"text":"My mother’s wounds don’t determine my mind."},{"s":220.7,"e":223.12,"text":"My neighborhood’s anger don’t own my design."},{"s":223.18,"e":224.66,"text":"I can love my own people"},{"s":224.66,"e":226.66,"text":"without hatin’ your kind."},{"s":226.66,"e":229.2,"text":"If hate came knockin’ before I was born,"},{"s":229.22,"e":231.88,"text":"I can still be the house where the habit gets torn."},{"s":231.92,"e":234.56,"text":"I can be the last link, last lie, last thorn—"},{"s":234.58,"e":236.28,"text":"turn generational grief"},{"s":236.28,"e":238.56,"text":"into a different dawn."},{"s":238.56,"e":239.06,"text":"**[Breakdown]**"},{"s":239.74,"e":240.84,"text":"Who taught you hate?"},{"s":241.34,"e":242.76,"text":"Who made you scared?"},{"s":242.78,"e":243.66,"text":"Who got paid"},{"s":244.04,"e":245.64,"text":"every time you stared"},{"s":245.72,"e":248.16,"text":"at another human like they shouldn’t be there?"},{"s":248.58,"e":249.98,"text":"Nah. Look again."},{"s":249.98,"e":251.68,"text":"That’s somebody’s baby,"},{"s":251.76,"e":252.86,"text":"somebody’s brother,"},{"s":253.02,"e":254.22,"text":"somebody’s sister,"},{"s":254.32,"e":255.48,"text":"somebody’s mother."},{"s":255.9,"e":257.88,"text":"Different story. Same storm."},{"s":258.4,"e":260.74,"text":"Same tears when a loved one’s gone."},{"s":260.64,"e":261.14,"text":"**[Final Chorus]**"},{"s":260.84,"e":261.66,"text":"**HATE DIES HERE.**"},{"s":261.68,"e":264.18,"text":"Put the whole damn world on notice this year."},{"s":264.32,"e":266.78,"text":"Manufactured madness disappears right here."},{"s":266.78,"e":270.44,"text":"No slur gets a successor, no prejudice heir—"},{"s":270.68,"e":272.08,"text":"**HATE DIES HERE.**"},{"s":272.08,"e":274.78,"text":"Let the next generation inherit somethin’ clear:"},{"s":274.82,"e":277.24,"text":"more love, less labels, more truth, less fear."},{"s":277.36,"e":280.12,"text":"We can bury that bullshit we been draggin’ for years—"},{"s":280.12,"e":283.14,"text":"chain breaks, hearts change—"},{"s":283.8,"e":284.56,"text":"Not tomorrow."},{"s":284.82,"e":286.16,"text":"Not someday."},{"s":286.98,"e":287.7,"text":"Right here."},{"s":287.74,"e":289.24,"text":"No forwarding address."},{"s":289.38,"e":291.14,"text":"No next generation."},{"s":291.36,"e":292.94,"text":"No encore."},{"s":293.62,"e":295.6,"text":"Let that hatred hit the floor—"},{"s":295.52,"e":303.46,"text":"**and die here.**"}],"duration":304.6,"source":"whisper-aligned","generatedAt":"2026-08-21T00:35:51.795Z","stats":{"whisperWords":782,"polishedWords":763,"matched":659,"matchRate":0.864}}
+{
+  "words": [
+    {
+      "w": "#",
+      "s": 0,
+      "e": 0.265,
+      "line": 0
+    },
+    {
+      "w": "HATE",
+      "s": 0.265,
+      "e": 0.529,
+      "line": 0
+    },
+    {
+      "w": "DIES",
+      "s": 0.529,
+      "e": 0.794,
+      "line": 0
+    },
+    {
+      "w": "HERE",
+      "s": 0.794,
+      "e": 1.058,
+      "line": 0
+    },
+    {
+      "w": "**[Intro",
+      "s": 1.058,
+      "e": 1.587,
+      "line": 1
+    },
+    {
+      "w": "—",
+      "s": 1.587,
+      "e": 1.852,
+      "line": 1
+    },
+    {
+      "w": "Male",
+      "s": 1.852,
+      "e": 2.117,
+      "line": 1
+    },
+    {
+      "w": "Rap,",
+      "s": 2.117,
+      "e": 2.381,
+      "line": 1
+    },
+    {
+      "w": "low",
+      "s": 2.381,
+      "e": 2.646,
+      "line": 1
+    },
+    {
+      "w": "and",
+      "s": 2.646,
+      "e": 2.91,
+      "line": 1
+    },
+    {
+      "w": "commanding]**",
+      "s": 2.91,
+      "e": 3.704,
+      "line": 1
+    },
+    {
+      "w": "Yeah—",
+      "s": 3.704,
+      "e": 4.604,
+      "line": 2
+    },
+    {
+      "w": "Bring",
+      "s": 4.604,
+      "e": 4.869,
+      "line": 3
+    },
+    {
+      "w": "that",
+      "s": 4.869,
+      "e": 5.133,
+      "line": 3
+    },
+    {
+      "w": "bitterness",
+      "s": 5.133,
+      "e": 5.927,
+      "line": 3
+    },
+    {
+      "w": "to",
+      "s": 5.927,
+      "e": 6.191,
+      "line": 3
+    },
+    {
+      "w": "the",
+      "s": 6.191,
+      "e": 6.456,
+      "line": 3
+    },
+    {
+      "w": "border,",
+      "s": 6.456,
+      "e": 6.985,
+      "line": 3
+    },
+    {
+      "w": "bring",
+      "s": 6.985,
+      "e": 7.25,
+      "line": 4
+    },
+    {
+      "w": "that",
+      "s": 7.25,
+      "e": 7.514,
+      "line": 4
+    },
+    {
+      "w": "venom",
+      "s": 7.514,
+      "e": 8.043,
+      "line": 4
+    },
+    {
+      "w": "to",
+      "s": 8.043,
+      "e": 8.308,
+      "line": 4
+    },
+    {
+      "w": "the",
+      "s": 8.308,
+      "e": 8.572,
+      "line": 4
+    },
+    {
+      "w": "venue,",
+      "s": 8.572,
+      "e": 8.837,
+      "line": 4
+    },
+    {
+      "w": "bring",
+      "s": 8.837,
+      "e": 9.102,
+      "line": 5
+    },
+    {
+      "w": "that",
+      "s": 9.102,
+      "e": 9.366,
+      "line": 5
+    },
+    {
+      "w": "poison",
+      "s": 9.366,
+      "e": 9.895,
+      "line": 5
+    },
+    {
+      "w": "to",
+      "s": 9.895,
+      "e": 10.16,
+      "line": 5
+    },
+    {
+      "w": "the",
+      "s": 10.16,
+      "e": 10.424,
+      "line": 5
+    },
+    {
+      "w": "pavement—",
+      "s": 10.424,
+      "e": 11.218,
+      "line": 5
+    },
+    {
+      "w": "it",
+      "s": 11.218,
+      "e": 11.483,
+      "line": 6
+    },
+    {
+      "w": "ain’t",
+      "s": 11.483,
+      "e": 11.747,
+      "line": 6
+    },
+    {
+      "w": "passin’",
+      "s": 11.747,
+      "e": 12.276,
+      "line": 6
+    },
+    {
+      "w": "through.",
+      "s": 12.276,
+      "e": 12.541,
+      "line": 6
+    },
+    {
+      "w": "**Hate",
+      "s": 12.541,
+      "e": 12.841,
+      "line": 7
+    },
+    {
+      "w": "dies",
+      "s": 12.841,
+      "e": 13.141,
+      "line": 7
+    },
+    {
+      "w": "here.**",
+      "s": 13.141,
+      "e": 13.441,
+      "line": 7
+    },
+    {
+      "w": "**[Verse",
+      "s": 13.441,
+      "e": 13.706,
+      "line": 8
+    },
+    {
+      "w": "1",
+      "s": 13.706,
+      "e": 13.97,
+      "line": 8
+    },
+    {
+      "w": "—",
+      "s": 13.97,
+      "e": 14.235,
+      "line": 8
+    },
+    {
+      "w": "Male",
+      "s": 14.235,
+      "e": 14.499,
+      "line": 8
+    },
+    {
+      "w": "Rap,",
+      "s": 14.499,
+      "e": 14.764,
+      "line": 8
+    },
+    {
+      "w": "melodic",
+      "s": 14.764,
+      "e": 15.558,
+      "line": 8
+    },
+    {
+      "w": "trap",
+      "s": 15.558,
+      "e": 15.822,
+      "line": 8
+    },
+    {
+      "w": "flow]**",
+      "s": 15.822,
+      "e": 16.087,
+      "line": 8
+    },
+    {
+      "w": "They",
+      "s": 16.087,
+      "e": 16.351,
+      "line": 9
+    },
+    {
+      "w": "been",
+      "s": 16.351,
+      "e": 16.616,
+      "line": 9
+    },
+    {
+      "w": "passin’",
+      "s": 16.616,
+      "e": 17.145,
+      "line": 9
+    },
+    {
+      "w": "down",
+      "s": 17.145,
+      "e": 17.41,
+      "line": 9
+    },
+    {
+      "w": "pain",
+      "s": 17.41,
+      "e": 17.674,
+      "line": 9
+    },
+    {
+      "w": "like",
+      "s": 17.674,
+      "e": 17.939,
+      "line": 9
+    },
+    {
+      "w": "a",
+      "s": 17.939,
+      "e": 18.203,
+      "line": 9
+    },
+    {
+      "w": "family",
+      "s": 18.203,
+      "e": 18.997,
+      "line": 9
+    },
+    {
+      "w": "name,",
+      "s": 18.997,
+      "e": 19.262,
+      "line": 9
+    },
+    {
+      "w": "same",
+      "s": 19.262,
+      "e": 19.526,
+      "line": 10
+    },
+    {
+      "w": "small",
+      "s": 19.526,
+      "e": 19.791,
+      "line": 10
+    },
+    {
+      "w": "spite",
+      "s": 19.791,
+      "e": 20.055,
+      "line": 10
+    },
+    {
+      "w": "in",
+      "s": 20.055,
+      "e": 20.32,
+      "line": 10
+    },
+    {
+      "w": "a",
+      "s": 20.32,
+      "e": 20.584,
+      "line": 10
+    },
+    {
+      "w": "brand-new",
+      "s": 20.584,
+      "e": 21.113,
+      "line": 10
+    },
+    {
+      "w": "frame,",
+      "s": 21.113,
+      "e": 21.378,
+      "line": 10
+    },
+    {
+      "w": "same",
+      "s": 21.378,
+      "e": 21.643,
+      "line": 11
+    },
+    {
+      "w": "cheap",
+      "s": 21.643,
+      "e": 21.907,
+      "line": 11
+    },
+    {
+      "w": "shots,",
+      "s": 21.907,
+      "e": 22.172,
+      "line": 11
+    },
+    {
+      "w": "same",
+      "s": 22.172,
+      "e": 22.436,
+      "line": 11
+    },
+    {
+      "w": "blame-game",
+      "s": 22.436,
+      "e": 23.23,
+      "line": 11
+    },
+    {
+      "w": "flame,",
+      "s": 23.23,
+      "e": 23.495,
+      "line": 11
+    },
+    {
+      "w": "whole",
+      "s": 23.495,
+      "e": 23.759,
+      "line": 12
+    },
+    {
+      "w": "bloodline",
+      "s": 23.759,
+      "e": 24.288,
+      "line": 12
+    },
+    {
+      "w": "burnin’",
+      "s": 24.288,
+      "e": 24.817,
+      "line": 12
+    },
+    {
+      "w": "and",
+      "s": 24.817,
+      "e": 25.082,
+      "line": 12
+    },
+    {
+      "w": "nobody",
+      "s": 25.082,
+      "e": 25.876,
+      "line": 12
+    },
+    {
+      "w": "changed.",
+      "s": 25.876,
+      "e": 26.405,
+      "line": 12
+    },
+    {
+      "w": "Nah,",
+      "s": 26.405,
+      "e": 26.669,
+      "line": 13
+    },
+    {
+      "w": "not",
+      "s": 26.669,
+      "e": 26.934,
+      "line": 13
+    },
+    {
+      "w": "me—I’m",
+      "s": 26.934,
+      "e": 27.199,
+      "line": 13
+    },
+    {
+      "w": "breakin’",
+      "s": 27.199,
+      "e": 27.728,
+      "line": 13
+    },
+    {
+      "w": "that",
+      "s": 27.728,
+      "e": 27.992,
+      "line": 13
+    },
+    {
+      "w": "chain,",
+      "s": 27.992,
+      "e": 28.257,
+      "line": 13
+    },
+    {
+      "w": "cut",
+      "s": 28.257,
+      "e": 28.521,
+      "line": 14
+    },
+    {
+      "w": "that",
+      "s": 28.521,
+      "e": 28.786,
+      "line": 14
+    },
+    {
+      "w": "cord,",
+      "s": 28.786,
+      "e": 29.051,
+      "line": 14
+    },
+    {
+      "w": "let",
+      "s": 29.051,
+      "e": 29.315,
+      "line": 14
+    },
+    {
+      "w": "compassion",
+      "s": 29.315,
+      "e": 30.109,
+      "line": 14
+    },
+    {
+      "w": "reign,",
+      "s": 30.109,
+      "e": 30.373,
+      "line": 14
+    },
+    {
+      "w": "you",
+      "s": 30.373,
+      "e": 30.638,
+      "line": 15
+    },
+    {
+      "w": "can",
+      "s": 30.638,
+      "e": 30.903,
+      "line": 15
+    },
+    {
+      "w": "bark",
+      "s": 30.903,
+      "e": 31.167,
+      "line": 15
+    },
+    {
+      "w": "that",
+      "s": 31.167,
+      "e": 31.432,
+      "line": 15
+    },
+    {
+      "w": "bias,",
+      "s": 31.432,
+      "e": 31.696,
+      "line": 15
+    },
+    {
+      "w": "broadcast",
+      "s": 31.696,
+      "e": 32.225,
+      "line": 15
+    },
+    {
+      "w": "blame,",
+      "s": 32.225,
+      "e": 32.49,
+      "line": 15
+    },
+    {
+      "w": "I",
+      "s": 32.49,
+      "e": 32.755,
+      "line": 16
+    },
+    {
+      "w": "won’t",
+      "s": 32.755,
+      "e": 33.019,
+      "line": 16
+    },
+    {
+      "w": "let",
+      "s": 33.019,
+      "e": 33.284,
+      "line": 16
+    },
+    {
+      "w": "your",
+      "s": 33.284,
+      "e": 33.548,
+      "line": 16
+    },
+    {
+      "w": "poison",
+      "s": 33.548,
+      "e": 34.077,
+      "line": 16
+    },
+    {
+      "w": "get",
+      "s": 34.077,
+      "e": 34.342,
+      "line": 16
+    },
+    {
+      "w": "packed",
+      "s": 34.342,
+      "e": 34.871,
+      "line": 16
+    },
+    {
+      "w": "in",
+      "s": 34.871,
+      "e": 35.136,
+      "line": 16
+    },
+    {
+      "w": "my",
+      "s": 35.136,
+      "e": 35.4,
+      "line": 16
+    },
+    {
+      "w": "veins.",
+      "s": 35.4,
+      "e": 35.665,
+      "line": 16
+    },
+    {
+      "w": "Big-mouth",
+      "s": 35.665,
+      "e": 36.194,
+      "line": 17
+    },
+    {
+      "w": "bully",
+      "s": 36.194,
+      "e": 36.723,
+      "line": 17
+    },
+    {
+      "w": "with",
+      "s": 36.723,
+      "e": 36.988,
+      "line": 17
+    },
+    {
+      "w": "a",
+      "s": 36.988,
+      "e": 37.252,
+      "line": 17
+    },
+    {
+      "w": "bargain-bin",
+      "s": 37.252,
+      "e": 38.046,
+      "line": 17
+    },
+    {
+      "w": "grudge,",
+      "s": 38.046,
+      "e": 38.31,
+      "line": 17
+    },
+    {
+      "w": "talkin’",
+      "s": 38.31,
+      "e": 38.84,
+      "line": 18
+    },
+    {
+      "w": "real",
+      "s": 38.84,
+      "e": 39.104,
+      "line": 18
+    },
+    {
+      "w": "tough",
+      "s": 39.104,
+      "e": 39.369,
+      "line": 18
+    },
+    {
+      "w": "but",
+      "s": 39.369,
+      "e": 39.633,
+      "line": 18
+    },
+    {
+      "w": "your",
+      "s": 39.633,
+      "e": 39.898,
+      "line": 18
+    },
+    {
+      "w": "heart",
+      "s": 39.898,
+      "e": 40.162,
+      "line": 18
+    },
+    {
+      "w": "won’t",
+      "s": 40.162,
+      "e": 40.427,
+      "line": 18
+    },
+    {
+      "w": "budge,",
+      "s": 40.427,
+      "e": 40.692,
+      "line": 18
+    },
+    {
+      "w": "judgin’",
+      "s": 40.692,
+      "e": 41.221,
+      "line": 19
+    },
+    {
+      "w": "whole",
+      "s": 41.221,
+      "e": 41.485,
+      "line": 19
+    },
+    {
+      "w": "lives",
+      "s": 41.485,
+      "e": 42.014,
+      "line": 19
+    },
+    {
+      "w": "off",
+      "s": 42.014,
+      "e": 42.279,
+      "line": 19
+    },
+    {
+      "w": "a",
+      "s": 42.279,
+      "e": 42.544,
+      "line": 19
+    },
+    {
+      "w": "look",
+      "s": 42.544,
+      "e": 42.808,
+      "line": 19
+    },
+    {
+      "w": "and",
+      "s": 42.808,
+      "e": 43.073,
+      "line": 19
+    },
+    {
+      "w": "a",
+      "s": 43.073,
+      "e": 43.337,
+      "line": 19
+    },
+    {
+      "w": "label,",
+      "s": 43.337,
+      "e": 43.866,
+      "line": 19
+    },
+    {
+      "w": "bro,",
+      "s": 43.866,
+      "e": 44.131,
+      "line": 20
+    },
+    {
+      "w": "that",
+      "s": 44.131,
+      "e": 44.396,
+      "line": 20
+    },
+    {
+      "w": "weak",
+      "s": 44.396,
+      "e": 44.66,
+      "line": 20
+    },
+    {
+      "w": "little",
+      "s": 44.66,
+      "e": 45.189,
+      "line": 20
+    },
+    {
+      "w": "worldview",
+      "s": 45.189,
+      "e": 45.718,
+      "line": 20
+    },
+    {
+      "w": "barely",
+      "s": 45.718,
+      "e": 46.512,
+      "line": 20
+    },
+    {
+      "w": "stays",
+      "s": 46.512,
+      "e": 46.777,
+      "line": 20
+    },
+    {
+      "w": "stable.",
+      "s": 46.777,
+      "e": 47.306,
+      "line": 20
+    },
+    {
+      "w": "You",
+      "s": 47.306,
+      "e": 47.57,
+      "line": 21
+    },
+    {
+      "w": "can",
+      "s": 47.57,
+      "e": 47.835,
+      "line": 21
+    },
+    {
+      "w": "spit",
+      "s": 47.835,
+      "e": 48.099,
+      "line": 21
+    },
+    {
+      "w": "that",
+      "s": 48.099,
+      "e": 48.364,
+      "line": 21
+    },
+    {
+      "w": "slick",
+      "s": 48.364,
+      "e": 48.629,
+      "line": 21
+    },
+    {
+      "w": "disrespect",
+      "s": 48.629,
+      "e": 49.422,
+      "line": 21
+    },
+    {
+      "w": "for",
+      "s": 49.422,
+      "e": 49.687,
+      "line": 21
+    },
+    {
+      "w": "clout,",
+      "s": 49.687,
+      "e": 49.951,
+      "line": 21
+    },
+    {
+      "w": "hate",
+      "s": 49.951,
+      "e": 50.216,
+      "line": 22
+    },
+    {
+      "w": "gets",
+      "s": 50.216,
+      "e": 50.481,
+      "line": 22
+    },
+    {
+      "w": "hungry",
+      "s": 50.481,
+      "e": 51.01,
+      "line": 22
+    },
+    {
+      "w": "when",
+      "s": 51.01,
+      "e": 51.274,
+      "line": 22
+    },
+    {
+      "w": "you",
+      "s": 51.274,
+      "e": 51.539,
+      "line": 22
+    },
+    {
+      "w": "hand",
+      "s": 51.539,
+      "e": 51.803,
+      "line": 22
+    },
+    {
+      "w": "it",
+      "s": 51.803,
+      "e": 52.068,
+      "line": 22
+    },
+    {
+      "w": "a",
+      "s": 52.068,
+      "e": 52.333,
+      "line": 22
+    },
+    {
+      "w": "route.",
+      "s": 52.333,
+      "e": 52.597,
+      "line": 22
+    },
+    {
+      "w": "So",
+      "s": 52.597,
+      "e": 52.862,
+      "line": 23
+    },
+    {
+      "w": "I",
+      "s": 52.862,
+      "e": 53.126,
+      "line": 23
+    },
+    {
+      "w": "shut",
+      "s": 53.126,
+      "e": 53.391,
+      "line": 23
+    },
+    {
+      "w": "that",
+      "s": 53.391,
+      "e": 53.655,
+      "line": 23
+    },
+    {
+      "w": "shit",
+      "s": 53.655,
+      "e": 53.92,
+      "line": 23
+    },
+    {
+      "w": "down,",
+      "s": 53.92,
+      "e": 54.185,
+      "line": 23
+    },
+    {
+      "w": "no",
+      "s": 54.185,
+      "e": 54.449,
+      "line": 23
+    },
+    {
+      "w": "scenic",
+      "s": 54.449,
+      "e": 54.978,
+      "line": 23
+    },
+    {
+      "w": "detour—",
+      "s": 54.978,
+      "e": 55.507,
+      "line": 23
+    },
+    {
+      "w": "you",
+      "s": 55.507,
+      "e": 55.772,
+      "line": 24
+    },
+    {
+      "w": "brought",
+      "s": 55.772,
+      "e": 56.037,
+      "line": 24
+    },
+    {
+      "w": "hate",
+      "s": 56.037,
+      "e": 56.301,
+      "line": 24
+    },
+    {
+      "w": "to",
+      "s": 56.301,
+      "e": 56.566,
+      "line": 24
+    },
+    {
+      "w": "my",
+      "s": 56.566,
+      "e": 56.83,
+      "line": 24
+    },
+    {
+      "w": "gate?",
+      "s": 56.83,
+      "e": 57.095,
+      "line": 24
+    },
+    {
+      "w": "It",
+      "s": 57.095,
+      "e": 57.359,
+      "line": 25
+    },
+    {
+      "w": "don’t",
+      "s": 57.359,
+      "e": 57.624,
+      "line": 25
+    },
+    {
+      "w": "leave",
+      "s": 57.624,
+      "e": 57.889,
+      "line": 25
+    },
+    {
+      "w": "here",
+      "s": 57.889,
+      "e": 58.153,
+      "line": 25
+    },
+    {
+      "w": "anymore.",
+      "s": 58.153,
+      "e": 58.947,
+      "line": 25
+    },
+    {
+      "w": "**[Pre-Chorus",
+      "s": 58.947,
+      "e": 59.74,
+      "line": 26
+    },
+    {
+      "w": "—",
+      "s": 59.74,
+      "e": 60.005,
+      "line": 26
+    },
+    {
+      "w": "Female",
+      "s": 60.005,
+      "e": 60.534,
+      "line": 26
+    },
+    {
+      "w": "Soul",
+      "s": 60.534,
+      "e": 60.799,
+      "line": 26
+    },
+    {
+      "w": "Vocal,",
+      "s": 60.799,
+      "e": 61.328,
+      "line": 26
+    },
+    {
+      "w": "piano",
+      "s": 61.328,
+      "e": 61.857,
+      "line": 26
+    },
+    {
+      "w": "enters]**",
+      "s": 61.857,
+      "e": 62.386,
+      "line": 26
+    },
+    {
+      "w": "No",
+      "s": 62.386,
+      "e": 62.651,
+      "line": 27
+    },
+    {
+      "w": "pass,",
+      "s": 62.651,
+      "e": 62.915,
+      "line": 27
+    },
+    {
+      "w": "no",
+      "s": 62.915,
+      "e": 63.18,
+      "line": 27
+    },
+    {
+      "w": "platform,",
+      "s": 63.18,
+      "e": 63.709,
+      "line": 27
+    },
+    {
+      "w": "no",
+      "s": 63.709,
+      "e": 63.974,
+      "line": 27
+    },
+    {
+      "w": "place",
+      "s": 63.974,
+      "e": 64.238,
+      "line": 27
+    },
+    {
+      "w": "in",
+      "s": 64.238,
+      "e": 64.503,
+      "line": 27
+    },
+    {
+      "w": "my",
+      "s": 64.503,
+      "e": 64.767,
+      "line": 27
+    },
+    {
+      "w": "crew,",
+      "s": 64.767,
+      "e": 65.032,
+      "line": 27
+    },
+    {
+      "w": "no",
+      "s": 65.032,
+      "e": 65.296,
+      "line": 28
+    },
+    {
+      "w": "recycled",
+      "s": 65.296,
+      "e": 66.09,
+      "line": 28
+    },
+    {
+      "w": "rage",
+      "s": 66.09,
+      "e": 66.355,
+      "line": 28
+    },
+    {
+      "w": "gettin’",
+      "s": 66.355,
+      "e": 66.884,
+      "line": 28
+    },
+    {
+      "w": "routed",
+      "s": 66.884,
+      "e": 67.413,
+      "line": 28
+    },
+    {
+      "w": "on",
+      "s": 67.413,
+      "e": 67.678,
+      "line": 28
+    },
+    {
+      "w": "through.",
+      "s": 67.678,
+      "e": 67.942,
+      "line": 28
+    },
+    {
+      "w": "If",
+      "s": 67.942,
+      "e": 68.207,
+      "line": 29
+    },
+    {
+      "w": "somebody",
+      "s": 68.207,
+      "e": 69.265,
+      "line": 29
+    },
+    {
+      "w": "taught",
+      "s": 69.265,
+      "e": 69.53,
+      "line": 29
+    },
+    {
+      "w": "you",
+      "s": 69.53,
+      "e": 69.794,
+      "line": 29
+    },
+    {
+      "w": "everybody’s",
+      "s": 69.794,
+      "e": 71.117,
+      "line": 29
+    },
+    {
+      "w": "your",
+      "s": 71.117,
+      "e": 71.381,
+      "line": 29
+    },
+    {
+      "w": "foe,",
+      "s": 71.381,
+      "e": 71.646,
+      "line": 29
+    },
+    {
+      "w": "you",
+      "s": 71.646,
+      "e": 71.911,
+      "line": 30
+    },
+    {
+      "w": "can",
+      "s": 71.911,
+      "e": 72.175,
+      "line": 30
+    },
+    {
+      "w": "unlearn",
+      "s": 72.175,
+      "e": 72.704,
+      "line": 30
+    },
+    {
+      "w": "that",
+      "s": 72.704,
+      "e": 72.969,
+      "line": 30
+    },
+    {
+      "w": "garbage—",
+      "s": 72.969,
+      "e": 73.498,
+      "line": 30
+    },
+    {
+      "w": "**we",
+      "s": 73.498,
+      "e": 73.948,
+      "line": 31
+    },
+    {
+      "w": "grow.**",
+      "s": 73.948,
+      "e": 74.398,
+      "line": 31
+    },
+    {
+      "w": "**[Chorus",
+      "s": 74.398,
+      "e": 74.927,
+      "line": 32
+    },
+    {
+      "w": "—",
+      "s": 74.927,
+      "e": 75.192,
+      "line": 32
+    },
+    {
+      "w": "Female",
+      "s": 75.192,
+      "e": 75.721,
+      "line": 32
+    },
+    {
+      "w": "Lead",
+      "s": 75.721,
+      "e": 75.985,
+      "line": 32
+    },
+    {
+      "w": "+",
+      "s": 75.985,
+      "e": 76.25,
+      "line": 32
+    },
+    {
+      "w": "Male",
+      "s": 76.25,
+      "e": 76.515,
+      "line": 32
+    },
+    {
+      "w": "Ad-Libs]**",
+      "s": 76.515,
+      "e": 77.044,
+      "line": 32
+    },
+    {
+      "w": "**HATE",
+      "s": 77.044,
+      "e": 77.344,
+      "line": 33
+    },
+    {
+      "w": "DIES",
+      "s": 77.344,
+      "e": 77.644,
+      "line": 33
+    },
+    {
+      "w": "HERE.**",
+      "s": 77.644,
+      "e": 77.944,
+      "line": 33
+    },
+    {
+      "w": "*(Right",
+      "s": 77.944,
+      "e": 78.208,
+      "line": 34
+    },
+    {
+      "w": "here,",
+      "s": 78.208,
+      "e": 78.473,
+      "line": 34
+    },
+    {
+      "w": "right",
+      "s": 78.473,
+      "e": 78.737,
+      "line": 34
+    },
+    {
+      "w": "here)*",
+      "s": 78.737,
+      "e": 79.002,
+      "line": 34
+    },
+    {
+      "w": "Yeah,",
+      "s": 79.002,
+      "e": 79.267,
+      "line": 35
+    },
+    {
+      "w": "the",
+      "s": 79.267,
+      "e": 79.531,
+      "line": 35
+    },
+    {
+      "w": "line",
+      "s": 79.531,
+      "e": 79.796,
+      "line": 35
+    },
+    {
+      "w": "gets",
+      "s": 79.796,
+      "e": 80.06,
+      "line": 35
+    },
+    {
+      "w": "drawn",
+      "s": 80.06,
+      "e": 80.325,
+      "line": 35
+    },
+    {
+      "w": "right",
+      "s": 80.325,
+      "e": 80.589,
+      "line": 35
+    },
+    {
+      "w": "here.",
+      "s": 80.589,
+      "e": 80.854,
+      "line": 35
+    },
+    {
+      "w": "All",
+      "s": 80.854,
+      "e": 81.119,
+      "line": 36
+    },
+    {
+      "w": "that",
+      "s": 81.119,
+      "e": 81.383,
+      "line": 36
+    },
+    {
+      "w": "fear",
+      "s": 81.383,
+      "e": 81.648,
+      "line": 36
+    },
+    {
+      "w": "dressed",
+      "s": 81.648,
+      "e": 82.177,
+      "line": 36
+    },
+    {
+      "w": "tough",
+      "s": 82.177,
+      "e": 82.441,
+      "line": 36
+    },
+    {
+      "w": "disappears",
+      "s": 82.441,
+      "e": 83.235,
+      "line": 36
+    },
+    {
+      "w": "right",
+      "s": 83.235,
+      "e": 83.5,
+      "line": 36
+    },
+    {
+      "w": "here.",
+      "s": 83.5,
+      "e": 83.764,
+      "line": 36
+    },
+    {
+      "w": "Bring",
+      "s": 83.764,
+      "e": 84.029,
+      "line": 37
+    },
+    {
+      "w": "that",
+      "s": 84.029,
+      "e": 84.293,
+      "line": 37
+    },
+    {
+      "w": "venom,",
+      "s": 84.293,
+      "e": 84.823,
+      "line": 37
+    },
+    {
+      "w": "that",
+      "s": 84.823,
+      "e": 85.087,
+      "line": 37
+    },
+    {
+      "w": "vicious",
+      "s": 85.087,
+      "e": 85.616,
+      "line": 37
+    },
+    {
+      "w": "veneer—",
+      "s": 85.616,
+      "e": 86.145,
+      "line": 37
+    },
+    {
+      "w": "but",
+      "s": 86.145,
+      "e": 86.41,
+      "line": 38
+    },
+    {
+      "w": "the",
+      "s": 86.41,
+      "e": 86.674,
+      "line": 38
+    },
+    {
+      "w": "buck",
+      "s": 86.674,
+      "e": 86.939,
+      "line": 38
+    },
+    {
+      "w": "stops,",
+      "s": 86.939,
+      "e": 87.204,
+      "line": 38
+    },
+    {
+      "w": "baby—",
+      "s": 87.204,
+      "e": 87.733,
+      "line": 38
+    },
+    {
+      "w": "**HATE",
+      "s": 87.733,
+      "e": 88.033,
+      "line": 39
+    },
+    {
+      "w": "DIES",
+      "s": 88.033,
+      "e": 88.333,
+      "line": 39
+    },
+    {
+      "w": "HERE.**",
+      "s": 88.333,
+      "e": 88.633,
+      "line": 39
+    },
+    {
+      "w": "*(Let",
+      "s": 88.633,
+      "e": 88.897,
+      "line": 40
+    },
+    {
+      "w": "it",
+      "s": 88.897,
+      "e": 89.162,
+      "line": 40
+    },
+    {
+      "w": "die,",
+      "s": 89.162,
+      "e": 89.426,
+      "line": 40
+    },
+    {
+      "w": "let",
+      "s": 89.426,
+      "e": 89.691,
+      "line": 40
+    },
+    {
+      "w": "it",
+      "s": 89.691,
+      "e": 89.956,
+      "line": 40
+    },
+    {
+      "w": "die)*",
+      "s": 89.956,
+      "e": 90.22,
+      "line": 40
+    },
+    {
+      "w": "No",
+      "s": 90.22,
+      "e": 90.485,
+      "line": 41
+    },
+    {
+      "w": "hand-me-down",
+      "s": 90.485,
+      "e": 91.278,
+      "line": 41
+    },
+    {
+      "w": "hatred,",
+      "s": 91.278,
+      "e": 91.808,
+      "line": 41
+    },
+    {
+      "w": "no",
+      "s": 91.808,
+      "e": 92.072,
+      "line": 41
+    },
+    {
+      "w": "heirloom",
+      "s": 92.072,
+      "e": 92.601,
+      "line": 41
+    },
+    {
+      "w": "fear,",
+      "s": 92.601,
+      "e": 92.866,
+      "line": 41
+    },
+    {
+      "w": "no",
+      "s": 92.866,
+      "e": 93.13,
+      "line": 42
+    },
+    {
+      "w": "“my",
+      "s": 93.13,
+      "e": 93.395,
+      "line": 42
+    },
+    {
+      "w": "people",
+      "s": 93.395,
+      "e": 93.924,
+      "line": 42
+    },
+    {
+      "w": "versus",
+      "s": 93.924,
+      "e": 94.453,
+      "line": 42
+    },
+    {
+      "w": "yours”",
+      "s": 94.453,
+      "e": 94.718,
+      "line": 42
+    },
+    {
+      "w": "in",
+      "s": 94.718,
+      "e": 94.982,
+      "line": 42
+    },
+    {
+      "w": "another",
+      "s": 94.982,
+      "e": 95.776,
+      "line": 42
+    },
+    {
+      "w": "kid’s",
+      "s": 95.776,
+      "e": 96.041,
+      "line": 42
+    },
+    {
+      "w": "ear.",
+      "s": 96.041,
+      "e": 96.305,
+      "line": 42
+    },
+    {
+      "w": "We",
+      "s": 96.305,
+      "e": 96.57,
+      "line": 43
+    },
+    {
+      "w": "ain’t",
+      "s": 96.57,
+      "e": 96.834,
+      "line": 43
+    },
+    {
+      "w": "sendin’",
+      "s": 96.834,
+      "e": 97.364,
+      "line": 43
+    },
+    {
+      "w": "that",
+      "s": 97.364,
+      "e": 97.628,
+      "line": 43
+    },
+    {
+      "w": "sickness",
+      "s": 97.628,
+      "e": 98.157,
+      "line": 43
+    },
+    {
+      "w": "to",
+      "s": 98.157,
+      "e": 98.422,
+      "line": 43
+    },
+    {
+      "w": "another",
+      "s": 98.422,
+      "e": 99.216,
+      "line": 43
+    },
+    {
+      "w": "damn",
+      "s": 99.216,
+      "e": 99.48,
+      "line": 43
+    },
+    {
+      "w": "year—",
+      "s": 99.48,
+      "e": 99.745,
+      "line": 43
+    },
+    {
+      "w": "chain",
+      "s": 99.745,
+      "e": 100.009,
+      "line": 44
+    },
+    {
+      "w": "breaks,",
+      "s": 100.009,
+      "e": 100.274,
+      "line": 44
+    },
+    {
+      "w": "hearts",
+      "s": 100.274,
+      "e": 100.538,
+      "line": 44
+    },
+    {
+      "w": "change—",
+      "s": 100.538,
+      "e": 100.803,
+      "line": 44
+    },
+    {
+      "w": "**HATE",
+      "s": 100.803,
+      "e": 101.103,
+      "line": 45
+    },
+    {
+      "w": "DIES",
+      "s": 101.103,
+      "e": 101.403,
+      "line": 45
+    },
+    {
+      "w": "HERE.**",
+      "s": 101.403,
+      "e": 101.703,
+      "line": 45
+    },
+    {
+      "w": "**[Verse",
+      "s": 101.703,
+      "e": 101.967,
+      "line": 46
+    },
+    {
+      "w": "2",
+      "s": 101.967,
+      "e": 102.232,
+      "line": 46
+    },
+    {
+      "w": "—",
+      "s": 102.232,
+      "e": 102.497,
+      "line": 46
+    },
+    {
+      "w": "Male",
+      "s": 102.497,
+      "e": 102.761,
+      "line": 46
+    },
+    {
+      "w": "Rap,",
+      "s": 102.761,
+      "e": 103.026,
+      "line": 46
+    },
+    {
+      "w": "faster",
+      "s": 103.026,
+      "e": 103.555,
+      "line": 46
+    },
+    {
+      "w": "pocket]**",
+      "s": 103.555,
+      "e": 104.084,
+      "line": 46
+    },
+    {
+      "w": "Hate",
+      "s": 104.084,
+      "e": 104.349,
+      "line": 47
+    },
+    {
+      "w": "loves",
+      "s": 104.349,
+      "e": 104.878,
+      "line": 47
+    },
+    {
+      "w": "hype,",
+      "s": 104.878,
+      "e": 105.142,
+      "line": 47
+    },
+    {
+      "w": "hashtags,",
+      "s": 105.142,
+      "e": 105.671,
+      "line": 47
+    },
+    {
+      "w": "heat,",
+      "s": 105.671,
+      "e": 105.936,
+      "line": 47
+    },
+    {
+      "w": "half-truth",
+      "s": 105.936,
+      "e": 106.465,
+      "line": 48
+    },
+    {
+      "w": "headlines",
+      "s": 106.465,
+      "e": 107.259,
+      "line": 48
+    },
+    {
+      "w": "on",
+      "s": 107.259,
+      "e": 107.523,
+      "line": 48
+    },
+    {
+      "w": "a",
+      "s": 107.523,
+      "e": 107.788,
+      "line": 48
+    },
+    {
+      "w": "hundred",
+      "s": 107.788,
+      "e": 108.317,
+      "line": 48
+    },
+    {
+      "w": "feeds,",
+      "s": 108.317,
+      "e": 108.582,
+      "line": 48
+    },
+    {
+      "w": "quick-click",
+      "s": 108.582,
+      "e": 109.111,
+      "line": 49
+    },
+    {
+      "w": "conflict,",
+      "s": 109.111,
+      "e": 109.64,
+      "line": 49
+    },
+    {
+      "w": "comment-section",
+      "s": 109.64,
+      "e": 110.698,
+      "line": 49
+    },
+    {
+      "w": "carnage,",
+      "s": 110.698,
+      "e": 111.227,
+      "line": 49
+    },
+    {
+      "w": "everybody",
+      "s": 111.227,
+      "e": 112.55,
+      "line": 50
+    },
+    {
+      "w": "actin’",
+      "s": 112.55,
+      "e": 113.079,
+      "line": 50
+    },
+    {
+      "w": "savage",
+      "s": 113.079,
+      "e": 113.608,
+      "line": 50
+    },
+    {
+      "w": "like",
+      "s": 113.608,
+      "e": 113.873,
+      "line": 50
+    },
+    {
+      "w": "compassion",
+      "s": 113.873,
+      "e": 114.667,
+      "line": 50
+    },
+    {
+      "w": "ain’t",
+      "s": 114.667,
+      "e": 114.931,
+      "line": 50
+    },
+    {
+      "w": "solid.",
+      "s": 114.931,
+      "e": 115.46,
+      "line": 50
+    },
+    {
+      "w": "Nah,",
+      "s": 115.46,
+      "e": 115.725,
+      "line": 51
+    },
+    {
+      "w": "fam—kindness",
+      "s": 115.725,
+      "e": 116.519,
+      "line": 51
+    },
+    {
+      "w": "got",
+      "s": 116.519,
+      "e": 116.783,
+      "line": 51
+    },
+    {
+      "w": "backbone",
+      "s": 116.783,
+      "e": 117.312,
+      "line": 51
+    },
+    {
+      "w": "too,",
+      "s": 117.312,
+      "e": 117.577,
+      "line": 51
+    },
+    {
+      "w": "mercy",
+      "s": 117.577,
+      "e": 118.106,
+      "line": 52
+    },
+    {
+      "w": "ain’t",
+      "s": 118.106,
+      "e": 118.371,
+      "line": 52
+    },
+    {
+      "w": "soft",
+      "s": 118.371,
+      "e": 118.635,
+      "line": 52
+    },
+    {
+      "w": "when",
+      "s": 118.635,
+      "e": 118.9,
+      "line": 52
+    },
+    {
+      "w": "the",
+      "s": 118.9,
+      "e": 119.164,
+      "line": 52
+    },
+    {
+      "w": "mob",
+      "s": 119.164,
+      "e": 119.429,
+      "line": 52
+    },
+    {
+      "w": "wants",
+      "s": 119.429,
+      "e": 119.694,
+      "line": 52
+    },
+    {
+      "w": "blood",
+      "s": 119.694,
+      "e": 119.958,
+      "line": 52
+    },
+    {
+      "w": "from",
+      "s": 119.958,
+      "e": 120.223,
+      "line": 52
+    },
+    {
+      "w": "you.",
+      "s": 120.223,
+      "e": 120.487,
+      "line": 52
+    },
+    {
+      "w": "Takes",
+      "s": 120.487,
+      "e": 121.016,
+      "line": 53
+    },
+    {
+      "w": "guts",
+      "s": 121.016,
+      "e": 121.281,
+      "line": 53
+    },
+    {
+      "w": "to",
+      "s": 121.281,
+      "e": 121.546,
+      "line": 53
+    },
+    {
+      "w": "go,",
+      "s": 121.546,
+      "e": 121.81,
+      "line": 53
+    },
+    {
+      "w": "“Nah,",
+      "s": 121.81,
+      "e": 122.075,
+      "line": 53
+    },
+    {
+      "w": "I",
+      "s": 122.075,
+      "e": 122.339,
+      "line": 53
+    },
+    {
+      "w": "ain’t",
+      "s": 122.339,
+      "e": 122.604,
+      "line": 53
+    },
+    {
+      "w": "hatin’",
+      "s": 122.604,
+      "e": 123.133,
+      "line": 53
+    },
+    {
+      "w": "that",
+      "s": 123.133,
+      "e": 123.398,
+      "line": 53
+    },
+    {
+      "w": "dude",
+      "s": 123.398,
+      "e": 123.662,
+      "line": 53
+    },
+    {
+      "w": "just",
+      "s": 123.662,
+      "e": 123.927,
+      "line": 54
+    },
+    {
+      "w": "’cause",
+      "s": 123.927,
+      "e": 124.191,
+      "line": 54
+    },
+    {
+      "w": "somebody",
+      "s": 124.191,
+      "e": 125.25,
+      "line": 54
+    },
+    {
+      "w": "viral",
+      "s": 125.25,
+      "e": 125.779,
+      "line": 54
+    },
+    {
+      "w": "said",
+      "s": 125.779,
+      "e": 126.043,
+      "line": 54
+    },
+    {
+      "w": "that’s",
+      "s": 126.043,
+      "e": 126.308,
+      "line": 54
+    },
+    {
+      "w": "what",
+      "s": 126.308,
+      "e": 126.572,
+      "line": 54
+    },
+    {
+      "w": "we",
+      "s": 126.572,
+      "e": 126.837,
+      "line": 54
+    },
+    {
+      "w": "do.”",
+      "s": 126.837,
+      "e": 127.101,
+      "line": 54
+    },
+    {
+      "w": "I",
+      "s": 127.101,
+      "e": 127.366,
+      "line": 55
+    },
+    {
+      "w": "seen",
+      "s": 127.366,
+      "e": 127.631,
+      "line": 55
+    },
+    {
+      "w": "slick",
+      "s": 127.631,
+      "e": 127.895,
+      "line": 55
+    },
+    {
+      "w": "little",
+      "s": 127.895,
+      "e": 128.424,
+      "line": 55
+    },
+    {
+      "w": "slurs",
+      "s": 128.424,
+      "e": 128.689,
+      "line": 55
+    },
+    {
+      "w": "turn",
+      "s": 128.689,
+      "e": 128.953,
+      "line": 55
+    },
+    {
+      "w": "friends",
+      "s": 128.953,
+      "e": 129.218,
+      "line": 55
+    },
+    {
+      "w": "into",
+      "s": 129.218,
+      "e": 129.747,
+      "line": 55
+    },
+    {
+      "w": "factions,",
+      "s": 129.747,
+      "e": 130.276,
+      "line": 55
+    },
+    {
+      "w": "one",
+      "s": 130.276,
+      "e": 130.541,
+      "line": 56
+    },
+    {
+      "w": "dumb",
+      "s": 130.541,
+      "e": 130.805,
+      "line": 56
+    },
+    {
+      "w": "word",
+      "s": 130.805,
+      "e": 131.07,
+      "line": 56
+    },
+    {
+      "w": "turn",
+      "s": 131.07,
+      "e": 131.335,
+      "line": 56
+    },
+    {
+      "w": "hurt",
+      "s": 131.335,
+      "e": 131.599,
+      "line": 56
+    },
+    {
+      "w": "into",
+      "s": 131.599,
+      "e": 132.128,
+      "line": 56
+    },
+    {
+      "w": "actions.",
+      "s": 132.128,
+      "e": 132.657,
+      "line": 56
+    },
+    {
+      "w": "Words",
+      "s": 132.657,
+      "e": 132.922,
+      "line": 57
+    },
+    {
+      "w": "got",
+      "s": 132.922,
+      "e": 133.187,
+      "line": 57
+    },
+    {
+      "w": "weight,",
+      "s": 133.187,
+      "e": 133.451,
+      "line": 57
+    },
+    {
+      "w": "every",
+      "s": 133.451,
+      "e": 134.245,
+      "line": 57
+    },
+    {
+      "w": "phrase",
+      "s": 134.245,
+      "e": 134.509,
+      "line": 57
+    },
+    {
+      "w": "got",
+      "s": 134.509,
+      "e": 134.774,
+      "line": 57
+    },
+    {
+      "w": "traction—",
+      "s": 134.774,
+      "e": 135.303,
+      "line": 57
+    },
+    {
+      "w": "mouth",
+      "s": 135.303,
+      "e": 135.568,
+      "line": 58
+    },
+    {
+      "w": "move",
+      "s": 135.568,
+      "e": 135.832,
+      "line": 58
+    },
+    {
+      "w": "first,",
+      "s": 135.832,
+      "e": 136.097,
+      "line": 58
+    },
+    {
+      "w": "then",
+      "s": 136.097,
+      "e": 136.361,
+      "line": 58
+    },
+    {
+      "w": "the",
+      "s": 136.361,
+      "e": 136.626,
+      "line": 58
+    },
+    {
+      "w": "whole",
+      "s": 136.626,
+      "e": 136.891,
+      "line": 58
+    },
+    {
+      "w": "world",
+      "s": 136.891,
+      "e": 137.155,
+      "line": 58
+    },
+    {
+      "w": "fractures.",
+      "s": 137.155,
+      "e": 137.949,
+      "line": 58
+    },
+    {
+      "w": "Check",
+      "s": 137.949,
+      "e": 138.213,
+      "line": 59
+    },
+    {
+      "w": "that",
+      "s": 138.213,
+      "e": 138.478,
+      "line": 59
+    },
+    {
+      "w": "chatter",
+      "s": 138.478,
+      "e": 139.007,
+      "line": 59
+    },
+    {
+      "w": "before",
+      "s": 139.007,
+      "e": 139.536,
+      "line": 59
+    },
+    {
+      "w": "chatter",
+      "s": 139.536,
+      "e": 140.065,
+      "line": 59
+    },
+    {
+      "w": "checks",
+      "s": 140.065,
+      "e": 140.33,
+      "line": 59
+    },
+    {
+      "w": "you,",
+      "s": 140.33,
+      "e": 140.594,
+      "line": 59
+    },
+    {
+      "w": "before",
+      "s": 140.594,
+      "e": 141.124,
+      "line": 60
+    },
+    {
+      "w": "disrespect",
+      "s": 141.124,
+      "e": 141.917,
+      "line": 60
+    },
+    {
+      "w": "becomes",
+      "s": 141.917,
+      "e": 142.711,
+      "line": 60
+    },
+    {
+      "w": "what",
+      "s": 142.711,
+      "e": 142.976,
+      "line": 60
+    },
+    {
+      "w": "they",
+      "s": 142.976,
+      "e": 143.24,
+      "line": 60
+    },
+    {
+      "w": "expect",
+      "s": 143.24,
+      "e": 143.769,
+      "line": 60
+    },
+    {
+      "w": "you",
+      "s": 143.769,
+      "e": 144.034,
+      "line": 60
+    },
+    {
+      "w": "to",
+      "s": 144.034,
+      "e": 144.298,
+      "line": 60
+    },
+    {
+      "w": "do.",
+      "s": 144.298,
+      "e": 144.563,
+      "line": 60
+    },
+    {
+      "w": "You",
+      "s": 144.563,
+      "e": 144.828,
+      "line": 61
+    },
+    {
+      "w": "ain’t",
+      "s": 144.828,
+      "e": 145.092,
+      "line": 61
+    },
+    {
+      "w": "gotta",
+      "s": 145.092,
+      "e": 145.621,
+      "line": 61
+    },
+    {
+      "w": "inherit",
+      "s": 145.621,
+      "e": 146.415,
+      "line": 61
+    },
+    {
+      "w": "every",
+      "s": 146.415,
+      "e": 147.209,
+      "line": 61
+    },
+    {
+      "w": "ignorant",
+      "s": 147.209,
+      "e": 148.002,
+      "line": 61
+    },
+    {
+      "w": "view—",
+      "s": 148.002,
+      "e": 148.267,
+      "line": 61
+    },
+    {
+      "w": "old-school",
+      "s": 148.267,
+      "e": 148.796,
+      "line": 62
+    },
+    {
+      "w": "hatred?",
+      "s": 148.796,
+      "e": 149.325,
+      "line": 62
+    },
+    {
+      "w": "We",
+      "s": 149.325,
+      "e": 149.59,
+      "line": 63
+    },
+    {
+      "w": "makin’",
+      "s": 149.59,
+      "e": 150.119,
+      "line": 63
+    },
+    {
+      "w": "that",
+      "s": 150.119,
+      "e": 150.384,
+      "line": 63
+    },
+    {
+      "w": "obsolete",
+      "s": 150.384,
+      "e": 151.177,
+      "line": 63
+    },
+    {
+      "w": "too.",
+      "s": 151.177,
+      "e": 151.442,
+      "line": 63
+    },
+    {
+      "w": "**[Chorus",
+      "s": 151.442,
+      "e": 151.971,
+      "line": 64
+    },
+    {
+      "w": "—",
+      "s": 151.971,
+      "e": 152.235,
+      "line": 64
+    },
+    {
+      "w": "Female",
+      "s": 152.235,
+      "e": 152.765,
+      "line": 64
+    },
+    {
+      "w": "Lead,",
+      "s": 152.765,
+      "e": 153.029,
+      "line": 64
+    },
+    {
+      "w": "bigger",
+      "s": 153.029,
+      "e": 153.558,
+      "line": 64
+    },
+    {
+      "w": "harmony]**",
+      "s": 153.558,
+      "e": 154.352,
+      "line": 64
+    },
+    {
+      "w": "**HATE",
+      "s": 154.352,
+      "e": 154.652,
+      "line": 65
+    },
+    {
+      "w": "DIES",
+      "s": 154.652,
+      "e": 154.952,
+      "line": 65
+    },
+    {
+      "w": "HERE.**",
+      "s": 154.952,
+      "e": 155.252,
+      "line": 65
+    },
+    {
+      "w": "*(Male:",
+      "s": 155.252,
+      "e": 155.517,
+      "line": 66
+    },
+    {
+      "w": "Ain’t",
+      "s": 155.517,
+      "e": 155.781,
+      "line": 66
+    },
+    {
+      "w": "movin’",
+      "s": 155.781,
+      "e": 156.31,
+      "line": 66
+    },
+    {
+      "w": "past",
+      "s": 156.31,
+      "e": 156.575,
+      "line": 66
+    },
+    {
+      "w": "here)*",
+      "s": 156.575,
+      "e": 156.839,
+      "line": 66
+    },
+    {
+      "w": "Yeah,",
+      "s": 156.839,
+      "e": 157.104,
+      "line": 67
+    },
+    {
+      "w": "the",
+      "s": 157.104,
+      "e": 157.369,
+      "line": 67
+    },
+    {
+      "w": "line",
+      "s": 157.369,
+      "e": 157.633,
+      "line": 67
+    },
+    {
+      "w": "gets",
+      "s": 157.633,
+      "e": 157.898,
+      "line": 67
+    },
+    {
+      "w": "drawn",
+      "s": 157.898,
+      "e": 158.162,
+      "line": 67
+    },
+    {
+      "w": "right",
+      "s": 158.162,
+      "e": 158.427,
+      "line": 67
+    },
+    {
+      "w": "here.",
+      "s": 158.427,
+      "e": 158.691,
+      "line": 67
+    },
+    {
+      "w": "All",
+      "s": 158.691,
+      "e": 158.956,
+      "line": 68
+    },
+    {
+      "w": "that",
+      "s": 158.956,
+      "e": 159.221,
+      "line": 68
+    },
+    {
+      "w": "fear",
+      "s": 159.221,
+      "e": 159.485,
+      "line": 68
+    },
+    {
+      "w": "dressed",
+      "s": 159.485,
+      "e": 160.014,
+      "line": 68
+    },
+    {
+      "w": "tough",
+      "s": 160.014,
+      "e": 160.279,
+      "line": 68
+    },
+    {
+      "w": "disappears",
+      "s": 160.279,
+      "e": 161.073,
+      "line": 68
+    },
+    {
+      "w": "right",
+      "s": 161.073,
+      "e": 161.337,
+      "line": 68
+    },
+    {
+      "w": "here.",
+      "s": 161.337,
+      "e": 161.602,
+      "line": 68
+    },
+    {
+      "w": "Bring",
+      "s": 161.602,
+      "e": 161.866,
+      "line": 69
+    },
+    {
+      "w": "that",
+      "s": 161.866,
+      "e": 162.131,
+      "line": 69
+    },
+    {
+      "w": "venom,",
+      "s": 162.131,
+      "e": 162.66,
+      "line": 69
+    },
+    {
+      "w": "that",
+      "s": 162.66,
+      "e": 162.925,
+      "line": 69
+    },
+    {
+      "w": "vicious",
+      "s": 162.925,
+      "e": 163.454,
+      "line": 69
+    },
+    {
+      "w": "veneer—",
+      "s": 163.454,
+      "e": 163.983,
+      "line": 69
+    },
+    {
+      "w": "but",
+      "s": 163.983,
+      "e": 164.247,
+      "line": 70
+    },
+    {
+      "w": "the",
+      "s": 164.247,
+      "e": 164.512,
+      "line": 70
+    },
+    {
+      "w": "buck",
+      "s": 164.512,
+      "e": 164.776,
+      "line": 70
+    },
+    {
+      "w": "stops,",
+      "s": 164.776,
+      "e": 165.041,
+      "line": 70
+    },
+    {
+      "w": "baby—",
+      "s": 165.041,
+      "e": 165.57,
+      "line": 70
+    },
+    {
+      "w": "**HATE",
+      "s": 165.57,
+      "e": 165.87,
+      "line": 71
+    },
+    {
+      "w": "DIES",
+      "s": 165.87,
+      "e": 166.17,
+      "line": 71
+    },
+    {
+      "w": "HERE.**",
+      "s": 166.17,
+      "e": 166.47,
+      "line": 71
+    },
+    {
+      "w": "**[Verse",
+      "s": 166.47,
+      "e": 166.735,
+      "line": 72
+    },
+    {
+      "w": "3",
+      "s": 166.735,
+      "e": 166.999,
+      "line": 72
+    },
+    {
+      "w": "—",
+      "s": 166.999,
+      "e": 167.264,
+      "line": 72
+    },
+    {
+      "w": "Male",
+      "s": 167.264,
+      "e": 167.528,
+      "line": 72
+    },
+    {
+      "w": "Rap,",
+      "s": 167.528,
+      "e": 167.793,
+      "line": 72
+    },
+    {
+      "w": "gritty",
+      "s": 167.793,
+      "e": 168.322,
+      "line": 72
+    },
+    {
+      "w": "and",
+      "s": 168.322,
+      "e": 168.587,
+      "line": 72
+    },
+    {
+      "w": "direct]**",
+      "s": 168.587,
+      "e": 169.116,
+      "line": 72
+    },
+    {
+      "w": "I",
+      "s": 169.116,
+      "e": 169.38,
+      "line": 73
+    },
+    {
+      "w": "don’t",
+      "s": 169.38,
+      "e": 169.645,
+      "line": 73
+    },
+    {
+      "w": "need",
+      "s": 169.645,
+      "e": 169.91,
+      "line": 73
+    },
+    {
+      "w": "everybody",
+      "s": 169.91,
+      "e": 171.232,
+      "line": 73
+    },
+    {
+      "w": "thinkin’",
+      "s": 171.232,
+      "e": 171.762,
+      "line": 73
+    },
+    {
+      "w": "like",
+      "s": 171.762,
+      "e": 172.026,
+      "line": 73
+    },
+    {
+      "w": "me,",
+      "s": 172.026,
+      "e": 172.291,
+      "line": 73
+    },
+    {
+      "w": "same",
+      "s": 172.291,
+      "e": 172.555,
+      "line": 74
+    },
+    {
+      "w": "faith,",
+      "s": 172.555,
+      "e": 172.82,
+      "line": 74
+    },
+    {
+      "w": "same",
+      "s": 172.82,
+      "e": 173.084,
+      "line": 74
+    },
+    {
+      "w": "face,",
+      "s": 173.084,
+      "e": 173.349,
+      "line": 74
+    },
+    {
+      "w": "same",
+      "s": 173.349,
+      "e": 173.614,
+      "line": 74
+    },
+    {
+      "w": "flag,",
+      "s": 173.614,
+      "e": 173.878,
+      "line": 74
+    },
+    {
+      "w": "same",
+      "s": 173.878,
+      "e": 174.143,
+      "line": 74
+    },
+    {
+      "w": "scene.",
+      "s": 174.143,
+      "e": 174.407,
+      "line": 74
+    },
+    {
+      "w": "Difference",
+      "s": 174.407,
+      "e": 175.201,
+      "line": 75
+    },
+    {
+      "w": "ain’t",
+      "s": 175.201,
+      "e": 175.466,
+      "line": 75
+    },
+    {
+      "w": "danger,",
+      "s": 175.466,
+      "e": 175.995,
+      "line": 75
+    },
+    {
+      "w": "disagreement",
+      "s": 175.995,
+      "e": 177.053,
+      "line": 75
+    },
+    {
+      "w": "ain’t",
+      "s": 177.053,
+      "e": 177.318,
+      "line": 75
+    },
+    {
+      "w": "beef,",
+      "s": 177.318,
+      "e": 177.582,
+      "line": 75
+    },
+    {
+      "w": "we",
+      "s": 177.582,
+      "e": 177.847,
+      "line": 76
+    },
+    {
+      "w": "can",
+      "s": 177.847,
+      "e": 178.111,
+      "line": 76
+    },
+    {
+      "w": "clash",
+      "s": 178.111,
+      "e": 178.376,
+      "line": 76
+    },
+    {
+      "w": "on",
+      "s": 178.376,
+      "e": 178.64,
+      "line": 76
+    },
+    {
+      "w": "the",
+      "s": 178.64,
+      "e": 178.905,
+      "line": 76
+    },
+    {
+      "w": "facts",
+      "s": 178.905,
+      "e": 179.169,
+      "line": 76
+    },
+    {
+      "w": "without",
+      "s": 179.169,
+      "e": 179.699,
+      "line": 76
+    },
+    {
+      "w": "crushin’",
+      "s": 179.699,
+      "e": 180.228,
+      "line": 76
+    },
+    {
+      "w": "somebody’s",
+      "s": 180.228,
+      "e": 181.286,
+      "line": 76
+    },
+    {
+      "w": "peace.",
+      "s": 181.286,
+      "e": 181.551,
+      "line": 76
+    },
+    {
+      "w": "That’s",
+      "s": 181.551,
+      "e": 181.815,
+      "line": 77
+    },
+    {
+      "w": "grown-man",
+      "s": 181.815,
+      "e": 182.344,
+      "line": 77
+    },
+    {
+      "w": "energy,",
+      "s": 182.344,
+      "e": 183.138,
+      "line": 77
+    },
+    {
+      "w": "grown-woman",
+      "s": 183.138,
+      "e": 183.932,
+      "line": 77
+    },
+    {
+      "w": "grace,",
+      "s": 183.932,
+      "e": 184.196,
+      "line": 77
+    },
+    {
+      "w": "say",
+      "s": 184.196,
+      "e": 184.461,
+      "line": 78
+    },
+    {
+      "w": "what",
+      "s": 184.461,
+      "e": 184.725,
+      "line": 78
+    },
+    {
+      "w": "you",
+      "s": 184.725,
+      "e": 184.99,
+      "line": 78
+    },
+    {
+      "w": "mean",
+      "s": 184.99,
+      "e": 185.255,
+      "line": 78
+    },
+    {
+      "w": "without",
+      "s": 185.255,
+      "e": 185.784,
+      "line": 78
+    },
+    {
+      "w": "dehumanizin’",
+      "s": 185.784,
+      "e": 187.107,
+      "line": 78
+    },
+    {
+      "w": "a",
+      "s": 187.107,
+      "e": 187.371,
+      "line": 78
+    },
+    {
+      "w": "face.",
+      "s": 187.371,
+      "e": 187.636,
+      "line": 78
+    },
+    {
+      "w": "Real",
+      "s": 187.636,
+      "e": 187.9,
+      "line": 79
+    },
+    {
+      "w": "ones",
+      "s": 187.9,
+      "e": 188.429,
+      "line": 79
+    },
+    {
+      "w": "reason,",
+      "s": 188.429,
+      "e": 188.959,
+      "line": 79
+    },
+    {
+      "w": "weak",
+      "s": 188.959,
+      "e": 189.223,
+      "line": 79
+    },
+    {
+      "w": "ones",
+      "s": 189.223,
+      "e": 189.752,
+      "line": 79
+    },
+    {
+      "w": "rage—",
+      "s": 189.752,
+      "e": 190.017,
+      "line": 79
+    },
+    {
+      "w": "I’d",
+      "s": 190.017,
+      "e": 190.281,
+      "line": 80
+    },
+    {
+      "w": "rather",
+      "s": 190.281,
+      "e": 190.81,
+      "line": 80
+    },
+    {
+      "w": "build",
+      "s": 190.81,
+      "e": 191.075,
+      "line": 80
+    },
+    {
+      "w": "one",
+      "s": 191.075,
+      "e": 191.34,
+      "line": 80
+    },
+    {
+      "w": "bridge",
+      "s": 191.34,
+      "e": 191.604,
+      "line": 80
+    },
+    {
+      "w": "than",
+      "s": 191.604,
+      "e": 191.869,
+      "line": 80
+    },
+    {
+      "w": "burn",
+      "s": 191.869,
+      "e": 192.133,
+      "line": 80
+    },
+    {
+      "w": "ten",
+      "s": 192.133,
+      "e": 192.398,
+      "line": 80
+    },
+    {
+      "w": "stages.",
+      "s": 192.398,
+      "e": 192.927,
+      "line": 80
+    },
+    {
+      "w": "Black,",
+      "s": 192.927,
+      "e": 193.192,
+      "line": 81
+    },
+    {
+      "w": "white,",
+      "s": 193.192,
+      "e": 193.456,
+      "line": 81
+    },
+    {
+      "w": "brown,",
+      "s": 193.456,
+      "e": 193.721,
+      "line": 81
+    },
+    {
+      "w": "rich,",
+      "s": 193.721,
+      "e": 193.985,
+      "line": 81
+    },
+    {
+      "w": "broke,",
+      "s": 193.985,
+      "e": 194.25,
+      "line": 81
+    },
+    {
+      "w": "strange,",
+      "s": 194.25,
+      "e": 194.514,
+      "line": 81
+    },
+    {
+      "w": "pray",
+      "s": 194.514,
+      "e": 194.779,
+      "line": 82
+    },
+    {
+      "w": "different",
+      "s": 194.779,
+      "e": 195.573,
+      "line": 82
+    },
+    {
+      "w": "prayers,",
+      "s": 195.573,
+      "e": 195.837,
+      "line": 82
+    },
+    {
+      "w": "talk",
+      "s": 195.837,
+      "e": 196.102,
+      "line": 82
+    },
+    {
+      "w": "different",
+      "s": 196.102,
+      "e": 196.896,
+      "line": 82
+    },
+    {
+      "w": "slang—",
+      "s": 196.896,
+      "e": 197.16,
+      "line": 82
+    },
+    {
+      "w": "everybody",
+      "s": 197.16,
+      "e": 198.483,
+      "line": 83
+    },
+    {
+      "w": "got",
+      "s": 198.483,
+      "e": 198.748,
+      "line": 83
+    },
+    {
+      "w": "somebody",
+      "s": 198.748,
+      "e": 199.806,
+      "line": 83
+    },
+    {
+      "w": "they’d",
+      "s": 199.806,
+      "e": 200.07,
+      "line": 83
+    },
+    {
+      "w": "die",
+      "s": 200.07,
+      "e": 200.335,
+      "line": 83
+    },
+    {
+      "w": "to",
+      "s": 200.335,
+      "e": 200.6,
+      "line": 83
+    },
+    {
+      "w": "defend,",
+      "s": 200.6,
+      "e": 201.129,
+      "line": 83
+    },
+    {
+      "w": "everybody",
+      "s": 201.129,
+      "e": 202.452,
+      "line": 84
+    },
+    {
+      "w": "been",
+      "s": 202.452,
+      "e": 202.716,
+      "line": 84
+    },
+    {
+      "w": "shattered,",
+      "s": 202.716,
+      "e": 203.51,
+      "line": 84
+    },
+    {
+      "w": "everybody",
+      "s": 203.51,
+      "e": 204.833,
+      "line": 84
+    },
+    {
+      "w": "gotta",
+      "s": 204.833,
+      "e": 205.362,
+      "line": 84
+    },
+    {
+      "w": "mend.",
+      "s": 205.362,
+      "e": 205.626,
+      "line": 84
+    },
+    {
+      "w": "Miss",
+      "s": 205.626,
+      "e": 205.891,
+      "line": 85
+    },
+    {
+      "w": "me",
+      "s": 205.891,
+      "e": 206.155,
+      "line": 85
+    },
+    {
+      "w": "with",
+      "s": 206.155,
+      "e": 206.42,
+      "line": 85
+    },
+    {
+      "w": "the",
+      "s": 206.42,
+      "e": 206.685,
+      "line": 85
+    },
+    {
+      "w": "“us",
+      "s": 206.685,
+      "e": 206.949,
+      "line": 85
+    },
+    {
+      "w": "versus",
+      "s": 206.949,
+      "e": 207.478,
+      "line": 85
+    },
+    {
+      "w": "them”",
+      "s": 207.478,
+      "e": 207.743,
+      "line": 85
+    },
+    {
+      "w": "gimmick,",
+      "s": 207.743,
+      "e": 208.272,
+      "line": 85
+    },
+    {
+      "w": "that",
+      "s": 208.272,
+      "e": 208.537,
+      "line": 86
+    },
+    {
+      "w": "dusty",
+      "s": 208.537,
+      "e": 209.066,
+      "line": 86
+    },
+    {
+      "w": "division",
+      "s": 209.066,
+      "e": 209.859,
+      "line": 86
+    },
+    {
+      "w": "got",
+      "s": 209.859,
+      "e": 210.124,
+      "line": 86
+    },
+    {
+      "w": "a",
+      "s": 210.124,
+      "e": 210.389,
+      "line": 86
+    },
+    {
+      "w": "tired-ass",
+      "s": 210.389,
+      "e": 211.182,
+      "line": 86
+    },
+    {
+      "w": "limit.",
+      "s": 211.182,
+      "e": 211.711,
+      "line": 86
+    },
+    {
+      "w": "We",
+      "s": 211.711,
+      "e": 211.976,
+      "line": 87
+    },
+    {
+      "w": "can",
+      "s": 211.976,
+      "e": 212.241,
+      "line": 87
+    },
+    {
+      "w": "disagree",
+      "s": 212.241,
+      "e": 212.77,
+      "line": 87
+    },
+    {
+      "w": "heavy",
+      "s": 212.77,
+      "e": 213.299,
+      "line": 87
+    },
+    {
+      "w": "and",
+      "s": 213.299,
+      "e": 213.563,
+      "line": 87
+    },
+    {
+      "w": "still",
+      "s": 213.563,
+      "e": 213.828,
+      "line": 87
+    },
+    {
+      "w": "keep",
+      "s": 213.828,
+      "e": 214.093,
+      "line": 87
+    },
+    {
+      "w": "dignity",
+      "s": 214.093,
+      "e": 214.886,
+      "line": 87
+    },
+    {
+      "w": "in",
+      "s": 214.886,
+      "e": 215.151,
+      "line": 87
+    },
+    {
+      "w": "it—",
+      "s": 215.151,
+      "e": 215.415,
+      "line": 87
+    },
+    {
+      "w": "that’s",
+      "s": 215.415,
+      "e": 215.68,
+      "line": 88
+    },
+    {
+      "w": "strength,",
+      "s": 215.68,
+      "e": 215.944,
+      "line": 88
+    },
+    {
+      "w": "my",
+      "s": 215.944,
+      "e": 216.209,
+      "line": 88
+    },
+    {
+      "w": "guy.",
+      "s": 216.209,
+      "e": 216.474,
+      "line": 88
+    },
+    {
+      "w": "Put",
+      "s": 216.474,
+      "e": 216.738,
+      "line": 89
+    },
+    {
+      "w": "some",
+      "s": 216.738,
+      "e": 217.003,
+      "line": 89
+    },
+    {
+      "w": "humanity",
+      "s": 217.003,
+      "e": 218.061,
+      "line": 89
+    },
+    {
+      "w": "in",
+      "s": 218.061,
+      "e": 218.326,
+      "line": 89
+    },
+    {
+      "w": "it.",
+      "s": 218.326,
+      "e": 218.59,
+      "line": 89
+    },
+    {
+      "w": "**[Bridge",
+      "s": 218.59,
+      "e": 218.855,
+      "line": 90
+    },
+    {
+      "w": "—",
+      "s": 218.855,
+      "e": 219.119,
+      "line": 90
+    },
+    {
+      "w": "Female",
+      "s": 219.119,
+      "e": 219.648,
+      "line": 90
+    },
+    {
+      "w": "Lead,",
+      "s": 219.648,
+      "e": 219.913,
+      "line": 90
+    },
+    {
+      "w": "solo",
+      "s": 219.913,
+      "e": 220.442,
+      "line": 90
+    },
+    {
+      "w": "piano]**",
+      "s": 220.442,
+      "e": 220.971,
+      "line": 90
+    },
+    {
+      "w": "My",
+      "s": 220.971,
+      "e": 221.236,
+      "line": 91
+    },
+    {
+      "w": "father’s",
+      "s": 221.236,
+      "e": 221.765,
+      "line": 91
+    },
+    {
+      "w": "fear",
+      "s": 221.765,
+      "e": 222.03,
+      "line": 91
+    },
+    {
+      "w": "doesn’t",
+      "s": 222.03,
+      "e": 222.294,
+      "line": 91
+    },
+    {
+      "w": "have",
+      "s": 222.294,
+      "e": 222.559,
+      "line": 91
+    },
+    {
+      "w": "to",
+      "s": 222.559,
+      "e": 222.823,
+      "line": 91
+    },
+    {
+      "w": "be",
+      "s": 222.823,
+      "e": 223.088,
+      "line": 91
+    },
+    {
+      "w": "mine.",
+      "s": 223.088,
+      "e": 223.352,
+      "line": 91
+    },
+    {
+      "w": "My",
+      "s": 223.352,
+      "e": 223.617,
+      "line": 92
+    },
+    {
+      "w": "mother’s",
+      "s": 223.617,
+      "e": 224.146,
+      "line": 92
+    },
+    {
+      "w": "wounds",
+      "s": 224.146,
+      "e": 224.411,
+      "line": 92
+    },
+    {
+      "w": "don’t",
+      "s": 224.411,
+      "e": 224.675,
+      "line": 92
+    },
+    {
+      "w": "determine",
+      "s": 224.675,
+      "e": 225.469,
+      "line": 92
+    },
+    {
+      "w": "my",
+      "s": 225.469,
+      "e": 225.734,
+      "line": 92
+    },
+    {
+      "w": "mind.",
+      "s": 225.734,
+      "e": 225.998,
+      "line": 92
+    },
+    {
+      "w": "My",
+      "s": 225.998,
+      "e": 226.263,
+      "line": 93
+    },
+    {
+      "w": "neighborhood’s",
+      "s": 226.263,
+      "e": 227.056,
+      "line": 93
+    },
+    {
+      "w": "anger",
+      "s": 227.056,
+      "e": 227.586,
+      "line": 93
+    },
+    {
+      "w": "don’t",
+      "s": 227.586,
+      "e": 227.85,
+      "line": 93
+    },
+    {
+      "w": "own",
+      "s": 227.85,
+      "e": 228.115,
+      "line": 93
+    },
+    {
+      "w": "my",
+      "s": 228.115,
+      "e": 228.379,
+      "line": 93
+    },
+    {
+      "w": "design.",
+      "s": 228.379,
+      "e": 228.908,
+      "line": 93
+    },
+    {
+      "w": "I",
+      "s": 228.908,
+      "e": 229.173,
+      "line": 94
+    },
+    {
+      "w": "can",
+      "s": 229.173,
+      "e": 229.437,
+      "line": 94
+    },
+    {
+      "w": "love",
+      "s": 229.437,
+      "e": 229.702,
+      "line": 94
+    },
+    {
+      "w": "my",
+      "s": 229.702,
+      "e": 229.967,
+      "line": 94
+    },
+    {
+      "w": "own",
+      "s": 229.967,
+      "e": 230.231,
+      "line": 94
+    },
+    {
+      "w": "people",
+      "s": 230.231,
+      "e": 230.76,
+      "line": 94
+    },
+    {
+      "w": "without",
+      "s": 230.76,
+      "e": 231.289,
+      "line": 95
+    },
+    {
+      "w": "hatin’",
+      "s": 231.289,
+      "e": 231.819,
+      "line": 95
+    },
+    {
+      "w": "your",
+      "s": 231.819,
+      "e": 232.083,
+      "line": 95
+    },
+    {
+      "w": "kind.",
+      "s": 232.083,
+      "e": 232.348,
+      "line": 95
+    },
+    {
+      "w": "If",
+      "s": 232.348,
+      "e": 232.612,
+      "line": 96
+    },
+    {
+      "w": "hate",
+      "s": 232.612,
+      "e": 232.877,
+      "line": 96
+    },
+    {
+      "w": "came",
+      "s": 232.877,
+      "e": 233.141,
+      "line": 96
+    },
+    {
+      "w": "knockin’",
+      "s": 233.141,
+      "e": 233.671,
+      "line": 96
+    },
+    {
+      "w": "before",
+      "s": 233.671,
+      "e": 234.2,
+      "line": 96
+    },
+    {
+      "w": "I",
+      "s": 234.2,
+      "e": 234.464,
+      "line": 96
+    },
+    {
+      "w": "was",
+      "s": 234.464,
+      "e": 234.729,
+      "line": 96
+    },
+    {
+      "w": "born,",
+      "s": 234.729,
+      "e": 234.993,
+      "line": 96
+    },
+    {
+      "w": "I",
+      "s": 234.993,
+      "e": 235.258,
+      "line": 97
+    },
+    {
+      "w": "can",
+      "s": 235.258,
+      "e": 235.523,
+      "line": 97
+    },
+    {
+      "w": "still",
+      "s": 235.523,
+      "e": 235.787,
+      "line": 97
+    },
+    {
+      "w": "be",
+      "s": 235.787,
+      "e": 236.052,
+      "line": 97
+    },
+    {
+      "w": "the",
+      "s": 236.052,
+      "e": 236.316,
+      "line": 97
+    },
+    {
+      "w": "house",
+      "s": 236.316,
+      "e": 236.581,
+      "line": 97
+    },
+    {
+      "w": "where",
+      "s": 236.581,
+      "e": 236.845,
+      "line": 97
+    },
+    {
+      "w": "the",
+      "s": 236.845,
+      "e": 237.11,
+      "line": 97
+    },
+    {
+      "w": "habit",
+      "s": 237.11,
+      "e": 237.639,
+      "line": 97
+    },
+    {
+      "w": "gets",
+      "s": 237.639,
+      "e": 237.904,
+      "line": 97
+    },
+    {
+      "w": "torn.",
+      "s": 237.904,
+      "e": 238.168,
+      "line": 97
+    },
+    {
+      "w": "I",
+      "s": 238.168,
+      "e": 238.433,
+      "line": 98
+    },
+    {
+      "w": "can",
+      "s": 238.433,
+      "e": 238.697,
+      "line": 98
+    },
+    {
+      "w": "be",
+      "s": 238.697,
+      "e": 238.962,
+      "line": 98
+    },
+    {
+      "w": "the",
+      "s": 238.962,
+      "e": 239.227,
+      "line": 98
+    },
+    {
+      "w": "last",
+      "s": 239.227,
+      "e": 239.491,
+      "line": 98
+    },
+    {
+      "w": "link,",
+      "s": 239.491,
+      "e": 239.756,
+      "line": 98
+    },
+    {
+      "w": "last",
+      "s": 239.756,
+      "e": 240.02,
+      "line": 98
+    },
+    {
+      "w": "lie,",
+      "s": 240.02,
+      "e": 240.285,
+      "line": 98
+    },
+    {
+      "w": "last",
+      "s": 240.285,
+      "e": 240.549,
+      "line": 98
+    },
+    {
+      "w": "thorn—",
+      "s": 240.549,
+      "e": 240.814,
+      "line": 98
+    },
+    {
+      "w": "turn",
+      "s": 240.814,
+      "e": 241.079,
+      "line": 99
+    },
+    {
+      "w": "generational",
+      "s": 241.079,
+      "e": 242.401,
+      "line": 99
+    },
+    {
+      "w": "grief",
+      "s": 242.401,
+      "e": 242.666,
+      "line": 99
+    },
+    {
+      "w": "into",
+      "s": 242.666,
+      "e": 243.195,
+      "line": 100
+    },
+    {
+      "w": "a",
+      "s": 243.195,
+      "e": 243.46,
+      "line": 100
+    },
+    {
+      "w": "different",
+      "s": 243.46,
+      "e": 244.253,
+      "line": 100
+    },
+    {
+      "w": "dawn.",
+      "s": 244.253,
+      "e": 244.518,
+      "line": 100
+    },
+    {
+      "w": "**[Breakdown",
+      "s": 244.518,
+      "e": 245.047,
+      "line": 101
+    },
+    {
+      "w": "—",
+      "s": 245.047,
+      "e": 245.312,
+      "line": 101
+    },
+    {
+      "w": "Male/Female",
+      "s": 245.312,
+      "e": 246.37,
+      "line": 101
+    },
+    {
+      "w": "Call",
+      "s": 246.37,
+      "e": 246.634,
+      "line": 101
+    },
+    {
+      "w": "and",
+      "s": 246.634,
+      "e": 246.899,
+      "line": 101
+    },
+    {
+      "w": "Response]**",
+      "s": 246.899,
+      "e": 247.428,
+      "line": 101
+    },
+    {
+      "w": "**Male:**",
+      "s": 247.428,
+      "e": 247.693,
+      "line": 102
+    },
+    {
+      "w": "Who",
+      "s": 247.693,
+      "e": 247.957,
+      "line": 102
+    },
+    {
+      "w": "taught",
+      "s": 247.957,
+      "e": 248.222,
+      "line": 102
+    },
+    {
+      "w": "you",
+      "s": 248.222,
+      "e": 248.486,
+      "line": 102
+    },
+    {
+      "w": "hate?",
+      "s": 248.486,
+      "e": 248.751,
+      "line": 102
+    },
+    {
+      "w": "**Female:**",
+      "s": 248.751,
+      "e": 249.28,
+      "line": 103
+    },
+    {
+      "w": "Who",
+      "s": 249.28,
+      "e": 249.545,
+      "line": 103
+    },
+    {
+      "w": "taught",
+      "s": 249.545,
+      "e": 249.809,
+      "line": 103
+    },
+    {
+      "w": "you",
+      "s": 249.809,
+      "e": 250.074,
+      "line": 103
+    },
+    {
+      "w": "fear?",
+      "s": 250.074,
+      "e": 250.338,
+      "line": 103
+    },
+    {
+      "w": "**Male:**",
+      "s": 250.338,
+      "e": 250.603,
+      "line": 104
+    },
+    {
+      "w": "Who",
+      "s": 250.603,
+      "e": 250.868,
+      "line": 104
+    },
+    {
+      "w": "got",
+      "s": 250.868,
+      "e": 251.132,
+      "line": 104
+    },
+    {
+      "w": "paid",
+      "s": 251.132,
+      "e": 251.397,
+      "line": 104
+    },
+    {
+      "w": "every",
+      "s": 251.397,
+      "e": 252.19,
+      "line": 105
+    },
+    {
+      "w": "time",
+      "s": 252.19,
+      "e": 252.455,
+      "line": 105
+    },
+    {
+      "w": "division",
+      "s": 252.455,
+      "e": 253.249,
+      "line": 105
+    },
+    {
+      "w": "appeared?",
+      "s": 253.249,
+      "e": 254.042,
+      "line": 105
+    },
+    {
+      "w": "**Female:**",
+      "s": 254.042,
+      "e": 254.571,
+      "line": 106
+    },
+    {
+      "w": "Look",
+      "s": 254.571,
+      "e": 254.836,
+      "line": 106
+    },
+    {
+      "w": "again.",
+      "s": 254.836,
+      "e": 255.365,
+      "line": 106
+    },
+    {
+      "w": "That’s",
+      "s": 255.365,
+      "e": 255.63,
+      "line": 107
+    },
+    {
+      "w": "somebody’s",
+      "s": 255.63,
+      "e": 256.688,
+      "line": 107
+    },
+    {
+      "w": "baby,",
+      "s": 256.688,
+      "e": 257.217,
+      "line": 107
+    },
+    {
+      "w": "somebody’s",
+      "s": 257.217,
+      "e": 258.275,
+      "line": 108
+    },
+    {
+      "w": "brother,",
+      "s": 258.275,
+      "e": 258.805,
+      "line": 108
+    },
+    {
+      "w": "somebody’s",
+      "s": 258.805,
+      "e": 259.863,
+      "line": 109
+    },
+    {
+      "w": "sister,",
+      "s": 259.863,
+      "e": 260.392,
+      "line": 109
+    },
+    {
+      "w": "somebody’s",
+      "s": 260.392,
+      "e": 261.45,
+      "line": 110
+    },
+    {
+      "w": "mother.",
+      "s": 261.45,
+      "e": 261.979,
+      "line": 110
+    },
+    {
+      "w": "**Both:**",
+      "s": 261.979,
+      "e": 262.879,
+      "line": 111
+    },
+    {
+      "w": "Different",
+      "s": 262.879,
+      "e": 263.673,
+      "line": 112
+    },
+    {
+      "w": "story.",
+      "s": 263.673,
+      "e": 264.202,
+      "line": 112
+    },
+    {
+      "w": "Same",
+      "s": 264.202,
+      "e": 264.467,
+      "line": 112
+    },
+    {
+      "w": "storm.",
+      "s": 264.467,
+      "e": 264.731,
+      "line": 112
+    },
+    {
+      "w": "Same",
+      "s": 264.731,
+      "e": 264.996,
+      "line": 113
+    },
+    {
+      "w": "tears",
+      "s": 264.996,
+      "e": 265.261,
+      "line": 113
+    },
+    {
+      "w": "when",
+      "s": 265.261,
+      "e": 265.525,
+      "line": 113
+    },
+    {
+      "w": "a",
+      "s": 265.525,
+      "e": 265.79,
+      "line": 113
+    },
+    {
+      "w": "loved",
+      "s": 265.79,
+      "e": 266.319,
+      "line": 113
+    },
+    {
+      "w": "one’s",
+      "s": 266.319,
+      "e": 266.848,
+      "line": 113
+    },
+    {
+      "w": "gone.",
+      "s": 266.848,
+      "e": 267.113,
+      "line": 113
+    },
+    {
+      "w": "**[Final",
+      "s": 267.113,
+      "e": 267.642,
+      "line": 114
+    },
+    {
+      "w": "Chorus",
+      "s": 267.642,
+      "e": 268.171,
+      "line": 114
+    },
+    {
+      "w": "—",
+      "s": 268.171,
+      "e": 268.435,
+      "line": 114
+    },
+    {
+      "w": "Female",
+      "s": 268.435,
+      "e": 268.964,
+      "line": 114
+    },
+    {
+      "w": "Lead",
+      "s": 268.964,
+      "e": 269.229,
+      "line": 114
+    },
+    {
+      "w": "+",
+      "s": 269.229,
+      "e": 269.494,
+      "line": 114
+    },
+    {
+      "w": "Male",
+      "s": 269.494,
+      "e": 269.758,
+      "line": 114
+    },
+    {
+      "w": "Rap",
+      "s": 269.758,
+      "e": 270.023,
+      "line": 114
+    },
+    {
+      "w": "Ad-Libs",
+      "s": 270.023,
+      "e": 270.552,
+      "line": 114
+    },
+    {
+      "w": "+",
+      "s": 270.552,
+      "e": 270.816,
+      "line": 114
+    },
+    {
+      "w": "Choir]**",
+      "s": 270.816,
+      "e": 271.081,
+      "line": 114
+    },
+    {
+      "w": "**HATE",
+      "s": 271.081,
+      "e": 271.381,
+      "line": 115
+    },
+    {
+      "w": "DIES",
+      "s": 271.381,
+      "e": 271.681,
+      "line": 115
+    },
+    {
+      "w": "HERE.**",
+      "s": 271.681,
+      "e": 271.981,
+      "line": 115
+    },
+    {
+      "w": "*(Male:",
+      "s": 271.981,
+      "e": 272.246,
+      "line": 116
+    },
+    {
+      "w": "Put",
+      "s": 272.246,
+      "e": 272.51,
+      "line": 116
+    },
+    {
+      "w": "the",
+      "s": 272.51,
+      "e": 272.775,
+      "line": 116
+    },
+    {
+      "w": "whole",
+      "s": 272.775,
+      "e": 273.039,
+      "line": 116
+    },
+    {
+      "w": "world",
+      "s": 273.039,
+      "e": 273.304,
+      "line": 116
+    },
+    {
+      "w": "on",
+      "s": 273.304,
+      "e": 273.568,
+      "line": 116
+    },
+    {
+      "w": "notice)*",
+      "s": 273.568,
+      "e": 274.098,
+      "line": 116
+    },
+    {
+      "w": "Manufactured",
+      "s": 274.098,
+      "e": 275.42,
+      "line": 117
+    },
+    {
+      "w": "madness",
+      "s": 275.42,
+      "e": 275.95,
+      "line": 117
+    },
+    {
+      "w": "disappears",
+      "s": 275.95,
+      "e": 276.743,
+      "line": 117
+    },
+    {
+      "w": "right",
+      "s": 276.743,
+      "e": 277.008,
+      "line": 117
+    },
+    {
+      "w": "here.",
+      "s": 277.008,
+      "e": 277.272,
+      "line": 117
+    },
+    {
+      "w": "No",
+      "s": 277.272,
+      "e": 277.537,
+      "line": 118
+    },
+    {
+      "w": "slur",
+      "s": 277.537,
+      "e": 277.802,
+      "line": 118
+    },
+    {
+      "w": "gets",
+      "s": 277.802,
+      "e": 278.066,
+      "line": 118
+    },
+    {
+      "w": "a",
+      "s": 278.066,
+      "e": 278.331,
+      "line": 118
+    },
+    {
+      "w": "successor,",
+      "s": 278.331,
+      "e": 279.124,
+      "line": 118
+    },
+    {
+      "w": "no",
+      "s": 279.124,
+      "e": 279.389,
+      "line": 118
+    },
+    {
+      "w": "prejudice",
+      "s": 279.389,
+      "e": 280.183,
+      "line": 118
+    },
+    {
+      "w": "heir—",
+      "s": 280.183,
+      "e": 280.447,
+      "line": 118
+    },
+    {
+      "w": "**HATE",
+      "s": 280.447,
+      "e": 280.747,
+      "line": 119
+    },
+    {
+      "w": "DIES",
+      "s": 280.747,
+      "e": 281.047,
+      "line": 119
+    },
+    {
+      "w": "HERE.**",
+      "s": 281.047,
+      "e": 281.347,
+      "line": 119
+    },
+    {
+      "w": "Let",
+      "s": 281.347,
+      "e": 281.612,
+      "line": 120
+    },
+    {
+      "w": "the",
+      "s": 281.612,
+      "e": 281.876,
+      "line": 120
+    },
+    {
+      "w": "next",
+      "s": 281.876,
+      "e": 282.141,
+      "line": 120
+    },
+    {
+      "w": "generation",
+      "s": 282.141,
+      "e": 283.199,
+      "line": 120
+    },
+    {
+      "w": "inherit",
+      "s": 283.199,
+      "e": 283.993,
+      "line": 120
+    },
+    {
+      "w": "somethin’",
+      "s": 283.993,
+      "e": 284.787,
+      "line": 120
+    },
+    {
+      "w": "clear:",
+      "s": 284.787,
+      "e": 285.051,
+      "line": 120
+    },
+    {
+      "w": "more",
+      "s": 285.051,
+      "e": 285.316,
+      "line": 121
+    },
+    {
+      "w": "love,",
+      "s": 285.316,
+      "e": 285.58,
+      "line": 121
+    },
+    {
+      "w": "less",
+      "s": 285.58,
+      "e": 285.845,
+      "line": 121
+    },
+    {
+      "w": "labels,",
+      "s": 285.845,
+      "e": 286.374,
+      "line": 121
+    },
+    {
+      "w": "more",
+      "s": 286.374,
+      "e": 286.639,
+      "line": 121
+    },
+    {
+      "w": "truth,",
+      "s": 286.639,
+      "e": 286.903,
+      "line": 121
+    },
+    {
+      "w": "less",
+      "s": 286.903,
+      "e": 287.168,
+      "line": 121
+    },
+    {
+      "w": "fear.",
+      "s": 287.168,
+      "e": 287.432,
+      "line": 121
+    },
+    {
+      "w": "We",
+      "s": 287.432,
+      "e": 287.697,
+      "line": 122
+    },
+    {
+      "w": "can",
+      "s": 287.697,
+      "e": 287.961,
+      "line": 122
+    },
+    {
+      "w": "bury",
+      "s": 287.961,
+      "e": 288.491,
+      "line": 122
+    },
+    {
+      "w": "that",
+      "s": 288.491,
+      "e": 288.755,
+      "line": 122
+    },
+    {
+      "w": "bullshit",
+      "s": 288.755,
+      "e": 289.284,
+      "line": 122
+    },
+    {
+      "w": "we",
+      "s": 289.284,
+      "e": 289.549,
+      "line": 122
+    },
+    {
+      "w": "been",
+      "s": 289.549,
+      "e": 289.813,
+      "line": 122
+    },
+    {
+      "w": "draggin’",
+      "s": 289.813,
+      "e": 290.343,
+      "line": 122
+    },
+    {
+      "w": "for",
+      "s": 290.343,
+      "e": 290.607,
+      "line": 122
+    },
+    {
+      "w": "years—",
+      "s": 290.607,
+      "e": 290.872,
+      "line": 122
+    },
+    {
+      "w": "chain",
+      "s": 290.872,
+      "e": 291.136,
+      "line": 123
+    },
+    {
+      "w": "breaks,",
+      "s": 291.136,
+      "e": 291.401,
+      "line": 123
+    },
+    {
+      "w": "hearts",
+      "s": 291.401,
+      "e": 291.665,
+      "line": 123
+    },
+    {
+      "w": "change—",
+      "s": 291.665,
+      "e": 291.93,
+      "line": 123
+    },
+    {
+      "w": "**HATE",
+      "s": 291.93,
+      "e": 292.23,
+      "line": 124
+    },
+    {
+      "w": "DIES",
+      "s": 292.23,
+      "e": 292.53,
+      "line": 124
+    },
+    {
+      "w": "HERE.**",
+      "s": 292.53,
+      "e": 292.83,
+      "line": 124
+    },
+    {
+      "w": "**[Outro",
+      "s": 292.83,
+      "e": 293.359,
+      "line": 125
+    },
+    {
+      "w": "—",
+      "s": 293.359,
+      "e": 293.624,
+      "line": 125
+    },
+    {
+      "w": "Female",
+      "s": 293.624,
+      "e": 294.153,
+      "line": 125
+    },
+    {
+      "w": "runs",
+      "s": 294.153,
+      "e": 294.417,
+      "line": 125
+    },
+    {
+      "w": "over",
+      "s": 294.417,
+      "e": 294.947,
+      "line": 125
+    },
+    {
+      "w": "piano,",
+      "s": 294.947,
+      "e": 295.476,
+      "line": 125
+    },
+    {
+      "w": "Male",
+      "s": 295.476,
+      "e": 295.74,
+      "line": 125
+    },
+    {
+      "w": "spoken",
+      "s": 295.74,
+      "e": 296.269,
+      "line": 125
+    },
+    {
+      "w": "ad-libs]**",
+      "s": 296.269,
+      "e": 296.798,
+      "line": 125
+    },
+    {
+      "w": "Not",
+      "s": 296.798,
+      "e": 297.063,
+      "line": 126
+    },
+    {
+      "w": "tomorrow.",
+      "s": 297.063,
+      "e": 297.857,
+      "line": 126
+    },
+    {
+      "w": "Not",
+      "s": 297.857,
+      "e": 298.121,
+      "line": 127
+    },
+    {
+      "w": "someday.",
+      "s": 298.121,
+      "e": 298.915,
+      "line": 127
+    },
+    {
+      "w": "Right",
+      "s": 298.915,
+      "e": 299.365,
+      "line": 128
+    },
+    {
+      "w": "here.",
+      "s": 299.365,
+      "e": 299.815,
+      "line": 128
+    },
+    {
+      "w": "No",
+      "s": 299.815,
+      "e": 300.08,
+      "line": 129
+    },
+    {
+      "w": "forwarding",
+      "s": 300.08,
+      "e": 300.873,
+      "line": 129
+    },
+    {
+      "w": "address.",
+      "s": 300.873,
+      "e": 301.402,
+      "line": 129
+    },
+    {
+      "w": "No",
+      "s": 301.402,
+      "e": 301.667,
+      "line": 130
+    },
+    {
+      "w": "next",
+      "s": 301.667,
+      "e": 301.932,
+      "line": 130
+    },
+    {
+      "w": "generation.",
+      "s": 301.932,
+      "e": 302.99,
+      "line": 130
+    },
+    {
+      "w": "No",
+      "s": 302.99,
+      "e": 303.29,
+      "line": 131
+    },
+    {
+      "w": "encore.",
+      "s": 303.29,
+      "e": 303.89,
+      "line": 131
+    },
+    {
+      "w": "Let",
+      "s": 303.89,
+      "e": 304.154,
+      "line": 132
+    },
+    {
+      "w": "that",
+      "s": 304.154,
+      "e": 304.419,
+      "line": 132
+    },
+    {
+      "w": "hatred",
+      "s": 304.419,
+      "e": 304.948,
+      "line": 132
+    },
+    {
+      "w": "hit",
+      "s": 304.948,
+      "e": 305.213,
+      "line": 132
+    },
+    {
+      "w": "the",
+      "s": 305.213,
+      "e": 305.477,
+      "line": 132
+    },
+    {
+      "w": "floor—",
+      "s": 305.477,
+      "e": 305.742,
+      "line": 132
+    },
+    {
+      "w": "**and",
+      "s": 305.49,
+      "e": 305.59,
+      "line": 133
+    },
+    {
+      "w": "die",
+      "s": 305.5,
+      "e": 305.6,
+      "line": 133
+    },
+    {
+      "w": "here.**",
+      "s": 304.49,
+      "e": 304.59,
+      "line": 133
+    }
+  ],
+  "lines": [
+    {
+      "s": 0,
+      "e": 1.058,
+      "text": "# HATE DIES HERE"
+    },
+    {
+      "s": 1.058,
+      "e": 3.704,
+      "text": "**[Intro — Male Rap, low and commanding]**"
+    },
+    {
+      "s": 3.704,
+      "e": 4.604,
+      "text": "Yeah—"
+    },
+    {
+      "s": 4.604,
+      "e": 6.985,
+      "text": "Bring that bitterness to the border,"
+    },
+    {
+      "s": 6.985,
+      "e": 8.837,
+      "text": "bring that venom to the venue,"
+    },
+    {
+      "s": 8.837,
+      "e": 11.218,
+      "text": "bring that poison to the pavement—"
+    },
+    {
+      "s": 11.218,
+      "e": 12.541,
+      "text": "it ain’t passin’ through."
+    },
+    {
+      "s": 12.541,
+      "e": 13.441,
+      "text": "**Hate dies here.**"
+    },
+    {
+      "s": 13.441,
+      "e": 16.087,
+      "text": "**[Verse 1 — Male Rap, melodic trap flow]**"
+    },
+    {
+      "s": 16.087,
+      "e": 19.262,
+      "text": "They been passin’ down pain like a family name,"
+    },
+    {
+      "s": 19.262,
+      "e": 21.378,
+      "text": "same small spite in a brand-new frame,"
+    },
+    {
+      "s": 21.378,
+      "e": 23.495,
+      "text": "same cheap shots, same blame-game flame,"
+    },
+    {
+      "s": 23.495,
+      "e": 26.405,
+      "text": "whole bloodline burnin’ and nobody changed."
+    },
+    {
+      "s": 26.405,
+      "e": 28.257,
+      "text": "Nah, not me—I’m breakin’ that chain,"
+    },
+    {
+      "s": 28.257,
+      "e": 30.373,
+      "text": "cut that cord, let compassion reign,"
+    },
+    {
+      "s": 30.373,
+      "e": 32.49,
+      "text": "you can bark that bias, broadcast blame,"
+    },
+    {
+      "s": 32.49,
+      "e": 35.665,
+      "text": "I won’t let your poison get packed in my veins."
+    },
+    {
+      "s": 35.665,
+      "e": 38.31,
+      "text": "Big-mouth bully with a bargain-bin grudge,"
+    },
+    {
+      "s": 38.31,
+      "e": 40.692,
+      "text": "talkin’ real tough but your heart won’t budge,"
+    },
+    {
+      "s": 40.692,
+      "e": 43.866,
+      "text": "judgin’ whole lives off a look and a label,"
+    },
+    {
+      "s": 43.866,
+      "e": 47.306,
+      "text": "bro, that weak little worldview barely stays stable."
+    },
+    {
+      "s": 47.306,
+      "e": 49.951,
+      "text": "You can spit that slick disrespect for clout,"
+    },
+    {
+      "s": 49.951,
+      "e": 52.597,
+      "text": "hate gets hungry when you hand it a route."
+    },
+    {
+      "s": 52.597,
+      "e": 55.507,
+      "text": "So I shut that shit down, no scenic detour—"
+    },
+    {
+      "s": 55.507,
+      "e": 57.095,
+      "text": "you brought hate to my gate?"
+    },
+    {
+      "s": 57.095,
+      "e": 58.947,
+      "text": "It don’t leave here anymore."
+    },
+    {
+      "s": 58.947,
+      "e": 62.386,
+      "text": "**[Pre-Chorus — Female Soul Vocal, piano enters]**"
+    },
+    {
+      "s": 62.386,
+      "e": 65.032,
+      "text": "No pass, no platform, no place in my crew,"
+    },
+    {
+      "s": 65.032,
+      "e": 67.942,
+      "text": "no recycled rage gettin’ routed on through."
+    },
+    {
+      "s": 67.942,
+      "e": 71.646,
+      "text": "If somebody taught you everybody’s your foe,"
+    },
+    {
+      "s": 71.646,
+      "e": 73.498,
+      "text": "you can unlearn that garbage—"
+    },
+    {
+      "s": 73.498,
+      "e": 74.398,
+      "text": "**we grow.**"
+    },
+    {
+      "s": 74.398,
+      "e": 77.044,
+      "text": "**[Chorus — Female Lead + Male Ad-Libs]**"
+    },
+    {
+      "s": 77.044,
+      "e": 77.944,
+      "text": "**HATE DIES HERE.**"
+    },
+    {
+      "s": 77.944,
+      "e": 79.002,
+      "text": "*(Right here, right here)*"
+    },
+    {
+      "s": 79.002,
+      "e": 80.854,
+      "text": "Yeah, the line gets drawn right here."
+    },
+    {
+      "s": 80.854,
+      "e": 83.764,
+      "text": "All that fear dressed tough disappears right here."
+    },
+    {
+      "s": 83.764,
+      "e": 86.145,
+      "text": "Bring that venom, that vicious veneer—"
+    },
+    {
+      "s": 86.145,
+      "e": 87.733,
+      "text": "but the buck stops, baby—"
+    },
+    {
+      "s": 87.733,
+      "e": 88.633,
+      "text": "**HATE DIES HERE.**"
+    },
+    {
+      "s": 88.633,
+      "e": 90.22,
+      "text": "*(Let it die, let it die)*"
+    },
+    {
+      "s": 90.22,
+      "e": 92.866,
+      "text": "No hand-me-down hatred, no heirloom fear,"
+    },
+    {
+      "s": 92.866,
+      "e": 96.305,
+      "text": "no “my people versus yours” in another kid’s ear."
+    },
+    {
+      "s": 96.305,
+      "e": 99.745,
+      "text": "We ain’t sendin’ that sickness to another damn year—"
+    },
+    {
+      "s": 99.745,
+      "e": 100.803,
+      "text": "chain breaks, hearts change—"
+    },
+    {
+      "s": 100.803,
+      "e": 101.703,
+      "text": "**HATE DIES HERE.**"
+    },
+    {
+      "s": 101.703,
+      "e": 104.084,
+      "text": "**[Verse 2 — Male Rap, faster pocket]**"
+    },
+    {
+      "s": 104.084,
+      "e": 105.936,
+      "text": "Hate loves hype, hashtags, heat,"
+    },
+    {
+      "s": 105.936,
+      "e": 108.582,
+      "text": "half-truth headlines on a hundred feeds,"
+    },
+    {
+      "s": 108.582,
+      "e": 111.227,
+      "text": "quick-click conflict, comment-section carnage,"
+    },
+    {
+      "s": 111.227,
+      "e": 115.46,
+      "text": "everybody actin’ savage like compassion ain’t solid."
+    },
+    {
+      "s": 115.46,
+      "e": 117.577,
+      "text": "Nah, fam—kindness got backbone too,"
+    },
+    {
+      "s": 117.577,
+      "e": 120.487,
+      "text": "mercy ain’t soft when the mob wants blood from you."
+    },
+    {
+      "s": 120.487,
+      "e": 123.662,
+      "text": "Takes guts to go, “Nah, I ain’t hatin’ that dude"
+    },
+    {
+      "s": 123.662,
+      "e": 127.101,
+      "text": "just ’cause somebody viral said that’s what we do.”"
+    },
+    {
+      "s": 127.101,
+      "e": 130.276,
+      "text": "I seen slick little slurs turn friends into factions,"
+    },
+    {
+      "s": 130.276,
+      "e": 132.657,
+      "text": "one dumb word turn hurt into actions."
+    },
+    {
+      "s": 132.657,
+      "e": 135.303,
+      "text": "Words got weight, every phrase got traction—"
+    },
+    {
+      "s": 135.303,
+      "e": 137.949,
+      "text": "mouth move first, then the whole world fractures."
+    },
+    {
+      "s": 137.949,
+      "e": 140.594,
+      "text": "Check that chatter before chatter checks you,"
+    },
+    {
+      "s": 140.594,
+      "e": 144.563,
+      "text": "before disrespect becomes what they expect you to do."
+    },
+    {
+      "s": 144.563,
+      "e": 148.267,
+      "text": "You ain’t gotta inherit every ignorant view—"
+    },
+    {
+      "s": 148.267,
+      "e": 149.325,
+      "text": "old-school hatred?"
+    },
+    {
+      "s": 149.325,
+      "e": 151.442,
+      "text": "We makin’ that obsolete too."
+    },
+    {
+      "s": 151.442,
+      "e": 154.352,
+      "text": "**[Chorus — Female Lead, bigger harmony]**"
+    },
+    {
+      "s": 154.352,
+      "e": 155.252,
+      "text": "**HATE DIES HERE.**"
+    },
+    {
+      "s": 155.252,
+      "e": 156.839,
+      "text": "*(Male: Ain’t movin’ past here)*"
+    },
+    {
+      "s": 156.839,
+      "e": 158.691,
+      "text": "Yeah, the line gets drawn right here."
+    },
+    {
+      "s": 158.691,
+      "e": 161.602,
+      "text": "All that fear dressed tough disappears right here."
+    },
+    {
+      "s": 161.602,
+      "e": 163.983,
+      "text": "Bring that venom, that vicious veneer—"
+    },
+    {
+      "s": 163.983,
+      "e": 165.57,
+      "text": "but the buck stops, baby—"
+    },
+    {
+      "s": 165.57,
+      "e": 166.47,
+      "text": "**HATE DIES HERE.**"
+    },
+    {
+      "s": 166.47,
+      "e": 169.116,
+      "text": "**[Verse 3 — Male Rap, gritty and direct]**"
+    },
+    {
+      "s": 169.116,
+      "e": 172.291,
+      "text": "I don’t need everybody thinkin’ like me,"
+    },
+    {
+      "s": 172.291,
+      "e": 174.407,
+      "text": "same faith, same face, same flag, same scene."
+    },
+    {
+      "s": 174.407,
+      "e": 177.582,
+      "text": "Difference ain’t danger, disagreement ain’t beef,"
+    },
+    {
+      "s": 177.582,
+      "e": 181.551,
+      "text": "we can clash on the facts without crushin’ somebody’s peace."
+    },
+    {
+      "s": 181.551,
+      "e": 184.196,
+      "text": "That’s grown-man energy, grown-woman grace,"
+    },
+    {
+      "s": 184.196,
+      "e": 187.636,
+      "text": "say what you mean without dehumanizin’ a face."
+    },
+    {
+      "s": 187.636,
+      "e": 190.017,
+      "text": "Real ones reason, weak ones rage—"
+    },
+    {
+      "s": 190.017,
+      "e": 192.927,
+      "text": "I’d rather build one bridge than burn ten stages."
+    },
+    {
+      "s": 192.927,
+      "e": 194.514,
+      "text": "Black, white, brown, rich, broke, strange,"
+    },
+    {
+      "s": 194.514,
+      "e": 197.16,
+      "text": "pray different prayers, talk different slang—"
+    },
+    {
+      "s": 197.16,
+      "e": 201.129,
+      "text": "everybody got somebody they’d die to defend,"
+    },
+    {
+      "s": 201.129,
+      "e": 205.626,
+      "text": "everybody been shattered, everybody gotta mend."
+    },
+    {
+      "s": 205.626,
+      "e": 208.272,
+      "text": "Miss me with the “us versus them” gimmick,"
+    },
+    {
+      "s": 208.272,
+      "e": 211.711,
+      "text": "that dusty division got a tired-ass limit."
+    },
+    {
+      "s": 211.711,
+      "e": 215.415,
+      "text": "We can disagree heavy and still keep dignity in it—"
+    },
+    {
+      "s": 215.415,
+      "e": 216.474,
+      "text": "that’s strength, my guy."
+    },
+    {
+      "s": 216.474,
+      "e": 218.59,
+      "text": "Put some humanity in it."
+    },
+    {
+      "s": 218.59,
+      "e": 220.971,
+      "text": "**[Bridge — Female Lead, solo piano]**"
+    },
+    {
+      "s": 220.971,
+      "e": 223.352,
+      "text": "My father’s fear doesn’t have to be mine."
+    },
+    {
+      "s": 223.352,
+      "e": 225.998,
+      "text": "My mother’s wounds don’t determine my mind."
+    },
+    {
+      "s": 225.998,
+      "e": 228.908,
+      "text": "My neighborhood’s anger don’t own my design."
+    },
+    {
+      "s": 228.908,
+      "e": 230.76,
+      "text": "I can love my own people"
+    },
+    {
+      "s": 230.76,
+      "e": 232.348,
+      "text": "without hatin’ your kind."
+    },
+    {
+      "s": 232.348,
+      "e": 234.993,
+      "text": "If hate came knockin’ before I was born,"
+    },
+    {
+      "s": 234.993,
+      "e": 238.168,
+      "text": "I can still be the house where the habit gets torn."
+    },
+    {
+      "s": 238.168,
+      "e": 240.814,
+      "text": "I can be the last link, last lie, last thorn—"
+    },
+    {
+      "s": 240.814,
+      "e": 242.666,
+      "text": "turn generational grief"
+    },
+    {
+      "s": 242.666,
+      "e": 244.518,
+      "text": "into a different dawn."
+    },
+    {
+      "s": 244.518,
+      "e": 247.428,
+      "text": "**[Breakdown — Male/Female Call and Response]**"
+    },
+    {
+      "s": 247.428,
+      "e": 248.751,
+      "text": "**Male:** Who taught you hate?"
+    },
+    {
+      "s": 248.751,
+      "e": 250.338,
+      "text": "**Female:** Who taught you fear?"
+    },
+    {
+      "s": 250.338,
+      "e": 251.397,
+      "text": "**Male:** Who got paid"
+    },
+    {
+      "s": 251.397,
+      "e": 254.042,
+      "text": "every time division appeared?"
+    },
+    {
+      "s": 254.042,
+      "e": 255.365,
+      "text": "**Female:** Look again."
+    },
+    {
+      "s": 255.365,
+      "e": 257.217,
+      "text": "That’s somebody’s baby,"
+    },
+    {
+      "s": 257.217,
+      "e": 258.805,
+      "text": "somebody’s brother,"
+    },
+    {
+      "s": 258.805,
+      "e": 260.392,
+      "text": "somebody’s sister,"
+    },
+    {
+      "s": 260.392,
+      "e": 261.979,
+      "text": "somebody’s mother."
+    },
+    {
+      "s": 261.979,
+      "e": 262.879,
+      "text": "**Both:**"
+    },
+    {
+      "s": 262.879,
+      "e": 264.731,
+      "text": "Different story. Same storm."
+    },
+    {
+      "s": 264.731,
+      "e": 267.113,
+      "text": "Same tears when a loved one’s gone."
+    },
+    {
+      "s": 267.113,
+      "e": 271.081,
+      "text": "**[Final Chorus — Female Lead + Male Rap Ad-Libs + Choir]**"
+    },
+    {
+      "s": 271.081,
+      "e": 271.981,
+      "text": "**HATE DIES HERE.**"
+    },
+    {
+      "s": 271.981,
+      "e": 274.098,
+      "text": "*(Male: Put the whole world on notice)*"
+    },
+    {
+      "s": 274.098,
+      "e": 277.272,
+      "text": "Manufactured madness disappears right here."
+    },
+    {
+      "s": 277.272,
+      "e": 280.447,
+      "text": "No slur gets a successor, no prejudice heir—"
+    },
+    {
+      "s": 280.447,
+      "e": 281.347,
+      "text": "**HATE DIES HERE.**"
+    },
+    {
+      "s": 281.347,
+      "e": 285.051,
+      "text": "Let the next generation inherit somethin’ clear:"
+    },
+    {
+      "s": 285.051,
+      "e": 287.432,
+      "text": "more love, less labels, more truth, less fear."
+    },
+    {
+      "s": 287.432,
+      "e": 290.872,
+      "text": "We can bury that bullshit we been draggin’ for years—"
+    },
+    {
+      "s": 290.872,
+      "e": 291.93,
+      "text": "chain breaks, hearts change—"
+    },
+    {
+      "s": 291.93,
+      "e": 292.83,
+      "text": "**HATE DIES HERE.**"
+    },
+    {
+      "s": 292.83,
+      "e": 296.798,
+      "text": "**[Outro — Female runs over piano, Male spoken ad-libs]**"
+    },
+    {
+      "s": 296.798,
+      "e": 297.857,
+      "text": "Not tomorrow."
+    },
+    {
+      "s": 297.857,
+      "e": 298.915,
+      "text": "Not someday."
+    },
+    {
+      "s": 298.915,
+      "e": 299.815,
+      "text": "Right here."
+    },
+    {
+      "s": 299.815,
+      "e": 301.402,
+      "text": "No forwarding address."
+    },
+    {
+      "s": 301.402,
+      "e": 302.99,
+      "text": "No next generation."
+    },
+    {
+      "s": 302.99,
+      "e": 303.89,
+      "text": "No encore."
+    },
+    {
+      "s": 303.89,
+      "e": 305.742,
+      "text": "Let that hatred hit the floor—"
+    },
+    {
+      "s": 303.46,
+      "e": 303.54,
+      "text": "**and die here.**"
+    }
+  ],
+  "duration": 304.6,
+  "source": "curated-realigned",
+  "generatedAt": "2026-08-21T00:55:14.137Z",
+  "realignedFrom": "whisper-aligned",
+  "vocalStart": 0,
+  "vocalEnd": 303.46
+}

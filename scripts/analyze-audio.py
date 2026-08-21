@@ -32,7 +32,10 @@ import time
 from pathlib import Path
 
 import numpy as np
-import aubio
+try:
+    import aubio
+except ImportError:
+    aubio = None  # BPM measurement skipped; key analysis (numpy-only) still runs
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_TS = ROOT / "src" / "data.ts"
@@ -97,6 +100,8 @@ def decode_mp3(path: Path) -> np.ndarray:
 
 def detect_bpm(audio: np.ndarray) -> float | None:
     """Median-of-intervals tempo estimation via aubio's `tempo` aubio object."""
+    if aubio is None:
+        return None  # aubio not installed — BPM falls back to Suno style tags
     if len(audio) < SAMPLE_RATE * 4:  # need at least 4s
         return None
     tempo = aubio.tempo("default", WIN, HOP, SAMPLE_RATE)

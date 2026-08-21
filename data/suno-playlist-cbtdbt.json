@@ -1,0 +1,2428 @@
+{
+  "entity_type": "playlist_schema",
+  "id": "ac429cda-f404-42a5-9538-222ac41837cf",
+  "name": "CBTDBT",
+  "playlist_clips": [
+    {
+      "clip": {
+        "status": "complete",
+        "title": "Future Me Came Back",
+        "play_count": 29,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "ccb9bde3-649e-4e8d-9f87-9cd0d5fa3b1b",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/ccb9bde3-649e-4e8d-9f87-9cd0d5fa3b1b.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/ccb9bde3-649e-4e8d-9f87-9cd0d5fa3b1b.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/ccb9bde3-649e-4e8d-9f87-9cd0d5fa3b1b.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_ccb9bde3-649e-4e8d-9f87-9cd0d5fa3b1b.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_ccb9bde3-649e-4e8d-9f87-9cd0d5fa3b1b.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "Cinematic piano-led melodic trap / alt-R&B anthem with a male lead delivering intimate, emotionally controlled rap-singing and a distant ethereal future-self vocal. Open with felt piano, soft tape hiss, subtle heartbeat percussion, warm sub-bass, and huge negative space. Build gradually with crisp trap drums, deep clean 808s, haunting synths, reversed vocal textures, strings, and restrained choir. Keep every lyric crystal-clear and front-and-center. Verses should feel reflective, grounded, and psychologically empowering; choruses should rise into euphoric, life-affirming release. Drop nearly silent for the bridge, then explode into a massive final chorus with orchestra, gospel choir, layered harmonies, and cinematic drums. HBO finale scale, timeless melody, hopeful, wise, restorative, goosebump-inducing, ending with the future voice fading through time.\n",
+          "prompt": "# FUTURE ME CAME BACK\n\n[Intro \u2014 distant piano, tape hiss]\n\n**PRESENT:**\nThree in the morning, ceiling turning into space,\nBreathing slow and steady, letting stillness set the pace.\nI keep asking tomorrow what it wants me to become\u2014\nThen somebody knocked three times,\nand I knew my answer had come.\n\n[Verse 1 \u2014 Present Me]\n\nDoor cracked open, there I stood, but older in the eyes,\nSame spark, same soul, just calmer, clearer, more alive.\nI said, \u201cWho the hell are you?\u201d\nHe said, \u201cYou already know.\nI\u2019ve only got three minutes\u2014\nthere are things you need to know.\u201d\n\nI said, \u201cDo we make it?\nDo the pieces come in place?\nDo I learn to trust the process\nwithout needing every answer traced?\n\nDo the dreams inside my mind\nbecome something I can see?\u201d\n\nHe smiled like he'd been waiting years:\n\n**FUTURE:**\n\u201cYou have no idea what happens to me.\u201d\n\n[Pre-Chorus]\n\n**PRESENT:**\nTell me the ending.\n\n**FUTURE:**\nNo.\n\n**PRESENT:**\nTell me the way.\n\n**FUTURE:**\nBetter than that\u2014\nyou learn to choose today.\n\n[Chorus]\n\n**FUTURE:**\nKeep moving with faith,\nyou have no idea how much works out.\nThoughts are just thoughts,\nyou can question the story\nand choose what you believe about now.\n\nBreathe into the moment,\nput both feet down,\nlet the present become solid ground.\nYou don't need every answer\nto take one good step\ntoward the life you're building now.\n\nYou don't need the map.\nYou don't need to know how.\n\nStay present.\nChoose wisely.\nKeep becoming now.\n\n'Cause you have no idea\u2014\nno idea\u2014\nhow much works out.\n\n[Verse 2 \u2014 Present Me]\n\n**PRESENT:**\n\u201cDo I find love?\u201d\n\n**FUTURE:**\n\u201cYes\u2014when you learn to receive.\u201d\n\n**PRESENT:**\n\u201cDo I find purpose?\u201d\n\n**FUTURE:**\n\u201cMore than you currently believe.\u201d\n\n**PRESENT:**\n\u201cDo I understand myself?\u201d\n\n**FUTURE:**\n\u201cMore deeply every year.\u201d\n\n**PRESENT:**\n\u201cWhat changes everything?\u201d\n\n**FUTURE:**\n\u201cYou learn you can choose your response with clarity.\u201d\n\nA thought isn't a prophecy.\nA feeling isn't fate.\nYou notice what's arising,\nthen decide what you create.\n\nName what you're feeling.\nBreathe before reacting.\nLet your values choose the next move\ninstead of simply acting.\n\nYou learn to hold two truths at once:\n\u201cI accept where I am today,\nand I can still keep growing\nin a beautiful new way.\u201d\n\nYou stop demanding certainty\nbefore you take a chance.\nYou let your wiser mind\nput intention into action.\n\n[Chorus]\n\n**FUTURE:**\nKeep moving with faith,\nyou have no idea how much works out.\nPeople you haven't even met yet\nwill one day know what you're about.\n\nSongs you haven't written,\nrooms you haven't entered,\nsunrises you've never seen\u2014\n\nThere's a whole bright life\nalready unfolding\nbeyond what you currently believe.\n\nYou don't need the map.\nYou don't need to know how.\n\nStay present.\nChoose wisely.\nKeep becoming now.\n\nYou have no idea\u2014\nno idea\u2014\nhow much works out.\n\n[Bridge \u2014 music nearly disappears]\n\n**PRESENT:**\nWait.\n\nBefore you go\u2014\n\nWhat's the one thing\nyou came all this way to tell me?\n\n[Silence]\n\n**FUTURE:**\nI came back\nto remind you you're becoming.\n\nI came back\nbecause your choices compound.\n\nEvery time you pause, breathe,\ncheck the facts,\nand put both feet on the ground\u2014\n\nyou change your direction.\n\nEvery time you choose patience\ninstead of impulse\u2014\n\nyou strengthen your future.\n\nEvery time you speak to yourself\nlike someone worth guiding\u2014\n\nyou become your own teacher.\n\nI remember this room.\n\nI remember tonight.\n\nI remember the exact moment\nyou realized:\n\nYour mind can suggest a thought\nwithout making that thought right.\n\nYou can observe it.\n\nQuestion it.\n\nReframe it.\n\nChoose again.\n\nAnd that tiny space\nbetween feeling and action?\n\nThat's where your future begins.\n\n[Build]\n\n**FUTURE:**\nSo if I could put one sentence\ninside your bones forever\u2014\n\nIt would be:\n\nYou don't have to control the whole sky\nto learn to enjoy the weather.\n\n[Final Chorus \u2014 full choir, orchestra, 808s]\n\nKEEP MOVING WITH FAITH\u2014\nYOU HAVE NO IDEA HOW MUCH WORKS OUT!\n\nThe road gets wider,\nthe heart gets lighter,\nyour wiser mind keeps showing you how.\n\nThere are hands you'll hold,\nstories untold,\nwhole cities beneath your feet.\n\nThere are versions of you\nyou would barely believe\nif tonight was all you could see.\n\nSo breathe.\n\nCheck the facts.\n\nChoose what matters.\n\nCome back to now.\n\nBuild one beautiful decision\non another somehow.\n\nStay present.\nStay grateful.\nLet your values lead you out.\n\nSomeday you'll look backward\nand wish you could tell yourself now:\n\nYou have no idea\u2014\nno idea\u2014\nno idea how much works out.\n\n[Outro \u2014 future voice fading]\n\n**PRESENT:**\nWill I ever see you again?\n\n**FUTURE:**\nEvery morning.\n\nEvery good choice.\n\nEvery time you choose\nthe life you're becoming.",
+          "type": "gen",
+          "duration": 379.16,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "cyanotype",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-10T00:42:58.465Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic trap, alt-R&B, cinematic",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 0,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 1.0,
+      "created_at": "2026-08-10T00:44:42.900Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "The Gates Were Never Locked",
+        "play_count": 20,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "3f2896b1-6123-4d3c-a2b1-5a59dbb23a29",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/3f2896b1-6123-4d3c-a2b1-5a59dbb23a29.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/3f2896b1-6123-4d3c-a2b1-5a59dbb23a29.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/3f2896b1-6123-4d3c-a2b1-5a59dbb23a29.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_3f2896b1-6123-4d3c-a2b1-5a59dbb23a29.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_3f2896b1-6123-4d3c-a2b1-5a59dbb23a29.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "Haunting piano-led melodic trap / alternative R&B with dark sci-fi atmosphere, intimate male lead, ghostly female harmonies, deep 808s, crisp restrained drums, shimmering synths, metallic textures, and cinematic reverb. Start sparse and eerie, like an alien child sneaking through a forbidden facility with a glowing crystal. Build toward a huge emotional hook around \u201cshe stole the secret crystal\u201d and \u201cshe couldn\u2019t fire at all.\u201d Use heartbeat bass, distant alarms, reversed piano, and celestial ambience. Drop nearly to silence when the crystal hits the floor, then explode into a soaring final chorus. Dark, futuristic, rebellious, tragic, beautiful.\n",
+          "prompt": "# THE GATES WERE NEVER LOCKED\n\n**[Intro]**\nI wore the weight of a wall that was smoke,\nCalled it a cage, never questioned the joke.\nHands on the bars, heart hard in the dark,\nTill I pushed once lightly\u2014\nand everything sparked.\n\n**[Verse 1]**\nI counted my losses like locks on a door,\nFed every fear till it begged me for more.\nDoubt did the talking, I treated it true,\nBuilt me a border nobody else drew.\n\nI made every maybe a mountain of stone,\nMade every silence mean I was alone.\nMind made a movie, then called it a fact,\nBut thoughts are just thoughts\u2014I can question the act.\n\nPressure made diamonds, but patience made plans,\nPain made me panic, then purpose made hands.\nI stopped asking shadows which road I should take,\nPut truth to the test and discovered the fake.\n\n**[Pre-Chorus]**\nAll of that running, all of that strain,\nAll of those stories rehearsing the pain\u2014\nI reached for the handle expecting a fight...\n\nIt opened.\n\n**[Chorus]**\n**THE GATES WERE NEVER LOCKED.**\nI was waiting for a key.\nHad the whole wide world ahead,\nHad the warden inside me.\n\n**THE GATES WERE NEVER LOCKED.**\nAll that thunder, all that talk\u2014\nFear can paint a prison,\nBut it cannot stop the walk.\n\nPush once.\nStep through.\nSee what the light does.\nI thought freedom had to find me\u2014\n**I just had to rise up.**\n\n**[Verse 2]**\nNow I don't bow to the first thing I feel,\nFeeling is weather\u2014it isn't the wheel.\nStorm in my skull? Let it thunder, then pass.\nI steer by the compass, not clouds in the glass.\n\nWise mind, wide eyes, both feet on the ground,\nBreathe through the noise till the signal gets found.\nFacts over fiction, intention over fear,\nOne clean decision can change a whole year.\n\nI used to need certainty carved into gold,\nNow I move carefully even when cold.\nCourage ain't knowing the ending beforehand\u2014\nCourage is moving with doubt in your hand.\n\nAnd winning ain't proving the doubters were wrong,\nWinning is learning you belonged all along.\nWinning is opening doors as you climb,\nThen holding them open for somebody behind.\n\n**[Pre-Chorus]**\nSo if there's a wall where your daylight should be,\nDon't worship the wall\u2014check what you can see.\nDon't bleed on a barrier built out of thought...\n\n**Try the lock.**\n\n**[Chorus]**\n**THE GATES WERE NEVER LOCKED.**\nI was waiting for a key.\nHad the whole wide world ahead,\nHad the warden inside me.\n\n**THE GATES WERE NEVER LOCKED.**\nAll that thunder, all that talk\u2014\nFear can paint a prison,\nBut it cannot stop the walk.\n\nPush once.\nStep through.\nSee what the light does.\nI thought freedom had to find me\u2014\n**I just had to rise up.**\n\n**[Bridge \u2014 piano drops almost alone]**\nMaybe the mountain is massive.\nMaybe the road really hurts.\nMaybe some chains are actual chains,\nAnd breaking them takes real work.\n\nBut never let fear forge another\nAnd fasten it onto your name.\nSeparate fact from the prophecy\u2014\nThen walk through whatever remains.\n\nOne breath.\nOne truth.\nOne deliberate move.\nNo prophecy needed\u2014\nJust something to prove.\n\nNot to them.\n\n**To you.**\n\n**[Final Chorus \u2014 huge choir]**\n**THE GATES WERE NEVER LOCKED.**\nHear the hinges when they swing.\nEvery step beyond the boundary\nMakes another spirit sing.\n\n**THE GATES WERE NEVER LOCKED.**\nLet the old illusion fall.\nFreedom isn't feeling fearless\u2014\n**Freedom's moving through it all.**\n\nPush once.\nBreak through.\nBring everybody up.\nTurn the keys into a kingdom,\nTurn the scars into enough.\n\nNo cage.\nNo crown\nCan tell me where I stop.\n\nI finally touched the doorway\u2014\n\n**THE GATES\nWERE\nNEVER\nLOCKED.**",
+          "type": "gen",
+          "duration": 240.56,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "film_strip",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-11T00:50:01.562Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic trap, alternative R&B",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 0,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 3.0,
+      "created_at": "2026-08-13T00:17:08.324Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "Rich Before the Money",
+        "play_count": 23,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "93fb0500-2724-45da-b433-0e23c65046ef",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/93fb0500-2724-45da-b433-0e23c65046ef.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/93fb0500-2724-45da-b433-0e23c65046ef.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/93fb0500-2724-45da-b433-0e23c65046ef.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_93fb0500-2724-45da-b433-0e23c65046ef.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_93fb0500-2724-45da-b433-0e23c65046ef.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "Piano-dominant cinematic melodic trap, 94 BPM, built like a timeless stadium anthem. Open with haunting concert-grand piano: unforgettable minor-key motif, huge resonance, intimate tension. Then hit with monstrous clean 808s, hard kicks, crisp snares, triplet hats and RAP-FIRST male vocals: elastic Atlanta melodic flow, emotional rasp, rapid internal rhymes, slick pauses, stacked ad-libs, effortless swagger. Female vocal enters like a powerhouse soul pianist: rich belts, graceful runs, gospel-sized harmonies. Thread in luminous late-night progressive-house energy\u2014glassy arps, sidechained pads, filtered rises, subtle four-on-floor pulse\u2014while piano remains the emotional spine. Make \u201cRICH BEFORE THE MONEY\u201d a colossal, instantly memorized hook. Final climax: thunderous piano octaves, 808s, strings, soaring female vocals, stacked choir, trap drums and euphoric midnight synth lift. Luxurious, hungry, grateful, victorious, goosebumps.\n",
+          "prompt": "# Rich Before the Money\n\n**[Intro]**\nBefore the bands, before the brand,\nbefore the bright lights knew my name\u2014\nI had breath inside my body,\nI had blood inside my veins.\nTurns out I had plenty.\n\n**[Verse 1]**\nSun spilling gold through a slit in the shade,\nsteam from the coffee, another day made,\nfeet on the floor and a roof overhead,\nfood in the fridge and a dream in my head.\n\nPhone full of people who pick up at two,\nfriends know my flaws and still follow me through,\nfamily calling just checking I\u2019m straight\u2014\nfortune was hiding in plain sight all day.\n\nChasing the chain, chasing change, chasing cheers,\nmeasuring miracles yearly in tiers,\nwhile the wind through the window kept whispering clear:\n\u201cYou got somebody who loves you\u2014your treasure is here.\u201d\n\nStars for a ceiling, songs for the stress,\nscars saying somehow I survived every mess,\nheart that could hurt, heal, hope and progress\u2014\nI was begging for more while already blessed.\n\n**[Pre-Chorus]**\nCounted every dollar that I didn\u2019t possess,\nnever counted every \u201ccall me if you\u2019re stressed.\u201d\nCounted every door that slammed in my face,\nnever counted every morning arriving with grace.\n\n**[Chorus]**\nI was **rich before the money,**\nrich before the racks,\nrich when all I had was hope\nand a little gas in the tank.\n\nRich with the rain running,\nrich with the sun above me,\nrich with a table\nand somebody who loved me.\n\n**Rich before the money.**\nBefore the gold, before the glory,\nbefore the whole world heard my story\u2014\nI had love, I had life,\nI had more than enough for me.\nI was **rich before the money.**\n\n**[Verse 2]**\nClean cold water\u2014what\u2019s richer than that?\nLaugh so hard that you lean all the way back.\nDog by the doorway, dusk going dark,\nmoon on the windshield and miles in the heart.\n\nFresh pair of socks and a song hitting right,\nsafe trip home through the soft city lights,\nsomebody texting me, \u201cTell me you\u2019re fine,\u201d\nall of these diamonds that never get mined.\n\nWe want bigger, brighter, better, more\u2014\nmore square feet, more seats, more keys, more doors,\nbut a mansion means nothing when peace packs its bags,\nand a million means little when love never lasts.\n\nGive me good people and give me good purpose,\ngive me the grit when the work feels worthless,\ngive me the wisdom to notice what\u2019s working\u2014\nwealth isn\u2019t wealth if your spirit stays starving.\n\n**[Pre-Chorus]**\nCount every kindness, count every call,\ncount every hand that reached when you\u2019d fall.\nCount every breath you were never guaranteed\u2014\nsuddenly enough starts looking like everything.\n\n**[Bridge]**\nIf all the glitter disappeared tonight,\nleave me love, leave me light.\nLeave me laughter round a kitchen table,\nleave me strength enough to know I\u2019m able.\n\nLeave me stars when the streetlights fade,\nleave me peace that a price can\u2019t pay.\nFortunes fall and fortunes flee,\nbut what is priceless stays with me.\n\n**[Rap Build]**\nBig bank someday\u2014beautiful, bring it,\nbut I won\u2019t let a balance determine my spirit.\nBuild big buildings, buy brilliant things,\nstill know breakfast with family can feel like a kingdom.\n\nBread breaking, belly laughing, breeze in the trees,\nbare feet, back porch, being at peace.\nBlessed with a breath and the freedom to breathe\u2014\nwhat billionaire buys one more heartbeat guaranteed?\n\nNo receipt for relief.\nNo price tag on peace.\nNo market for memories.\nNo lease on belief.\n\nWhen success comes dressed in diamonds and drums,\nI\u2019ll remember exactly where all of this begun:\nnot a vault, not a yacht, not applause from a crowd\u2014\njust being alive and awake enough to notice it now.\n\n**[Final Chorus]**\nI was **RICH BEFORE THE MONEY,**\nrich before the fame,\nrich when nobody knew me,\nstill had love beside my name.\n\nRich with the rain running,\nrich with the sun above me,\nrich with these scars, these stars,\nthese arms around me.\n\n**RICH BEFORE THE MONEY,**\nbefore the gold, before the glory,\nbefore the whole world heard my story.\nI had breath, I had love,\nI had life pouring through me.\n\nAnd if the millions come tomorrow,\nI\u2019ll thank God\u2014but they won\u2019t define me.\n\n**Rich before the money.\nRich before the money.**\n\nTurns out\u2014\n**I had plenty.**",
+          "type": "gen",
+          "duration": 287.16,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "polaroid",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-13T18:03:27.029Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "cinematic melodic trap, progressive house",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 0,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 6.0,
+      "created_at": "2026-08-13T18:13:45.206Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "Victory With Nobody Dead",
+        "play_count": 20,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "53f426e7-10a5-4b95-bc2b-13940108e53c",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/53f426e7-10a5-4b95-bc2b-13940108e53c.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/53f426e7-10a5-4b95-bc2b-13940108e53c.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/53f426e7-10a5-4b95-bc2b-13940108e53c.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_53f426e7-10a5-4b95-bc2b-13940108e53c.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_53f426e7-10a5-4b95-bc2b-13940108e53c.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "# Suno Style Prompt\n\nCinematic piano-led melodic rap anti-war anthem, ~92 BPM, minor-key verses resolving into a luminous major-feeling chorus. Intimate male rap vocal: gritty, agile, emotionally controlled, dense internal rhymes and conversational cadence. Powerful soulful female vocalist on pre-choruses/choruses with soaring sustained notes and gospel-scale conviction. Start with lonely felt piano and distant atmospheric choir, then deep clean 808s, crisp trap drums, subtle strings, warm analog synth pads and restrained electronic pulses. Chorus must be enormous and instantly memorable around \u201cI want a win where nobody dies / victory with nobody dead.\u201d Build continuously: sparse verse \u2192 towering duet \u2192 stripped piano bridge \u2192 explosive final chorus with choir, orchestral lift and tasteful euphoric progressive-house atmosphere. Serious, humane, defiant, hopeful; no cheesy patriotism, no melodrama. Radio-level mix, cinematic dynamics, unforgettable hook.\n",
+          "prompt": "# Victory With Nobody Dead\n\n**[Intro \u2013 piano, distant choir]**\nWhat if the bravest battle\nwas the one we never had?\nWhat if the greatest victory\nsent every soldier back?\n\n**[Verse 1 \u2013 rap]**\nThey said pick a side, I said pick up the pieces,\nPeace got a price, but revenge never ceases.\nPreachers preach peace while the presidents posture,\nFamilies fracture while the cameras capture.\nMaps get marked by a man in a room,\nThen a mother gets flowers where a son used to bloom.\nMedals on a mantle, names carved in granite,\nEverybody screaming they\u2019re defending the planet.\n\nBut tell me who won when the playground burned?\nWho gained ground when the children never returned?\nWho conquered what when the hospitals fell?\nIf victory looks like this, victory looks like hell.\n\n**[Pre-Chorus \u2013 female vocal]**\nBring them home, bring them home,\nLet the babies grow old.\nLet the stories get written\nwithout names carved in stone.\n\n**[Chorus \u2013 massive duet]**\n**I want a win where nobody dies,**\nNo smoke in the sun, no fire in the skies.\nNo mother on the phone asking heaven why,\nNo folded-up flag where her child should lie.\n\n**Give me a victory with nobody dead,**\nBread on the table, not bloodshed instead.\nHands held high but no guns overhead\u2014\n**That\u2019s my kind of victory: nobody dead.**\n\n**[Verse 2 \u2013 rap]**\nReal strength ain\u2019t rage, real power is patience,\nTalk through the tension, transform the nations.\nCourage is calling when hatred says hide,\nFinding some humanity over the divide.\n\nThe enemy eats, the enemy sleeps,\nThe enemy laughs and the enemy weeps.\nThe enemy\u2019s daughter draws stars on a page,\nThe enemy\u2019s father gets scared and gets aged.\n\nSame little heartbeat, same oxygen breath,\nSame desperate instinct to bargain with death.\nDifferent translation, identical prayer:\n\u201cPlease bring my family home from out there.\u201d\n\nSo cancel the countdown, cut through the pride,\nPut diplomats deep where the missiles would ride.\nIf somebody tells me compassion is weak,\nI\u2019ll tell \u2019em restraint takes the strength of the meek.\n\n**[Pre-Chorus]**\nBring them home, bring them home,\nEvery daughter, every son.\nThe greatest war we\u2019ll ever win\nis the war that never comes.\n\n**[Chorus]**\n**I want a win where nobody dies,**\nNo smoke in the sun, no fire in the skies.\nNo mother on the phone asking heaven why,\nNo folded-up flag where her child should lie.\n\n**Give me a victory with nobody dead,**\nBread on the table, not bloodshed instead.\nHands held high but no guns overhead\u2014\n**That\u2019s my kind of victory: nobody dead.**\n\n**[Bridge \u2013 stripped piano / female lead]**\nWhat if mercy made the headlines?\nWhat if treaties topped the charts?\nWhat if leaders measured greatness\nby the number of beating hearts?\n\nNo revenge passed down like inheritance,\nNo child taught an ancient arrogance.\nLet tomorrow wake without yesterday\u2019s debt\u2014\nForgive what we can.\nPrevent what comes next.\n\n**[Final Rap \u2013 drums build]**\nLet the tanks turn tractors, let the trenches grow trees,\nLet the factories manufacture medicine and peace.\nLet the pilots fly people safely back home,\nLet the drones shoot movies, let the battlefields grow.\n\nSpend the billions on bridges, on bedrooms, on bread,\nOn keeping people living instead of counting the dead.\nCall me na\u00efve\u2014I\u2019d rather be that\nThan clever enough to make a cemetery map.\n\nWe\u2019ve mastered destruction, now master restraint,\nMake peace look powerful, make mercy look great.\nThe hardest flex left on this planet instead\nIs winning the whole thing\u2014\n\n**with nobody dead.**\n\n**[Final Chorus \u2013 huge choir + rap ad-libs]**\n**I want a win where nobody dies,**\nNo smoke in the sun, no fire in the skies.\nEvery mother gets her child back alive,\nEvery enemy becomes somebody we survived **with**.\n\n**Give me a victory with nobody dead,**\nHope in the heart and a roof overhead.\nStars still shining when the history gets read\u2014\n**That\u2019s my kind of victory: nobody dead.**\n\nNobody dead.\nEverybody fed.\nNobody dead.\nLet tomorrow live instead.\n\n**Nobody dead.**",
+          "type": "gen",
+          "duration": 279.4,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "cyanotype",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-13T22:19:15.945Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic rap, trap, progressive house",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 0,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 7.0,
+      "created_at": "2026-08-13T22:41:33.043Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "",
+        "play_count": 20,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "c01979ee-3b98-4128-b9b8-ee31c5c0750c",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/c01979ee-3b98-4128-b9b8-ee31c5c0750c.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/c01979ee-3b98-4128-b9b8-ee31c5c0750c.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/c01979ee-3b98-4128-b9b8-ee31c5c0750c.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_c01979ee-3b98-4128-b9b8-ee31c5c0750c.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_c01979ee-3b98-4128-b9b8-ee31c5c0750c.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "# Suno Style Prompt\n\nCinematic, emotionally devastating melodic trap anthem with warm gospel-soul undertones, 92 BPM, minor-key verses resolving into a radiant major-feeling chorus. Intimate human male rap-singer: textured, imperfect, breathy, conversational, subtle vocal cracks and ad-libs\u2014never robotic or over-Auto-Tuned. Grand piano leads everything; enormous clean sub-808s, punchy half-time drums, crisp hats, restrained strings, distant choir, atmospheric synth glow. Verses start sparse and deeply personal, then build relentlessly. Female soul vocalist enters only for select harmonies and the final chorus, soaring but elegant. Make \u201cBECOME THE PERSON YOU NEEDED\u201d an unforgettable stadium-sized hook. Dramatic silence before the final drop, then massive piano octaves, choir, bass and layered vocals. Inspirational without sounding cheesy: powerful, streetwise, vulnerable, timeless, cinematic, goosebumps-inducing, pristine mix, huge subwoofer impact.\n",
+          "prompt": "# Become the Person You Needed\n\n**[Intro]**\nI used to ask the dark, \u201cWhy\u2019d you pick me?\u201d\nNow I ask the light, \u201cWho can I help see?\u201d\nEvery scar got a story, every story got a seed\u2014\nI became the kind of person that I used to need.\n\n**[Verse 1]**\nIf I needed someone patient, I can practice being still,\nif I needed someone honest, I can tell it even when it kills\nmy pride, not my purpose\u2014let the ego lose its seat,\nI don\u2019t gotta win the argument to leave with peace.\n\nIf I needed reassurance, I can give somebody grace,\nif I needed someone listening, I can slow my own pace.\nEverybody got a battle they don\u2019t broadcast on the screen,\nso I\u2019m softer with the stranger, stronger with the mean.\n\nThoughts can knock, they don\u2019t own my home,\nfeelings get a voice, but they don\u2019t hold the throne.\nPause, breathe, choose\u2014let the wiser mind lead,\nI\u2019m becoming every person that I once prayed I\u2019d meet.\n\n**[Pre-Chorus]**\nWhat hurt me doesn\u2019t have to hurt through me,\nwhat burned me doesn\u2019t get to become what I breathe.\nI can break the chain without breaking a soul\u2014\nturn the pain into purpose, turn the pressure into gold.\n\n**[Chorus]**\n**Become the person you needed,**\ngive the love you were pleading for.\nHold the door, hold your word,\nhold a heart when it hits the floor.\n\n**Become the person you needed,**\nbe the proof that the cycle can cease.\nLeave more light than you borrowed,\nleave more love, leave more peace.\n\nIf you needed somebody\u2014**be somebody.**\nIf you needed belief\u2014**believe.**\nEvery day I\u2019m becoming\nthe person I needed to see.\n\n**[Verse 2]**\nReal strength ain\u2019t loud, real power repairs,\nreal wealth is having enough heart left to share.\nTip well, speak well, make room at the table,\nhelp somebody stand when you know that you\u2019re able.\n\nKeep the promise when nobody checks,\ngive respect before demanding respect.\nPick the trash up, call your people, feed a soul,\nlittle good deeds compound till the little gets whole.\n\nAnd when anger comes knocking like thunder at night,\nI don\u2019t hand it my mouth just because it feels right.\nName it, tame it, breathe before the flame spreads\u2014\nI can choose my next action, not obey what my brain says.\n\nWhen I\u2019m wrong, I can say it: \u201cYeah, that one was mine.\u201d\nNo excuses dressed fancy, no defensive disguise.\n\u201cSorry\u201d ain\u2019t surrender when repair is the aim\u2014\naccountability\u2019s courage with humility\u2019s name.\n\n**[Pre-Chorus]**\nWhat hurt me doesn\u2019t have to hurt through me,\nwhat burned me doesn\u2019t get to become what I breathe.\nI can break the chain without breaking a soul\u2014\nturn the pain into purpose, turn the pressure into gold.\n\n**[Chorus]**\n**Become the person you needed,**\ngive the love you were pleading for.\nHold the door, hold your word,\nhold a heart when it hits the floor.\n\n**Become the person you needed,**\nbe the proof that the cycle can cease.\nLeave more light than you borrowed,\nleave more love, leave more peace.\n\n**[Bridge \u2014 Piano Drops Bare]**\nListen first.\nSpeak with care.\nTell the truth.\nAlways share.\n\nProtect the small.\nForgive, but learn.\nGive what you can.\nLet kindness return.\n\nBuild, don\u2019t break.\nBless, don\u2019t boast.\nLove the lonely.\nFeed the hope.\n\nAnd when you can\u2019t fix the whole damn world tonight\u2014\nmake one corner kinder.\nThat still counts as light.\n\n**[Final Chorus \u2014 Huge]**\n**Become the person you needed,**\nmake your history useful somehow.\nYou can\u2019t rewrite every yesterday,\nbut you\u2019re writing tomorrow right now.\n\n**Become the person you needed,**\nlet your character speak when you leave.\nNot what you owned, not who knew you\u2014\nbut who stood taller because you believed.\n\nIf you needed somebody\u2014**be somebody.**\nIf you needed some mercy\u2014**give.**\nLeave more light than you borrowed\u2014\nthat\u2019s a beautiful reason to live.\n\n**[Outro]**\nOne better choice.\nOne kinder deed.\nOne promise kept.\nOne person freed.\n\nI stopped asking the world\nfor everything I didn\u2019t receive.\n\nNow I\u2019m becoming\nthe person\nI needed\nto meet.",
+          "type": "gen",
+          "duration": 266.76,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "cyanotype",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-14T21:53:21.514Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic trap, gospel-soul, cinematic",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 1,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 10.0,
+      "created_at": "2026-08-14T21:59:50.031Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "Hate Dies Here",
+        "play_count": 18,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "01f63310-cc8d-4608-b981-8482e128ae0b",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/01f63310-cc8d-4608-b981-8482e128ae0b.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/01f63310-cc8d-4608-b981-8482e128ae0b.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/01f63310-cc8d-4608-b981-8482e128ae0b.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_01f63310-cc8d-4608-b981-8482e128ae0b.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_01f63310-cc8d-4608-b981-8482e128ae0b.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "92 BPM cinematic street-rap anthem in a dark minor key. Make the low end absolutely ridiculous: ultra-clean subwoofer-dominant 808s, deep sustained bass pressure, hard chest-punch kicks, crisp snares, tight triplet hats, massive drops with real silence before impact. Haunting grand piano leads the harmony, backed by ominous strings, restrained brass, distant gospel choir, and subtle atmospheric textures. Verses rotate between commanding low-register boss rap, gritty aggressive street cadence, and nimble melodic trap flows packed with internal rhyme and swagger. Chorus erupts into a huge soulful female vocal with powerful piano, gospel harmonies, and a stadium crowd chanting \u201cHATE DIES HERE.\u201d Dark, expensive, emotional, triumphant\u2014not preachy. Keep verses spacious so every bar lands. Wide cinematic stereo image, crystal-clear vocals, enormous mono-compatible subs, polished modern mastering. Final chorus should feel apocalyptic, victorious, and unforgettable.\n",
+          "prompt": "# HATE DIES HERE\n\n**[Intro]**\nYeah\u2014\nBring that bitterness to the border,\nbring that venom to the venue,\nbring that poison to the pavement\u2014\nit ain\u2019t passin\u2019 through.\n\n**Hate dies here.**\n\n**[Verse 1]**\nThey been passin\u2019 down pain like a family name,\nsame small spite in a brand-new frame,\nsame cheap shots, same blame-game flame,\nwhole bloodline burnin\u2019 and nobody changed.\n\nNah, not me\u2014I\u2019m breakin\u2019 that chain,\ncut that cord, let compassion reign,\nyou can bark that bias, broadcast blame,\nI won\u2019t let your poison get packed in my veins.\n\nBig-mouth bully with a bargain-bin grudge,\ntalkin\u2019 real tough but your heart won\u2019t budge,\njudgin\u2019 whole lives off a look and a label,\nbro, that weak little worldview barely stays stable.\n\nYou can spit that slick disrespect for clout,\nhate gets hungry when you hand it a route.\nSo I shut that shit down, no scenic detour\u2014\nyou brought hate to my gate?\nIt don\u2019t leave here anymore.\n\n**[Pre-Chorus]**\nNo pass, no platform, no place in my crew,\nno recycled rage gettin\u2019 routed on through.\nIf somebody taught you everybody\u2019s your foe,\nyou can unlearn that garbage\u2014\nwe grow.\n\n**[Chorus]**\n**HATE DIES HERE.**\nYeah, the line gets drawn right here.\nAll that fear dressed tough disappears right here.\nBring that venom, that vicious veneer\u2014\nbut the buck stops, bruh\u2014\n\n**HATE DIES HERE.**\n\nNo hand-me-down hatred, no heirloom fear,\nno \u201cmy people versus yours\u201d in another kid\u2019s ear.\nWe ain\u2019t sendin\u2019 that sickness to another damn year\u2014\nchain breaks, game changes\u2014\n\n**HATE DIES HERE.**\n\n**[Verse 2]**\nHate loves hype, hashtags, heat,\nhalf-truth headlines on a hundred feeds,\nquick-click conflict, comment-section carnage,\neverybody actin\u2019 savage like compassion ain\u2019t solid.\n\nNah, fam\u2014kindness got backbone too,\nmercy ain\u2019t soft when the mob wants blood from you.\nTakes guts to go, \u201cNah, I ain\u2019t hatin\u2019 that dude\njust \u2019cause somebody viral said that\u2019s what we do.\u201d\n\nI seen slick little slurs turn friends into factions,\none dumb word turn hurt into actions.\nWords got weight, every phrase got traction\u2014\nmouth move first, then the whole world fractures.\n\nSo check that chatter before chatter checks you,\nbefore disrespect becomes what they expect you to do.\nYou ain\u2019t gotta inherit every ignorant view\u2014\nold-school hatred?\nWe makin\u2019 that obsolete too.\n\n**[Chorus]**\n**HATE DIES HERE.**\nYeah, the line gets drawn right here.\nAll that fear dressed tough disappears right here.\nBring that venom, that vicious veneer\u2014\nbut the buck stops, bruh\u2014\n\n**HATE DIES HERE.**\n\nNo hand-me-down hatred, no heirloom fear,\nno \u201cmy people versus yours\u201d in another kid\u2019s ear.\nWe ain\u2019t sendin\u2019 that sickness to another damn year\u2014\nchain breaks, game changes\u2014\n\n**HATE DIES HERE.**\n\n**[Verse 3]**\nI don\u2019t need everybody thinkin\u2019 like me,\nsame faith, same face, same flag, same scene.\nDifference ain\u2019t danger, disagreement ain\u2019t beef,\nwe can clash on the facts without crushin\u2019 somebody\u2019s peace.\n\nThat\u2019s grown-man energy, grown-woman grace,\nsay what you mean without dehumanizin\u2019 a face.\nReal ones reason, weak ones rage\u2014\nI\u2019d rather build one bridge than burn ten stages.\n\nBlack, white, brown, rich, broke, strange,\npray different prayers, talk different slang\u2014\neverybody got somebody they\u2019d die to defend,\neverybody been shattered, everybody gotta mend.\n\nSo miss me with the \u201cus versus them\u201d gimmick,\nthat dusty division got a tired-ass limit.\nWe can disagree heavy and still keep dignity in it\u2014\nthat\u2019s strength, my guy.\nPut some humanity in it.\n\n**[Bridge]**\nMy father\u2019s fear doesn\u2019t have to be mine.\nMy mother\u2019s wounds don\u2019t determine my mind.\nMy neighborhood\u2019s anger don\u2019t own my design.\nI can love my own people\nwithout hatin\u2019 your kind.\n\nIf hate came knockin\u2019 before I was born,\nI can still be the house where the habit gets torn.\nI can be the last link, last lie, last thorn\u2014\nturn generational grief\ninto a different dawn.\n\n**[Breakdown]**\nWho taught you hate?\nWho made you scared?\nWho got paid\nevery time you stared\nat another human like they shouldn\u2019t be there?\n\nNah. Look again.\n\nThat\u2019s somebody\u2019s baby,\nsomebody\u2019s brother,\nsomebody\u2019s sister,\nsomebody\u2019s mother.\n\nDifferent story. Same storm.\nSame tears when a loved one\u2019s gone.\n\n**[Final Chorus]**\n**HATE DIES HERE.**\nPut the whole damn world on notice this year.\nManufactured madness disappears right here.\nNo slur gets a successor, no prejudice heir\u2014\n\n**HATE DIES HERE.**\n\nLet the next generation inherit somethin\u2019 clear:\nmore love, less labels, more truth, less fear.\nWe can bury that bullshit we been draggin\u2019 for years\u2014\nchain breaks, hearts change\u2014\n\n**HATE DIES HERE.**\n\nNot tomorrow.\nNot someday.\nRight here.\n\nNo forwarding address.\nNo next generation.\nNo encore.\n\nLet that hatred hit the floor\u2014\n**and die here.**",
+          "type": "gen",
+          "duration": 304.6,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "camcorder",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-14T16:16:02.055Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "cinematic street-rap, trap, soul",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 1,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 12.0,
+      "created_at": "2026-08-15T00:20:25.671Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "Grace Under Pressure",
+        "play_count": 20,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "36b5c7aa-4540-4671-a500-31e1c63364b2",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/36b5c7aa-4540-4671-a500-31e1c63364b2.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/36b5c7aa-4540-4671-a500-31e1c63364b2.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/36b5c7aa-4540-4671-a500-31e1c63364b2.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_36b5c7aa-4540-4671-a500-31e1c63364b2.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_36b5c7aa-4540-4671-a500-31e1c63364b2.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "Cinematic piano-heavy melodic trap / conscious hip-hop anthem, dark, spiritual, defiant, emotionally intelligent, 92 BPM, minor key. Open with huge felt grand piano chords, intimate male vocal, distant choir, vinyl air, and massive negative space. Bring in an aching live tenor saxophone answering the vocal between lines, then let the sax soar in transitions and the final chorus. Bass must be enormous: extremely deep, clean sub-bass and chest-rattling 808s, loud and physical but never muddy, with crisp punchy kicks and restrained trap drums. Male lead should sound deeply human, weathered, controlled, passionate\u2014not robotic\u2014with crystal-clear lyrics. Female gospel/soul harmonies rise in the pre-chorus. Verses feel philosophical and confrontational; chorus becomes unforgettable, melodic, triumphant, and heartbreaking. Bridge nearly collapses to solo piano + breathy sax. Final chorus explodes into grand piano, thunderous subwoofer bass, live sax, strings, cinematic drums, gospel choir",
+          "prompt": "**[Intro \u2014 Male Lead, sparse piano]**\nIf Heaven\u2019s holy, why it feel like martial law?\nWhy mercy disappear the minute pressure calls?\nI\u2019m not asking for a throne, I\u2019m asking what I saw\u2014\nIf power means perfection, then perfection needs a pause.\n\n**[Verse 1 \u2014 Male Lead, controlled melodic rap]**\nYou taught us turn the cheek, tell truth, forgive,\nLeave room for every wounded soul to live.\nBut when the stakes rise high and the sirens start,\nDoes Heaven trade its halo for a harder heart?\n\nOrders from above, everybody fall in line,\nSacred surveillance like the stars became the signs.\nFear dressed as faith, force dressed as fate,\n\u201cTrust the greater plan\u201d while they\u2019re locking every gate.\n\nBut leadership ain\u2019t domination dressed in white,\nGrace means keeping grace when you\u2019re terrified at night.\nAnybody can be gentle when the garden\u2019s going great\u2014\nCharacter gets counted when catastrophe awaits.\n\n**[Pre-Chorus \u2014 Female Vocal, piano rising]**\nIf love is really endless, let it live beneath the strain,\nLet mercy keep its meaning when the whole sky screams in pain.\nWe learned the lesson Heaven gave\u2014now Heaven, do the same:\nPower without compassion only magnifies the flame.\n\n**[Chorus \u2014 Male + Female, huge melodic lift]**\nMaybe we can teach God grace,\nNot with hate, but face to face.\nIf Heaven feels like martial law,\nLet love repeal the fear in all.\n\nBecause half this world looks close to hell\u2014\nChildren under bombs and shells,\nFamilies erased, whole cities scarred\u2014\nHow can \u201cgreat\u201d look this damn hard?\n\nIf You\u2019re greater, then be greater still,\nChoose mercy when You could choose will.\nNo crown should make compassion small\u2014\nThe highest power should love us all.\n\n**[Verse 2 \u2014 Male Lead, harder drums]**\nGenocide beneath a blue and beautiful sky,\nMothers learning names they never should\u2019ve had to cry.\nMass graves, burned homes, borders drawn in blood,\nWhile prayers rise upward through the ash and through the mud.\n\nSo forgive the question if the question comes severe:\nIf God is truly greatness, why\u2019s creation drowning here?\nNot saying every tragedy was authored by Your hand\u2014\nI\u2019m saying unexplained suffering deserves more than \u201cunderstand.\u201d\n\nMaybe freedom has a cost, maybe humans make the blade,\nMaybe Heaven doesn\u2019t cause each evil choice that people make.\nStill, if You can lead the leaders, if You whisper through the dark,\nTeach restraint before revenge becomes somebody\u2019s sacred spark.\n\n**[Bridge \u2014 Nearly silent, female vocal]**\nWe don\u2019t need perfection proved through punishment.\nWe need power brave enough to practice tenderness.\nNo manipulation.\nNo coercion dressed as care.\nNo \u201cgreater good\u201d that makes the innocent despair.\n\n**[Male Lead]**\nYou told us love our enemies.\nWe listened.\nYou told us mercy triumphs.\nWe remembered.\nYou told us pride can poison kings.\n\nSo if Heaven ever trembles\u2014\nremember too.\n\n**[Final Chorus \u2014 Orchestra, choir, massive drums]**\nMaybe we can teach God grace,\nHold the mirror, hold our place.\nIf Heaven feels like martial law,\nLet mercy be the higher law.\n\nWhen half the earth resembles hell,\nWe don\u2019t look away, we break the spell.\nFeed the hungry, stop the guns,\nCount each stranger as someone.\n\nIf You\u2019re greater, show what greater means:\nLess control and cleaner hands,\nMore forgiveness, fewer demands,\nTruth without terror, strength without chains\u2014\nA God who keeps His grace when everything strains.\n\n**[Outro \u2014 Future-self / distant choir]**\nMaybe prayer is more than asking to be saved.\nMaybe sometimes prayer says:\n\u201cRemember what You taught us\u2014\nand we\u2019ll remember too.\u201d\n\nGrace under pressure.\nGrace with power.\nGrace when the whole sky shakes.\n\nThat\u2019s when grace becomes grace.",
+          "type": "gen",
+          "duration": 282.44,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "minimal_album_art",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-15T13:23:25.510Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic trap, conscious hip-hop, gospel",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 0,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 13.0,
+      "created_at": "2026-08-15T13:59:14.756Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "If We Met Again",
+        "play_count": 16,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "73e97973-03ad-440e-9f05-4634e0b80de2",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/73e97973-03ad-440e-9f05-4634e0b80de2.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/73e97973-03ad-440e-9f05-4634e0b80de2.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/73e97973-03ad-440e-9f05-4634e0b80de2.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_73e97973-03ad-440e-9f05-4634e0b80de2.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_73e97973-03ad-440e-9f05-4634e0b80de2.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "Cinematic piano-led melodic trap / soul duet, 92 BPM, minor-key verses blooming into a huge uplifting chorus. Warm, expressive female powerhouse vocal with intimate low-register verses, soaring gospel-inflected belts and layered harmonies; realistic melodic male rap vocal with conversational phrasing, subtle grit, emotional restraint, intricate internal rhymes and natural ad-libs. Grand acoustic piano throughout, thunderous ultra-deep clean sub-bass and chest-rattling 808s, crisp trap drums, tight hi-hat rolls, warm analog synth atmosphere, reversed textures, strings and distant choir. Verses spacious and vocal-forward; bass should hit exceptionally hard without muddying the piano. Near-silent piano bridge, then explosive final duet with huge drums, stacked harmonies, orchestra and gospel choir. Romantic, timeless, cinematic, human, addictive hook, crystal-clear lyrics, enormous low end.\n",
+          "prompt": "[INTRO \u2014 FEMALE, SOLO PIANO]\n\nIf the whole world washed my memory clean,\nNo photographs, no proof we'd ever been,\nIf you walked by like somebody brand-new\u2026\nWould something in my soul still turn to you?\n\n[VERSE 1 \u2014 MALE, MELODIC RAP]\n\nIf we met again, no names, no past,\nNo pain in the frame, no flame that lasts,\nJust two strangers crossing through a crowded room,\nWould my eyes find yours like the tide finds moon?\n\nWould I crack that smile? Would you catch that clue?\nWould the bass hit hard when I looked at you?\nWould my chest go boom with a truth I can't prove?\nLike, \u201cI don't know this girl, but I know this groove.\u201d\n\nNo history, mystery, memory missing,\nStill feel electricity every time we're grinning,\nMaybe love ain't files that the mind keeps spinning,\nMaybe hearts keep score when the head quits listening.\n\nI'd probably play cool, probably talk too slick,\nYou'd probably see through every trick real quick,\nI'd say, \u201cWhat you doing?\u201d You'd laugh like, \u201cPlease,\u201d\nThen somehow we're talking till a quarter past three.\n\n[PRE-CHORUS \u2014 FEMALE]\n\nIf every chapter disappeared tonight,\nWould we still somehow read between the lines?\nNo map, no memory, no reason why\u2014\nWould your heart recognize mine?\n\n[CHORUS \u2014 BOTH]\n\nIf we met again, would you fall for me?\nWould I fall for you like gravity?\nDifferent day, different street, different life, different view,\nI think I'd still find my way back to you.\n\nIf we met again with nothing to explain,\nNo old photographs, no familiar names,\nI'd choose your laugh, your light, your truth\u2014\nI think I'd choose you every life I move through.\n\nEvery life, every time, every road, every view,\nLose the memories\u2014I still think I'd love you.\n\n[VERSE 2 \u2014 FEMALE]\n\nMaybe we'd meet where the midnight trains run,\nMaybe beneath some impossible sun,\nMaybe you're broke, maybe I'm doing fine,\nMaybe we're older in another timeline.\n\nBut I know that kindness behind your eyes,\nEven without knowing the reason why.\nSome things are deeper than dates and details,\nDeeper than stories a photograph tells.\n\nI'd hear your voice and the room might slow,\nSomething inside me would quietly know,\nNot \u201cthis is destiny carved into stone,\u201d\nJust \u201cI feel safer when I'm not alone.\u201d\n\nWe'd build it again, brick after brick,\nChoosing what's real when the feelings get thick,\nNo perfect prophecy, no fairy-tale proof\u2014\nJust patience and presence and telling the truth.\n\n[VERSE 3 \u2014 MALE, BASS DROPS HARD]\n\nYeah\u2014\nNew city, new century, new set of scars,\nSame strange spark underneath different stars,\nCould be no money, no mansion, no car,\nStill I'd pull up wherever you are.\n\nHeart got a compass, yours got a code,\nLove ain't possession, it's choosing the road,\nChoosing to listen when tempers explode,\nChoosing what's true over stories we're told.\n\nI ain't saying every life painless,\nRain still rain and change still changes,\nBut if we start fresh, nameless, stainless,\nI'd learn your language through all your phases.\n\nMaybe that's love\u2014not chains, but choice,\nRoom for your mind, room for your voice,\nTwo whole people making one loud noise,\nStill choosing each other when we got other choices.\n\n[BRIDGE \u2014 FEMALE, NEAR-SILENT PIANO]\n\nErase the first kiss.\nErase the first dance.\nErase every photograph, every romance.\n\nTake every memory heaven could hide\u2026\nThen put you before me for the very first time.\n\nI think my heart would still decide.\n\n[FINAL CHORUS \u2014 BOTH, MASSIVE]\n\nIF WE MET AGAIN, I'D FALL FOR YOU,\nLike the sky falls gold when the daylight's through,\nDifferent name, different age, different world, different view\u2014\nI think I'd still find my way back to you.\n\nIf we met again with the whole slate clean,\nNo clue what we were, no proof what we'd seen,\nI'd choose your laugh, your light, your truth\u2014\nI think I'd choose you every life I move through.\n\n[FEMALE]\nEvery life\u2014\n\n[MALE]\nEvery road\u2014\n\n[FEMALE]\nEvery star\u2014\n\n[MALE]\nEvery soul\u2014\n\n[BOTH]\nIf forever forgot everything we knew,\nI'd meet you as a stranger\u2026\n\nAnd fall in love with you.",
+          "type": "gen",
+          "duration": 260.92,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "camcorder",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-15T21:29:13.282Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic trap, soul, gospel",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 0,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 14.0,
+      "created_at": "2026-08-15T21:38:15.099Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "Myla, Shine On",
+        "play_count": 12,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "aed56101-8b48-49cd-b8a3-7ba863cef28e",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/aed56101-8b48-49cd-b8a3-7ba863cef28e.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/aed56101-8b48-49cd-b8a3-7ba863cef28e.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/aed56101-8b48-49cd-b8a3-7ba863cef28e.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_aed56101-8b48-49cd-b8a3-7ba863cef28e.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_aed56101-8b48-49cd-b8a3-7ba863cef28e.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "# Suno Style Prompt\n\nCinematic piano-led melodic trap / soul anthem about two-year-old Myla growing up strong, proud, kind, and beautiful. Warm intimate female lead with a rich soulful tone, joined by a realistic emotionally controlled male rap-singer for selected verses. Start with gorgeous felt piano, soft strings, subtle vinyl warmth, and huge negative space, then build into crisp modern trap drums, thunderous clean sub-bass, deep 808s, shimmering synths, handclaps, and uplifting orchestral layers. Extremely catchy soaring chorus with stacked female harmonies and subtle gospel choir. Vocals crystal-clear, natural, human, tender, never childish or cheesy. Verses feel like a loving family blessing; chorus should feel triumphant, timeless, and cinematic. Massive final chorus with piano octaves, strings, choir, huge drums, and beautiful bass. Emotional, proud, hopeful, goosebump-inducing.\n",
+          "prompt": "**MYLA, SHINE ON**\n\n[Intro \u2014 Soft Piano, Warm Female Vocal]\nTwo little candles, a whole sky ahead,\nGold in her smile, little curls on her head.\nJason\u2019s birthday, everybody could see\u2014\nMyla walked in like a small sunrise free.\n\n[Verse 1]\nBeautiful baby with a bright little glow,\nTwo years young with a whole world to know.\nTiny shoes tapping, big dreams in her eyes,\nLaughing like daylight under summer-blue skies.\n\nShe doesn\u2019t know yet how far she can fly,\nHow many mountains will melt when she tries.\nHow many moments will make her stand tall,\nHow getting back up means more than the fall.\n\n[Pre-Chorus]\nMay she learn that her voice has a place,\nThat strength can be gentle, and pride can be grace.\nMay she know beauty is more than a face\u2014\nIt\u2019s courage and kindness no time can erase.\n\n[Chorus \u2014 Big, Emotional]\n**Myla, shine on, shine strong, shine bright,**\nWalk with your head high, heart full of light.\nGrow into everything you\u2019re dreaming to be,\nProud of your soul, proud to be free.\n**Myla, stand tall when the hard days arrive,**\nLove who you are and let your spirit thrive.\nBeautiful now, but the best part will be\nThe strong, proud woman that someday we\u2019ll see.\n\n[Verse 2]\nMay she chase questions and challenge the doubt,\nLearn when to listen, learn when to speak out.\nMay she build bridges but guard what she loves,\nKnow she deserves every dream she dreams of.\n\nMay she be fearless enough to be kind,\nStrong enough still to keep changing her mind.\nProud without needing to push others down,\nWearing her character just like a crown.\n\n[Pre-Chorus]\nWhen somebody tells her she can\u2019t, may she grin,\nTake one little step and then start again.\nNot every battle needs fighting to win\u2014\nSometimes the strongest strength starts from within.\n\n[Chorus]\n**Myla, shine on, shine strong, shine bright,**\nWalk with your head high, heart full of light.\nGrow into everything you\u2019re dreaming to be,\nProud of your soul, proud to be free.\n**Myla, stand tall when the hard days arrive,**\nLove who you are and let your spirit thrive.\nBeautiful now, but the best part will be\nThe strong, proud woman that someday we\u2019ll see.\n\n[Bridge \u2014 Piano Drops, Intimate Vocal]\nTwo years old\u2014she can\u2019t see it today,\nAll of the wonderful waiting her way.\nFirst days of school, first dreams she\u2019ll pursue,\nFirst time she learns, *\u201cI can make it through.\u201d*\n\nAnd years from this birthday, wherever she goes,\nMay she remember the love where she rose.\nA little girl glowing, surrounded by smiles\u2014\nWith a whole life of wonder stretching for miles.\n\n[Final Chorus \u2014 Huge Harmonies]\n**Myla, shine on, shine strong, shine bright,**\nCarry your courage straight into the night.\nDream without shrinking, love without fear,\nKnow you are wanted, know you are dear.\n**Myla, grow wild, grow wise, grow free,**\nBecome every beautiful thing you can be.\nStrong in your spirit, proud in your name\u2014\nBeautiful Myla, keep lighting the flame.\n\n[Outro \u2014 Soft Piano]\nTwo little candles\u2026\nA lifetime to go.\nMyla, keep shining\u2014\nAnd watch how you grow.",
+          "type": "gen",
+          "duration": 231.84,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "cyanotype",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-15T23:09:27.678Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic trap, soul, cinematic",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 0,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 15.0,
+      "created_at": "2026-08-15T23:10:00.624Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "The Last Soldier Refused",
+        "play_count": 10,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "5cee31ea-84f3-4004-bcb6-e2746b0df92a",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/5cee31ea-84f3-4004-bcb6-e2746b0df92a.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/5cee31ea-84f3-4004-bcb6-e2746b0df92a.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/5cee31ea-84f3-4004-bcb6-e2746b0df92a.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_5cee31ea-84f3-4004-bcb6-e2746b0df92a.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_5cee31ea-84f3-4004-bcb6-e2746b0df92a.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "```markdown\nCinematic piano-first melodic trap anthem with immense soul, grace, and emotional gravity. Let a rich, commanding grand piano lead the entire record\u2014heavy low-register chords, elegant gospel voicings, dramatic pauses, delicate upper-register runs, and unforgettable recurring motifs. Female lead: powerful, warm, sophisticated soul vocal with gospel depth, graceful phrasing, controlled rasp, soaring belts, intimate vulnerability, and breathtaking piano-vocal chemistry. Male lead: realistic melodic rap with fluid pocket changes, conversational cadence, tightly woven internal rhymes, subtle melodic bends, restrained emotion, natural breaths, and raw human imperfections.\n\nBuild around enormous clean sub-bass and deep, sustained 808s that shake beneath the piano without masking it. Crisp trap drums, sharp hi-hats, sparse snares, haunting strings, warm atmospheric synths, and huge negative space. Keep the verses intimate and bass-heavy; let the piano answer vocal lines",
+          "prompt": "# THE LAST SOLDIER REFUSED\n\n[INTRO \u2014 FEMALE, SOLO PIANO]\n\nOne hand shook, one rifle fell,\nOne soul stepped from a living hell.\nNo booming sky, no blazing fuse\u2014\nJust one brave soldier who refused.\n\n[VERSE 1 \u2014 MALE, MELODIC RAP]\n\nBoots in the mud, blood on the boots,\nTruth getting buried beneath the salutes.\nYoung boys boxed into battles and blues,\nBorn with a future, then forced to choose.\n\nCold commands crack through a crooked connection:\n\u201cMarch toward the smoke in the enemy\u2019s direction.\u201d\nBut across that field through the ash and aggression,\nHe caught one kid\u2019s eyes\u2014and caught his reflection.\n\nSame mama praying, pacing the floor,\nSame father waiting beside the front door,\nSame baby sister saying, \u201cCome home from the war,\u201d\nSame dreams that deserve to be something more.\n\nSame shaking hands, same sweat, same stress,\nSame heart hammering hard in his chest.\nSo he lowered the barrel, let bravery bloom:\n\u201cI won\u2019t turn somebody\u2019s baby to news.\u201d\n\nCommander came crashing: \u201cDo what you\u2019re told!\u201d\nBut courage gets clearer when conscience gets bold.\nHe dropped that rifle, let mercy take hold:\n\u201cI\u2019d rather save souls than surrender my soul.\u201d\n\n[PRE-CHORUS \u2014 FEMALE]\n\nOne gun down\u2026\nThen two touched ground\u2026\nThen ten, then ten thousand\u2014\nNo thunder, no sound.\n\n[CHORUS \u2014 FEMALE LEAD / MALE HARMONIES]\n\nThe last soldier refused to fight,\nDropped all the darkness, defended the light.\nOne little \u201cno\u201d multiplied overnight,\nTill millions stood still and remembered what\u2019s right.\n\nNo more mothers with midnight news,\nNo more children paying powerful dues.\nPeace began when somebody chose:\n\u201cYou can order the war\u2014\nbut my soul can refuse.\u201d\n\n[VERSE 2 \u2014 MALE RAP, DEEPER 808s]\n\nOther side staring through smoke and surprise,\nOne soldier stood with his hands to the skies.\nThen another stepped forward, then five, then fifty,\nFear got fragile when mercy got risky.\n\nSteel started stacking in shimmering rows,\nRifles lay resting where red rivers flowed.\nNo victory screaming, no vengeance to prove,\nJust people with pulses refusing to lose.\n\nLose their love, lose their light,\nLose one more brother to somebody\u2019s fight.\nCan\u2019t make me hate who I never have met,\nCan\u2019t make his children inherit our debt.\n\nPresidents pleading, generals grieving\nFor power that vanished when people stopped believing.\nOrders mean nothing when millions decide\nThat courage is choosing to keep someone alive.\n\nEast and west, every emblem erased,\nEvery enemy finally given a face.\nAnd history wrote what the powerful knew:\nA war needs soldiers\u2014\nand the soldiers withdrew.\n\n[BRIDGE \u2014 FEMALE, SOLO PIANO]\n\nMaybe bravery isn\u2019t a bullet or blade.\nMaybe strength is the life that you save.\nMaybe winning is walking away\nFrom hatred handed from yesterday.\n\nMaybe peace isn\u2019t passive or weak.\nMaybe peace is the bravest we speak.\nMaybe one voice, when honest and true,\nCan give ten million permission to choose.\n\n[BUILD \u2014 MALE]\n\nOne step.\nOne stand.\nOne heart.\nOne hand.\n\nOne weapon down\u2014\nThen weapons worldwide.\n\n[FINAL CHORUS \u2014 MASSIVE DUET]\n\nThe last soldier refused to fight,\nThen millions marched toward mercy and light.\nEvery battlefield fell silent that night\u2014\nNobody conquered,\nbut everybody survived.\n\nNo more mothers with midnight news,\nNo more children paying powerful dues.\nPeace began when somebody chose:\n\u201cYou can order the war\u2014\nbut my soul can refuse.\u201d\n\n[OUTRO \u2014 FEMALE, SOLO PIANO]\n\nOne hand shook.\nOne rifle dropped.\nOne brave \u201cno\u201d\u2026\nAnd the battle stopped.",
+          "type": "gen",
+          "duration": 292.2,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "scribbles",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-17T18:18:41.088Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic trap, gospel, cinematic",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 0,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 17.0,
+      "created_at": "2026-08-17T18:42:03.668Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "Welcome to the Multiverse",
+        "play_count": 8,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "4c4bab60-1713-4674-9ab4-4d0ac87ce163",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/4c4bab60-1713-4674-9ab4-4d0ac87ce163.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/4c4bab60-1713-4674-9ab4-4d0ac87ce163.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/4c4bab60-1713-4674-9ab4-4d0ac87ce163.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_4c4bab60-1713-4674-9ab4-4d0ac87ce163.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_4c4bab60-1713-4674-9ab4-4d0ac87ce163.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "Cinematic piano-heavy melodic trap anthem with a raw, ultra-human male lead using emotional rap-singing, elastic pocket changes, conversational phrasing, rapid internal rhymes, melodic ad-libs and vulnerable streetwise delivery. Pair him with a commanding female soul vocalist centered on grand piano: warm lower register, soaring belts, gospel-inflected harmonies and unforgettable emotional hooks. Start nearly naked\u2014felt piano, breath, distant atmosphere\u2014then introduce gigantic clean 808s, crisp rolling hi-hats, hard kick, restrained strings and dark futuristic synth textures. Verses should feel intimate, urgent and rhythmically unpredictable; female pre-choruses should stop the record emotionally before a massive duet hook: \u201cWELCOME TO THE MULTIVERSE / everybody saving themselves.\u201d Keep piano prominent through every section. Bridge drops to solo female vocal and piano, then male lead re-enters over rising bass. Final chorus becomes hopeful and enormous with octave piano, cinematic drum",
+          "prompt": "**[Intro \u2014 Bare Piano, Male Voice]**\nThey found the fracture.\nThey knew where it started.\nThey knew how to fix it.\n\nThey just asked one question:\n\n\u201cWhat does fixing it cost *me*?\u201d\n\n**[Verse 1 \u2014 Male Rap-Singing]**\nTime bent backward, files came through,\nfuture sent warnings with receipts and proof.\nNames, dates, damage, every domino mapped,\nevery little choice and where the timeline cracked.\n\nDecision-makers sitting with tomorrow on screen,\nwatching whole worlds turn cruel and obscene.\nCould\u2019ve changed one choice, could\u2019ve closed one door,\nbut somebody might lose what they already scored.\n\nSo they weighed one life against leverage and rank,\none city against somebody\u2019s money in the bank.\nOne generation versus one comfortable chair\u2014\nthen called doing nothing \u201cbeing measured and fair.\u201d\n\nEverybody knew. Nobody moved.\nEverybody had something personal to lose.\nSo the future kept screaming through holes in the past,\nwhile the people with power kept protecting their ass.\n\n**[Pre-Chorus \u2014 Female Vocal]**\nOne said, \u201cNot my family.\u201d\nOne said, \u201cNot my fight.\u201d\nOne said, \u201cFixing this could ruin my life.\u201d\nOne by one, they protected their side\u2014\n\nand built a universe where nobody survives right.\n\n**[Chorus \u2014 Huge]**\n**WELCOME TO THE MULTIVERSE,**\neverybody saving themselves.\nEverybody knows what\u2019s broken,\neverybody leaves it for somebody else.\n\n**WELCOME TO THE MULTIVERSE,**\nwhere conscience comes second to cost.\nEvery world could\u2019ve been better,\nbut nobody wanted to personally take the loss.\n\nMe first. Mine first.\nLet the next timeline hurt.\nThat\u2019s how heaven turns hell\nwithout anybody doing the worst.\n\nJust millions doing nothing\nwhen doing something might hurt.\n\n**[Verse 2 \u2014 Male Rap]**\nBranch after branch, the disease gets deep,\npromises cheap and the consequences steep.\nEvery timeline inherits the cowardice before it,\nthen teaches the next generation to ignore it.\n\nPolitician sees truth but election comes first.\nExecutive sees harm but the quarter looks worse.\nScientist sees danger but the funding might vanish.\nJudge knows the wound but says, \u201cNot my jurisdiction to manage.\u201d\n\nNeighbor hears screaming, turns television loud.\nWhole damn planet learns to disappear in a crowd.\nNobody wakes up planning evil at dawn\u2014\nthey just protect their little piece while the whole thing goes wrong.\n\nThat\u2019s the terrifying part, that\u2019s the twist in the knife:\nhell doesn\u2019t always need monsters destroying your life.\nSometimes hell is reasonable people who knew,\nsaying, \u201cYes, this is awful\u2026 but what can **I** do?\u201d\n\n**[Pre-Chorus \u2014 Female Vocal]**\nOne said, \u201cNot my money.\u201d\nOne said, \u201cNot my name.\u201d\nOne said, \u201cSomeone else can carry the blame.\u201d\nTill every branch of reality learned the same game\u2014\n\nsave yourself first, let tomorrow burn in flames.\n\n**[Chorus]**\n**WELCOME TO THE MULTIVERSE,**\neverybody saving themselves.\nEverybody knows what\u2019s broken,\neverybody leaves it for somebody else.\n\n**WELCOME TO THE MULTIVERSE,**\nwhere conscience comes second to cost.\nEvery world could\u2019ve been better,\nbut nobody wanted to personally take the loss.\n\nMe first. Mine first.\nLet the next timeline hurt.\nThat\u2019s how heaven turns hell\nwithout anybody doing the worst.\n\n**[Bridge \u2014 Piano Only, Female Vocal]**\nBut somewhere there has to be\none branch that breaks the chain.\n\nOne person who sees tomorrow\nand chooses somebody else\u2019s pain.\n\nOne hand that signs the paper.\nOne voice that tells the truth.\nOne soul willing to lose something\nso strangers don\u2019t have to lose.\n\n**[Male Rap \u2014 Building]**\nSo send me every timeline, let me study every scar,\nshow me where we traded human hearts for who we are.\nYou don\u2019t need to save infinity in one heroic night\u2014\nyou just stop making selfishness the price of doing right.\n\nMaybe courage costs comfort.\nMaybe mercy costs pride.\nMaybe fixing what\u2019s broken means you lose on your side.\n\nFine.\n\nTake the title.\nTake the table.\nTake the treasure.\nTake the throne.\n\nIf my comfort needs your suffering\u2014\n\n**I don\u2019t want my comfort anymore.**\n\n**[Final Chorus \u2014 Massive]**\n**CHANGE THE MULTIVERSE,**\nsomebody finally goes first.\nSomebody sees what\u2019s broken\nand decides their loss is worth it.\n\n**CHANGE THE MULTIVERSE,**\nmake conscience bigger than cost.\nMaybe every world gets better\nwhen somebody volunteers to take the loss.\n\nUs first. Love first.\nLet the old timeline burst.\nMaybe heaven starts happening\nwhen we reverse the curse.\n\nNot with gods.\nNot with time machines.\n\nWith somebody finally saying\u2014\n\n**\u201cI\u2019ll fix it even if it hurts me.\u201d**\n\n**[Outro \u2014 Bare Piano]**\nThe future wasn\u2019t doomed.\n\nIt was waiting\nfor somebody\nto stop asking:\n\n**\u201cWhat\u2019s in it for me?\u201d**",
+          "type": "gen",
+          "duration": 274.6,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "camcorder",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-18T00:30:07.369Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic trap, cinematic, soul",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 1,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 20.0,
+      "created_at": "2026-08-18T00:37:06.183Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "You Almost Had Me",
+        "play_count": 7,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "9d7215f8-4acd-4d18-ac4b-7bfd491b544f",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/9d7215f8-4acd-4d18-ac4b-7bfd491b544f.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/9d7215f8-4acd-4d18-ac4b-7bfd491b544f.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/9d7215f8-4acd-4d18-ac4b-7bfd491b544f.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_9d7215f8-4acd-4d18-ac4b-7bfd491b544f.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_9d7215f8-4acd-4d18-ac4b-7bfd491b544f.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "\nCinematic piano-led melodic trap anthem: intimate, hyper-realistic male rap-sung lead with natural breaths, imperfections and emotional restraint; absolutely no crowd or audience sounds. Open with haunting solo felt piano and huge negative space, then introduce enormous clean sub-bass, chest-rattling 808s, razor-crisp trap drums, warm analog synth atmosphere and ghostlike vocal textures. Verses feel conversational, clever and psychologically fearless; hook becomes instantly addictive, triumphant and melodic. Make \u201cYOU ALMOST HAD ME\u201d the unforgettable payoff. Drop nearly to silence before the bridge, then explode into a breathtaking final chorus with thunderous bass, grand piano, cinematic strings and layered soulful female harmonies. Crystal-clear lyrics, realistic vocals, sophisticated rhyme cadence, dramatic dynamics, pristine modern mix, goosebumps, empowering rather than angry. Theme: catching destructive thoughts before they hook you, laughing at the attempted",
+          "prompt": "# You Almost Had Me\n\n**[Intro \u2014 male lead, intimate, over lonely piano]**\nThere you go again...\nTalkin\u2019 like a thought is a prophecy.\nHa.\nYou almost had me.\n\n**[Verse 1]**\nWoke up, mind already makin\u2019 a movie,\nWorst-case scenes tryna shake and move me,\n\u201cYou gon\u2019 lose this, everybody sees through me,\u201d\nOld voice talkin\u2019 like it ever really knew me.\n\nUsed to grab every thought like evidence,\nGive fear a throne, give doubt residence,\nNow I watch that noise with intelligence\u2014\nThought ain\u2019t fact, that\u2019s the difference.\n\nHere come anger with a match and gasoline,\nHere come shame tryna edit what I\u2019ve seen,\nHere come fear dressed sharp, lookin\u2019 evergreen,\nBut I caught that little hook before it got in me.\n\n**[Pre-Chorus]**\nOh, you wanted my pulse up,\nWanted my fists shut,\nWanted one bad thought to make my whole day fucked up\u2014\nThen I saw what you were doin\u2019...\nAnd I started laughin\u2019.\n\n**[Chorus \u2014 huge melodic release]**\nYou almost had me, almost made me believe,\nAlmost turned a little thought to a life sentence on me,\nBut I saw you reachin\u2019, saw the trick up your sleeve,\nNow I\u2019m laughin\u2019 while you\u2019re talkin\u2019\u2014you got nothin\u2019 I need.\n\nYou almost had me, almost stole my peace,\nBut the second I could see you, you got weaker to me,\nYou can scream, you can scheme, you can beg me to bleed\u2014\nYou\u2019re a thought, not a truth, you don\u2019t get to be me.\n\n**[Post-Chorus]**\nHa\u2014almost had me.\nNot today.\nThought, not fact.\nWatch it fade.\n\n**[Verse 2 \u2014 drums hit harder]**\nNow my mind throws bait and I notice the line,\n\u201cGet mad right now!\u201d \u2014 nah, I\u2019m takin\u2019 my time,\n\u201cEverybody hates you!\u201d \u2014 cute story, nice try,\nI don\u2019t gotta climb aboard every train passing by.\n\nI can feel what I feel without feeding the flame,\nName the emotion, don\u2019t become its name,\nLet the wave roll through, let it rise, let it change,\nWise mind at the wheel while the weather gets strange.\n\nSee, peace ain\u2019t never having darkness appear,\nPeace is darkness knockin\u2019 and me staying right here,\nI can hear every threat that imagination declares\nAnd still choose my next move instead of choosing my fear.\n\n**[Pre-Chorus]**\nYou wanted reaction,\nWanted distraction,\nWanted one assumption turned into an action,\nBut I caught you in the act and\u2014\nDamn, that\u2019s kinda funny.\n\n**[Chorus]**\nYou almost had me, almost made me believe,\nAlmost turned a little thought to a life sentence on me,\nBut I saw you reachin\u2019, saw the trick up your sleeve,\nNow I\u2019m laughin\u2019 while you\u2019re talkin\u2019\u2014you got nothin\u2019 I need.\n\nYou almost had me, almost stole my peace,\nBut the second I could see you, you got weaker to me,\nYou can scream, you can scheme, you can beg me to bleed\u2014\nYou\u2019re a thought, not a truth, you don\u2019t get to be me.\n\n**[Bridge \u2014 drums disappear, exposed piano + distant vocal]**\nI don\u2019t have to fight you.\nI don\u2019t have to flee.\nI don\u2019t have to prove you wrong\nTo keep you from controlling me.\n\nI can watch you.\nI can name you.\nI can smile and let you leave.\n\nFunny how the monster shrinks\nThe second that I see...\n\n**[Beat Drop \u2014 near silence]**\nOh.\nYou wanted a reaction.\n\n**[Final Chorus \u2014 massive bass, piano, stacked harmonies]**\nYOU ALMOST HAD ME\u2014now I know what you do,\nTake a maybe, make it misery, then masquerade as truth,\nBut I\u2019m quicker with the distance, I\u2019m deliberate with moves,\nI can hear you without serving you\u2014that\u2019s freedom coming through.\n\nYou almost had me, but my peace ain\u2019t cheap,\nI don\u2019t wrestle every nightmare that comes crawling through my sleep,\nLet it knock, let it talk, let it promise, let it plead\u2014\nI decide what gets my focus.\nI decide what I believe.\n\n**[Outro \u2014 piano only]**\nThere you go again...\nTryin\u2019 to sound important.\n\nHa.\n\nAlmost had me.",
+          "type": "gen",
+          "duration": 254.68,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "cyanotype",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-18T17:19:07.017Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic trap, cinematic, anthem",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 1,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 21.0,
+      "created_at": "2026-08-18T17:36:15.721Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "The Halo and the Horror",
+        "play_count": 10,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "5a55d588-f9ba-4dc9-96f0-3baf55025b26",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/5a55d588-f9ba-4dc9-96f0-3baf55025b26.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/5a55d588-f9ba-4dc9-96f0-3baf55025b26.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/5a55d588-f9ba-4dc9-96f0-3baf55025b26.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_5a55d588-f9ba-4dc9-96f0-3baf55025b26.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_5a55d588-f9ba-4dc9-96f0-3baf55025b26.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "Piano-dominant soul-trap protest anthem with a powerhouse female singer and a melodic, emotionally raw male rapper. Open with exposed grand piano, deep room reverb, and wounded female vocals carrying grief, disbelief, and spiritual betrayal. Bring in fluid melodic rap with conversational phrasing, tight internal rhymes, elastic cadence, and human imperfections. Huge clean 808s, warm sub-bass, crisp trap drums, dark strings, subtle organ, and dramatic piano runs. Chorus must be massive, soulful, haunting, and instantly memorable: humanity trapped in worship while Jesus watches war crimes, suffering, children buried under rubble, and unanswered prayers. Female vocals soar with heartbreak; male verses grow from restrained pain into furious moral indictment. Strip the bridge to piano and trembling voice, then explode into a final chorus with stacked harmonies, cinematic strings, colossal drums, and seismic bass. No crowd noise, no cheesy theatrics.\n",
+          "prompt": "**THE HALO AND THE HORROR**\n\n[Verse 1]\nGold cross swinging while the whole world burns,\nSunday sermon, Monday no concern,\nHands to heaven, eyes turned away,\nChildren under rubble while the choirs still pray.\n\nEverybody saying, \u201cJesus got the wheel,\u201d\nBut nobody asking what the wounded feel,\nScripture on the screen, supper on the plate,\nWhile another mother learns the language of a grave.\n\nBlessed be the comfortable, safe inside the spell,\nCalling silence \u201cpeace\u201d while somebody lives through hell,\nCandles in the chapel, cameras catch the glow,\nBut when the bombs start falling, everybody gotta go.\n\n[Pre-Chorus]\nIs it faith if mercy stops at the border?\nIs it love if profit gives the order?\nIf Christ walked in with blood on His feet,\nWould we recognize Him\u2014or cross the street?\n\n[Chorus]\nEverybody under Jesus Christ\u2019s spell,\nSinging \u201call is well, all is well,\u201d\nWhile the smoke climbs high and the headlines fade,\nAnd innocence gets buried beneath what we paid.\nEverybody wearing heaven like a shield,\nWhile the bodies overseas become numbers on a field.\nIf you follow the Prince of Peace, then prove it somehow\u2014\nDon\u2019t praise love on Sunday and abandon it now.\n\n[Verse 2]\nCross on the necklace, flag on the wall,\n\u201cGod bless us\u201d loud while the missiles fall,\nPoliticians pray before they sign the page,\nThen send another generation straight into the cage.\n\nWe call it complicated, call it foreign affairs,\nAnything but children gasping desperate for air,\nScroll past suffering, swipe into a joke,\nSip another coffee while another city smokes.\n\nMaybe the spell ain\u2019t Jesus\u2014maybe Jesus would scream,\nFlip every table built on somebody\u2019s grief,\nMaybe we confused the Christ with comfort and control,\nPut His name on an empire and forgot about the soul.\n\n[Pre-Chorus]\nHe said blessed are the peacemakers\u2014remember?\nNot blessed are the buyers feeding fire forever.\nIf every human life is sacred in His sight,\nWhy do we need permission to say slaughter isn\u2019t right?\n\n[Chorus]\nEverybody under Jesus Christ\u2019s spell,\nSinging \u201call is well, all is well,\u201d\nWhile the smoke climbs high and the headlines fade,\nAnd innocence gets buried beneath what we paid.\nEverybody wearing heaven like a shield,\nWhile the bodies overseas become numbers on a field.\nIf you follow the Prince of Peace, then prove it somehow\u2014\nDon\u2019t praise love on Sunday and abandon it now.\n\n[Bridge]\nNo, I don\u2019t want another holy alibi,\nAnother folded hand beneath a burning sky,\nGive me faith with feet, give me mercy with a spine,\nGive me people brave enough to draw a human line.\n\nNo more \u201cthoughts and prayers\u201d with the volume turned low,\nLove should move your body when you know what you know.\nFeed them, shield them, speak when silence pays\u2014\nWhat good is resurrection if compassion stays in graves?\n\n[Final Chorus]\nEverybody says they\u2019re under Jesus Christ\u2019s spell\u2014\nThen let the spell break hatred, let it empty out hell.\nLet it stop the cheering when the warplanes rise,\nLet it put a human face back behind our enemy\u2019s eyes.\nIf the cross means anything, let the meaning be clear:\nNo child becomes expendable because they\u2019re born over there.\nPrince of Peace, wake the sleeping somehow\u2014\nIf we really follow Jesus,\nthen we have to follow **now**.\n\n[Outro]\nNo halo without mercy.\nNo gospel without grief.\nNo worship worth the singing\nif it never becomes peace.",
+          "type": "gen",
+          "duration": 266.68,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "film_strip",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-18T20:47:25.767Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "soul-trap, protest anthem",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 0,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 22.0,
+      "created_at": "2026-08-18T20:53:32.230Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "Jehovian Wisdom",
+        "play_count": 5,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "f537e881-4377-4f1d-a39d-4bd26df84920",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/f537e881-4377-4f1d-a39d-4bd26df84920.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/f537e881-4377-4f1d-a39d-4bd26df84920.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/f537e881-4377-4f1d-a39d-4bd26df84920.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_f537e881-4377-4f1d-a39d-4bd26df84920.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_f537e881-4377-4f1d-a39d-4bd26df84920.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "Cinematic piano-led melodic trap / spiritual hip-hop anthem with profound, timeless energy. Open with solitary grand piano, warm room ambience, and huge negative space, then introduce deep clean sub-bass, massive 808s, crisp trap drums, subtle strings, atmospheric synths, and restrained gospel harmonies. Male lead should sound human, intimate, confident, and emotionally textured\u2014smooth rap-singing in the verses with sharp rhythmic pockets and natural imperfections. Female vocal enters with soulful, soaring hooks and rich piano-driven emotion. Make \u201cJehovian wisdom\u201d the unforgettable melodic centerpiece. Verses feel reflective, disciplined, wise, and powerful; chorus explodes into uplifting cinematic scale. Piano remains dominant throughout. Bridge strips almost completely bare before a gigantic final chorus with layered harmonies, orchestra, thunderous bass, and transcendent resolution. Crystal-clear vocals, no crowd noise, no cheesy chanting, premium modern mix, enormous subwoofer",
+          "prompt": "# **Jehovian Wisdom**\n\n**[Intro \u2014 Soft Piano]**\nQuiet in the chaos, calm in the crowd,\nTruth don't need thunder just to speak loud.\nI asked for a sign, got a lesson instead\u2014\n\u201cWatch where you walk, watch what you feed in your head.\u201d\n\n**[Verse 1 \u2014 Male Lead]**\nJehovian wisdom, I\u2019m weighing my ways,\nNot every bright fire deserves my gaze.\nSome doors look golden but open to grief,\nSome losses are lessons disguised as relief.\n\nSlow with the judgment, swift with the grace,\nStrength ain\u2019t always putting somebody in place.\nSometimes it\u2019s silence, sometimes it\u2019s speech,\nSometimes the mountain is there just to teach.\n\nI learned that my thoughts ain\u2019t automatically true,\nFear paints a picture, but I choose the view.\nSeparate fact from the feeling inside,\nLet wisdom be lantern, let love be the guide.\n\n**[Pre-Chorus \u2014 Female Vocal]**\nWhen the world gets loud,\nI can still hear clear.\nI don't need every answer,\nI just need the next step near.\n\n**[Chorus \u2014 Male + Female]**\nJehovian wisdom, light on my road,\nGrace when it\u2019s heavy, strength with the load.\nEyes on tomorrow, feet planted today,\nLove in my language, truth in my way.\n\nJehovian wisdom, deep in my bones,\nPeace when I\u2019m crowded, peace when alone.\nI don't need vengeance, I don't need control\u2014\nGive me discernment and guard my soul.\n\n**[Verse 2 \u2014 Rap]**\nWise mind, wide eyes, watch what I water,\nPlant peace now, let the future grow broader.\nPride make promises wisdom won\u2019t keep,\nSo I build on the rock, not applause in the street.\n\nI can accept what I cannot rewrite,\nStill make a move toward the good and the right.\nAnger can knock, but it don\u2019t get the keys,\nPain gets a chair, but it don't get to lead.\n\nPatience got power that panic can\u2019t fake,\nEvery reaction ain\u2019t mine to make.\nMercy ain't weakness, restraint ain't fear,\nSometimes the strongest response disappears.\n\nCount every blessing, confront every lie,\nKeep both my feet down while dreams touch the sky.\nIf I lose direction, return to the mission:\nLove with a backbone\u2014Jehovian wisdom.\n\n**[Bridge \u2014 Piano Breakdown]**\nTeach me when to speak.\nTeach me when to wait.\nTeach me what is mine\nAnd what I should release from my weight.\n\nGive me courage without cruelty,\nConfidence without pride,\nA heart that stays compassionate,\nAnd truth I never have to hide.\n\n**[Final Chorus \u2014 Huge]**\nJehovian wisdom, light on my road,\nGrace when it\u2019s heavy, strength with the load.\nEyes on tomorrow, feet planted today,\nLove in my language, truth in my way.\n\nJehovian wisdom, steady my soul,\nNot chasing chaos, not craving control.\nThrough every triumph, through every collision\u2014\nGive me the courage of **Jehovian wisdom**.\n\n**[Outro \u2014 Female Vocal / Piano]**\nClear mind.\nKind heart.\nStrong soul.\nWise start.\n\nWhen I can't see the whole road ahead,\nGive me enough light\nFor the next step instead.",
+          "type": "gen",
+          "duration": 222.12,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "scribbles",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-18T21:21:09.962Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "melodic trap, spiritual hip-hop, cinematic",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 1,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 25.0,
+      "created_at": "2026-08-18T21:27:18.660Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "Two Friends, Two Hunnies",
+        "play_count": 16,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "09a6b305-06aa-4270-9889-de47ac566dc3",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/09a6b305-06aa-4270-9889-de47ac566dc3.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/09a6b305-06aa-4270-9889-de47ac566dc3.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/09a6b305-06aa-4270-9889-de47ac566dc3.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_09a6b305-06aa-4270-9889-de47ac566dc3.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_09a6b305-06aa-4270-9889-de47ac566dc3.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "Explosive festival-ready melodic EDM / mashup-pop anthem built around an insanely addictive \u201cTWO! TWO! TWO!\u201d hook. Start with eerie minor-key synths, reversed piano, whispered \u201ctwo\u2026 two\u2026,\u201d and a deep cinematic sub-rumble, then snap into bright piano chords, bouncing bass, huge four-on-the-floor drums, crisp claps, vocal chops, and chest-shaking clean sub-bass. Keep the arrangement constantly surprising: fake drops, sudden silence, half-time trap switches, chopped throwback-style vocal moments, rapid mashup transitions, and massive euphoric payoffs every 8\u201316 bars. Male lead: playful, charismatic, melodic, naturally human; female responses: soulful, flirty, soaring. Make the chorus absurdly simple and unforgettable: \u201cTwo Friends, two friends, two hunnies too!\u201d Add call-and-response chants designed for thousands of people to yell back. Haunting breakdown, enormous final build, then the biggest bass drop of the song\u2014wide synth stacks, pounding kicks, octave subs, vocal stutters, and pure ",
+          "prompt": "# Two Friends, Two Friends, Two Hunnies\n\n**[Intro \u2014 Haunting Synths]**\nTwo friends with me, Two Friends on stage,\nTwo blue lights cutting through the haze,\nTwo hands high when the bassline moved,\nWalked in with two\u2014then I met two new.\n\n**[Verse 1]**\nTwo of my buddies, two drinks in hand,\nTwo Friends concert, whole place jammed,\nTwo giant drops and the whole floor slammed,\nTwo fine hunnies started dancing where I stand.\n\nTwo little smiles, two looks my way,\nTwo Friends mixing every song we played,\nTwo bros laughing like, \u201cBoy, behave,\u201d\nTwo girls came closer when the synths went strange.\n\nTwo Friends logo glowing over the crowd,\nTwo thousand people getting way too loud,\nTwo girls leaned in when the bass came down,\nThen the beat came back and we bounced right out.\n\n**[Pre-Chorus]**\nTwo Friends playing,\nTwo friends beside me,\nTwo girls smiling,\nPerfect timing.\n\nTwo hands up,\nTwo hearts racing,\nTwo more drops,\nNo time wasting.\n\n**[Chorus]**\nTwo, two, two\u2014\nEverything came in twos,\nTwo Friends on stage, two friends came with me,\nThen I met two fine hunnies too.\n\nTwo, two, two\u2014\nTwo Friends shaking the room,\nWalked into the concert with two of my buddies,\nWalked out with two brand-new views.\n\nTwo bass drops, two bright lights,\nTwo girls dancing through the night,\nTwo, two, two\u2014\nAt a Two Friends show, everything came in twos.\n\n**[Post-Chorus / Drop]**\nTwo-two-two-two\u2014\nTwo Friends, turn it up.\nTwo-two-two-two\u2014\nMore bass, not enough.\n\nTwo friends!\nTwo hunnies!\nTwo Friends!\nToo funny!\n\nTwo-two-two\u2014\nWhole damn concert came in twos.\n\n**[Verse 2]**\nTwo Friends mashup flipped the whole damn song,\nTwo bros next to me singing along,\nTwo girls pulled up and the vibe got strong,\nTwo minutes later, knew the night was on.\n\nTwo phones buzzing when we left that place,\nTwo buddies texting, \u201cBro, you changed teams today,\u201d\nTwo laughing emojis, two girls in my space,\nTwo Friends still ringing while we drove away.\n\nNo master plan, just a concert night,\nTwo Friends throwing sparks underneath those lights,\nTwo friends came with me, everything felt right,\nThen two fine hunnies made the ending twice as nice.\n\n**[Pre-Chorus]**\nTwo Friends playing,\nTwo friends beside me,\nTwo girls smiling,\nPerfect timing.\n\nTwo hands up,\nTwo hearts racing,\nTwo more drops,\nNo time wasting.\n\n**[Chorus]**\nTwo, two, two\u2014\nEverything came in twos,\nTwo Friends on stage, two friends came with me,\nThen I met two fine hunnies too.\n\nTwo, two, two\u2014\nTwo Friends shaking the room,\nWalked into the concert with two of my buddies,\nWalked out with two fine hunnies too.\n\nTwo bass drops, two bright lights,\nTwo girls dancing through the night,\nTwo, two, two\u2014\nAt a Two Friends show, everything came in twos.\n\n**[Bridge \u2014 Haunting Synth / Piano Breakdown]**\nTwo friends beside me.\nTwo Friends above me.\nTwo girls behind me\nSaying they love me.\n\nTwo blue lasers.\nTwo deep bass lines.\nTwo perfect strangers\nAt the perfect time.\n\nOne Friday night.\nOne ridiculous story.\n\nBut everything else?\n\nTwo.\n\n**[Final Chorus / Massive Drop]**\nTWO! TWO! TWO!\nEverything came in twos!\nTwo Friends on stage, two friends in the crowd,\nTwo fine hunnies came through.\n\nTwo, two, two\u2014\nBass got the whole place loose,\nWalked into Two Friends with two of my buddies,\nWalked out with two hunnies too.\n\nTwo hands high!\nTwo feet jump!\nTwo huge drops make the subwoofers thump!\nTwo Friends loud, two girls around,\nTwo-two-two till the lights come down.\n\n**[Outro]**\nTwo buddies.\nTwo hunnies.\nTwo Friends concert.\n\nToo perfect.\n\nDo the math.",
+          "type": "gen",
+          "duration": 265.08,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "renaissance",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-19T16:28:43.757Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "EDM, mashup-pop",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 0,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 26.0,
+      "created_at": "2026-08-19T16:34:27.081Z"
+    },
+    {
+      "clip": {
+        "status": "complete",
+        "title": "The Odds Don't Know Me",
+        "play_count": 7,
+        "upvote_count": 0,
+        "allow_comments": true,
+        "is_verified": false,
+        "id": "f271bcba-98d8-4df0-9e33-80f7cfc1d6b1",
+        "entity_type": "song_schema",
+        "video_url": "",
+        "audio_url": "https://cdn1.suno.ai/f271bcba-98d8-4df0-9e33-80f7cfc1d6b1.mp3",
+        "media_urls": [
+          {
+            "url": "https://d2lwuy8qc234o3.cloudfront.net/1/clip/f271bcba-98d8-4df0-9e33-80f7cfc1d6b1.m4a",
+            "content_type": "m4a-opus",
+            "delivery": "progressive",
+            "encoding": "1.0.0"
+          },
+          {
+            "url": "https://cdn1.suno.ai/f271bcba-98d8-4df0-9e33-80f7cfc1d6b1.mp3",
+            "content_type": "mp3",
+            "delivery": "progressive"
+          }
+        ],
+        "image_url": "https://cdn2.suno.ai/image_f271bcba-98d8-4df0-9e33-80f7cfc1d6b1.jpeg",
+        "image_large_url": "https://cdn2.suno.ai/image_large_f271bcba-98d8-4df0-9e33-80f7cfc1d6b1.jpeg",
+        "major_model_version": "v5.5",
+        "model_name": "chirp-fenix",
+        "metadata": {
+          "tags": "Ultra-catchy cinematic piano-led festival EDM \u00d7 melodic trap \u00d7 alt-R&B anthem. Open with 10\u201315 seconds of exposed, thunderous grand piano and an intimate soulful female vocal\u2014no crowd noise\u2014then introduce haunting minor-key synths, reversed textures, heartbeat percussion and enormous clean sub-bass. Explode into a euphoric dance-festival chorus with punchy four-on-the-floor energy, crisp trap drums, huge cinematic 808s, bright synth stacks and an unforgettable call-and-response hook. Realistic emotional male melodic rap-singing with natural imperfections; powerful soulful female belts and piano-led harmonies. Verses intimate and rhythmic, pre-choruses suspenseful, drops massive but lyrics crystal-clear. Bridge strips back to piano and heartbeat, then relentless build into an HBO-finale-scale final drop: orchestral strings, haunting synth lead, colossal bass, layered harmonies and a hook impossible not to sing twice.\n",
+          "prompt": "## **THE ODDS DON'T KNOW ME**\n\n**[Intro \u2014 Female Vocal, Solo Grand Piano]**\nThey counted every reason I should never reach the sky,\nPut percentages beside me, put the pressure way up high.\nBut numbers know my history\u2014\nThey don't know what I'll be.\nNo, the odds know what I've been through...\n**The odds don't know me.**\n\n**[Beat Begins to Rise]**\nMm-mm...\nThey don't know me.\nMm-mm...\nWatch me.\n\n**[Verse 1 \u2014 Male Lead]**\nLong shots, locked doors, low expectations,\nCold nights, closed minds, whole conversations.\n\"Can't win, won't work, kid, reconsider,\"\nI turned that doubt into drive\u2014now the dream got bigger.\n\nPressure pressed, but I pressed right back,\nPain made patterns, I challenged the facts.\nMind said, *\"Man, you're probably done,\"*\nI said, *\"That's one thought\u2014not the only one.\"*\n\nCheck that thought, check that fear,\nIs it fact\u2014or a feeling appearing sincere?\nI can feel that fire without feeding the flame,\nLet the fear ride shotgun\u2014I still steer the lane.\n\n**[Pre-Chorus \u2014 Female]**\nThey saw the storm and predicted rain,\nNever saw me learning to dance through pain.\nThey measured my past like my past was destiny\u2014\nBut probability\nAin't prophecy.\n\n**[CHORUS \u2014 Huge Male/Female Hook]**\n**THE ODDS DON'T KNOW ME!**\nThey know the numbers, not the nights I didn't sleep.\n**THE ODDS DON'T KNOW ME!**\nThey know the mountain, not the miles in my feet.\n\nOne in a million?\n**Then somebody's one.**\nSay it can't happen?\n**Then watch what I've done.**\n\nYou can count every reason that I shouldn't succeed\u2014\n**But the odds don't know me,\nthe odds don't know me.**\n\n**[Drop \u2014 Chopped Vocal / Haunting Synth]**\nDon't\u2014don't\u2014don't know me...\nOdds don't know me...\n**Watch me win anyway.**\n\n**[Verse 2 \u2014 Male Melodic Rap]**\nBuilt from the bottom with belief in the bricks,\nCalm in the chaos, calculated with clicks.\nWise mind working when the wild mind screams,\nFeet on the floor while I follow my dreams.\n\nName five things that I see, four things I can touch,\nBring myself back when the future feels too much.\nBreathe, then decide\u2014don't decide from distress,\nSmall step, strong step, stack that success.\n\nWhen my fear says freeze, I move with intention,\nWhen shame says shrink, I challenge convention.\nOpposite action\u2014I'm attacking avoidance,\nTurn down the panic, turn up my own voice.\n\nNo magic mindset pretending pain isn't real,\nI accept what's here\u2014then choose how I deal.\nRadical acceptance doesn't mean I agree\u2014\nIt means reality doesn't get to imprison me.\n\n**[Pre-Chorus \u2014 Female, Bigger]**\nThey saw the scars and predicted defeat,\nNever saw the strength underneath.\nThey measured yesterday like tomorrow was guaranteed\u2014\nBut probability\nAin't prophecy.\n\n**[CHORUS \u2014 Full Festival Lift]**\n**THE ODDS DON'T KNOW ME!**\nThey know the numbers, not the nights I didn't sleep.\n**THE ODDS DON'T KNOW ME!**\nThey know the mountain, not the miles in my feet.\n\nOne in a million?\n**Then somebody's one.**\nSay it can't happen?\n**Then watch what I've done.**\n\nYou can count every reason that I shouldn't succeed\u2014\n**But the odds don't know me,\nthe odds don't know me.**\n\n**[Bridge \u2014 Piano Only, Female \u2192 Male]**\n**Female:**\nMaybe the thought isn't true just because it feels true.\nMaybe the fear isn't fate just because it found you.\n\n**Male:**\nMaybe I'm scared and still stepping ahead.\nMaybe courage is moving while fear's in my head.\n\n**Female:**\nYou don't need certainty.\n\n**Male:**\nJust the next move.\n\n**Both:**\nOne wise decision...\nThen another comes through.\n\n**[BUILD \u2014 Heartbeat Bass + Rising Synth]**\nCount me out\u2014\nI'll count myself in.\nFall seven times\u2014\nFind eight ways to win.\n\nCount me out\u2014\nI'll count myself in.\n**If the odds say no\u2014\nLET THE STORY BEGIN.**\n\n**[FINAL CHORUS \u2014 Massive]**\n**THE ODDS DON'T KNOW ME!**\nThey know the numbers, not the nerve underneath.\n**THE ODDS DON'T KNOW ME!**\nThey know the struggle, not the strength that it breeds.\n\nOne in a billion?\n**Then somebody's one.**\nWhole world doubting?\n**I'm still not done.**\n\nLet 'em calculate chances, let 'em calculate dreams\u2014\nThey can measure every mountain,\n**THEY CAN'T MEASURE ME.**\n\n**THE ODDS DON'T KNOW ME!**\nNo, the odds don't know me.\nThey can predict the past\u2014\n\n**BUT THEY CAN'T PREDICT ME.**\n\n**[Outro \u2014 Piano + Haunting Synth]**\nProbability...\nain't prophecy.\n\nAnd the odds...\ndon't know me.",
+          "type": "gen",
+          "duration": 283.04,
+          "refund_credits": false,
+          "stream": true,
+          "make_instrumental": false,
+          "can_remix": true,
+          "is_remix": false,
+          "priority": 10,
+          "has_stem": false,
+          "uses_latest_model": true,
+          "model_badges": {
+            "songcard": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "0000004D",
+                "border_color": "00000000"
+              }
+            },
+            "songrow": {
+              "display_name": "v5.5",
+              "light": {
+                "text_color": "FD429C",
+                "background_color": "FD429C1A",
+                "border_color": "00000000"
+              },
+              "dark": {
+                "text_color": "FD429C",
+                "background_color": "FD429C40",
+                "border_color": "00000000"
+              }
+            }
+          },
+          "image_config": {
+            "use_image_config_template": true,
+            "id": "minimal_album_art",
+            "default_cover_style": "brand_refresh"
+          },
+          "is_mumble": false
+        },
+        "is_liked": false,
+        "user_id": "bfe9f067-44b1-4cb1-8ba6-ad4483c2a7c0",
+        "display_name": "brian404",
+        "handle": "brian404",
+        "is_handle_updated": false,
+        "avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+        "is_trashed": false,
+        "is_hidden": false,
+        "created_at": "2026-08-20T14:53:44.628Z",
+        "is_public": false,
+        "is_persona_root": false,
+        "is_following_creator": false,
+        "albums": [],
+        "explicit": false,
+        "comment_count": 0,
+        "flag_count": 0,
+        "display_tags": "EDM, melodic trap, alt-R&B",
+        "is_contest_clip": false,
+        "has_hook": false,
+        "batch_index": 1,
+        "action_config": {
+          "actions": [
+            {
+              "action_type": "add_to_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "like_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "share_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "dislike_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "report_song",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remove_from_playlist",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_extend",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_cover",
+              "disabled": false,
+              "visible": true
+            },
+            {
+              "action_type": "remix_reuse_style",
+              "disabled": false,
+              "visible": true
+            }
+          ]
+        }
+      },
+      "relative_index": 28.0,
+      "created_at": "2026-08-20T15:13:45.075Z"
+    }
+  ],
+  "image_url": "https://cdn2.suno.ai/image_ccb9bde3-649e-4e8d-9f87-9cd0d5fa3b1b.jpeg",
+  "num_total_results": 16,
+  "current_page": 1,
+  "is_owned": false,
+  "is_trashed": false,
+  "is_public": true,
+  "is_hidden": false,
+  "user_display_name": "brian404",
+  "user_handle": "brian404",
+  "user_avatar_image_url": "https://cdn1.suno.ai/sAura11.jpg",
+  "user_is_verified": false,
+  "description": "",
+  "reaction": "",
+  "upvote_count": 0,
+  "dislike_count": 0,
+  "flag_count": 0,
+  "skip_count": 0,
+  "play_count": 0,
+  "song_count": 0,
+  "total_duration": 4391.24,
+  "is_discover_playlist": false
+}

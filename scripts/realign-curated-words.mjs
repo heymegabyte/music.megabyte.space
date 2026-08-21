@@ -40,7 +40,7 @@ const dataSource = await readFile(DATA_TS, 'utf8');
 // inside the `lyrics:` array strings.
 const blocks =
   dataSource.match(
-    /\{\s*id:\s*'[^']+',\s*title:\s*'[^']+',\s*artist:\s*'[^']+',\s*file:\s*'\/audio\/[^']+'[\s\S]*?wisdom:[^\n]+\n\s*\}/g
+    /\{\s*id:\s*'[^']+',\s*title:\s*'(?:[^'\\]|\\.)*',\s*artist:\s*'[^']+',\s*file:\s*'\/audio\/[^']+'[\s\S]*?wisdom:[^\n]+\n\s*\}/g
   ) || [];
 const TRACK_LYRICS = new Map();
 for (const b of blocks) {
@@ -49,9 +49,10 @@ for (const b of blocks) {
   // lines containing literal `]` like '[Hook][choir]' don't cut the
   // capture short at the first inner `]`.
   const lyricsBlock = b.match(/lyrics:\s*\[([\s\S]*?)\n\s{4}\]/)?.[1] ?? '';
-  const lyrics = [...lyricsBlock.matchAll(/'((?:[^'\\]|\\.)*)'/g)].map(m =>
-    m[1].replace(/\\'/g, "'").replace(/\\"/g, '"')
-  );
+  const lyrics = [
+    ...lyricsBlock.matchAll(/'((?:[^'\\]|\\.)*)'/g),
+    ...lyricsBlock.matchAll(/"((?:[^"\\]|\\.)*)"/g)
+  ].map(m => m[1].replace(/\\'/g, "'").replace(/\\"/g, '"'));
   if (id && lyrics.length) TRACK_LYRICS.set(id, lyrics);
 }
 

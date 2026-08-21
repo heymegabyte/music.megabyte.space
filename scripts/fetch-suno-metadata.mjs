@@ -119,6 +119,52 @@ async function fetchAllClips() {
   return all;
 }
 
+// Brian's "final cuts" playlist — the canonical take of each released song.
+// Merged into the feed after fetch so final-cut metadata (title, tags, model)
+// wins over earlier draft generations of the same song.
+const FINAL_CUTS_PLAYLIST_ID = 'ac429cda-f404-42a5-9538-222ac41837cf';
+
+async function fetchFinalCutsPlaylist() {
+  const url = `https://studio-api.prod.suno.com/api/playlist/${FINAL_CUTS_PLAYLIST_ID}`;
+  const r = await fetch(url, { headers: baseHeaders });
+  if (!r.ok) {
+    process.stderr.write(`Playlist fetch ${r.status} — continuing with feed only.\n`);
+    return [];
+  }
+  const data = await r.json();
+  return (data?.playlist_clips || [])
+    .map(pc => pc.clip || pc)
+    .filter(c => c?.id)
+    .map(c => {
+      // Suno's API returns an empty title for this final cut (title bug on
+      // their side). Restore it by clip id so matching works.
+      if (c.id === 'c01979ee-3b98-4128-b9b8-ee31c5c0750c' && !c.title) {
+        c.title = 'Become the Person You Needed';
+      }
+      return c;
+    });
+}
+
+function mergePlaylistClips(clips, playlistClips) {
+  const byId = new Map(clips.map(c => [c.id, c]));
+  let added = 0;
+  let retitled = 0;
+  for (const pc of playlistClips) {
+    const existing = byId.get(pc.id);
+    if (!existing) {
+      byId.set(pc.id, pc);
+      added++;
+    } else if (!existing.title && pc.title) {
+      existing.title = pc.title;
+      retitled++;
+    }
+  }
+  if (added || retitled) {
+    process.stderr.write(`Merged playlist: +${added} clips, ${retitled} titles restored.\n`);
+  }
+  return [...byId.values()];
+}
+
 // --- Matching ----------------------------------------------------------------
 
 function normalize(s) {
@@ -224,10 +270,12 @@ function parseTracks(src) {
     .map(b => ({
       block: b,
       id: b.match(/id:\s*'([^']+)'/)?.[1],
-      title: b.match(/title:\s*'([^']+)'/)?.[1] || '',
+      // Titles/vibes can contain escaped quotes ('The Odds Don\'t Know Me')
+      // — the naive [^']+ capture truncates at the escaped quote.
+      title: (b.match(/title:\s*'((?:[^'\\]|\\.)*)'/)?.[1] || '').replace(/\\'/g, "'"),
       album: b.match(/album:\s*'([^']+)'/)?.[1] || '',
       file: b.match(/file:\s*'([^']+)'/)?.[1] || '',
-      vibe: b.match(/vibe:\s*'([^']*)'/)?.[1] || ''
+      vibe: (b.match(/vibe:\s*'((?:[^'\\]|\\.)*)'/)?.[1] || '').replace(/\\'/g, "'")
     }))
     .filter(t => t.id);
 }
@@ -248,11 +296,20 @@ async function main() {
     process.stderr.write('Fetching Suno feed (paginated)…\n');
     clips = await fetchAllClips();
     process.stderr.write(`Got ${clips.length} clips.\n`);
-    await mkdir(resolve(ROOT, 'data'), { recursive: true });
-    await writeFile(
-      FEED_OUT,
-      JSON.stringify({ fetched_at: new Date().toISOString(), count: clips.length, clips }, null, 2)
-    );
+  }
+
+  // Merge the final-cuts playlist (fresh in both modes — cheap, one request).
+  const playlistClips = await fetchFinalCutsPlaylist();
+  clips = mergePlaylistClips(clips, playlistClips);
+
+  // Persist the MERGED feed so downstream scripts (build-suno-meta.mjs)
+  // can resolve final-cut clip ids that only exist in the playlist.
+  await mkdir(resolve(ROOT, 'data'), { recursive: true });
+  await writeFile(
+    FEED_OUT,
+    JSON.stringify({ fetched_at: new Date().toISOString(), count: clips.length, clips }, null, 2)
+  );
+  if (!useCached) {
     process.stderr.write(`Wrote ${FEED_OUT} (${(JSON.stringify(clips).length / 1024).toFixed(1)} KB)\n`);
   }
 

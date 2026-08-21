@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17T09:59:48",
+  "generated_at": "2026-08-20T20:59:00",
   "tracks": {
     "chef-lu-stew": {
       "bpm": 88.7,
@@ -456,6 +456,258 @@
       "key": "C minor",
       "keyConfidence": 0.83,
       "duration": 227.96
+    },
+    "wexford-bridge": {
+      "bpm": 114.3,
+      "key": "D minor",
+      "keyConfidence": 0.678,
+      "duration": 293.12
+    },
+    "chris-kalwa": {
+      "bpm": 99.1,
+      "key": "C major",
+      "keyConfidence": 0.788,
+      "duration": 187.12
+    },
+    "bermuda-prophecy": {
+      "bpm": 130.5,
+      "key": "F major",
+      "keyConfidence": 0.753,
+      "duration": 314.52
+    },
+    "other-side-of-the-fall": {
+      "bpm": 137.8,
+      "key": "A# minor",
+      "keyConfidence": 0.727,
+      "duration": 229.6
+    },
+    "quarter-in-the-psychic-machine": {
+      "bpm": 116.0,
+      "key": "B minor",
+      "keyConfidence": 0.457,
+      "duration": 309.16
+    },
+    "algenib-crown-of-the-sky": {
+      "bpm": 71.4,
+      "key": "C minor",
+      "keyConfidence": 0.798,
+      "duration": 283.32
+    },
+    "let-harmony-begin": {
+      "bpm": 76.9,
+      "key": "F major",
+      "keyConfidence": 0.62,
+      "duration": 314.23
+    },
+    "the-smell-was-so-sinful": {
+      "bpm": 77.4,
+      "key": "D minor",
+      "keyConfidence": 0.715,
+      "duration": 269.96
+    },
+    "peace-in-the-picture": {
+      "bpm": 129.5,
+      "key": "F major",
+      "keyConfidence": 0.764,
+      "duration": 289.68
+    },
+    "highlight-heaven": {
+      "bpm": 127.7,
+      "key": "A minor",
+      "keyConfidence": 0.744,
+      "duration": 269.44
+    },
+    "hobbit-passover": {
+      "bpm": 117.7,
+      "key": "G minor",
+      "keyConfidence": 0.81,
+      "duration": 371.48
+    },
+    "i-killed-your-dragon": {
+      "bpm": 72.5,
+      "key": "C minor",
+      "keyConfidence": 0.784,
+      "duration": 254.6
+    },
+    "which-bank-we-robbin": {
+      "bpm": 129.3,
+      "key": "C minor",
+      "keyConfidence": 0.704,
+      "duration": 297.16
+    },
+    "seven-eleven-heaven": {
+      "bpm": 124.5,
+      "key": "D major",
+      "keyConfidence": 0.845,
+      "duration": 375.76
+    },
+    "ocular-uplink": {
+      "bpm": 72.0,
+      "key": "F major",
+      "keyConfidence": 0.64,
+      "duration": 227.84
+    },
+    "the-soul-key": {
+      "bpm": 128.6,
+      "key": "C major",
+      "keyConfidence": 0.844,
+      "duration": 188.08
+    },
+    "banana-peel-philosophy": {
+      "bpm": 138.4,
+      "key": "A minor",
+      "keyConfidence": 0.771,
+      "duration": 233.72
+    },
+    "flawless-execution": {
+      "bpm": 134.0,
+      "key": "A# minor",
+      "keyConfidence": 0.725,
+      "duration": 208.12
+    },
+    "the-night-knew-my-name": {
+      "bpm": 134.2,
+      "key": "C minor",
+      "keyConfidence": 0.739,
+      "duration": 311.24
+    },
+    "crown-without-a-sound": {
+      "bpm": 70.8,
+      "key": "C minor",
+      "keyConfidence": 0.67,
+      "duration": 335.72
+    },
+    "believe-it-when-you-see-it": {
+      "bpm": 126.7,
+      "key": "F major",
+      "keyConfidence": 0.718,
+      "duration": 314.32
+    },
+    "creepy-as-hell": {
+      "bpm": 134.4,
+      "key": "C minor",
+      "keyConfidence": 0.679,
+      "duration": 321.2
+    },
+    "come-fix-the-world": {
+      "bpm": 131.3,
+      "key": "C minor",
+      "keyConfidence": 0.72,
+      "duration": 350.72
+    },
+    "coincidence-overload": {
+      "bpm": 72.4,
+      "key": "F major",
+      "keyConfidence": 0.684,
+      "duration": 328.64
+    },
+    "the-least-pay-the-most": {
+      "bpm": 136.8,
+      "key": "A# major",
+      "keyConfidence": 0.706,
+      "duration": 327.2
+    },
+    "the-odds-don-t-know-me": {
+      "bpm": 72.4,
+      "key": "C minor",
+      "keyConfidence": 0.614,
+      "duration": 283.04
+    },
+    "two-friends-two-hunnies": {
+      "bpm": 129.3,
+      "key": "F major",
+      "keyConfidence": 0.694,
+      "duration": 265.08
+    },
+    "jehovian-wisdom": {
+      "bpm": 133.8,
+      "key": "A# major",
+      "keyConfidence": 0.756,
+      "duration": 222.12
+    },
+    "the-halo-and-the-horror": {
+      "bpm": 135.6,
+      "key": "A# major",
+      "keyConfidence": 0.688,
+      "duration": 266.68
+    },
+    "you-almost-had-me": {
+      "bpm": 132.9,
+      "key": "F major",
+      "keyConfidence": 0.73,
+      "duration": 254.68
+    },
+    "welcome-to-the-multiverse": {
+      "bpm": 137.1,
+      "key": "A minor",
+      "keyConfidence": 0.789,
+      "duration": 274.6
+    },
+    "the-last-soldier-refused": {
+      "bpm": 124.3,
+      "key": "A# minor",
+      "keyConfidence": 0.728,
+      "duration": 292.2
+    },
+    "myla-shine-on": {
+      "bpm": 137.0,
+      "key": "D minor",
+      "keyConfidence": 0.706,
+      "duration": 231.84
+    },
+    "if-we-met-again": {
+      "bpm": 128.1,
+      "key": "F major",
+      "keyConfidence": 0.687,
+      "duration": 260.92
+    },
+    "grace-under-pressure": {
+      "bpm": 129.6,
+      "key": "C minor",
+      "keyConfidence": 0.729,
+      "duration": 282.44
+    },
+    "hate-dies-here": {
+      "bpm": 93.4,
+      "key": "C# minor",
+      "keyConfidence": 0.609,
+      "duration": 304.6
+    },
+    "become-the-person-you-needed": {
+      "bpm": 127.5,
+      "key": "F major",
+      "keyConfidence": 0.55,
+      "duration": 266.76
+    },
+    "victory-with-nobody-dead": {
+      "bpm": 89.6,
+      "key": "C minor",
+      "keyConfidence": 0.73,
+      "duration": 279.4
+    },
+    "rich-before-the-money": {
+      "bpm": 133.0,
+      "key": "A# minor",
+      "keyConfidence": 0.647,
+      "duration": 287.16
+    },
+    "the-gates-were-never-locked": {
+      "bpm": 134.8,
+      "key": "A# minor",
+      "keyConfidence": 0.682,
+      "duration": 240.56
+    },
+    "future-me-came-back": {
+      "bpm": 127.9,
+      "key": "A minor",
+      "keyConfidence": 0.832,
+      "duration": 379.16
+    },
+    "the-inner-control-room": {
+      "bpm": 97.9,
+      "key": "A minor",
+      "keyConfidence": 0.669,
+      "duration": 465.12
     }
   }
 }
