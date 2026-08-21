@@ -13,47 +13,13 @@ routes = [
 directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-run_worker_first = [
-  "/",
-  "/audio/*",
-  "/lyrics/*",
-  "/canopy",
-  "/canopy/*",
-  "/halo",
-  "/halo/*",
-  "/appeal",
-  "/appeal/*",
-  "/canon",
-  "/canon/*",
-  "/desiiignare",
-  "/desiiignare/*",
-  "/wormhole",
-  "/wormhole/*",
-  "/mercy-drop",
-  "/mercy-drop/*",
-  "/betelgeuse-passover",
-  "/betelgeuse-passover/*",
-  "/embed/*",
-  "/ashton/*",
-  "/ashton-letter/*",
-  "/clip/*",
-  "/press/*",
-  "/about",
-  "/process",
-  "/credits",
-  "/press",
-  "/theology",
-  "/contact",
-  "/support",
-  "/merch",
-  "/privacy",
-  "/terms",
-  "/api/*",
-  "/health",
-  "/feed.xml",
-  "/rss.xml",
-  "/llms.txt"
-]
+# Worker runs first for EVERY request. It is the entry point that does per-route
+# SEO <head> rewriting, soft-404 status on unknown paths, bare-track-slug 301s,
+# and audio/lyrics edge caching, then proxies static files through env.ASSETS.
+# An explicit allowlist was used before but silently broke on every new album
+# (its routes weren't added → no SSR SEO, no soft-404) and can never cover
+# unknown routes or bare slugs. `true` is correct + future-proof for this site.
+run_worker_first = true
 
 [vars]
 LISTMONK_URL = "https://listmonk.megabyte.space"

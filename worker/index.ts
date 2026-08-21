@@ -961,6 +961,11 @@ loadCover();
 // lyric excerpt + sync availability + contact.
 function renderPressPage(trackId: string, origin: string): string {
   const title = titleFromSlug(trackId);
+  // Canonical web-player URL is /<album>/<track>. A bare /<track> only works via
+  // the top-level 301 rescue — link the real path directly so there's no hop
+  // and no dead link if the rescue ever changes.
+  const track = TRACK_BY_ID.get(trackId);
+  const playerUrl = track ? `${origin}/${track.album}/${trackId}` : `${origin}/${trackId}`;
   return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
@@ -1186,7 +1191,7 @@ function renderPressPage(trackId: string, origin: string): string {
     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
     <span>Press kit</span>
   </a>
-  <a class="topnav__link topnav__link--primary" href="${origin}/${trackId}">
+  <a class="topnav__link topnav__link--primary" href="${playerUrl}">
     <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>
     <span>Play</span>
   </a>
@@ -1209,7 +1214,7 @@ function renderPressPage(trackId: string, origin: string): string {
           </span>
           <span id="previewLabel">Preview · 30s</span>
         </button>
-        <a class="topnav__link" href="${origin}/${trackId}" style="background: rgba(6,6,16,0.7);">
+        <a class="topnav__link" href="${playerUrl}" style="background: rgba(6,6,16,0.7);">
           <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
           <span>Full track on bZ</span>
         </a>
@@ -1234,7 +1239,7 @@ function renderPressPage(trackId: string, origin: string): string {
     <a href="#" id="lnk-spotify" class="links a--primary" target="_blank" rel="noopener">Spotify ↗</a>
     <a href="https://music.apple.com/search?term=bZ%20${encodeURIComponent(title)}" target="_blank" rel="noopener">Apple Music ↗</a>
     <a href="https://music.youtube.com/search?q=bZ+${encodeURIComponent(title)}" target="_blank" rel="noopener">YouTube Music ↗</a>
-    <a href="${origin}/${trackId}" target="_blank" rel="noopener">Web player ↗</a>
+    <a href="${playerUrl}" target="_blank" rel="noopener">Web player ↗</a>
     <a href="${origin}/clip/${trackId}" target="_blank" rel="noopener">TikTok clip ↗</a>
   </div>
   <div class="spotify-embed" id="embed"></div>
@@ -1390,6 +1395,19 @@ export default {
       return new Response(null, {
         status: 301,
         headers: { Location: `${url.origin}/about`, 'Cache-Control': 'no-store' }
+      });
+    }
+
+    // Bare track-slug rescue — a single-segment path that is a TRACK id (not an
+    // album, not a content page) is a truncated or legacy link, e.g. someone
+    // shared /other-side-of-the-fall instead of the canonical /<album>/<track>.
+    // 301 it to the real track page so the link works instead of soft-404ing.
+    const bareSlug = cleanPath.slice(1);
+    if (/^[a-z0-9-]+$/.test(bareSlug) && !ALBUM_BY_ID.has(bareSlug) && TRACK_BY_ID.has(bareSlug)) {
+      const track = TRACK_BY_ID.get(bareSlug)!;
+      return new Response(null, {
+        status: 301,
+        headers: { Location: `${url.origin}/${track.album}/${track.id}`, 'Cache-Control': 'no-store' }
       });
     }
 
@@ -2556,7 +2574,8 @@ export default {
     // ── TikTok-ready vertical clip page (outside /api guard) ─────
     if (url.pathname.startsWith('/clip/') && request.method === 'GET') {
       const trackId = url.pathname.slice('/clip/'.length).replace(/\/$/, '');
-      if (!VALID_TRACK_ID.test(trackId)) return new Response('Not found', { status: 404 });
+      if (!VALID_TRACK_ID.test(trackId) || !TRACK_BY_ID.has(trackId))
+        return new Response('Not found', { status: 404 });
       return new Response(renderClipPage(trackId, url.origin), {
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=3600' }
       });
@@ -2565,7 +2584,11 @@ export default {
     // ── Per-track press one-pager (outside /api guard) ───────────
     if (url.pathname.startsWith('/press/') && request.method === 'GET') {
       const trackId = url.pathname.slice('/press/'.length).replace(/\/$/, '');
-      if (!VALID_TRACK_ID.test(trackId)) return new Response('Not found', { status: 404 });
+      // 404 unknown tracks — a press kit for a track that doesn't exist is a
+      // soft-404 (renders a page derived purely from the slug). Only real
+      // tracks get a kit.
+      if (!VALID_TRACK_ID.test(trackId) || !TRACK_BY_ID.has(trackId))
+        return new Response('Not found', { status: 404 });
       return new Response(renderPressPage(trackId, url.origin), {
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=600' }
       });

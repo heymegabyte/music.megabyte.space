@@ -55,18 +55,25 @@ const trackBlockMatch = dataSrc.match(/export const TRACKS:[^=]*=\s*\[([\s\S]+)\
 if (!trackBlockMatch) throw new Error('TRACKS array not found in data.ts');
 
 const TRACKS = [];
+// Title accepts single- OR double-quoted strings INCLUDING escaped quotes
+// (`'The Odds Don\'t Know Me'`) — a naive [^'"]+ stops at the escaped
+// apostrophe and drops the whole entry, silently skipping that track's card.
 const trackRegex =
-  /\{\s*id:\s*'([^']+)',\s*title:\s*['"]([^'"]+)['"],\s*artist:\s*'([^']+)',\s*file:\s*'[^']+',\s*cover:\s*([^,]+),\s*album:\s*'([^']+)'/g;
+  /\{\s*id:\s*'([^']+)',\s*title:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"),\s*artist:\s*'([^']+)',\s*file:\s*'[^']+',\s*cover:\s*([^,]+),\s*album:\s*'([^']+)'/g;
 for (const m of dataSrc.matchAll(trackRegex)) {
-  const [, id, title, artist, coverRef, album] = m;
+  const [, id, titleSingle, titleDouble, artist, coverRef, album] = m;
   const cover = coverRef.startsWith("'")
     ? coverRef.replace(/'/g, '')
     : COVERS[coverRef.replace(/^COVERS\./, '').trim()] ||
       ALBUMS[album]?.cover ||
       '/art/cover-panda-desiiignare.png';
+  const rawTitle = titleSingle ?? titleDouble ?? '';
   TRACKS.push({
     id,
-    title: title.replace(/&apos;|&#39;/g, "'").replace(/&quot;/g, '"'),
+    title: rawTitle
+      .replace(/\\(['"])/g, '$1') // unescape \' and \" from the JS string literal
+      .replace(/&apos;|&#39;/g, "'")
+      .replace(/&quot;/g, '"'),
     artist,
     cover,
     album
