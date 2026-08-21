@@ -303,13 +303,14 @@ export class Visualizer {
   private mode: VizMode = 'starfield';
   private autoCycle = true;
   private manualCycleStarted = false;
+  private beatArmed = false;
   private lastCycleAt = 0;
   private fpsEMA = 60;
   private lastFrame = performance.now();
   private hudFreq = 0;
   private hudPeakBin = 0;
   private trail = false;
-  private listeners = new Set<(m: VizMode) => void>();
+  private listeners = new Set<(m: VizMode, source: 'manual' | 'auto') => void>();
   // Per-frame audio + render snapshot — populated once at top of draw(), then
   // read by every mode + overlay. Avoids per-mode recomputation of bands()
   // / tempoPhase() / channelEnergy() and lets cheap reads replace allocations.
@@ -567,12 +568,12 @@ export class Visualizer {
   currentMode(): VizMode {
     return this.mode;
   }
-  onModeChange(fn: (m: VizMode) => void) {
+  onModeChange(fn: (m: VizMode, source: 'manual' | 'auto') => void) {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
   }
-  private emitMode() {
-    for (const f of this.listeners) f(this.mode);
+  private emitMode(source: 'manual' | 'auto' = 'manual') {
+    for (const f of this.listeners) f(this.mode, source);
   }
 
   resize() {
@@ -732,13 +733,21 @@ export class Visualizer {
     if (e.dropImminent) this.dropFlash = 1;
     else this.dropFlash *= Math.pow(0.005, dtFrame); // ≈ 0.88/frame @60fps
 
-    if (this.autoCycle && e.beatPulse > 0.85) {
-      if (now - this.lastCycleAt > 8000) {
+    // Auto-cycle: latch the beat so a cycle fires on the FIRST beat after the
+    // cooldown elapses (instead of requiring the fragile 2-3 frame window
+    // where beatPulse > 0.85 — which throttled/uneven frames could miss).
+    // 6s cooldown = "switch often"; the beat latch = "switch to the beat".
+    if (this.autoCycle) {
+      if (e.beatPulse > 0.85) this.beatArmed = true;
+      if (this.beatArmed && now - this.lastCycleAt > 6000) {
         const i = MODE_ORDER.indexOf(this.mode);
         this.mode = MODE_ORDER[(i + 1) % MODE_ORDER.length];
         this.lastCycleAt = now;
-        this.emitMode();
+        this.beatArmed = false;
+        this.emitMode('auto');
       }
+    } else {
+      this.beatArmed = false;
     }
 
     const ctx = this.bgCtx;

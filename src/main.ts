@@ -5632,7 +5632,9 @@ function bindUi() {
   //    interaction so initial paint / scroll is buttery
   //  - prefers-reduced-motion                    → start in 'wave' mode only
   //                                                 (cheapest viz, no auto-cycle)
-  //  - low core count (≤ 4 logical CPUs)         → start with auto-cycle off
+  // Auto-cycle is ON by default everywhere (Brian directive 2026-08-20) —
+  // the only standing exception is prefers-reduced-motion, where cycling
+  // animation would fight the user's explicit motion preference.
   const isTouch = matchMedia('(max-width: 768px) and (pointer: coarse)').matches;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const cores = (navigator as Navigator & { hardwareConcurrency?: number }).hardwareConcurrency || 8;
@@ -5643,7 +5645,7 @@ function bindUi() {
     // starting the RAF loop — saves 60fps CPU on a static idle phone.
     const startOnce = () => {
       visualizer.start();
-      visualizer.setAutoCycle(!reducedMotion && !isTouch);
+      visualizer.setAutoCycle(!reducedMotion);
     };
     document.addEventListener('panda-track-play', startOnce, { once: true });
     document.addEventListener(
@@ -5666,10 +5668,13 @@ function bindUi() {
   const vizPickerTitle = $('#vizPickerTitle');
   buildVizPicker(vizGrid, visualizer.modeCatalog(), visualizer.currentMode());
   if (vizPickerTitle) vizPickerTitle.textContent = `${visualizer.modeCatalog().length} modes`;
-  visualizer.onModeChange((m: VizMode) => {
+  visualizer.onModeChange((m: VizMode, source) => {
     if (modeBtnLabel) modeBtnLabel.textContent = m;
     markActiveVizChip(vizGrid, m);
-    if (vizAutoCycle) vizAutoCycle.checked = false;
+    // Manual picks turn auto-cycle off (and the box reflects it); auto-cycle
+    // rotations must NOT uncheck the box or the toggle looks broken after
+    // the first automatic switch.
+    if (source === 'manual' && vizAutoCycle) vizAutoCycle.checked = false;
     const u = new URL(window.location.href);
     u.searchParams.set('viz', m);
     window.history.replaceState({}, '', u.toString());
