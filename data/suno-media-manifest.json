@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-29T03:12:19.000Z",
+  "generated_at": "2026-08-29T03:29:47.000Z",
   "tol_seconds": 3,
-  "authed": false,
+  "authed": true,
   "counts": {
     "total": 109,
     "verified": 31,

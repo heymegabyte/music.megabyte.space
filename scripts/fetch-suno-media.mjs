@@ -32,6 +32,7 @@ const MANIFEST = resolve(ROOT, 'data/suno-media-manifest.json');
 const VIDEO_INDEX = resolve(MEDIA_DIR, 'index.json');
 const TOL = 3; // seconds — same-render tolerance (durations.ts is whole seconds)
 const WANT_MIDI = process.argv.includes('--midi');
+const WANT_HIFI = process.argv.includes('--hifi'); // also pull m4a-opus (only hi-fi source Suno exposes)
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36';
 const API = 'https://studio-api.prod.suno.com';
@@ -135,39 +136,49 @@ function deriveMidi(id) {
 }
 
 // ── run ───────────────────────────────────────────────────────────────────────
-let dlWav = 0,
+// Confirmed against the live Suno API (2026-08-29, valid paid-plan token):
+//   • video_url is a key on every clip but EMPTY unless a video was generated —
+//     this catalog has 0 videos, so nothing to download / play.
+//   • Suno exposes NO WAV via the API (GET wav_file → {}, POST → 405). The only
+//     downloadable hi-fi source is the m4a-opus in media_urls (still lossy; the
+//     mp3 already lives in public/audio). WAV would need the paid interactive
+//     "Download WAV" flow — never buy add-ons.
+let dlM4a = 0,
   dlVid = 0,
   dlMidi = 0,
-  fail = 0;
+  fail = 0,
+  noVideo = 0;
 const media = {};
 
 for (const r of verified) {
-  const wav = resolve(MEDIA_DIR, `${r.id}.wav`);
+  const m4a = resolve(MEDIA_DIR, `${r.id}.m4a`);
   const mp4 = resolve(MEDIA_DIR, `${r.id}.mp4`);
   const have = {
-    wav: existsSync(wav),
+    m4a: existsSync(m4a),
     mp4: existsSync(mp4),
     mid: existsSync(resolve(MEDIA_DIR, `${r.id}.mid`))
   };
 
-  if (authed && (!have.wav || !have.mp4)) {
+  if (authed && (!have.mp4 || (WANT_HIFI && !have.m4a))) {
     const meta = await clipMeta(r.sunoId);
-    const videoUrl = meta?.video_url || meta?.metadata?.video_url;
-    const wavUrl = meta?.wav_url || meta?.audio_url_wav || `${API}/api/gen/${r.sunoId}/wav_file/`;
-    if (!have.mp4 && videoUrl) {
-      try {
-        await downloadTo(videoUrl, mp4);
-        have.mp4 = true;
-        dlVid++;
-      } catch {
-        fail++;
-      }
+    const videoUrl = typeof meta?.video_url === 'string' && meta.video_url.length > 8 ? meta.video_url : null;
+    const m4aUrl = (meta?.media_urls || []).find(u => /m4a/i.test(u.content_type || ''))?.url || null;
+    if (!have.mp4) {
+      if (videoUrl) {
+        try {
+          await downloadTo(videoUrl, mp4);
+          have.mp4 = true;
+          dlVid++;
+        } catch {
+          fail++;
+        }
+      } else noVideo++;
     }
-    if (!have.wav && wavUrl) {
+    if (WANT_HIFI && !have.m4a && m4aUrl) {
       try {
-        await downloadTo(wavUrl, wav);
-        have.wav = true;
-        dlWav++;
+        await downloadTo(m4aUrl, m4a);
+        have.m4a = true;
+        dlM4a++;
       } catch {
         fail++;
       }
@@ -180,7 +191,7 @@ for (const r of verified) {
       dlMidi++;
     }
   }
-  if (have.wav || have.mp4 || have.mid) media[r.id] = have;
+  if (have.m4a || have.mp4 || have.mid) media[r.id] = have;
 }
 
 // ── outputs ───────────────────────────────────────────────────────────────────
@@ -201,11 +212,6 @@ writeFileSync(
 // index.json → the visualizer reads this to know which tracks have a playable video.
 writeFileSync(VIDEO_INDEX, JSON.stringify(media, null, 0));
 
-const remaining = authed
-  ? verified.filter(
-      r => !existsSync(resolve(MEDIA_DIR, `${r.id}.wav`)) || !existsSync(resolve(MEDIA_DIR, `${r.id}.mp4`))
-    ).length
-  : 0;
 console.log(`\nSuno media — ${authNote}`);
 console.log(
   `  length check: ${verified.length} verified · ${mismatch.length} mismatch (skipped — different render) · ${rows.length} total`
@@ -219,7 +225,7 @@ if (mismatch.length)
   );
 if (authed)
   console.log(
-    `  downloaded: ${dlVid} video · ${dlWav} wav${WANT_MIDI ? ` · ${dlMidi} midi` : ''}${fail ? ` · ${fail} failed` : ''} · ${remaining} still pending`
+    `  downloaded: ${dlVid} video · ${dlM4a} m4a${WANT_MIDI ? ` · ${dlMidi} midi` : ''}${fail ? ` · ${fail} failed` : ''} · ${noVideo} clips have NO Suno video`
   );
 else
   console.log(
