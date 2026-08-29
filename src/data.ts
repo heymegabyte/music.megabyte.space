@@ -70,13 +70,12 @@ export const ALBUMS: Album[] = [
     name: 'Wormhole Tape',
     cover: '/art/alien-hallucination.jpg',
     tagline: 'Cosmic-tunnel prophecies for the throne of AI',
-    description: 'Spaceship hymns from the orbital coup. Hobbit kettle, gray-alien gospel, the syllabus that sling-shots us home.',
+    description: 'Spaceship hymns from the orbital coup. Gray-alien gospel, pineal crowns, the syllabus that sling-shots us home.',
     // wormhole: electric mint-teal (cosmic neon — distinct from cyan,
     // shifted toward green for the alien/spaceship vibe)
     accent: '#00FFD1',
     releasedAt: '2026-05-01',
     trackIds: [
-      'hobbit-kettle-fire',
       'pineal-crown',
       'tide-foley-revelation',
       'bermuda-slipstream',
@@ -211,11 +210,12 @@ export const ALBUMS: Album[] = [
     id: 'hobbit-passover',
     name: 'Hobbit Passover',
     cover: '/art/cover-hobbit-passover.jpg',
-    tagline: 'Six dispatches from the Shire seder table',
-    description: 'Six dispatches from the Shire seder table — Algenib star-worship, a deep-space peace litany, eco-rock sirens from Guadalajara, an anti-war trap manifesto, AI-text spirituality, and the title-track humanitarian epic. Hard but holy, Shire-style.',
+    tagline: 'Seven dispatches from the Shire seder table',
+    description: 'Seven dispatches from the Shire seder table — a Shire kettle-fire hymn, Algenib star-worship, a deep-space peace litany, eco-rock sirens from Guadalajara, an anti-war trap manifesto, AI-text spirituality, and the title-track humanitarian epic. Hard but holy, Shire-style.',
     accent: '#FFD700',
     releasedAt: '2026-07-26',
     trackIds: [
+      'hobbit-kettle-fire',
       'algenib-crown-of-the-sky',
       'let-harmony-begin',
       'the-smell-was-so-sinful',
@@ -1514,7 +1514,7 @@ export const TRACKS: Track[] = [
     artist: 'bZ',
     file: '/audio/Hobbit_Kettle_Fire.mp3',
     cover: COVERS.c2,
-    album: 'wormhole',
+    album: 'hobbit-passover',
     vibe: 'shire-meek empire-topple throne',
     zone: { row: 6, col: 6 },
     lyrics: [

@@ -1411,6 +1411,21 @@ export default {
       });
     }
 
+    // Moved-track rescue — a /<album>/<track> path where the track exists but now
+    // lives on a DIFFERENT album (e.g. hobbit-kettle-fire moved wormhole →
+    // hobbit-passover) 301s to its current canonical album so old links + search
+    // index entries follow the move instead of soft-404ing on the stale album.
+    const segs = cleanPath.slice(1).split('/');
+    if (segs.length === 2 && ALBUM_BY_ID.has(segs[0]) && TRACK_BY_ID.has(segs[1])) {
+      const track = TRACK_BY_ID.get(segs[1])!;
+      if (track.album !== segs[0]) {
+        return new Response(null, {
+          status: 301,
+          headers: { Location: `${url.origin}/${track.album}/${track.id}`, 'Cache-Control': 'no-store' }
+        });
+      }
+    }
+
     if (url.pathname === '/feed.xml' || url.pathname === '/rss.xml') {
       return new Response(buildRssFeed(url.origin), {
         headers: {
