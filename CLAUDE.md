@@ -27,6 +27,7 @@ The app is a single-page experience. The audio element is created once and persi
 | AI chat widget kinds + renderer  | `src/ai-widgets.ts` (see [`docs/ai-chat-widgets.md`](./docs/ai-chat-widgets.md))         |
 | `/shortcommands` palette builder | `src/ai-shortcommands.ts` (see [`docs/ai-chat-commands.md`](./docs/ai-chat-commands.md)) |
 | Visualizer                       | `src/visualizer.ts`                                                                      |
+| Suno WAV/MIDI/VIDEO download      | `scripts/fetch-suno-media.mjs` (`npm run media:fetch` — needs fresh `SUNO_COOKIE`)       |
 | Worker route or API              | `worker/index.ts`                                                                        |
 | Styles                           | `src/style.css` (one file, cascade-layered)                                              |
 
