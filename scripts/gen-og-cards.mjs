@@ -40,13 +40,16 @@ const ALBUMS = {};
 const albumBlockMatch = dataSrc.match(/export const ALBUMS:[^=]*=\s*\[([\s\S]*?)\n\];/);
 if (albumBlockMatch) {
   const albumBlock = albumBlockMatch[1];
+  // name/cover may be single- OR double-quoted (e.g. name: "St. John's Canon"
+  // uses double quotes because of the apostrophe) — accept both or that album
+  // silently gets no OG card regenerated when its cover changes.
   const albumEntries = [
     ...albumBlock.matchAll(
-      /\{\s*id:\s*'([^']+)',\s*name:\s*'([^']+)',\s*cover:\s*'([^']+)',[\s\S]*?accent:\s*'([^']+)'/g
+      /\{\s*id:\s*'([^']+)',\s*name:\s*(?:'([^']*)'|"([^"]*)"),\s*cover:\s*(?:'([^']*)'|"([^"]*)"),[\s\S]*?accent:\s*'([^']+)'/g
     )
   ];
-  for (const [, id, name, cover, accent] of albumEntries) {
-    ALBUMS[id] = { id, name, cover, accent };
+  for (const [, id, nameS, nameD, coverS, coverD, accent] of albumEntries) {
+    ALBUMS[id] = { id, name: nameS ?? nameD, cover: coverS ?? coverD, accent };
   }
 }
 
@@ -145,12 +148,10 @@ function greedyBalance(words, lineCount) {
   return lines;
 }
 
-function buildOverlaySvg(track, album) {
-  const title = svgEscape(track.title);
-  const eyebrow = svgEscape(
-    `${track.artist.toUpperCase()} · ${album?.name?.toUpperCase() ?? ''}`.replace(/ · $/, '')
-  );
-  const accent = album?.accent ?? '#00E5FF';
+function buildOverlaySvg(titleRaw, eyebrowRaw, accentColor) {
+  const title = svgEscape(titleRaw);
+  const eyebrow = svgEscape(eyebrowRaw);
+  const accent = accentColor ?? '#00E5FF';
   const { lines: titleLines, fontSize } = wrapTitle(title);
   const lineHeight = Math.round(fontSize * 0.96);
   const titleStartY = HEIGHT / 2 + 18 - ((titleLines.length - 1) * lineHeight) / 2;
@@ -267,7 +268,13 @@ async function generateCard(track) {
     .png()
     .toBuffer();
 
-  const overlaySvg = Buffer.from(buildOverlaySvg(track, album));
+  const overlaySvg = Buffer.from(
+    buildOverlaySvg(
+      track.title,
+      `${track.artist.toUpperCase()} · ${album?.name?.toUpperCase() ?? ''}`.replace(/ · $/, ''),
+      album?.accent
+    )
+  );
 
   const composites = [
     { input: coverSquare, top: COVER_Y, left: COVER_X },
@@ -299,6 +306,73 @@ async function generateCard(track) {
   return { size, ok: true };
 }
 
+/** Album share card — album cover + branded overlay (name + track count). */
+async function generateAlbumCard(album, trackCount) {
+  const outPath = path.join(OG_DIR, `album-${album.id}.jpg`);
+  const coverPath = path.join(PUBLIC_DIR, (album.cover || '').replace(/^\//, ''));
+
+  if (!album.cover || !existsSync(coverPath)) {
+    console.warn(`  ! missing album cover ${album.cover} for ${album.id} — skip`);
+    return { skipped: true, reason: 'missing-cover' };
+  }
+
+  if (existsSync(outPath)) {
+    const destMtime = statSync(outPath).mtimeMs;
+    const coverMtime = statSync(coverPath).mtimeMs;
+    const scriptMtime = statSync(fileURLToPath(import.meta.url)).mtimeMs;
+    if (destMtime > dataMtime && destMtime > coverMtime && destMtime > scriptMtime) {
+      return { skipped: true, reason: 'up-to-date' };
+    }
+  }
+
+  const bg = await sharp(coverPath)
+    .resize(WIDTH, HEIGHT, { fit: 'cover', position: 'centre' })
+    .blur(28)
+    .modulate({ brightness: 0.42, saturation: 1.35 })
+    .toBuffer();
+
+  const coverSquare = await sharp(coverPath)
+    .resize(COVER_SIZE, COVER_SIZE, { fit: 'cover', position: 'centre' })
+    .composite([
+      {
+        input: Buffer.from(
+          `<svg width="${COVER_SIZE}" height="${COVER_SIZE}"><rect width="${COVER_SIZE}" height="${COVER_SIZE}" rx="22" ry="22" fill="white"/></svg>`
+        ),
+        blend: 'dest-in'
+      }
+    ])
+    .png()
+    .toBuffer();
+
+  const eyebrow = `bZ · ALBUM${trackCount ? ` · ${trackCount} TRACKS` : ''}`;
+  const overlaySvg = Buffer.from(buildOverlaySvg(album.name, eyebrow, album.accent));
+
+  const composites = [
+    { input: coverSquare, top: COVER_Y, left: COVER_X },
+    { input: overlaySvg, top: 0, left: 0 }
+  ];
+  if (brandMarkBuf) {
+    const mark = await sharp(brandMarkBuf)
+      .resize(64, 64, { fit: 'contain' })
+      .ensureAlpha()
+      .composite([
+        {
+          input: Buffer.from('<svg><rect width="64" height="64" fill="rgba(255,255,255,0.85)"/></svg>'),
+          blend: 'dest-in'
+        }
+      ])
+      .toBuffer();
+    composites.push({ input: mark, top: 50, left: WIDTH - 64 - 80 });
+  }
+
+  await sharp(bg)
+    .composite(composites)
+    .jpeg({ quality: 82, progressive: true, mozjpeg: true, chromaSubsampling: '4:2:0' })
+    .toFile(outPath);
+
+  return { size: (await fs.stat(outPath)).size, ok: true };
+}
+
 const t0 = Date.now();
 let generated = 0,
   skipped = 0,
@@ -318,9 +392,29 @@ for (const track of TRACKS) {
   }
 }
 
+// Album share cards — every album gets /og/album-<id>.jpg for the share modal.
+const trackCountByAlbum = {};
+for (const t of TRACKS) trackCountByAlbum[t.album] = (trackCountByAlbum[t.album] || 0) + 1;
+let albumGenerated = 0,
+  albumSkipped = 0,
+  albumMissing = 0;
+for (const album of Object.values(ALBUMS)) {
+  const r = await generateAlbumCard(album, trackCountByAlbum[album.id] || 0);
+  if (r.skipped) {
+    if (r.reason === 'missing-cover') albumMissing++;
+    else albumSkipped++;
+  } else {
+    albumGenerated++;
+    totalBytes += r.size;
+  }
+}
+
 const ms = Date.now() - t0;
 console.log(
   `OG cards: generated ${generated}, skipped ${skipped}${missing ? `, missing ${missing}` : ''}, ${(totalBytes / 1024).toFixed(0)} KB total in ${ms}ms`
+);
+console.log(
+  `Album cards: generated ${albumGenerated}, skipped ${albumSkipped}${albumMissing ? `, missing ${albumMissing}` : ''} (${Object.keys(ALBUMS).length} albums)`
 );
 if (generated > 0) {
   const avgKB = totalBytes / generated / 1024;

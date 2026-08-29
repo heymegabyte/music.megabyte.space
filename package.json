@@ -13,6 +13,8 @@
     "lyrics:validate": "node scripts/validate-lyrics.mjs",
     "lyrics:rebuild": "node scripts/rebuild-lyrics-from-cache.mjs",
     "lyrics:clamp": "node scripts/clamp-lyric-spans.mjs",
+    "media:verify": "node scripts/fetch-suno-media.mjs",
+    "media:fetch": "node scripts/fetch-suno-media.mjs",
     "lint": "oxlint src worker scripts",
     "build": "tsc -b && vite build && node scripts/build-embed-component.mjs",
     "typecheck": "tsc -b --noEmit",

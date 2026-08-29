@@ -62,3 +62,9 @@ _VERDICT.txt
 
 # ── Relocated large media: print masters + orphaned video (kept local, never web-served) ──
 /_archive/
+
+# Suno media pipeline (fetch-suno-media.mjs)
+.suno-cookie
+public/media/*.wav
+public/media/*.mp4
+public/media/*.mid

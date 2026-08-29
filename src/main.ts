@@ -226,6 +226,8 @@ function recordPlayStart(trackId: string) {
   stat.lastPlayAt = Date.now();
   lastPlayedAt = { id: trackId, startedAt: Date.now(), lastTime: 0, counted: false };
   persistListenStats();
+  // Surface the PWA install banner the moment a 3rd distinct song is played.
+  maybeShowInstallAfterListen();
   // Toast-style newsletter nudge removed. Subscribe UI now lives inline
   // at every album footer + in the more-menu via `.nl-inline` widgets,
   // so no popup is needed to capture the signup intent.
@@ -2209,7 +2211,7 @@ function renderAlbums(host: HTMLElement) {
       <section class="album ${isFeatured ? 'album--featured' : ''}" data-album="${album.id}" style="--album-accent: ${album.accent};">
         <header class="album__head">
           <div class="album__cover-stage">
-            <a class="album__cover" data-album-link="${album.id}" href="${albumPath(album.id)}" aria-label="Open ${album.name}">
+            <a class="album__cover" data-share-album="${album.id}" href="${albumPath(album.id)}" aria-label="Share ${album.name}" title="Share ${album.name}">
               <img src="${album.cover}" alt="${album.name} cover art" loading="lazy" decoding="async" />
             </a>
             ${
@@ -2227,7 +2229,7 @@ function renderAlbums(host: HTMLElement) {
           </div>
           <div class="album__head-meta">
             <p class="album__eyebrow">album${album.releasedAt ? ` · ${album.releasedAt}` : ''}</p>
-            <h3 class="album__title">${album.name}</h3>
+            <h3 class="album__title"><a class="album__title-link" data-album-link="${album.id}" href="${albumPath(album.id)}">${album.name}</a></h3>
             <p class="album__tagline">${album.tagline}</p>
             <p class="album__count">${tracks.length} tracks · bZ</p>
             ${renderListenOn(album)}
@@ -7349,6 +7351,28 @@ function showInstallBanner(reason: 'pwa' | 'ios' | 'force') {
   banner.hidden = false;
 }
 
+/** Distinct songs the visitor has actually started playing (persisted across sessions). */
+function songsListenedCount(): number {
+  let n = 0;
+  for (const s of listenStats.values()) if (s.starts > 0) n++;
+  return n;
+}
+
+const INSTALL_MIN_SONGS = 3;
+
+/**
+ * Install banner is earned by LISTENING, not visiting: only surface it once the
+ * visitor has played {@link INSTALL_MIN_SONGS}+ distinct songs. Called on the play
+ * that crosses the threshold (from recordPlayStart) so it appears the moment it's
+ * earned, and never touches the visit counter.
+ */
+function maybeShowInstallAfterListen() {
+  if (isStandalone() || installSnoozeActive()) return;
+  if (songsListenedCount() < INSTALL_MIN_SONGS) return;
+  if (installPromptEvent) showInstallBanner('pwa');
+  else if (isIOS()) showInstallBanner('ios');
+}
+
 function maybeShowInstallBanner() {
   const params = new URLSearchParams(location.search);
   const force = params.get('install') === '1';
@@ -7362,7 +7386,9 @@ function maybeShowInstallBanner() {
     showInstallBanner('force');
     return;
   }
-  if (visits < 3) return;
+  // Gate on songs listened, not visits: a returning listener with 3+ plays in a
+  // prior session sees it on load; a fresh visitor only after their 3rd song.
+  if (songsListenedCount() < INSTALL_MIN_SONGS) return;
   if (installPromptEvent) showInstallBanner('pwa');
   else if (isIOS()) showInstallBanner('ios');
 }
@@ -7380,7 +7406,9 @@ function bindInstallPrompt() {
     if (installSnoozeActive() || isStandalone()) return;
     e.preventDefault();
     installPromptEvent = e;
-    showInstallBanner('pwa');
+    // Hold the prompt until the visitor has listened to 3+ songs — show now only
+    // if they already qualify (returning listener); otherwise recordPlayStart fires it.
+    maybeShowInstallAfterListen();
   });
   window.addEventListener('appinstalled', () => {
     persist(LS_KEYS.installDismissed, '1');
