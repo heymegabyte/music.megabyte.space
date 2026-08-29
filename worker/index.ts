@@ -2704,9 +2704,10 @@ export default {
     // engine), so absorb transient ASSETS faults here.
     if (url.pathname.startsWith('/lyrics/') && url.pathname.endsWith('.json')) {
       const cache = (caches as unknown as { default: Cache }).default;
-      // #v9: bump on catalog changes that delete/rename tracks so stale
-      // Cache API entries (30d immutable) can't ghost-serve removed files.
-      const cacheKey = new Request(`${url.origin}${url.pathname}#v9`, { method: 'GET' });
+      // #v10: bump on catalog changes that delete/rename tracks OR re-align
+      // word timing so stale Cache API entries (30d immutable) can't ghost-serve
+      // the old lyrics. Bumped v9→v10 for the whole-catalog whisper re-alignment.
+      const cacheKey = new Request(`${url.origin}${url.pathname}#v10`, { method: 'GET' });
       let cached = await cache.match(cacheKey);
       if (!cached) {
         let originResp: Response | null = null;
