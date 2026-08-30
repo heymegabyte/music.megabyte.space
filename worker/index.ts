@@ -29,6 +29,7 @@ interface Env {
   // Anthropic — kept these fields commented out as historical breadcrumb.
   // ANTHROPIC_API_KEY / ANTHROPIC_MODEL / CF_AI_GATEWAY_SLUG removed.
   AI: Ai; // Workers AI binding (defined in wrangler.toml)
+  MEDIA?: R2Bucket; // R2 bucket for full-fidelity Suno media (WAV/stems-MIDI/video) — /media/* route
   AI_MODEL?: string; // Override Workers AI model id
   CF_AI_GATEWAY_SLUG?: string; // AI Gateway slug for caching/logging through env.AI
   SENTRY_DSN?: string; // @sentry/cloudflare DSN for exception capture
@@ -2607,6 +2608,61 @@ export default {
       return new Response(renderPressPage(trackId, url.origin), {
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=600' }
       });
+    }
+
+    // Full-fidelity Suno media (WAV / stems-MIDI zip / lyric video) served from
+    // R2 — too big for Worker Assets. Range-aware so <video>/<audio> can seek.
+    // Keys mirror the ingest layout: <id>.wav, <id>.mp4, stems/<id>.zip.
+    if (url.pathname.startsWith('/media/')) {
+      const mediaCors: Record<string, string> = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+        'Access-Control-Allow-Headers': 'Range, If-Range, If-None-Match, If-Modified-Since, Accept, Origin',
+        'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges, ETag, Content-Type',
+        'Access-Control-Max-Age': '86400',
+        'Timing-Allow-Origin': '*'
+      };
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: mediaCors });
+      if (!env.MEDIA) return new Response('media store unavailable', { status: 503, headers: mediaCors });
+      const key = decodeURIComponent(url.pathname.slice('/media/'.length));
+      if (!key || key.includes('..')) return new Response('bad key', { status: 400, headers: mediaCors });
+      const rangeMatch = request.headers.get('Range')?.match(/^bytes=(\d*)-(\d*)$/);
+      let range: R2Range | undefined;
+      if (rangeMatch) {
+        const start = rangeMatch[1] ? Number(rangeMatch[1]) : undefined;
+        const end = rangeMatch[2] ? Number(rangeMatch[2]) : undefined;
+        range =
+          start !== undefined
+            ? { offset: start, length: end !== undefined ? end - start + 1 : undefined }
+            : end !== undefined
+              ? { suffix: end }
+              : undefined;
+      }
+      const obj = await env.MEDIA.get(key, { range, onlyIf: request.headers });
+      if (!obj) return new Response('not found', { status: 404, headers: mediaCors });
+      const headers = new Headers(mediaCors);
+      obj.writeHttpMetadata(headers);
+      headers.set('etag', obj.httpEtag);
+      headers.set('Accept-Ranges', 'bytes');
+      headers.set('Cache-Control', 'public, max-age=2592000, immutable');
+      const ext = key.slice(key.lastIndexOf('.') + 1).toLowerCase();
+      const ct = {
+        wav: 'audio/wav',
+        mp4: 'video/mp4',
+        mid: 'audio/midi',
+        zip: 'application/zip',
+        m4a: 'audio/mp4'
+      }[ext];
+      if (ct) headers.set('Content-Type', ct);
+      const body = 'body' in obj ? obj.body : null;
+      if (!body) return new Response(null, { status: 304, headers }); // onlyIf matched → not modified
+      if (obj.range && 'offset' in obj.range) {
+        const start = obj.range.offset ?? 0;
+        const len = obj.range.length ?? obj.size - start;
+        headers.set('Content-Range', `bytes ${start}-${start + len - 1}/${obj.size}`);
+        return new Response(body, { status: 206, headers });
+      }
+      return new Response(body, { status: 200, headers });
     }
 
     const isAudio = url.pathname.startsWith('/audio/');

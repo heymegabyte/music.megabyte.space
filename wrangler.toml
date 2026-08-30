@@ -35,6 +35,13 @@ id = "2a9973599d5c453c984cdb69758f9bde"
 [ai]
 binding = "AI"
 
+# R2 bucket for full-fidelity Suno media (WAV + stems/MIDI zip + lyric video) —
+# too large for Worker Assets (25MB/file cap; ~14GB total across 109 songs). Served
+# via the worker's /media/* route with Range support. No PII (artist's own music).
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "music-megabyte-space-media"
+
 [observability]
 enabled = true
 
