@@ -2638,7 +2638,7 @@ export default {
               ? { suffix: end }
               : undefined;
       }
-      const obj = await env.MEDIA.get(key, { range, onlyIf: request.headers });
+      const obj = range ? await env.MEDIA.get(key, { range }) : await env.MEDIA.get(key);
       if (!obj) return new Response('not found', { status: 404, headers: mediaCors });
       const headers = new Headers(mediaCors);
       obj.writeHttpMetadata(headers);

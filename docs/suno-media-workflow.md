@@ -42,8 +42,32 @@ per loop iteration. Derived from the walkthrough video `~/Desktop/suno-suno-suno
 
 `public/media/*.{wav,mp4,mid}` + `public/media/stems/` are gitignored (large — host separately, e.g. R2).
 
+## Loop resilience guard (MUST run first each cycle)
+
+`bash scripts/suno-loop-guard.sh` — exit 0 = READY, exit 1 = SKIP (do nothing, retry next loop).
+SKIPs when: the **Emdash** window is frontmost (user working) OR Chrome's active tab is a
+**projectsites.dev / localhost** automation (another agent driving Chrome) OR Chrome isn't running.
+This lets the loop share the desktop — it only takes the foreground when it's free for Suno.
+
+## Loop cron (one song per fire, self-cancelling)
+
+Each fire: run the guard → if SKIP, stop + retry next fire → if READY, activate Chrome's Suno tab
+(`osascript` → `suno.com/me`), download the next `pending` song per the procedure above via Computer
+Use, then `npm run suno:ingest` (moves to `public/media` + uploads to R2 + marks the song `done`).
+When 0 `pending` remain, `CronDelete` self. Cadence ~30m (one song ≈ 10-15 min + buffer).
+
+## R2 serving
+
+`public/media/*` served from R2 bucket `music-megabyte-space-media` via the worker `/media/*` route
+(Range-aware). Ingest uploads each file (`<id>.wav`, `<id>.mp4`, `stems/<id>.zip`). NOTE (2026-08-30):
+R2 storage confirmed (objects persist + retrieve via CLI) but the Workers binding view lagged on the
+brand-new bucket (`/media/*` 404 while `object_count` read 0 — stale stats, not jurisdiction). Re-verify
+`curl https://music.megabyte.space/media/chef-lu-stew.mp4` after propagation; if still 404, redeploy the worker.
+
 ## Status (2026-08-30)
 
-- Ingest half: TESTED with the real demo files → `soupe-saint-jean` `done` (1/109).
-- Download half: BLOCKED until a Suno-logged-in Chrome is available for Computer Use.
-- Loop NOT armed yet — arm only after one full download iteration succeeds (user: "when it works, create it as a loop").
+- **Full download flow PROVEN via Computer Use** — `chef-lu-stew` (3:00 match) downloaded WAV (33MB) +
+  Stems/MIDI zip (122MB, MP3+WAV+MIDI) + lyric video (6.6MB), all → `public/media` + R2. 2/109 done
+  (`soupe-saint-jean` + `chef-lu-stew`).
+- Guard TESTED (correctly SKIPs when Emdash frontmost).
+- Loop armed as a recurring cron (guard-gated, one song/fire, self-cancels at 0 pending).

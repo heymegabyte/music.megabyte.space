@@ -24,6 +24,7 @@ import {
 import { resolve, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DL = resolve(homedir(), 'Downloads');
@@ -31,6 +32,40 @@ const MEDIA = resolve(ROOT, 'public/media');
 const STEMS = resolve(MEDIA, 'stems');
 const QF = resolve(ROOT, 'data/suno-download-queue.json');
 const DRY = process.argv.includes('--dry');
+const NO_R2 = process.argv.includes('--no-r2');
+const R2_BUCKET = 'music-megabyte-space-media';
+const CT = { wav: 'audio/wav', mp4: 'video/mp4', mid: 'audio/midi', zip: 'application/zip' };
+
+/** Best-effort upload to R2 (the served store for ~14GB of media). Never fatal —
+ *  the local public/media copy is the fallback; log + continue on failure. */
+function uploadR2(localPath, key) {
+  if (NO_R2 || DRY) return;
+  const ext = extname(key).slice(1).toLowerCase();
+  try {
+    execFileSync(
+      'npx',
+      [
+        'wrangler',
+        'r2',
+        'object',
+        'put',
+        `${R2_BUCKET}/${key}`,
+        '--file',
+        localPath,
+        '--content-type',
+        CT[ext] || 'application/octet-stream'
+      ],
+      {
+        cwd: ROOT,
+        stdio: 'ignore',
+        env: { ...process.env, CLOUDFLARE_ACCOUNT_ID: '84fa0d1b16ff8086dd958c468ce7fd59' }
+      }
+    );
+    console.log(`    ↑ R2 ${key}`);
+  } catch {
+    console.log(`    ! R2 upload failed for ${key} (kept local) — set CLOUDFLARE_API_KEY/EMAIL`);
+  }
+}
 
 const norm = s =>
   s
@@ -56,6 +91,7 @@ for (const f of files) {
     `${DRY ? '[dry] ' : ''}${f}  →  ${dest.replace(ROOT + '/', '')}  (${(statSync(resolve(DL, f)).size / 1e6).toFixed(1)}MB)`
   );
   if (!DRY) renameSync(resolve(DL, f), dest);
+  uploadR2(dest, isZip ? `stems/${hit.trackId}.zip` : `${hit.trackId}${ext}`);
   moved++;
   touched.add(hit.trackId);
 }
