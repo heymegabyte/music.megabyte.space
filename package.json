@@ -16,6 +16,8 @@
     "lyrics:clamp": "node scripts/clamp-lyric-spans.mjs",
     "media:verify": "node scripts/fetch-suno-media.mjs",
     "media:fetch": "node scripts/fetch-suno-media.mjs",
+    "suno:queue": "vite-node scripts/build-suno-queue.ts",
+    "suno:ingest": "node scripts/ingest-suno-downloads.mjs",
     "lint": "oxlint src worker scripts",
     "build": "tsc -b && vite build && node scripts/build-embed-component.mjs",
     "typecheck": "tsc -b --noEmit",
