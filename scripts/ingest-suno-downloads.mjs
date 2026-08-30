@@ -50,6 +50,7 @@ function uploadR2(localPath, key) {
         'object',
         'put',
         `${R2_BUCKET}/${key}`,
+        '--remote',
         '--file',
         localPath,
         '--content-type',
