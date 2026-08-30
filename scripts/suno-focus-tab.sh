@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# suno-focus-tab.sh — bring Chrome's existing Suno tab to the front + load the
-# Library, WITHOUT navigating any other tab (so a projectsites automation tab is
-# left untouched). Prints the resulting URL. Used by the download loop's STEP 3.
+# suno-focus-tab.sh — ensure Chrome shows the Suno Library. Focus an existing
+# suno.com tab if present; otherwise OPEN a new tab at suno.com/me. Never
+# navigates a non-Suno tab (leaves projectsites automation untouched). Prints URL.
 set -uo pipefail
 osascript <<'APPLESCRIPT'
 tell application "Google Chrome"
@@ -22,8 +22,13 @@ tell application "Google Chrome"
     set active tab index of foundWin to foundIdx
     set index of foundWin to 1
     set URL of active tab of foundWin to "https://suno.com/me"
+  else
+    if (count of windows) is 0 then
+      make new window
+    end if
+    tell front window to make new tab with properties {URL:"https://suno.com/me"}
   end if
 end tell
 APPLESCRIPT
-sleep 5
+sleep 6
 osascript -e 'tell application "Google Chrome" to return (URL of active tab of front window)' 2>/dev/null
