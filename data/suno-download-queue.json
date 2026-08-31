@@ -252,7 +252,8 @@
       "sunoSec": 128,
       "sunoMMSS": "2:08",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "Suno title != site title (\"Touch The Sky\" unsearchable) + durMatch false (site 1:43 vs suno 2:08 = wrong render). Needs manual Suno re-match."
     },
     {
       "order": 19,
