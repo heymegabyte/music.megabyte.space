@@ -267,7 +267,8 @@
       "sunoSec": 174,
       "sunoMMSS": "2:54",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (2:54) != site render (2:47). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 20,
@@ -295,7 +296,8 @@
       "sunoSec": 186,
       "sunoMMSS": "3:06",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:06) != site render (2:40). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 22,
@@ -309,7 +311,8 @@
       "sunoSec": 195,
       "sunoMMSS": "3:15",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:15) != site render (3:25). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 23,
@@ -323,7 +326,8 @@
       "sunoSec": 167,
       "sunoMMSS": "2:47",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (2:47) != site render (3:40). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 24,
@@ -337,7 +341,8 @@
       "sunoSec": 167,
       "sunoMMSS": "2:47",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (2:47) != site render (3:31). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 25,
@@ -351,7 +356,8 @@
       "sunoSec": 129,
       "sunoMMSS": "2:09",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (2:09) != site render (1:57). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 26,
@@ -379,7 +385,8 @@
       "sunoSec": 197,
       "sunoMMSS": "3:17",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:17) != site render (3:13). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 28,
@@ -449,7 +456,8 @@
       "sunoSec": 187,
       "sunoMMSS": "3:07",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:07) != site render (2:57). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 33,
@@ -463,7 +471,8 @@
       "sunoSec": 232,
       "sunoMMSS": "3:52",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:52) != site render (4:28). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 34,
@@ -547,7 +556,8 @@
       "sunoSec": 180,
       "sunoMMSS": "3:00",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:00) != site render (3:53). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 40,
@@ -561,7 +571,8 @@
       "sunoSec": 230,
       "sunoMMSS": "3:50",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:50) != site render (4:02). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 41,
@@ -589,7 +600,8 @@
       "sunoSec": 180,
       "sunoMMSS": "3:00",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:00) != site render (3:08). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 43,
@@ -603,7 +615,8 @@
       "sunoSec": 203,
       "sunoMMSS": "3:23",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:23) != site render (3:28). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 44,
@@ -631,7 +644,8 @@
       "sunoSec": 191,
       "sunoMMSS": "3:11",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:11) != site render (3:43). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 46,
@@ -645,7 +659,8 @@
       "sunoSec": 185,
       "sunoMMSS": "3:05",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:05) != site render (2:51). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 47,
@@ -687,7 +702,8 @@
       "sunoSec": 235,
       "sunoMMSS": "3:55",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:55) != site render (4:01). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 50,
@@ -701,7 +717,8 @@
       "sunoSec": 479,
       "sunoMMSS": "7:59",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (7:59) != site render (3:16). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 51,
@@ -757,7 +774,8 @@
       "sunoSec": 220,
       "sunoMMSS": "3:40",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:40) != site render (3:35). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 55,
@@ -785,7 +803,8 @@
       "sunoSec": 219,
       "sunoMMSS": "3:39",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:39) != site render (3:25). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 57,
@@ -813,7 +832,8 @@
       "sunoSec": 244,
       "sunoMMSS": "4:04",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:04) != site render (3:51). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 59,
@@ -827,7 +847,8 @@
       "sunoSec": 132,
       "sunoMMSS": "2:12",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (2:12) != site render (3:23). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 60,
@@ -841,7 +862,8 @@
       "sunoSec": 232,
       "sunoMMSS": "3:52",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:52) != site render (3:59). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 61,
@@ -855,7 +877,8 @@
       "sunoSec": 243,
       "sunoMMSS": "4:03",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:03) != site render (4:19). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 62,
@@ -869,7 +892,8 @@
       "sunoSec": 257,
       "sunoMMSS": "4:17",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:17) != site render (3:48). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 63,
@@ -883,7 +907,8 @@
       "sunoSec": 293,
       "sunoMMSS": "4:53",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:53) != site render (5:15). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 64,
@@ -911,7 +936,8 @@
       "sunoSec": 290,
       "sunoMMSS": "4:50",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:50) != site render (5:09). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 66,
@@ -939,7 +965,8 @@
       "sunoSec": 258,
       "sunoMMSS": "4:18",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:18) != site render (4:30). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 68,
@@ -953,7 +980,8 @@
       "sunoSec": 209,
       "sunoMMSS": "3:29",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:29) != site render (3:53). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 69,
@@ -967,7 +995,8 @@
       "sunoSec": 250,
       "sunoMMSS": "4:10",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:10) != site render (3:40). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 70,
@@ -995,7 +1024,8 @@
       "sunoSec": 191,
       "sunoMMSS": "3:11",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:11) != site render (3:07). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 72,
@@ -1023,7 +1053,8 @@
       "sunoSec": 283,
       "sunoMMSS": "4:43",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:43) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 74,
@@ -1037,7 +1068,8 @@
       "sunoSec": 314,
       "sunoMMSS": "5:14",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (5:14) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 75,
@@ -1051,7 +1083,8 @@
       "sunoSec": 270,
       "sunoMMSS": "4:30",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:30) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 76,
@@ -1065,7 +1098,8 @@
       "sunoSec": 242,
       "sunoMMSS": "4:02",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:02) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 77,
@@ -1079,7 +1113,8 @@
       "sunoSec": 265,
       "sunoMMSS": "4:25",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:25) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 78,
@@ -1093,7 +1128,8 @@
       "sunoSec": 350,
       "sunoMMSS": "5:50",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (5:50) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 79,
@@ -1107,7 +1143,8 @@
       "sunoSec": 247,
       "sunoMMSS": "4:07",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:07) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 80,
@@ -1121,7 +1158,8 @@
       "sunoSec": 368,
       "sunoMMSS": "6:08",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (6:08) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 81,
@@ -1135,7 +1173,8 @@
       "sunoSec": 421,
       "sunoMMSS": "7:01",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (7:01) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 82,
@@ -1149,7 +1188,8 @@
       "sunoSec": 272,
       "sunoMMSS": "4:32",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:32) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 83,
@@ -1163,7 +1203,8 @@
       "sunoSec": 186,
       "sunoMMSS": "3:06",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:06) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 84,
@@ -1177,7 +1218,8 @@
       "sunoSec": 219,
       "sunoMMSS": "3:39",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:39) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 85,
@@ -1191,7 +1233,8 @@
       "sunoSec": 166,
       "sunoMMSS": "2:46",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (2:46) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 86,
@@ -1205,7 +1248,8 @@
       "sunoSec": 300,
       "sunoMMSS": "5:00",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (5:00) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 87,
@@ -1219,7 +1263,8 @@
       "sunoSec": 307,
       "sunoMMSS": "5:07",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (5:07) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 88,
@@ -1233,7 +1278,8 @@
       "sunoSec": 253,
       "sunoMMSS": "4:13",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:13) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 89,
@@ -1247,7 +1293,8 @@
       "sunoSec": 256,
       "sunoMMSS": "4:16",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:16) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 90,
@@ -1261,7 +1308,8 @@
       "sunoSec": 322,
       "sunoMMSS": "5:22",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (5:22) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 91,
@@ -1275,7 +1323,8 @@
       "sunoSec": 274,
       "sunoMMSS": "4:34",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:34) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 92,
@@ -1289,7 +1338,8 @@
       "sunoSec": 327,
       "sunoMMSS": "5:27",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (5:27) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 93,
@@ -1303,7 +1353,8 @@
       "sunoSec": 283,
       "sunoMMSS": "4:43",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:43) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 94,
@@ -1317,7 +1368,8 @@
       "sunoSec": 261,
       "sunoMMSS": "4:21",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:21) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 95,
@@ -1331,7 +1383,8 @@
       "sunoSec": 222,
       "sunoMMSS": "3:42",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:42) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 96,
@@ -1345,7 +1398,8 @@
       "sunoSec": 278,
       "sunoMMSS": "4:38",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:38) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 97,
@@ -1359,7 +1413,8 @@
       "sunoSec": 255,
       "sunoMMSS": "4:15",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:15) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 98,
@@ -1373,7 +1428,8 @@
       "sunoSec": 275,
       "sunoMMSS": "4:35",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:35) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 99,
@@ -1387,7 +1443,8 @@
       "sunoSec": 212,
       "sunoMMSS": "3:32",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:32) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 100,
@@ -1401,7 +1458,8 @@
       "sunoSec": 248,
       "sunoMMSS": "4:08",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:08) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 101,
@@ -1415,7 +1473,8 @@
       "sunoSec": 272,
       "sunoMMSS": "4:32",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:32) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 102,
@@ -1429,7 +1488,8 @@
       "sunoSec": 293,
       "sunoMMSS": "4:53",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:53) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 103,
@@ -1443,7 +1503,8 @@
       "sunoSec": 301,
       "sunoMMSS": "5:01",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (5:01) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 104,
@@ -1457,7 +1518,8 @@
       "sunoSec": 267,
       "sunoMMSS": "4:27",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:27) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 105,
@@ -1471,7 +1533,8 @@
       "sunoSec": 277,
       "sunoMMSS": "4:37",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:37) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 106,
@@ -1485,7 +1548,8 @@
       "sunoSec": 278,
       "sunoMMSS": "4:38",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:38) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 107,
@@ -1499,7 +1563,8 @@
       "sunoSec": 241,
       "sunoMMSS": "4:01",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (4:01) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 108,
@@ -1513,7 +1578,8 @@
       "sunoSec": 345,
       "sunoMMSS": "5:45",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (5:45) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     },
     {
       "order": 109,
@@ -1527,7 +1593,8 @@
       "sunoSec": 479,
       "sunoMMSS": "7:59",
       "durMatch": false,
-      "status": "pending"
+      "status": "blocked",
+      "blockedReason": "durMatch=false: mapped Suno clip length (7:59) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
     }
   ]
 }
