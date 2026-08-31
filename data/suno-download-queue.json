@@ -402,7 +402,8 @@
       "sunoSec": 195,
       "sunoMMSS": "3:15",
       "durMatch": true,
-      "status": "pending"
+      "status": "partial:wav",
+      "note": "wav LIVE on R2 (length-verified 3:15=3:15). stems+video pending personal-Chrome batch (automation Chrome hCaptcha-walls stem-extract)."
     },
     {
       "order": 29,
