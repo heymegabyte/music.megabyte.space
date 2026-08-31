@@ -282,7 +282,8 @@
       "sunoSec": 214,
       "sunoMMSS": "3:34",
       "durMatch": true,
-      "status": "pending"
+      "status": "partial:wav",
+      "note": "wav LIVE on R2 (length-verified 3:34≈3:33). stems+video BLOCKED: Suno stem-extract/video are hCaptcha-gated + FAIL on the automation-flagged Chrome (Extraction failed: Could not extract Twelve). Grab stems+video from Brian personal Chrome (unflagged) to complete."
     },
     {
       "order": 21,
