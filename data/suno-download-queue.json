@@ -687,7 +687,8 @@
       "sunoSec": 202,
       "sunoMMSS": "3:22",
       "durMatch": true,
-      "status": "pending"
+      "status": "partial:wav",
+      "note": "wav LIVE on R2 (length-verified 3:22=3:22). Suno title St. Johns Halo (curly apostrophe) != site Only Human; renamed for ingest. stems+video pending personal-Chrome batch."
     },
     {
       "order": 48,
