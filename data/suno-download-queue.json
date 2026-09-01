@@ -597,7 +597,8 @@
       "sunoSec": 268,
       "sunoMMSS": "4:28",
       "durMatch": true,
-      "status": "pending"
+      "status": "partial:wav",
+      "note": "wav LIVE on R2 (length-verified 4:28=4:28). Suno title St Johns Launchpad != site Everyone Gets a Seat (renamed for ingest). stems+video pending personal-Chrome batch."
     },
     {
       "order": 42,
