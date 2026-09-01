@@ -1,0 +1,19 @@
+Suno media loop — fully complete ONE song this cycle for music.megabyte.space with ALL 3 files (WAV + stems + video). Work in ~/emdash/repositories/music.megabyte.space.
+
+STEP 1 GUARD: run `bash scripts/suno-loop-guard.sh`. Only SKIP (exit!=0) if Chrome isn't running or no suno.com tab exists — then STOP + report. Else proceed even if Emdash/another app is frontmost.
+
+STEP 2 PICK: read data/suno-download-queue.json. If EVERY song status is 'done' -> CronDelete this job + stop (all 109 done). Else pick the FIRST song whose status != 'done', preferring partial:* then blocked then pending. If status is 'blocked' (stored sunoId is the wrong-length take), RE-MATCH FIRST: in Suno Library search type the song's sunoTitle (from data/blocked-rematch-worklist.json), pick the take whose duration matches siteMMSS +/-2s (if two match, play+listen to disambiguate), open it to read the correct sunoId from the URL, and set the queue entry's sunoId + durMatch:true before downloading.
+
+STEP 3 SUNO: run `bash scripts/suno-focus-tab.sh`, then get_screenshot via mcp__desktop-control__computer. Confirm the menu bar shows Chrome AND the Suno tab is frontmost BEFORE any click. If the screenshot shows the user actively typing in another app, STAND DOWN this fire and report why. If it shows the logged-out landing page, STOP + report 'Suno logged out — sign in needed' (a song page loading for the target sunoId = you are logged in; the focus script printing suno.com/ is a FALSE logged-out signal — trust the screenshot).
+
+STEP 4 DOWNLOAD every file MISSING from public/media, via Computer Use per docs/suno-media-workflow.md. First verify the bottom player duration matches siteMMSS +/-2s. Then retrieve each missing file:
+(a) WAV — skip if public/media/<trackId>.wav already exists; else the caret/three-dot menu -> Download -> WAV Audio -> Download File (click PROMPTLY; the S3 link is a ~1h pre-signed URL — re-open the modal to refresh if it went stale/AccessDenied).
+(b) Stems — menu -> Download -> Get Stems/MIDI -> Auto split -> Extract -> wait for stem spinners to finish -> Download -> tick MP3 + WAV + MIDI -> Download.
+(c) Video — menu -> Download -> Video -> wait (auto-downloads when generation completes).
+Poll `ls -lat ~/Downloads` until every missing file exists. Rename each download to the SITE title (queue.title) if Suno saved it under the Suno title.
+
+STEP 5 INGEST: export CLOUDFLARE_API_KEY="$(/Users/Apple/.local/bin/get-secret CLOUDFLARE_API_KEY)"; export CLOUDFLARE_EMAIL="blzalewski@gmail.com"; export CLOUDFLARE_ACCOUNT_ID="84fa0d1b16ff8086dd958c468ce7fd59"; then `npm run suno:ingest`. Confirm the song flips to 'done' (needs wav+stems+video ALL present) — if it is still partial, retrieve the missing file(s) before finishing. Verify prod serves all 3 (Range request -> 206). Then `git add data/suno-download-queue.json && git commit -m "chore(suno-queue): <title> done" && git push`.
+
+STEP 6 REPORT: song title, the 3 files landed, X/109 complete.
+
+RULES: fully complete ONE song per fire (all 3 files — never leave it partial). Never delete/resubmit/trash Suno content. Never buy credits or add-ons. Use scripts/suno-focus-tab.sh to switch tabs — never navigate a non-Suno tab. If a step genuinely fails (captcha won't clear, clip missing), set that song's status to 'blocked' with a note + stop; the next fire takes the next song.
