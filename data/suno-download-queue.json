@@ -343,12 +343,13 @@
       "albumName": "Mercy Drop",
       "siteSec": 211,
       "siteMMSS": "3:31",
-      "sunoId": "72c2706e-7e16-4402-9256-4a6556187a34",
-      "sunoSec": 167,
-      "sunoMMSS": "2:47",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (2:47) != site render (3:31). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "cea97387-edb6-4f0c-8ac7-442fa13ff606",
+      "sunoSec": 211,
+      "sunoMMSS": "3:31",
+      "durMatch": true,
+      "status": "done",
+      "blockedReason": "durMatch=false: mapped Suno clip length (2:47) != site render (3:31). Needs re-match pass (find correct-length Suno version) before download.",
+      "note": "re-matched: Suno clip is titled Mercy Border (worklist sunoTitle Border Mercy was WRONG), 3:31 take cea97387. was placeholder 72c2706e. downloading all 3."
     },
     {
       "order": 25,

@@ -46,12 +46,13 @@
   },
   {
     "trackId": "mercy-border",
-    "sunoTitle": "Border Mercy",
+    "sunoTitle": "Mercy Border",
     "siteTitle": "Mercy Border",
     "siteMMSS": "3:31",
     "siteSec": 211,
     "wrongSunoSec": 167,
-    "wrongSunoId": "72c2706e-7e16-4402-9256-4a6556187a34"
+    "wrongSunoId": "72c2706e-7e16-4402-9256-4a6556187a34",
+    "note": "sunoTitle corrected Border Mercy->Mercy Border (distinct clip; same lyrics, diff arrangement)"
   },
   {
     "trackId": "afghanistan-mercy",
