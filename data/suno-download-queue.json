@@ -676,12 +676,12 @@
       "albumName": "St. John's Canon",
       "siteSec": 171,
       "siteMMSS": "2:51",
-      "sunoId": "753b8934-4e13-4acd-8e07-9ce0e7bc7af1",
-      "sunoSec": 185,
-      "sunoMMSS": "3:05",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:05) != site render (2:51). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "d0a26ba0-aee5-4284-a543-5c3777ef2a3c",
+      "sunoSec": 170,
+      "sunoMMSS": "2:50",
+      "durMatch": true,
+      "status": "done",
+      "note": "re-matched 2:50 take (site 2:51); prior 3:05 take was wrong-length; Suno title \"Promised Land Hands\" != site title \"Different World Tonight\" — rename downloads to Different World Tonight.* before ingest"
     },
     {
       "order": 47,
