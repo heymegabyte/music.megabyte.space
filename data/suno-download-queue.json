@@ -1326,12 +1326,13 @@
       "albumName": "Flawless Execution",
       "siteSec": 234,
       "siteMMSS": "3:54",
-      "sunoId": "7c825c87-4ebe-40f7-b850-378de1ef6061",
-      "sunoSec": 219,
-      "sunoMMSS": "3:39",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:39) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "eb4f4fdf-97b2-4a3f-8958-1234d2fb31f4",
+      "sunoSec": 234,
+      "sunoMMSS": "3:54",
+      "durMatch": true,
+      "status": "done",
+      "note": "re-matched 2026-09-02: correct 3:54 take (eb4f4fdf) replaces wrong 3:39 (7c825c87); player 3:53 vs site ffprobe 233.72s, within ±2s",
+      "midi": true
     },
     {
       "order": 85,
