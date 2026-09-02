@@ -1228,14 +1228,15 @@
       "title": "Hobbit Passover",
       "album": "hobbit-passover",
       "albumName": "Hobbit Passover",
-      "siteSec": null,
-      "siteMMSS": null,
-      "sunoId": "cbbf0679-b473-418f-9cd3-9de2b8713535",
-      "sunoSec": 350,
-      "sunoMMSS": "5:50",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (5:50) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "siteSec": 371,
+      "siteMMSS": "6:11",
+      "sunoId": "46947ce7-97fc-4917-a603-313012e1bf82",
+      "sunoSec": 371,
+      "sunoMMSS": "6:11",
+      "durMatch": true,
+      "status": "done",
+      "note": "re-matched 2026-09-02: site ffprobe 371.48s (6:11); correct 6:11 take (46947ce7) replaces wrong 5:50 (cbbf0679); player 6:11 exact",
+      "midi": true
     },
     {
       "order": 79,
