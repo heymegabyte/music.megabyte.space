@@ -1088,12 +1088,13 @@
       "albumName": "Signals From the Other Side",
       "siteSec": 220,
       "siteMMSS": "3:40",
-      "sunoId": "8eee8aa2-da6e-49d8-9da7-f2e70e38817f",
-      "sunoSec": 250,
-      "sunoMMSS": "4:10",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (4:10) != site render (3:40). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "f1d896b2-ee2a-46cd-960e-12152d64578f",
+      "sunoSec": 220,
+      "sunoMMSS": "3:40",
+      "durMatch": true,
+      "status": "done",
+      "note": "re-matched 2026-09-02: correct 3:40 take (f1d896b2) replaces wrong 4:10 (8eee8aa2); player 3:39 vs site ffprobe 219.92s, within ±2s",
+      "midi": true
     },
     {
       "order": 70,
