@@ -248,12 +248,13 @@
       "albumName": "Canopy Dispatch",
       "siteSec": 103,
       "siteMMSS": "1:43",
-      "sunoId": "b85ffac1-3cbb-4b2c-a622-b6f02bd34fcb",
-      "sunoSec": 128,
-      "sunoMMSS": "2:08",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "Suno title != site title (\"Touch The Sky\" unsearchable) + durMatch false (site 1:43 vs suno 2:08 = wrong render). Needs manual Suno re-match."
+      "sunoId": "2ddb3e62-17b2-45e4-ae74-4b8363c5e55b",
+      "sunoSec": 102,
+      "sunoMMSS": "1:42",
+      "durMatch": true,
+      "status": "done",
+      "blockedReason": "Suno title != site title (\"Touch The Sky\" unsearchable) + durMatch false (site 1:43 vs suno 2:08 = wrong render). Needs manual Suno re-match.",
+      "note": "re-matched via Library search (was 2:08 wrong take b85ffac1; correct 1:42 take 2ddb3e62). downloading all 3."
     },
     {
       "order": 19,
