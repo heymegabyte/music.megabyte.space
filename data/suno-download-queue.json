@@ -661,12 +661,12 @@
       "albumName": "St. John's Canon",
       "siteSec": 223,
       "siteMMSS": "3:43",
-      "sunoId": "dca1c0e1-5f7f-4106-a75f-803032920e9c",
-      "sunoSec": 191,
-      "sunoMMSS": "3:11",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:11) != site render (3:43). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "d2cf03f0-bc65-45e5-90a4-fd88df692046",
+      "sunoSec": 222,
+      "sunoMMSS": "3:42",
+      "durMatch": true,
+      "status": "done",
+      "note": "re-matched 3:42 take (site 3:43) — 3rd of three Soup Kitchen Sky takes (3:11 wrong, 3:12, 3:43 correct); Suno title = site title, no rename"
     },
     {
       "order": 46,
