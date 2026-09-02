@@ -390,12 +390,13 @@
       "albumName": "Mercy Drop",
       "siteSec": 193,
       "siteMMSS": "3:13",
-      "sunoId": "d0adbf3c-3751-435a-a29e-45daa05ac4aa",
-      "sunoSec": 197,
-      "sunoMMSS": "3:17",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:17) != site render (3:13). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "1dbd7a62-24f1-400f-bcad-6db92dcd0762",
+      "sunoSec": 193,
+      "sunoMMSS": "3:13",
+      "durMatch": true,
+      "status": "done",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:17) != site render (3:13). Needs re-match pass (find correct-length Suno version) before download.",
+      "note": "re-matched via Library search (was 3:17 wrong take d0adbf3c; correct 3:13 take 1dbd7a62 — only 4s apart, play-verified). downloading all 3."
     },
     {
       "order": 28,
