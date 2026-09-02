@@ -976,12 +976,13 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 228,
       "siteMMSS": "3:48",
-      "sunoId": "17ea44de-800b-4164-b8e8-03ab7b242462",
-      "sunoSec": 257,
-      "sunoMMSS": "4:17",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (4:17) != site render (3:48). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "69fb66a3-e1aa-4dca-a31b-2f5054dcfa20",
+      "sunoSec": 228,
+      "sunoMMSS": "3:47",
+      "durMatch": true,
+      "status": "done",
+      "note": "re-matched 2026-09-02: correct 3:47 take (69fb66a3) replaces wrong 4:17 (17ea44de); player 3:47 vs site ffprobe 227.96s, within ±2s",
+      "midi": true
     },
     {
       "order": 63,
