@@ -702,7 +702,7 @@
       "sunoSec": 168,
       "sunoMMSS": "2:48",
       "durMatch": true,
-      "status": "partial:wav",
+      "status": "done",
       "note": "wav LIVE on R2 (length-verified 2:47 vs 2:48, within tol). Suno title Soup Kitchen Windows != site Come Through (renamed for ingest). stems+video pending personal-Chrome batch."
     },
     {
