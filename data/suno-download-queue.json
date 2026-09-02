@@ -295,12 +295,13 @@
       "albumName": "Canopy Dispatch",
       "siteSec": 160,
       "siteMMSS": "2:40",
-      "sunoId": "fbf7b959-9ef0-4e9f-9e1e-eed047ecafda",
-      "sunoSec": 186,
-      "sunoMMSS": "3:06",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:06) != site render (2:40). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "f698efbe-1073-4b58-b815-876623a8f0ed",
+      "sunoSec": 160,
+      "sunoMMSS": "2:40",
+      "durMatch": true,
+      "status": "done",
+      "blockedReason": "durMatch=false: mapped Suno clip length (3:06) != site render (2:40). Needs re-match pass (find correct-length Suno version) before download.",
+      "note": "re-matched via Library search (was 3:06 wrong take fbf7b959; correct 2:40 take f698efbe). downloading all 3."
     },
     {
       "order": 22,
