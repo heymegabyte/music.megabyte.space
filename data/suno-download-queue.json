@@ -507,7 +507,7 @@
       "sunoSec": 146,
       "sunoMMSS": "2:26",
       "durMatch": true,
-      "status": "partial:wav",
+      "status": "done",
       "note": "TURNSTILE-WALLED on stems extraction (2026-09-01 ~5:56pm ET, automation-Chrome Cloudflare challenge would not clear after multiple clicks/~40s). sunoId is CORRECT (durMatch:true, 2:26=2:26) + wav already LIVE on R2 — TRANSIENT captcha wall, NOT a wrong-length issue. On retry: direct-nav suno.com/song/4f1d9a3f-542c-4786-b18b-5fe8654a2f6c (skip re-match), re-attempt stems+video; wall is intermittent."
     },
     {
