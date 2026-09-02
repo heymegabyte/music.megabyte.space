@@ -616,12 +616,12 @@
       "albumName": "St. John's Canon",
       "siteSec": 188,
       "siteMMSS": "3:08",
-      "sunoId": "de092306-970c-4d62-96b5-061aa6828d31",
-      "sunoSec": 180,
-      "sunoMMSS": "3:00",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:00) != site render (3:08). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "144d380b-f524-4f2f-bf7c-7026b884493e",
+      "sunoSec": 187,
+      "sunoMMSS": "3:07",
+      "durMatch": true,
+      "status": "done",
+      "note": "re-matched 3:07 take (site 3:08) — the 3:08 sibling of the two \"St John’s Plate\" Suno takes (3:00 belongs to saint-johns-plate wrong-map, this 3:07 = Keep Me Alive lyrics); Suno title != site title \"Keep Me Alive\" — rename downloads to Keep Me Alive.* before ingest"
     },
     {
       "order": 43,
