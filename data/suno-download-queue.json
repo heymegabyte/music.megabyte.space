@@ -575,8 +575,8 @@
       "sunoSec": 180,
       "sunoMMSS": "3:00",
       "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:00) != site render (3:53). Needs re-match pass (find correct-length Suno version) before download."
+      "status": "unavailable",
+      "note": "Re-match DEAD-END (verified 2026-09-02): site audio is genuinely 233s/3:53 (ffprobed /audio/Saint_John_s_Plate.mp3), but Suno title-search \"St John’s Plate\" returns ONLY a 3:00 take (wrong, current sunoId) + a 3:08 take (belongs to sibling st-johns-plate-2, 188s). No 3:53 take exists under this title — the exact source take was renamed/superseded/deleted in Suno. Needs manual identification (search by other metadata or accept aux-media gap). Status=unavailable sorts LAST so the loop advances instead of re-picking this every fire."
     },
     {
       "order": 40,
@@ -586,12 +586,12 @@
       "albumName": "St. John's Canon",
       "siteSec": 242,
       "siteMMSS": "4:02",
-      "sunoId": "022a4a4f-ff45-41b2-9e06-512510cbb314",
-      "sunoSec": 230,
-      "sunoMMSS": "3:50",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:50) != site render (4:02). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "b6cf7446-5161-4634-85b7-f3e4089bc42a",
+      "sunoSec": 242,
+      "sunoMMSS": "4:02",
+      "durMatch": true,
+      "status": "done",
+      "note": "re-matched 4:02 take (site 4:02, exact); prior 3:50 take was wrong-length; Suno title \"St John’s Towers\" != site title \"Prophecy\" — rename downloads to Prophecy.* before ingest"
     },
     {
       "order": 41,
