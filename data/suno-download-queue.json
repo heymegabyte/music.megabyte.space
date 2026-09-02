@@ -642,7 +642,7 @@
       "sunoSec": 235,
       "sunoMMSS": "3:55",
       "durMatch": true,
-      "status": "partial:wav",
+      "status": "done",
       "note": "wav LIVE on R2 (length-verified 3:54 vs 3:55, within tol). Suno title St. John Needs != site 100 Million (renamed for ingest). stems+video pending personal-Chrome batch."
     },
     {
