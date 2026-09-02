@@ -1,0 +1,110 @@
+{
+  "generatedNote": "Songs ingested MP3+WAV-only (no MIDI) — need stems re-download with ALL 3 (MP3+WAV+MIDI) per Brian directive 2026-09-02. Backfill: nav suno.com/song/<sunoId> -> Get Stems -> Extract (cached, instant) -> Download -> tick MP3+WAV+MIDI -> Download -> npm run suno:ingest (overwrites R2 stems zip). Video+WAV already present, only the stems zip changes.",
+  "items": [
+    {
+      "trackId": "aire-inhalado",
+      "title": "Aire Inhalado",
+      "sunoId": "90905f86-90ad-44ec-b8e7-324d90e47dd2",
+      "sunoMMSS": "3:50",
+      "durMatch": true
+    },
+    {
+      "trackId": "almost-heartbreak",
+      "title": "Almost Heartbreak",
+      "sunoId": "41718c2b-96c9-4fce-ab12-52c08886d012",
+      "sunoMMSS": "2:56",
+      "durMatch": true
+    },
+    {
+      "trackId": "atlantis-crossfire",
+      "title": "Atlantis Crossfire",
+      "sunoId": "120e0471-4252-445d-9067-b4ec42ad5813",
+      "sunoMMSS": "4:27",
+      "durMatch": true
+    },
+    {
+      "trackId": "betelgeuse-credit",
+      "title": "Betelgeuse Credit",
+      "sunoId": "f07b8f25-5bbe-4ba8-932d-94abd7c854b6",
+      "sunoMMSS": "3:16",
+      "durMatch": true
+    },
+    {
+      "trackId": "betelgeuse-passover",
+      "title": "Betelgeuse Passover",
+      "sunoId": "24738fea-55ba-4421-8671-73e142c27310",
+      "sunoMMSS": "4:01",
+      "durMatch": true
+    },
+    {
+      "trackId": "boo-back-mind",
+      "title": "Boo Back Mind",
+      "sunoId": "724499c2-f46f-4121-9453-40e78cb50e7d",
+      "sunoMMSS": "3:24",
+      "durMatch": true
+    },
+    {
+      "trackId": "danny-s-strike-suit",
+      "title": "Danny’s Strike Suit",
+      "sunoId": "c9365a46-5944-44e9-96d3-f54967356b0e",
+      "sunoMMSS": "2:42",
+      "durMatch": true
+    },
+    {
+      "trackId": "promised-land-hands",
+      "title": "Different World Tonight",
+      "sunoId": "d0a26ba0-aee5-4284-a543-5c3777ef2a3c",
+      "sunoMMSS": "2:50",
+      "durMatch": true
+    },
+    {
+      "trackId": "soup-kitchen-sky",
+      "title": "Soup Kitchen Sky",
+      "sunoId": "d2cf03f0-bc65-45e5-90a4-fd88df692046",
+      "sunoMMSS": "3:42",
+      "durMatch": true
+    },
+    {
+      "trackId": "st-johns-halo",
+      "title": "Only Human",
+      "sunoId": "925cd412-294b-43ff-b697-566f2c40a4dd",
+      "sunoMMSS": "3:22",
+      "durMatch": true
+    },
+    {
+      "trackId": "st-johns-plate-2",
+      "title": "Keep Me Alive",
+      "sunoId": "144d380b-f524-4f2f-bf7c-7026b884493e",
+      "sunoMMSS": "3:07",
+      "durMatch": true
+    },
+    {
+      "trackId": "st-johns-stew",
+      "title": "Free Meals Coming",
+      "sunoId": "df04bfdb-e3e0-45f2-9dde-cddbb003b598",
+      "sunoMMSS": "3:28",
+      "durMatch": true
+    },
+    {
+      "trackId": "st-johns-towers",
+      "title": "Prophecy",
+      "sunoId": "b6cf7446-5161-4634-85b7-f3e4089bc42a",
+      "sunoMMSS": "4:02",
+      "durMatch": true
+    },
+    {
+      "trackId": "temple-prescription",
+      "title": "Temple Prescription",
+      "sunoId": "b44db57a-c625-49d9-9359-691e7016629b",
+      "sunoMMSS": "3:34",
+      "durMatch": true
+    },
+    {
+      "trackId": "timestamp-jumps",
+      "title": "Timestamp Jumps",
+      "sunoId": "77df0eeb-8b26-4ae6-8bc2-4e9c14bbc807",
+      "sunoMMSS": "3:22",
+      "durMatch": true
+    }
+  ]
+}

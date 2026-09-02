@@ -14,7 +14,8 @@
       "sunoSec": 203,
       "sunoMMSS": "3:23",
       "durMatch": false,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 2,
@@ -28,7 +29,8 @@
       "sunoSec": 192,
       "sunoMMSS": "3:12",
       "durMatch": true,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 3,
@@ -42,7 +44,8 @@
       "sunoSec": 132,
       "sunoMMSS": "2:12",
       "durMatch": true,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 4,
@@ -56,7 +59,8 @@
       "sunoSec": 192,
       "sunoMMSS": "3:12",
       "durMatch": true,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 5,
@@ -70,7 +74,8 @@
       "sunoSec": 198,
       "sunoMMSS": "3:18",
       "durMatch": false,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 6,
@@ -84,7 +89,8 @@
       "sunoSec": 215,
       "sunoMMSS": "3:35",
       "durMatch": false,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 7,
@@ -98,7 +104,8 @@
       "sunoSec": 154,
       "sunoMMSS": "2:34",
       "durMatch": true,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 8,
@@ -112,7 +119,8 @@
       "sunoSec": 147,
       "sunoMMSS": "2:27",
       "durMatch": false,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 9,
@@ -126,7 +134,8 @@
       "sunoSec": 92,
       "sunoMMSS": "1:32",
       "durMatch": true,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 10,
@@ -140,7 +149,8 @@
       "sunoSec": 143,
       "sunoMMSS": "2:23",
       "durMatch": true,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 11,
@@ -154,7 +164,8 @@
       "sunoSec": 141,
       "sunoMMSS": "2:21",
       "durMatch": false,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 12,
@@ -168,7 +179,8 @@
       "sunoSec": 229,
       "sunoMMSS": "3:49",
       "durMatch": false,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 13,
@@ -182,7 +194,8 @@
       "sunoSec": 177,
       "sunoMMSS": "2:57",
       "durMatch": false,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 14,
@@ -196,7 +209,8 @@
       "sunoSec": 238,
       "sunoMMSS": "3:58",
       "durMatch": true,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 15,
@@ -210,7 +224,8 @@
       "sunoSec": 199,
       "sunoMMSS": "3:19",
       "durMatch": false,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 16,
@@ -224,7 +239,8 @@
       "sunoSec": 258,
       "sunoMMSS": "4:18",
       "durMatch": false,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 17,
@@ -238,7 +254,8 @@
       "sunoSec": 217,
       "sunoMMSS": "3:37",
       "durMatch": false,
-      "status": "done"
+      "status": "done",
+      "midi": true
     },
     {
       "order": 18,
@@ -254,7 +271,8 @@
       "durMatch": true,
       "status": "done",
       "blockedReason": "Suno title != site title (\"Touch The Sky\" unsearchable) + durMatch false (site 1:43 vs suno 2:08 = wrong render). Needs manual Suno re-match.",
-      "note": "re-matched via Library search (was 2:08 wrong take b85ffac1; correct 1:42 take 2ddb3e62). downloading all 3."
+      "note": "re-matched via Library search (was 2:08 wrong take b85ffac1; correct 1:42 take 2ddb3e62). downloading all 3.",
+      "midi": true
     },
     {
       "order": 19,
@@ -270,7 +288,8 @@
       "durMatch": true,
       "status": "done",
       "blockedReason": "durMatch=false: mapped Suno clip length (2:54) != site render (2:47). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (was 2:54 wrong take 44c6767e; correct 2:47 take 4437689e). downloading all 3."
+      "note": "re-matched via Library search (was 2:54 wrong take 44c6767e; correct 2:47 take 4437689e). downloading all 3.",
+      "midi": true
     },
     {
       "order": 20,
@@ -285,7 +304,8 @@
       "sunoMMSS": "3:34",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:34≈3:33). stems+video BLOCKED: Suno stem-extract/video are hCaptcha-gated + FAIL on the automation-flagged Chrome (Extraction failed: Could not extract Twelve). Grab stems+video from Brian personal Chrome (unflagged) to complete."
+      "note": "wav LIVE on R2 (length-verified 3:34≈3:33). stems+video BLOCKED: Suno stem-extract/video are hCaptcha-gated + FAIL on the automation-flagged Chrome (Extraction failed: Could not extract Twelve). Grab stems+video from Brian personal Chrome (unflagged) to complete.",
+      "midi": true
     },
     {
       "order": 21,
@@ -301,7 +321,8 @@
       "durMatch": true,
       "status": "done",
       "blockedReason": "durMatch=false: mapped Suno clip length (3:06) != site render (2:40). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (was 3:06 wrong take fbf7b959; correct 2:40 take f698efbe). downloading all 3."
+      "note": "re-matched via Library search (was 3:06 wrong take fbf7b959; correct 2:40 take f698efbe). downloading all 3.",
+      "midi": true
     },
     {
       "order": 22,
@@ -317,7 +338,8 @@
       "durMatch": true,
       "status": "done",
       "blockedReason": "durMatch=false: mapped Suno clip length (3:15) != site render (3:25). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (was 3:15 wrong take ff369ac8; correct 3:24 take 83c18dc9). downloading all 3."
+      "note": "re-matched via Library search (was 3:15 wrong take ff369ac8; correct 3:24 take 83c18dc9). downloading all 3.",
+      "midi": true
     },
     {
       "order": 23,
@@ -333,7 +355,8 @@
       "durMatch": true,
       "status": "done",
       "blockedReason": "durMatch=false: mapped Suno clip length (2:47) != site render (3:40). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (4 takes; was 2:47 wrong take 72c2706e; correct 3:39 take c78c283d, not the 3:11/3:12 alts). downloading all 3."
+      "note": "re-matched via Library search (4 takes; was 2:47 wrong take 72c2706e; correct 3:39 take c78c283d, not the 3:11/3:12 alts). downloading all 3.",
+      "midi": true
     },
     {
       "order": 24,
@@ -349,7 +372,8 @@
       "durMatch": true,
       "status": "done",
       "blockedReason": "durMatch=false: mapped Suno clip length (2:47) != site render (3:31). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched: Suno clip is titled Mercy Border (worklist sunoTitle Border Mercy was WRONG), 3:31 take cea97387. was placeholder 72c2706e. downloading all 3."
+      "note": "re-matched: Suno clip is titled Mercy Border (worklist sunoTitle Border Mercy was WRONG), 3:31 take cea97387. was placeholder 72c2706e. downloading all 3.",
+      "midi": true
     },
     {
       "order": 25,
@@ -365,7 +389,8 @@
       "durMatch": true,
       "status": "done",
       "blockedReason": "durMatch=false: mapped Suno clip length (2:09) != site render (1:57). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (was 2:09 wrong take f341b28c; correct 1:56 take 52a5ea80). downloading all 3."
+      "note": "re-matched via Library search (was 2:09 wrong take f341b28c; correct 1:56 take 52a5ea80). downloading all 3.",
+      "midi": true
     },
     {
       "order": 26,
@@ -380,7 +405,8 @@
       "sunoMMSS": "2:10",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:10=2:10). stems+video BLOCKED: Suno stem-extract hCaptcha-loops on the automation-flagged Chrome (3rd Turnstile hit); grab from Brian personal Chrome to complete."
+      "note": "wav LIVE on R2 (length-verified 2:10=2:10). stems+video BLOCKED: Suno stem-extract hCaptcha-loops on the automation-flagged Chrome (3rd Turnstile hit); grab from Brian personal Chrome to complete.",
+      "midi": true
     },
     {
       "order": 27,
@@ -396,7 +422,8 @@
       "durMatch": true,
       "status": "done",
       "blockedReason": "durMatch=false: mapped Suno clip length (3:17) != site render (3:13). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (was 3:17 wrong take d0adbf3c; correct 3:13 take 1dbd7a62 — only 4s apart, play-verified). downloading all 3."
+      "note": "re-matched via Library search (was 3:17 wrong take d0adbf3c; correct 3:13 take 1dbd7a62 — only 4s apart, play-verified). downloading all 3.",
+      "midi": true
     },
     {
       "order": 28,
@@ -411,7 +438,8 @@
       "sunoMMSS": "3:15",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:15=3:15). stems+video pending personal-Chrome batch (automation Chrome hCaptcha-walls stem-extract)."
+      "note": "wav LIVE on R2 (length-verified 3:15=3:15). stems+video pending personal-Chrome batch (automation Chrome hCaptcha-walls stem-extract).",
+      "midi": true
     },
     {
       "order": 29,
@@ -426,7 +454,8 @@
       "sunoMMSS": "2:42",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:42=2:42). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 2:42=2:42). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 30,
@@ -441,7 +470,8 @@
       "sunoMMSS": "3:01",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:01=3:01). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 3:01=3:01). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 31,
@@ -456,7 +486,8 @@
       "sunoMMSS": "2:53",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:52 vs 2:53, within tol). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 2:52 vs 2:53, within tol). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 32,
@@ -471,7 +502,8 @@
       "sunoMMSS": "2:56",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 2:56 take (site 2:57); prior 3:07 take was wrong-length"
+      "note": "re-matched 2:56 take (site 2:57); prior 3:07 take was wrong-length",
+      "midi": false
     },
     {
       "order": 33,
@@ -486,7 +518,8 @@
       "sunoMMSS": "4:27",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 4:27 take (site 4:28); prior 3:52 take was wrong-length"
+      "note": "re-matched 4:27 take (site 4:28); prior 3:52 take was wrong-length",
+      "midi": false
     },
     {
       "order": 34,
@@ -501,7 +534,8 @@
       "sunoMMSS": "2:48",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:48=2:48). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 2:48=2:48). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 35,
@@ -516,7 +550,8 @@
       "sunoMMSS": "2:26",
       "durMatch": true,
       "status": "done",
-      "note": "TURNSTILE-WALLED on stems extraction (2026-09-01 ~5:56pm ET, automation-Chrome Cloudflare challenge would not clear after multiple clicks/~40s). sunoId is CORRECT (durMatch:true, 2:26=2:26) + wav already LIVE on R2 — TRANSIENT captcha wall, NOT a wrong-length issue. On retry: direct-nav suno.com/song/4f1d9a3f-542c-4786-b18b-5fe8654a2f6c (skip re-match), re-attempt stems+video; wall is intermittent."
+      "note": "TURNSTILE-WALLED on stems extraction (2026-09-01 ~5:56pm ET, automation-Chrome Cloudflare challenge would not clear after multiple clicks/~40s). sunoId is CORRECT (durMatch:true, 2:26=2:26) + wav already LIVE on R2 — TRANSIENT captcha wall, NOT a wrong-length issue. On retry: direct-nav suno.com/song/4f1d9a3f-542c-4786-b18b-5fe8654a2f6c (skip re-match), re-attempt stems+video; wall is intermittent.",
+      "midi": true
     },
     {
       "order": 36,
@@ -531,7 +566,8 @@
       "sunoMMSS": "3:04",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:03 vs 3:04, within tol). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 3:03 vs 3:04, within tol). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 37,
@@ -546,7 +582,8 @@
       "sunoMMSS": "2:37",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:37=2:37). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 2:37=2:37). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 38,
@@ -561,7 +598,8 @@
       "sunoMMSS": "2:38",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:37 vs 2:38, within tol). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 2:37 vs 2:38, within tol). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 39,
@@ -591,7 +629,8 @@
       "sunoMMSS": "4:02",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 4:02 take (site 4:02, exact); prior 3:50 take was wrong-length; Suno title \"St John’s Towers\" != site title \"Prophecy\" — rename downloads to Prophecy.* before ingest"
+      "note": "re-matched 4:02 take (site 4:02, exact); prior 3:50 take was wrong-length; Suno title \"St John’s Towers\" != site title \"Prophecy\" — rename downloads to Prophecy.* before ingest",
+      "midi": false
     },
     {
       "order": 41,
@@ -606,7 +645,8 @@
       "sunoMMSS": "4:28",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 4:28=4:28). Suno title St Johns Launchpad != site Everyone Gets a Seat (renamed for ingest). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 4:28=4:28). Suno title St Johns Launchpad != site Everyone Gets a Seat (renamed for ingest). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 42,
@@ -621,7 +661,8 @@
       "sunoMMSS": "3:07",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 3:07 take (site 3:08) — the 3:08 sibling of the two \"St John’s Plate\" Suno takes (3:00 belongs to saint-johns-plate wrong-map, this 3:07 = Keep Me Alive lyrics); Suno title != site title \"Keep Me Alive\" — rename downloads to Keep Me Alive.* before ingest"
+      "note": "re-matched 3:07 take (site 3:08) — the 3:08 sibling of the two \"St John’s Plate\" Suno takes (3:00 belongs to saint-johns-plate wrong-map, this 3:07 = Keep Me Alive lyrics); Suno title != site title \"Keep Me Alive\" — rename downloads to Keep Me Alive.* before ingest",
+      "midi": false
     },
     {
       "order": 43,
@@ -636,7 +677,8 @@
       "sunoMMSS": "3:28",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 3:28 take (site 3:28, exact); prior 3:23 take was wrong-length; Suno title \"St Johns Stew\" != site title \"Free Meals Coming\" — rename downloads to Free Meals Coming.* before ingest"
+      "note": "re-matched 3:28 take (site 3:28, exact); prior 3:23 take was wrong-length; Suno title \"St Johns Stew\" != site title \"Free Meals Coming\" — rename downloads to Free Meals Coming.* before ingest",
+      "midi": false
     },
     {
       "order": 44,
@@ -651,7 +693,8 @@
       "sunoMMSS": "3:55",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:54 vs 3:55, within tol). Suno title St. John Needs != site 100 Million (renamed for ingest). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 3:54 vs 3:55, within tol). Suno title St. John Needs != site 100 Million (renamed for ingest). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 45,
@@ -666,7 +709,8 @@
       "sunoMMSS": "3:42",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 3:42 take (site 3:43) — 3rd of three Soup Kitchen Sky takes (3:11 wrong, 3:12, 3:43 correct); Suno title = site title, no rename"
+      "note": "re-matched 3:42 take (site 3:43) — 3rd of three Soup Kitchen Sky takes (3:11 wrong, 3:12, 3:43 correct); Suno title = site title, no rename",
+      "midi": false
     },
     {
       "order": 46,
@@ -681,7 +725,8 @@
       "sunoMMSS": "2:50",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 2:50 take (site 2:51); prior 3:05 take was wrong-length; Suno title \"Promised Land Hands\" != site title \"Different World Tonight\" — rename downloads to Different World Tonight.* before ingest"
+      "note": "re-matched 2:50 take (site 2:51); prior 3:05 take was wrong-length; Suno title \"Promised Land Hands\" != site title \"Different World Tonight\" — rename downloads to Different World Tonight.* before ingest",
+      "midi": false
     },
     {
       "order": 47,
@@ -696,7 +741,8 @@
       "sunoMMSS": "3:22",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:22=3:22). Suno title St. Johns Halo (curly apostrophe) != site Only Human; renamed for ingest. stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 3:22=3:22). Suno title St. Johns Halo (curly apostrophe) != site Only Human; renamed for ingest. stems+video pending personal-Chrome batch.",
+      "midi": false
     },
     {
       "order": 48,
@@ -711,7 +757,8 @@
       "sunoMMSS": "2:48",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:47 vs 2:48, within tol). Suno title Soup Kitchen Windows != site Come Through (renamed for ingest). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 2:47 vs 2:48, within tol). Suno title Soup Kitchen Windows != site Come Through (renamed for ingest). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 49,
@@ -726,7 +773,8 @@
       "sunoMMSS": "4:01",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 4:01 take (site 240.92s=4:01, player confirmed 4:01); album title track has ~6 regenerations (3:43/3:55/3:56/4:02thumb/4:03/4:06) — only this one is within ±2s of 240.92s (thumbnail said 4:02 but player=4:01); Suno title = site title, no rename"
+      "note": "re-matched 4:01 take (site 240.92s=4:01, player confirmed 4:01); album title track has ~6 regenerations (3:43/3:55/3:56/4:02thumb/4:03/4:06) — only this one is within ±2s of 240.92s (thumbnail said 4:02 but player=4:01); Suno title = site title, no rename",
+      "midi": false
     },
     {
       "order": 50,
@@ -741,7 +789,8 @@
       "sunoMMSS": "3:16",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 3:16 take (site 196.32s=3:16, player confirmed 3:16); prior take was 7:59 (way off); 4 takes total (7:59/3:16/3:26/3:34), only 3:16 within ±2s; Suno title = site title, no rename"
+      "note": "re-matched 3:16 take (site 196.32s=3:16, player confirmed 3:16); prior take was 7:59 (way off); 4 takes total (7:59/3:16/3:26/3:34), only 3:16 within ±2s; Suno title = site title, no rename",
+      "midi": false
     },
     {
       "order": 51,
@@ -756,7 +805,8 @@
       "sunoMMSS": "3:33",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:32 vs 3:33, within tol). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 3:32 vs 3:33, within tol). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 52,
@@ -771,7 +821,8 @@
       "sunoMMSS": "3:15",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:14 vs 3:15, within tol). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 3:14 vs 3:15, within tol). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 53,
@@ -786,7 +837,8 @@
       "sunoMMSS": "3:55",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:54 vs 3:55, within tol). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 3:54 vs 3:55, within tol). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 54,
@@ -801,7 +853,8 @@
       "sunoMMSS": "3:34",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 3:34 take (site 214.8s=3:35, player confirmed 3:34); prior 3:40 take was wrong-length; 2 takes (3:40/3:35), only 3:35 within ±2s; Suno title = site title, no rename"
+      "note": "re-matched 3:34 take (site 214.8s=3:35, player confirmed 3:34); prior 3:40 take was wrong-length; 2 takes (3:40/3:35), only 3:35 within ±2s; Suno title = site title, no rename",
+      "midi": false
     },
     {
       "order": 55,
@@ -816,7 +869,8 @@
       "sunoMMSS": "5:18",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 5:17 vs 5:18, within tol). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 5:17 vs 5:18, within tol). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 56,
@@ -831,7 +885,8 @@
       "sunoMMSS": "3:24",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 3:24 take (site 204.8s=3:25, player confirmed 3:24); prior 3:39 take was wrong-length; 2 takes (3:39/3:25), only 3:25 within ±2s; Suno title = site title, no rename"
+      "note": "re-matched 3:24 take (site 204.8s=3:25, player confirmed 3:24); prior 3:39 take was wrong-length; 2 takes (3:39/3:25), only 3:25 within ±2s; Suno title = site title, no rename",
+      "midi": false
     },
     {
       "order": 57,
@@ -846,7 +901,8 @@
       "sunoMMSS": "2:42",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:41 vs 2:42, within tol). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 2:41 vs 2:42, within tol). stems+video pending personal-Chrome batch.",
+      "midi": false
     },
     {
       "order": 58,
@@ -861,7 +917,8 @@
       "sunoMMSS": "3:50",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:50 take (90905f86) replaces wrong 4:04 (89a11d25); player 3:50 vs site ffprobe 230.72s, within ±2s"
+      "note": "re-matched 2026-09-02: correct 3:50 take (90905f86) replaces wrong 4:04 (89a11d25); player 3:50 vs site ffprobe 230.72s, within ±2s",
+      "midi": false
     },
     {
       "order": 59,
@@ -876,7 +933,8 @@
       "sunoMMSS": "3:22",
       "durMatch": true,
       "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:22 take (77df0eeb) replaces wrong 2:12 (dd125d55); player 3:22 vs site ffprobe 202.60s, within ±2s"
+      "note": "re-matched 2026-09-02: correct 3:22 take (77df0eeb) replaces wrong 2:12 (dd125d55); player 3:22 vs site ffprobe 202.60s, within ±2s",
+      "midi": false
     },
     {
       "order": 60,
@@ -886,12 +944,13 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 239,
       "siteMMSS": "3:59",
-      "sunoId": "ed3f77d6-2fe1-461a-87fd-9978783e90ac",
-      "sunoSec": 232,
-      "sunoMMSS": "3:52",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:52) != site render (3:59). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "8903903a-286d-4bd8-a9d9-78d2ee4ded49",
+      "sunoSec": 239,
+      "sunoMMSS": "3:59",
+      "durMatch": true,
+      "status": "done",
+      "note": "re-matched 2026-09-02: correct 3:59 take (8903903a) replaces wrong 3:52 (ed3f77d6); player 3:59 vs site ffprobe 239.20s, within ±2s",
+      "midi": true
     },
     {
       "order": 61,
@@ -951,7 +1010,8 @@
       "sunoMMSS": "3:50",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:49 vs 3:50, within tol). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 3:49 vs 3:50, within tol). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 65,
@@ -981,7 +1041,8 @@
       "sunoMMSS": "3:38",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:38=3:38). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 3:38=3:38). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 67,
@@ -1041,7 +1102,8 @@
       "sunoMMSS": "4:53",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 4:53=4:53). stems+video pending personal-Chrome batch."
+      "note": "wav LIVE on R2 (length-verified 4:53=4:53). stems+video pending personal-Chrome batch.",
+      "midi": true
     },
     {
       "order": 71,
@@ -1071,7 +1133,8 @@
       "sunoMMSS": "2:32",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:31 vs 2:32, within tol). stems+video pending personal-Chrome batch. NOTE: WAV signed-URL expires ~1h — click Download File promptly after WAV Audio prep."
+      "note": "wav LIVE on R2 (length-verified 2:31 vs 2:32, within tol). stems+video pending personal-Chrome batch. NOTE: WAV signed-URL expires ~1h — click Download File promptly after WAV Audio prep.",
+      "midi": true
     },
     {
       "order": 73,
