@@ -777,7 +777,7 @@
       "sunoSec": 235,
       "sunoMMSS": "3:55",
       "durMatch": true,
-      "status": "partial:wav",
+      "status": "done",
       "note": "wav LIVE on R2 (length-verified 3:54 vs 3:55, within tol). stems+video pending personal-Chrome batch."
     },
     {
