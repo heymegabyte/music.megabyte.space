@@ -631,12 +631,12 @@
       "albumName": "St. John's Canon",
       "siteSec": 208,
       "siteMMSS": "3:28",
-      "sunoId": "fe55dc9a-64b1-4df4-83c7-6e05cea8b896",
-      "sunoSec": 203,
-      "sunoMMSS": "3:23",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:23) != site render (3:28). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "df04bfdb-e3e0-45f2-9dde-cddbb003b598",
+      "sunoSec": 208,
+      "sunoMMSS": "3:28",
+      "durMatch": true,
+      "status": "done",
+      "note": "re-matched 3:28 take (site 3:28, exact); prior 3:23 take was wrong-length; Suno title \"St Johns Stew\" != site title \"Free Meals Coming\" — rename downloads to Free Meals Coming.* before ingest"
     },
     {
       "order": 44,
