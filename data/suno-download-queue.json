@@ -1547,14 +1547,15 @@
       "title": "Welcome to the Multiverse",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": null,
-      "siteMMSS": null,
+      "siteSec": 275,
+      "siteMMSS": "4:35",
       "sunoId": "4c4bab60-1713-4674-9ab4-4d0ac87ce163",
       "sunoSec": 275,
       "sunoMMSS": "4:35",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (4:35) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "durMatch": true,
+      "status": "done",
+      "note": "null-sitesec first-check: mapped sunoId already correct (site 274.60s ≈ 4:35) — no re-match needed",
+      "midi": true
     },
     {
       "order": 99,
