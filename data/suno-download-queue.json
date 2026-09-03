@@ -503,7 +503,7 @@
       "durMatch": true,
       "status": "done",
       "note": "re-matched 2:56 take (site 2:57); prior 3:07 take was wrong-length",
-      "midi": false
+      "midi": true
     },
     {
       "order": 33,
