@@ -886,7 +886,7 @@
       "durMatch": true,
       "status": "done",
       "note": "re-matched 3:24 take (site 204.8s=3:25, player confirmed 3:24); prior 3:39 take was wrong-length; 2 takes (3:39/3:25), only 3:25 within ±2s; Suno title = site title, no rename",
-      "midi": false
+      "midi": true
     },
     {
       "order": 57,
