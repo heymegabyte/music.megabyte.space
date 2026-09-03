@@ -934,7 +934,7 @@
       "durMatch": true,
       "status": "done",
       "note": "re-matched 2026-09-02: correct 3:22 take (77df0eeb) replaces wrong 2:12 (dd125d55); player 3:22 vs site ffprobe 202.60s, within ±2s",
-      "midi": false
+      "midi": true
     },
     {
       "order": 60,
