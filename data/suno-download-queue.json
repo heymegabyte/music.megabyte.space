@@ -726,7 +726,7 @@
       "durMatch": true,
       "status": "done",
       "note": "re-matched 2:50 take (site 2:51); prior 3:05 take was wrong-length; Suno title \"Promised Land Hands\" != site title \"Different World Tonight\" — rename downloads to Different World Tonight.* before ingest",
-      "midi": false
+      "midi": true
     },
     {
       "order": 47,
