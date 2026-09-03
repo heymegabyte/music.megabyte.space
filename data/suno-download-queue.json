@@ -1522,8 +1522,8 @@
       "sunoSec": 278,
       "sunoMMSS": "4:38",
       "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (4:38) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "status": "unavailable",
+      "note": "RE-MATCH DEAD-END (2026-09-02): site is 4:27 (ffprobe 266.68s) but the Suno title \"The Halo and the Horror\" has 10+ regen takes clustered at 4:10-4:19 and 4:35-4:52 — NONE at 4:27 (hard gap 4:20-4:34). The exact 4:27 source take was superseded/deleted. Manual-Suno job."
     },
     {
       "order": 97,
@@ -1536,9 +1536,10 @@
       "sunoId": "9d7215f8-4acd-4d18-ac4b-7bfd491b544f",
       "sunoSec": 255,
       "sunoMMSS": "4:15",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (4:15) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "durMatch": true,
+      "status": "done",
+      "note": "null-sitesec first-check: mapped sunoId already correct (site 254.68s ≈ 4:15) — no re-match needed",
+      "midi": true
     },
     {
       "order": 98,
