@@ -710,7 +710,7 @@
       "durMatch": true,
       "status": "done",
       "note": "re-matched 3:42 take (site 3:43) — 3rd of three Soup Kitchen Sky takes (3:11 wrong, 3:12, 3:43 correct); Suno title = site title, no rename",
-      "midi": false
+      "midi": true
     },
     {
       "order": 46,
