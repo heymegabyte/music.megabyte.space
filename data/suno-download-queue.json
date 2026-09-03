@@ -918,7 +918,7 @@
       "durMatch": true,
       "status": "done",
       "note": "re-matched 2026-09-02: correct 3:50 take (90905f86) replaces wrong 4:04 (89a11d25); player 3:50 vs site ffprobe 230.72s, within ±2s",
-      "midi": false
+      "midi": true
     },
     {
       "order": 59,
