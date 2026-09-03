@@ -1695,9 +1695,10 @@
       "sunoId": "3f2896b1-6123-4d3c-a2b1-5a59dbb23a29",
       "sunoSec": 241,
       "sunoMMSS": "4:01",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (4:01) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "durMatch": true,
+      "status": "done",
+      "note": "null-sitesec first-check: mapped sunoId 3f2896b1 already correct (site ffprobe 240.56s ≈ 4:01, mapped 241s, Δ0.4s) — stale blocked flag cleared, no re-match needed",
+      "midi": true
     },
     {
       "order": 108,
