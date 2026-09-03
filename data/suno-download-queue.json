@@ -774,7 +774,7 @@
       "durMatch": true,
       "status": "done",
       "note": "re-matched 4:01 take (site 240.92s=4:01, player confirmed 4:01); album title track has ~6 regenerations (3:43/3:55/3:56/4:02thumb/4:03/4:06) — only this one is within ±2s of 240.92s (thumbnail said 4:02 but player=4:01); Suno title = site title, no rename",
-      "midi": false
+      "midi": true
     },
     {
       "order": 50,
