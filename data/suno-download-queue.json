@@ -1676,12 +1676,13 @@
       "albumName": "Welcome to the Multiverse",
       "siteSec": 287,
       "siteMMSS": "4:47",
-      "sunoId": "f545121a-c402-4519-9c88-ee3877546cf6",
-      "sunoSec": 278,
-      "sunoMMSS": "4:38",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (4:38) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "93fb0500-2724-45da-b433-0e23c65046ef",
+      "sunoSec": 287,
+      "sunoMMSS": "4:47",
+      "durMatch": true,
+      "status": "done",
+      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 4:38/278s (f545121a, Δ9.2s). Correct take = 93fb0500-2724-45da-b433-0e23c65046ef (cinematic melodic trap/progressive house, 23 likes; thumbnail+player both 4:47, site ffprobe 287.16s, Δ=0.16s).",
+      "midi": true
     },
     {
       "order": 107,
