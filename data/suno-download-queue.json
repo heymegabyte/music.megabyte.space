@@ -741,8 +741,8 @@
       "sunoMMSS": "3:22",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:22=3:22). Suno title St. Johns Halo (curly apostrophe) != site Only Human; renamed for ingest. stems+video pending personal-Chrome batch.",
-      "midi": false
+      "note": "wav LIVE on R2 (length-verified 3:22=3:22). Suno title St. Johns Halo (curly apostrophe) != site Only Human; renamed for ingest. stems+video pending personal-Chrome batch. | MIDI backfill (2026-09-03): prod stems zip already contained 7 MIDI (original batch); local MD5 fa7fe32e639a2b410b1505f469ba43ef == prod etag, all 3 prod 206 — flag was stale, no re-download.",
+      "midi": true
     },
     {
       "order": 48,
@@ -901,8 +901,8 @@
       "sunoMMSS": "2:42",
       "durMatch": true,
       "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:41 vs 2:42, within tol). stems+video pending personal-Chrome batch.",
-      "midi": false
+      "note": "wav LIVE on R2 (length-verified 2:41 vs 2:42, within tol). stems+video pending personal-Chrome batch. | MIDI backfill (2026-09-03): prod stems zip already contained 7 MIDI (original batch); local MD5 ca4fd75d2d62f19aa75068c41803c4a3 == prod etag, all 3 prod 206 — flag was stale, no re-download.",
+      "midi": true
     },
     {
       "order": 58,
