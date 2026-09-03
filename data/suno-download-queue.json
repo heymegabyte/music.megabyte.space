@@ -1457,9 +1457,10 @@
       "sunoId": "1d706250-0e7f-409a-9ef5-20524143e9fa",
       "sunoSec": 327,
       "sunoMMSS": "5:27",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (5:27) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "durMatch": true,
+      "status": "done",
+      "note": "null-sitesec first-check: mapped sunoId already correct (site 327.20s ≈ 5:27) — no re-match needed",
+      "midi": true
     },
     {
       "order": 93,
