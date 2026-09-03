@@ -630,7 +630,7 @@
       "durMatch": true,
       "status": "done",
       "note": "re-matched 4:02 take (site 4:02, exact); prior 3:50 take was wrong-length; Suno title \"St John’s Towers\" != site title \"Prophecy\" — rename downloads to Prophecy.* before ingest",
-      "midi": false
+      "midi": true
     },
     {
       "order": 41,
