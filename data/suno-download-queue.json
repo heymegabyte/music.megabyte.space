@@ -678,7 +678,7 @@
       "durMatch": true,
       "status": "done",
       "note": "re-matched 3:28 take (site 3:28, exact); prior 3:23 take was wrong-length; Suno title \"St Johns Stew\" != site title \"Free Meals Coming\" — rename downloads to Free Meals Coming.* before ingest",
-      "midi": false
+      "midi": true
     },
     {
       "order": 44,
