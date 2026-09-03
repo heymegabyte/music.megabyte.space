@@ -1569,8 +1569,8 @@
       "sunoSec": 212,
       "sunoMMSS": "3:32",
       "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:32) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "status": "unavailable",
+      "note": "DEAD-END REFINEMENT (2026-09-02): site is 4:52 (ffprobe 292.20s) but the Suno title \"The Last Soldier Refused\" has 10+ regen takes ALL clustered 3:32-4:09 (max 4:09=249s) — site is 43s LONGER than every available take. The extended/composite source take was superseded/deleted. Manual-Suno job."
     },
     {
       "order": 100,
@@ -1580,12 +1580,13 @@
       "albumName": "Welcome to the Multiverse",
       "siteSec": 232,
       "siteMMSS": "3:52",
-      "sunoId": "894527dc-4385-43d5-a8af-c00c742bc335",
-      "sunoSec": 248,
-      "sunoMMSS": "4:08",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (4:08) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "aed56101-8b48-49cd-b8a3-7ba863cef28e",
+      "sunoSec": 232,
+      "sunoMMSS": "3:52",
+      "durMatch": true,
+      "status": "done",
+      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 4:08/248s (894527dc, 1 like). Correct take is the 3:52/12-likes version aed56101-8b48-49cd-b8a3-7ba863cef28e — player shows 3:51, site ffprobe 231.84s, Δ<1s.",
+      "midi": true
     },
     {
       "order": 101,
