@@ -662,7 +662,7 @@
       "durMatch": true,
       "status": "done",
       "note": "re-matched 3:07 take (site 3:08) — the 3:08 sibling of the two \"St John’s Plate\" Suno takes (3:00 belongs to saint-johns-plate wrong-map, this 3:07 = Keep Me Alive lyrics); Suno title != site title \"Keep Me Alive\" — rename downloads to Keep Me Alive.* before ingest",
-      "midi": false
+      "midi": true
     },
     {
       "order": 43,
