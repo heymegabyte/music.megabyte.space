@@ -1628,12 +1628,13 @@
       "albumName": "Welcome to the Multiverse",
       "siteSec": 305,
       "siteMMSS": "5:05",
-      "sunoId": "1696a558-c997-4744-9a48-7d2fd2d52edc",
-      "sunoSec": 301,
-      "sunoMMSS": "5:01",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (5:01) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "01f63310-cc8d-4608-b981-8482e128ae0b",
+      "sunoSec": 305,
+      "sunoMMSS": "5:05",
+      "durMatch": true,
+      "status": "done",
+      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 5:01/301s (1696a558). Correct take = 01f63310-cc8d-4608-b981-8482e128ae0b (cinematic street-rap/trap/soul, 18 likes; thumbnail 5:05, player 5:04=304s, site ffprobe 304.60s, Δ=0.6s).",
+      "midi": true
     },
     {
       "order": 104,
