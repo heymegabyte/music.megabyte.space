@@ -1724,12 +1724,13 @@
       "albumName": "Welcome to the Multiverse",
       "siteSec": 465,
       "siteMMSS": "7:45",
-      "sunoId": "93aff4e1-a920-4bde-9acb-d1bf84e43d0e",
-      "sunoSec": 479,
-      "sunoMMSS": "7:59",
-      "durMatch": false,
-      "status": "blocked",
-      "blockedReason": "durMatch=false: mapped Suno clip length (7:59) != site render (null). Needs re-match pass (find correct-length Suno version) before download."
+      "sunoId": "be263fff-fa92-4efd-9f6a-e83b73a1c6d7",
+      "sunoSec": 465,
+      "sunoMMSS": "7:45",
+      "durMatch": true,
+      "status": "done",
+      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 7:59/479s (93aff4e1, Δ14s). Correct take = be263fff-fa92-4efd-9f6a-e83b73a1c6d7 (cinematic/ambient/meditation, 6 likes; thumbnail+player both 7:45, site ffprobe 465.12s, Δ=0.12s). LAST blocked song.",
+      "midi": true
     }
   ]
 }
