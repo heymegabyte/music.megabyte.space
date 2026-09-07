@@ -1999,6 +1999,35 @@ html.is-playing .ai-playlist {
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 8px;
 }
+/* Aeon's Choice expander — reveals up to 10 picks (default 5). Pill button in
+   the current album accent, sitting under the pick grid. */
+.ai-playlist__toggle {
+  justify-self: start;
+  margin-top: 2px;
+  padding: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--album-accent, var(--accent)) 24%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+.ai-playlist__toggle:hover,
+.ai-playlist__toggle:focus-visible {
+  color: #fff;
+  border-color: color-mix(in srgb, var(--album-accent, var(--accent)) 55%, transparent);
+  background: color-mix(in srgb, var(--album-accent, var(--accent)) 16%, transparent);
+}
+.ai-playlist__toggle[hidden] {
+  display: none;
+}
 .ai-pick {
   --ai-pick-score: 0.5;
   display: grid;

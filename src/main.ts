@@ -98,6 +98,7 @@ let lyricsClickBound = false;
 let currentAlbumFilter: string | null = null;
 let autoplayPromptTrack: Track | null = null;
 let shuffleOn = false;
+let aiPlaylistExpanded = false;
 let searchOpen = false;
 let searchActiveIdx = 0;
 let npPanelOpen = false;
@@ -144,7 +145,8 @@ const LS_KEYS = {
   installSnoozeUntil: 'bz:installSnoozeUntil',
   crossfade: 'bz:crossfade',
   listenStats: 'bz:listenStats',
-  statsCache: 'bz:statsCache'
+  statsCache: 'bz:statsCache',
+  aiExpanded: 'bz:aiExpanded'
 };
 
 interface LocalListenStat {
@@ -168,6 +170,7 @@ function loadPersisted() {
     if (l && (l === 'off' || l === 'one' || l === 'all')) loopMode = l;
     const s = localStorage.getItem(LS_KEYS.shuffle);
     if (s === '1') shuffleOn = true;
+    if (localStorage.getItem(LS_KEYS.aiExpanded) === '1') aiPlaylistExpanded = true;
     const cf = localStorage.getItem(LS_KEYS.crossfade);
     if (cf === '1') crossfadeEnabled = true;
     const ls = localStorage.getItem(LS_KEYS.listenStats);
@@ -446,11 +449,33 @@ function aiOrderedTracks(): Track[] {
   return ranked;
 }
 
+/** The catalog in canonical album order (ALBUMS × trackIds) — the DEFAULT
+ *  sequential play order for next/prev/autoplay so a track flows into the NEXT
+ *  track of its album (then the next album), not the AI ranking. Deduped, with
+ *  any orphan track appended so the walk is whole. Aeon's Choice stays a
+ *  discovery rail; ordinary playback is now in order. */
+function catalogOrderedTracks(): Track[] {
+  const seen = new Set<string>();
+  const ordered: Track[] = [];
+  for (const album of ALBUMS) {
+    for (const id of album.trackIds) {
+      if (seen.has(id)) continue;
+      const t = TRACK_BY_ID.get(id);
+      if (t) {
+        ordered.push(t);
+        seen.add(id);
+      }
+    }
+  }
+  for (const t of TRACKS) if (!seen.has(t.id)) ordered.push(t);
+  return ordered;
+}
+
 function refreshAiPlaylist() {
   const wrap = document.getElementById('aiPlaylistWrap');
   const host = document.getElementById('aiPlaylist');
   if (!host) return;
-  const picks = aiPicks(5);
+  const picks = aiPicks(aiPlaylistExpanded ? 10 : 5);
   if (!picks.length) {
     host.innerHTML = '';
     wrap?.classList.remove('is-ready');
@@ -481,9 +506,27 @@ function refreshAiPlaylist() {
     .join('');
   host.innerHTML = html;
   wrap?.classList.add('is-ready');
+  // Expander: reveal up to 10 Aeon picks (default 5). Hidden when there aren't
+  // more than 5 to show.
+  const toggle = document.getElementById('aiPlaylistToggle');
+  if (toggle) {
+    const hasMore = aiPicks(10).length > 5;
+    toggle.hidden = !hasMore;
+    toggle.textContent = aiPlaylistExpanded ? 'Show fewer' : 'Show more';
+    toggle.setAttribute('aria-expanded', aiPlaylistExpanded ? 'true' : 'false');
+  }
 }
 
 function bindAiPlaylist() {
+  const toggle = document.getElementById('aiPlaylistToggle');
+  if (toggle && toggle.dataset.bound !== '1') {
+    toggle.dataset.bound = '1';
+    toggle.addEventListener('click', () => {
+      aiPlaylistExpanded = !aiPlaylistExpanded;
+      persist(LS_KEYS.aiExpanded, aiPlaylistExpanded ? '1' : '0');
+      refreshAiPlaylist();
+    });
+  }
   const host = document.getElementById('aiPlaylist');
   if (!host || host.dataset.bound === '1') return;
   host.dataset.bound = '1';
@@ -2200,6 +2243,7 @@ function renderAlbums(host: HTMLElement) {
         <span class="ai-playlist__eyebrow">Aeon's Choice</span>
       </header>
       <div class="ai-playlist__list" id="aiPlaylist" role="group" aria-label="Aeon's Choice picks"></div>
+      <button type="button" class="ai-playlist__toggle" id="aiPlaylistToggle" aria-controls="aiPlaylist" aria-expanded="false" hidden>Show more</button>
     </aside>`;
   host.innerHTML =
     back +
@@ -6858,8 +6902,9 @@ function handleEnded() {
   // 'all' loops the full track list at end (default behavior); 'off' still advances
   // but if at the last track and not 'all', stops.
   if (loopMode === 'off') {
-    const idx = TRACKS.findIndex(t => t.id === currentTrackId);
-    if (idx === TRACKS.length - 1) {
+    const order = catalogOrderedTracks();
+    const idx = order.findIndex(t => t.id === currentTrackId);
+    if (idx === order.length - 1) {
       engine.audio.pause();
       return;
     }
@@ -6952,9 +6997,10 @@ function nextTrack(dir: 1 | -1) {
     if (next) play(next);
     return;
   }
-  // Walk the AI-ranked play order (Aeon's Choice) so the playlist flows in
-  // ranking order, not raw catalog order.
-  const order = aiOrderedTracks();
+  // Walk the catalog in canonical album order so playback is sequential by
+  // default — next flows into the next track of the album, then the next album.
+  // (Aeon's Choice stays a discovery rail; turn on Shuffle for random.)
+  const order = catalogOrderedTracks();
   const idx = order.findIndex(t => t.id === currentTrackId);
   const next = order[(idx + dir + order.length) % order.length];
   if (next) play(next);
