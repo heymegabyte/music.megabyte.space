@@ -1,6 +1,6 @@
 {
   "generated_at": null,
-  "total": 109,
+  "total": 129,
   "queue": [
     {
       "order": 1,
@@ -14,8 +14,7 @@
       "sunoSec": 203,
       "sunoMMSS": "3:23",
       "durMatch": false,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 2,
@@ -29,8 +28,7 @@
       "sunoSec": 192,
       "sunoMMSS": "3:12",
       "durMatch": true,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 3,
@@ -44,8 +42,7 @@
       "sunoSec": 132,
       "sunoMMSS": "2:12",
       "durMatch": true,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 4,
@@ -59,8 +56,7 @@
       "sunoSec": 192,
       "sunoMMSS": "3:12",
       "durMatch": true,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 5,
@@ -74,8 +70,7 @@
       "sunoSec": 198,
       "sunoMMSS": "3:18",
       "durMatch": false,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 6,
@@ -89,8 +84,7 @@
       "sunoSec": 215,
       "sunoMMSS": "3:35",
       "durMatch": false,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 7,
@@ -104,8 +98,7 @@
       "sunoSec": 154,
       "sunoMMSS": "2:34",
       "durMatch": true,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 8,
@@ -119,8 +112,7 @@
       "sunoSec": 147,
       "sunoMMSS": "2:27",
       "durMatch": false,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 9,
@@ -134,8 +126,7 @@
       "sunoSec": 92,
       "sunoMMSS": "1:32",
       "durMatch": true,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 10,
@@ -149,8 +140,7 @@
       "sunoSec": 143,
       "sunoMMSS": "2:23",
       "durMatch": true,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 11,
@@ -164,8 +154,7 @@
       "sunoSec": 141,
       "sunoMMSS": "2:21",
       "durMatch": false,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 12,
@@ -179,8 +168,7 @@
       "sunoSec": 229,
       "sunoMMSS": "3:49",
       "durMatch": false,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 13,
@@ -194,8 +182,7 @@
       "sunoSec": 177,
       "sunoMMSS": "2:57",
       "durMatch": false,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 14,
@@ -209,8 +196,7 @@
       "sunoSec": 238,
       "sunoMMSS": "3:58",
       "durMatch": true,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 15,
@@ -224,8 +210,7 @@
       "sunoSec": 199,
       "sunoMMSS": "3:19",
       "durMatch": false,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 16,
@@ -239,8 +224,7 @@
       "sunoSec": 258,
       "sunoMMSS": "4:18",
       "durMatch": false,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 17,
@@ -254,8 +238,7 @@
       "sunoSec": 217,
       "sunoMMSS": "3:37",
       "durMatch": false,
-      "status": "done",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 18,
@@ -265,14 +248,11 @@
       "albumName": "Canopy Dispatch",
       "siteSec": 103,
       "siteMMSS": "1:43",
-      "sunoId": "2ddb3e62-17b2-45e4-ae74-4b8363c5e55b",
-      "sunoSec": 102,
-      "sunoMMSS": "1:42",
-      "durMatch": true,
-      "status": "done",
-      "blockedReason": "Suno title != site title (\"Touch The Sky\" unsearchable) + durMatch false (site 1:43 vs suno 2:08 = wrong render). Needs manual Suno re-match.",
-      "note": "re-matched via Library search (was 2:08 wrong take b85ffac1; correct 1:42 take 2ddb3e62). downloading all 3.",
-      "midi": true
+      "sunoId": "b85ffac1-3cbb-4b2c-a622-b6f02bd34fcb",
+      "sunoSec": 128,
+      "sunoMMSS": "2:08",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 19,
@@ -282,14 +262,11 @@
       "albumName": "Canopy Dispatch",
       "siteSec": 167,
       "siteMMSS": "2:47",
-      "sunoId": "4437689e-c36c-42de-bc81-b837744cbcf3",
-      "sunoSec": 167,
-      "sunoMMSS": "2:47",
-      "durMatch": true,
-      "status": "done",
-      "blockedReason": "durMatch=false: mapped Suno clip length (2:54) != site render (2:47). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (was 2:54 wrong take 44c6767e; correct 2:47 take 4437689e). downloading all 3.",
-      "midi": true
+      "sunoId": "44c6767e-edf3-4311-a776-52014304d3fd",
+      "sunoSec": 174,
+      "sunoMMSS": "2:54",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 20,
@@ -303,9 +280,7 @@
       "sunoSec": 214,
       "sunoMMSS": "3:34",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:34≈3:33). stems+video BLOCKED: Suno stem-extract/video are hCaptcha-gated + FAIL on the automation-flagged Chrome (Extraction failed: Could not extract Twelve). Grab stems+video from Brian personal Chrome (unflagged) to complete.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 21,
@@ -315,14 +290,11 @@
       "albumName": "Canopy Dispatch",
       "siteSec": 160,
       "siteMMSS": "2:40",
-      "sunoId": "f698efbe-1073-4b58-b815-876623a8f0ed",
-      "sunoSec": 160,
-      "sunoMMSS": "2:40",
-      "durMatch": true,
-      "status": "done",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:06) != site render (2:40). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (was 3:06 wrong take fbf7b959; correct 2:40 take f698efbe). downloading all 3.",
-      "midi": true
+      "sunoId": "fbf7b959-9ef0-4e9f-9e1e-eed047ecafda",
+      "sunoSec": 186,
+      "sunoMMSS": "3:06",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 22,
@@ -332,14 +304,11 @@
       "albumName": "Canopy Dispatch",
       "siteSec": 205,
       "siteMMSS": "3:25",
-      "sunoId": "83c18dc9-d1a3-4833-9c99-2ade6eaf542f",
-      "sunoSec": 204,
-      "sunoMMSS": "3:24",
-      "durMatch": true,
-      "status": "done",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:15) != site render (3:25). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (was 3:15 wrong take ff369ac8; correct 3:24 take 83c18dc9). downloading all 3.",
-      "midi": true
+      "sunoId": "ff369ac8-618e-4797-adc2-823eafd50723",
+      "sunoSec": 195,
+      "sunoMMSS": "3:15",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 23,
@@ -349,14 +318,11 @@
       "albumName": "Mercy Drop",
       "siteSec": 220,
       "siteMMSS": "3:40",
-      "sunoId": "c78c283d-657a-4a6a-b4fb-08a8715454d9",
-      "sunoSec": 219,
-      "sunoMMSS": "3:39",
-      "durMatch": true,
-      "status": "done",
-      "blockedReason": "durMatch=false: mapped Suno clip length (2:47) != site render (3:40). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (4 takes; was 2:47 wrong take 72c2706e; correct 3:39 take c78c283d, not the 3:11/3:12 alts). downloading all 3.",
-      "midi": true
+      "sunoId": "72c2706e-7e16-4402-9256-4a6556187a34",
+      "sunoSec": 167,
+      "sunoMMSS": "2:47",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 24,
@@ -366,14 +332,11 @@
       "albumName": "Mercy Drop",
       "siteSec": 211,
       "siteMMSS": "3:31",
-      "sunoId": "cea97387-edb6-4f0c-8ac7-442fa13ff606",
-      "sunoSec": 211,
-      "sunoMMSS": "3:31",
-      "durMatch": true,
-      "status": "done",
-      "blockedReason": "durMatch=false: mapped Suno clip length (2:47) != site render (3:31). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched: Suno clip is titled Mercy Border (worklist sunoTitle Border Mercy was WRONG), 3:31 take cea97387. was placeholder 72c2706e. downloading all 3.",
-      "midi": true
+      "sunoId": "72c2706e-7e16-4402-9256-4a6556187a34",
+      "sunoSec": 167,
+      "sunoMMSS": "2:47",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 25,
@@ -383,14 +346,11 @@
       "albumName": "Mercy Drop",
       "siteSec": 117,
       "siteMMSS": "1:57",
-      "sunoId": "52a5ea80-7ace-4480-880b-ec5018152b92",
-      "sunoSec": 116,
-      "sunoMMSS": "1:56",
-      "durMatch": true,
-      "status": "done",
-      "blockedReason": "durMatch=false: mapped Suno clip length (2:09) != site render (1:57). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (was 2:09 wrong take f341b28c; correct 1:56 take 52a5ea80). downloading all 3.",
-      "midi": true
+      "sunoId": "f341b28c-5ee1-4b92-956f-e9090c3968e5",
+      "sunoSec": 129,
+      "sunoMMSS": "2:09",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 26,
@@ -404,9 +364,7 @@
       "sunoSec": 130,
       "sunoMMSS": "2:10",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:10=2:10). stems+video BLOCKED: Suno stem-extract hCaptcha-loops on the automation-flagged Chrome (3rd Turnstile hit); grab from Brian personal Chrome to complete.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 27,
@@ -416,14 +374,11 @@
       "albumName": "Mercy Drop",
       "siteSec": 193,
       "siteMMSS": "3:13",
-      "sunoId": "1dbd7a62-24f1-400f-bcad-6db92dcd0762",
-      "sunoSec": 193,
-      "sunoMMSS": "3:13",
-      "durMatch": true,
-      "status": "done",
-      "blockedReason": "durMatch=false: mapped Suno clip length (3:17) != site render (3:13). Needs re-match pass (find correct-length Suno version) before download.",
-      "note": "re-matched via Library search (was 3:17 wrong take d0adbf3c; correct 3:13 take 1dbd7a62 — only 4s apart, play-verified). downloading all 3.",
-      "midi": true
+      "sunoId": "d0adbf3c-3751-435a-a29e-45daa05ac4aa",
+      "sunoSec": 197,
+      "sunoMMSS": "3:17",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 28,
@@ -437,9 +392,7 @@
       "sunoSec": 195,
       "sunoMMSS": "3:15",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:15=3:15). stems+video pending personal-Chrome batch (automation Chrome hCaptcha-walls stem-extract).",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 29,
@@ -453,9 +406,7 @@
       "sunoSec": 162,
       "sunoMMSS": "2:42",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:42=2:42). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 30,
@@ -469,9 +420,7 @@
       "sunoSec": 181,
       "sunoMMSS": "3:01",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:01=3:01). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 31,
@@ -485,9 +434,7 @@
       "sunoSec": 173,
       "sunoMMSS": "2:53",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:52 vs 2:53, within tol). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 32,
@@ -497,13 +444,11 @@
       "albumName": "Mercy Drop",
       "siteSec": 177,
       "siteMMSS": "2:57",
-      "sunoId": "41718c2b-96c9-4fce-ab12-52c08886d012",
-      "sunoSec": 176,
-      "sunoMMSS": "2:56",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2:56 take (site 2:57); prior 3:07 take was wrong-length",
-      "midi": true
+      "sunoId": "d7234d41-b778-415a-b77a-d372a016822b",
+      "sunoSec": 187,
+      "sunoMMSS": "3:07",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 33,
@@ -513,13 +458,11 @@
       "albumName": "Mercy Drop",
       "siteSec": 268,
       "siteMMSS": "4:28",
-      "sunoId": "120e0471-4252-445d-9067-b4ec42ad5813",
-      "sunoSec": 267,
-      "sunoMMSS": "4:27",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 4:27 take (site 4:28); prior 3:52 take was wrong-length",
-      "midi": true
+      "sunoId": "a3f8db90-8663-45fb-a528-0e329b84d16d",
+      "sunoSec": 232,
+      "sunoMMSS": "3:52",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 34,
@@ -533,9 +476,7 @@
       "sunoSec": 168,
       "sunoMMSS": "2:48",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:48=2:48). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 35,
@@ -549,9 +490,7 @@
       "sunoSec": 146,
       "sunoMMSS": "2:26",
       "durMatch": true,
-      "status": "done",
-      "note": "TURNSTILE-WALLED on stems extraction (2026-09-01 ~5:56pm ET, automation-Chrome Cloudflare challenge would not clear after multiple clicks/~40s). sunoId is CORRECT (durMatch:true, 2:26=2:26) + wav already LIVE on R2 — TRANSIENT captcha wall, NOT a wrong-length issue. On retry: direct-nav suno.com/song/4f1d9a3f-542c-4786-b18b-5fe8654a2f6c (skip re-match), re-attempt stems+video; wall is intermittent.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 36,
@@ -565,9 +504,7 @@
       "sunoSec": 184,
       "sunoMMSS": "3:04",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:03 vs 3:04, within tol). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 37,
@@ -581,9 +518,7 @@
       "sunoSec": 157,
       "sunoMMSS": "2:37",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:37=2:37). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 38,
@@ -597,9 +532,7 @@
       "sunoSec": 158,
       "sunoMMSS": "2:38",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:37 vs 2:38, within tol). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 39,
@@ -613,8 +546,7 @@
       "sunoSec": 180,
       "sunoMMSS": "3:00",
       "durMatch": false,
-      "status": "unavailable",
-      "note": "Re-match DEAD-END (verified 2026-09-02): site audio is genuinely 233s/3:53 (ffprobed /audio/Saint_John_s_Plate.mp3), but Suno title-search \"St John’s Plate\" returns ONLY a 3:00 take (wrong, current sunoId) + a 3:08 take (belongs to sibling st-johns-plate-2, 188s). No 3:53 take exists under this title — the exact source take was renamed/superseded/deleted in Suno. Needs manual identification (search by other metadata or accept aux-media gap). Status=unavailable sorts LAST so the loop advances instead of re-picking this every fire."
+      "status": "done"
     },
     {
       "order": 40,
@@ -624,13 +556,11 @@
       "albumName": "St. John's Canon",
       "siteSec": 242,
       "siteMMSS": "4:02",
-      "sunoId": "b6cf7446-5161-4634-85b7-f3e4089bc42a",
-      "sunoSec": 242,
-      "sunoMMSS": "4:02",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 4:02 take (site 4:02, exact); prior 3:50 take was wrong-length; Suno title \"St John’s Towers\" != site title \"Prophecy\" — rename downloads to Prophecy.* before ingest",
-      "midi": true
+      "sunoId": "022a4a4f-ff45-41b2-9e06-512510cbb314",
+      "sunoSec": 230,
+      "sunoMMSS": "3:50",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 41,
@@ -644,9 +574,7 @@
       "sunoSec": 268,
       "sunoMMSS": "4:28",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 4:28=4:28). Suno title St Johns Launchpad != site Everyone Gets a Seat (renamed for ingest). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 42,
@@ -656,13 +584,11 @@
       "albumName": "St. John's Canon",
       "siteSec": 188,
       "siteMMSS": "3:08",
-      "sunoId": "144d380b-f524-4f2f-bf7c-7026b884493e",
-      "sunoSec": 187,
-      "sunoMMSS": "3:07",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 3:07 take (site 3:08) — the 3:08 sibling of the two \"St John’s Plate\" Suno takes (3:00 belongs to saint-johns-plate wrong-map, this 3:07 = Keep Me Alive lyrics); Suno title != site title \"Keep Me Alive\" — rename downloads to Keep Me Alive.* before ingest",
-      "midi": true
+      "sunoId": "de092306-970c-4d62-96b5-061aa6828d31",
+      "sunoSec": 180,
+      "sunoMMSS": "3:00",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 43,
@@ -672,13 +598,11 @@
       "albumName": "St. John's Canon",
       "siteSec": 208,
       "siteMMSS": "3:28",
-      "sunoId": "df04bfdb-e3e0-45f2-9dde-cddbb003b598",
-      "sunoSec": 208,
-      "sunoMMSS": "3:28",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 3:28 take (site 3:28, exact); prior 3:23 take was wrong-length; Suno title \"St Johns Stew\" != site title \"Free Meals Coming\" — rename downloads to Free Meals Coming.* before ingest",
-      "midi": true
+      "sunoId": "fe55dc9a-64b1-4df4-83c7-6e05cea8b896",
+      "sunoSec": 203,
+      "sunoMMSS": "3:23",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 44,
@@ -692,9 +616,7 @@
       "sunoSec": 235,
       "sunoMMSS": "3:55",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:54 vs 3:55, within tol). Suno title St. John Needs != site 100 Million (renamed for ingest). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 45,
@@ -704,13 +626,11 @@
       "albumName": "St. John's Canon",
       "siteSec": 223,
       "siteMMSS": "3:43",
-      "sunoId": "d2cf03f0-bc65-45e5-90a4-fd88df692046",
-      "sunoSec": 222,
-      "sunoMMSS": "3:42",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 3:42 take (site 3:43) — 3rd of three Soup Kitchen Sky takes (3:11 wrong, 3:12, 3:43 correct); Suno title = site title, no rename",
-      "midi": true
+      "sunoId": "dca1c0e1-5f7f-4106-a75f-803032920e9c",
+      "sunoSec": 191,
+      "sunoMMSS": "3:11",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 46,
@@ -720,13 +640,11 @@
       "albumName": "St. John's Canon",
       "siteSec": 171,
       "siteMMSS": "2:51",
-      "sunoId": "d0a26ba0-aee5-4284-a543-5c3777ef2a3c",
-      "sunoSec": 170,
-      "sunoMMSS": "2:50",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2:50 take (site 2:51); prior 3:05 take was wrong-length; Suno title \"Promised Land Hands\" != site title \"Different World Tonight\" — rename downloads to Different World Tonight.* before ingest",
-      "midi": true
+      "sunoId": "753b8934-4e13-4acd-8e07-9ce0e7bc7af1",
+      "sunoSec": 185,
+      "sunoMMSS": "3:05",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 47,
@@ -740,9 +658,7 @@
       "sunoSec": 202,
       "sunoMMSS": "3:22",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:22=3:22). Suno title St. Johns Halo (curly apostrophe) != site Only Human; renamed for ingest. stems+video pending personal-Chrome batch. | MIDI backfill (2026-09-03): prod stems zip already contained 7 MIDI (original batch); local MD5 fa7fe32e639a2b410b1505f469ba43ef == prod etag, all 3 prod 206 — flag was stale, no re-download.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 48,
@@ -756,9 +672,7 @@
       "sunoSec": 168,
       "sunoMMSS": "2:48",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:47 vs 2:48, within tol). Suno title Soup Kitchen Windows != site Come Through (renamed for ingest). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 49,
@@ -768,13 +682,11 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 241,
       "siteMMSS": "4:01",
-      "sunoId": "24738fea-55ba-4421-8671-73e142c27310",
-      "sunoSec": 241,
-      "sunoMMSS": "4:01",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 4:01 take (site 240.92s=4:01, player confirmed 4:01); album title track has ~6 regenerations (3:43/3:55/3:56/4:02thumb/4:03/4:06) — only this one is within ±2s of 240.92s (thumbnail said 4:02 but player=4:01); Suno title = site title, no rename",
-      "midi": true
+      "sunoId": "ac3ea526-1c47-47e4-ad1e-bc161bee5890",
+      "sunoSec": 235,
+      "sunoMMSS": "3:55",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 50,
@@ -784,13 +696,11 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 196,
       "siteMMSS": "3:16",
-      "sunoId": "f07b8f25-5bbe-4ba8-932d-94abd7c854b6",
-      "sunoSec": 196,
-      "sunoMMSS": "3:16",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 3:16 take (site 196.32s=3:16, player confirmed 3:16); prior take was 7:59 (way off); 4 takes total (7:59/3:16/3:26/3:34), only 3:16 within ±2s; Suno title = site title, no rename",
-      "midi": true
+      "sunoId": "0ed71e3c-7f3b-4d48-969f-ddee1bb924d4",
+      "sunoSec": 479,
+      "sunoMMSS": "7:59",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 51,
@@ -804,9 +714,7 @@
       "sunoSec": 213,
       "sunoMMSS": "3:33",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:32 vs 3:33, within tol). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 52,
@@ -820,9 +728,7 @@
       "sunoSec": 195,
       "sunoMMSS": "3:15",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:14 vs 3:15, within tol). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 53,
@@ -836,9 +742,7 @@
       "sunoSec": 235,
       "sunoMMSS": "3:55",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:54 vs 3:55, within tol). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 54,
@@ -848,13 +752,11 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 215,
       "siteMMSS": "3:35",
-      "sunoId": "b44db57a-c625-49d9-9359-691e7016629b",
-      "sunoSec": 214,
-      "sunoMMSS": "3:34",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 3:34 take (site 214.8s=3:35, player confirmed 3:34); prior 3:40 take was wrong-length; 2 takes (3:40/3:35), only 3:35 within ±2s; Suno title = site title, no rename",
-      "midi": true
+      "sunoId": "7e56ba15-5953-4f33-a65b-880d908e6aaa",
+      "sunoSec": 220,
+      "sunoMMSS": "3:40",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 55,
@@ -868,9 +770,7 @@
       "sunoSec": 318,
       "sunoMMSS": "5:18",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 5:17 vs 5:18, within tol). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 56,
@@ -880,13 +780,11 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 205,
       "siteMMSS": "3:25",
-      "sunoId": "724499c2-f46f-4121-9453-40e78cb50e7d",
-      "sunoSec": 204,
-      "sunoMMSS": "3:24",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 3:24 take (site 204.8s=3:25, player confirmed 3:24); prior 3:39 take was wrong-length; 2 takes (3:39/3:25), only 3:25 within ±2s; Suno title = site title, no rename",
-      "midi": true
+      "sunoId": "d2347798-3a42-4b65-a80d-bcf183f97377",
+      "sunoSec": 219,
+      "sunoMMSS": "3:39",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 57,
@@ -900,9 +798,7 @@
       "sunoSec": 162,
       "sunoMMSS": "2:42",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:41 vs 2:42, within tol). stems+video pending personal-Chrome batch. | MIDI backfill (2026-09-03): prod stems zip already contained 7 MIDI (original batch); local MD5 ca4fd75d2d62f19aa75068c41803c4a3 == prod etag, all 3 prod 206 — flag was stale, no re-download.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 58,
@@ -912,13 +808,11 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 231,
       "siteMMSS": "3:51",
-      "sunoId": "90905f86-90ad-44ec-b8e7-324d90e47dd2",
-      "sunoSec": 230,
-      "sunoMMSS": "3:50",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:50 take (90905f86) replaces wrong 4:04 (89a11d25); player 3:50 vs site ffprobe 230.72s, within ±2s",
-      "midi": true
+      "sunoId": "89a11d25-f9c5-4b6b-b1f5-594384f74e11",
+      "sunoSec": 244,
+      "sunoMMSS": "4:04",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 59,
@@ -928,13 +822,11 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 203,
       "siteMMSS": "3:23",
-      "sunoId": "77df0eeb-8b26-4ae6-8bc2-4e9c14bbc807",
-      "sunoSec": 202,
-      "sunoMMSS": "3:22",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:22 take (77df0eeb) replaces wrong 2:12 (dd125d55); player 3:22 vs site ffprobe 202.60s, within ±2s",
-      "midi": true
+      "sunoId": "dd125d55-bf64-4fef-9ea1-5b0dbd0697f2",
+      "sunoSec": 132,
+      "sunoMMSS": "2:12",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 60,
@@ -944,13 +836,11 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 239,
       "siteMMSS": "3:59",
-      "sunoId": "8903903a-286d-4bd8-a9d9-78d2ee4ded49",
-      "sunoSec": 239,
-      "sunoMMSS": "3:59",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:59 take (8903903a) replaces wrong 3:52 (ed3f77d6); player 3:59 vs site ffprobe 239.20s, within ±2s",
-      "midi": true
+      "sunoId": "ed3f77d6-2fe1-461a-87fd-9978783e90ac",
+      "sunoSec": 232,
+      "sunoMMSS": "3:52",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 61,
@@ -960,13 +850,11 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 259,
       "siteMMSS": "4:19",
-      "sunoId": "005000ae-0be5-4667-8eb2-21cb86a88c93",
-      "sunoSec": 259,
-      "sunoMMSS": "4:19",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 4:19 take (005000ae) replaces wrong 4:03 (6a005bc3); player 4:19 vs site ffprobe 259.08s, within ±2s",
-      "midi": true
+      "sunoId": "6a005bc3-c843-4b02-95af-721a67f041b2",
+      "sunoSec": 243,
+      "sunoMMSS": "4:03",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 62,
@@ -976,13 +864,11 @@
       "albumName": "Betelgeuse Passover",
       "siteSec": 228,
       "siteMMSS": "3:48",
-      "sunoId": "69fb66a3-e1aa-4dca-a31b-2f5054dcfa20",
-      "sunoSec": 228,
-      "sunoMMSS": "3:47",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:47 take (69fb66a3) replaces wrong 4:17 (17ea44de); player 3:47 vs site ffprobe 227.96s, within ±2s",
-      "midi": true
+      "sunoId": "17ea44de-800b-4164-b8e8-03ab7b242462",
+      "sunoSec": 257,
+      "sunoMMSS": "4:17",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 63,
@@ -992,13 +878,11 @@
       "albumName": "Signals From the Other Side",
       "siteSec": 315,
       "siteMMSS": "5:15",
-      "sunoId": "89c8b0e3-3e66-41fc-830f-f537ae2140bc",
-      "sunoSec": 315,
-      "sunoMMSS": "5:14",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 5:14 take (89c8b0e3) replaces wrong 4:53 (25516384); player 5:14 vs site ffprobe 314.52s, within ±2s",
-      "midi": true
+      "sunoId": "25516384-92b0-4080-965f-00592586617d",
+      "sunoSec": 293,
+      "sunoMMSS": "4:53",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 64,
@@ -1012,9 +896,7 @@
       "sunoSec": 230,
       "sunoMMSS": "3:50",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:49 vs 3:50, within tol). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 65,
@@ -1024,13 +906,11 @@
       "albumName": "Signals From the Other Side",
       "siteSec": 309,
       "siteMMSS": "5:09",
-      "sunoId": "ea9682f9-744b-4ba7-a923-9e87c9bc7da7",
-      "sunoSec": 309,
-      "sunoMMSS": "5:09",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 5:09 take (ea9682f9) among 6+ regenerations replaces wrong 4:50 (c7188602); player 5:09 vs site ffprobe 309.16s, within ±2s",
-      "midi": true
+      "sunoId": "c7188602-0021-4da1-a2a2-62ef9789d6f0",
+      "sunoSec": 290,
+      "sunoMMSS": "4:50",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 66,
@@ -1044,9 +924,7 @@
       "sunoSec": 218,
       "sunoMMSS": "3:38",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 3:38=3:38). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 67,
@@ -1056,13 +934,11 @@
       "albumName": "Signals From the Other Side",
       "siteSec": 270,
       "siteMMSS": "4:30",
-      "sunoId": "6eb05d29-3678-4ec3-a2c0-844cb703a80c",
-      "sunoSec": 270,
-      "sunoMMSS": "4:29",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 4:29 take (6eb05d29) among 4 takes replaces wrong 4:18 (51d0d166); player 4:29 vs site ffprobe 269.88s, within ±2s (4:32 sibling excluded)",
-      "midi": true
+      "sunoId": "51d0d166-25bc-4ec2-92d6-36b70a755c89",
+      "sunoSec": 258,
+      "sunoMMSS": "4:18",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 68,
@@ -1072,13 +948,11 @@
       "albumName": "Signals From the Other Side",
       "siteSec": 233,
       "siteMMSS": "3:53",
-      "sunoId": "8aef6129-b3ca-478e-b732-ee3efdd4114c",
-      "sunoSec": 233,
-      "sunoMMSS": "3:53",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:53 take (8aef6129) replaces wrong 3:29 (1932cc88); player 3:53 vs site ffprobe 233.04s, within ±2s",
-      "midi": true
+      "sunoId": "1932cc88-c3d7-4004-9d21-872c50b3165d",
+      "sunoSec": 209,
+      "sunoMMSS": "3:29",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 69,
@@ -1088,13 +962,11 @@
       "albumName": "Signals From the Other Side",
       "siteSec": 220,
       "siteMMSS": "3:40",
-      "sunoId": "f1d896b2-ee2a-46cd-960e-12152d64578f",
-      "sunoSec": 220,
-      "sunoMMSS": "3:40",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:40 take (f1d896b2) replaces wrong 4:10 (8eee8aa2); player 3:39 vs site ffprobe 219.92s, within ±2s",
-      "midi": true
+      "sunoId": "8eee8aa2-da6e-49d8-9da7-f2e70e38817f",
+      "sunoSec": 250,
+      "sunoMMSS": "4:10",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 70,
@@ -1108,9 +980,7 @@
       "sunoSec": 293,
       "sunoMMSS": "4:53",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 4:53=4:53). stems+video pending personal-Chrome batch.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 71,
@@ -1120,13 +990,11 @@
       "albumName": "Signals From the Other Side",
       "siteSec": 187,
       "siteMMSS": "3:07",
-      "sunoId": "8cb4717b-460a-4163-9a2c-25cd9a767a68",
-      "sunoSec": 187,
-      "sunoMMSS": "3:07",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:07 take (8cb4717b) replaces wrong 3:11 (34f730ea); 4 takes existed (3:11/3:09/3:07/2:57), player 3:07 vs site ffprobe 187.12s exact match",
-      "midi": true
+      "sunoId": "34f730ea-03cc-41fa-88e9-cb7b1c41fea8",
+      "sunoSec": 191,
+      "sunoMMSS": "3:11",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 72,
@@ -1140,9 +1008,7 @@
       "sunoSec": 152,
       "sunoMMSS": "2:32",
       "durMatch": true,
-      "status": "done",
-      "note": "wav LIVE on R2 (length-verified 2:31 vs 2:32, within tol). stems+video pending personal-Chrome batch. NOTE: WAV signed-URL expires ~1h — click Download File promptly after WAV Audio prep.",
-      "midi": true
+      "status": "done"
     },
     {
       "order": 73,
@@ -1150,14 +1016,13 @@
       "title": "Algenib, Crown of the Sky",
       "album": "hobbit-passover",
       "albumName": "Hobbit Passover",
-      "siteSec": 346,
-      "siteMMSS": "5:46",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "dd82fa3a-a983-42b7-b21c-1dc9b0ce85ff",
       "sunoSec": 283,
       "sunoMMSS": "4:43",
       "durMatch": false,
-      "status": "unavailable",
-      "note": "re-match DEAD-END 2026-09-02: site ffprobe 345.60s (5:46). Only exact-title Suno take (dd82fa3a) is 4:43/283s (player-confirmed); all other takes titled \"All Hail Algenib\" are 4:28-5:14 — NONE within 5:46±2s. The 5:46 source (likely Suno-extended) was superseded/deleted. Marked unavailable so the loop advances; needs manual re-gen or a shorter site render."
+      "status": "unavailable"
     },
     {
       "order": 74,
@@ -1165,14 +1030,13 @@
       "title": "Let Harmony Begin",
       "album": "hobbit-passover",
       "albumName": "Hobbit Passover",
-      "siteSec": 409,
-      "siteMMSS": "6:49",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "90dc132f-f3cf-4278-9f3f-fe92a2397dab",
       "sunoSec": 314,
       "sunoMMSS": "5:14",
       "durMatch": false,
-      "status": "unavailable",
-      "note": "re-match DEAD-END 2026-09-02: site ffprobe 408.67s (6:49). Suno has exactly 6 \"Let Harmony Begin\" takes (5:14/5:24/4:58/5:32/5:03/5:35) — max 5:35, NONE within 6:49±2s. The 6:49 source (Suno-extended/composite) was superseded/deleted. Marked unavailable so the loop advances; needs manual re-gen."
+      "status": "unavailable"
     },
     {
       "order": 75,
@@ -1180,15 +1044,13 @@
       "title": "The Smell Was So Sinful",
       "album": "hobbit-passover",
       "albumName": "Hobbit Passover",
-      "siteSec": 270,
-      "siteMMSS": "4:30",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "d66023dc-3ccd-46fc-a6fa-dc7e98e4ccc3",
       "sunoSec": 270,
       "sunoMMSS": "4:30",
-      "durMatch": true,
-      "status": "done",
-      "note": "site siteSec was null; ffprobe 269.96s (4:29) — mapped take d66023dc (4:30, player 4:29) is the correct source (Δ<1s). No re-match needed.",
-      "midi": true
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 76,
@@ -1196,15 +1058,13 @@
       "title": "Peace in the Picture",
       "album": "hobbit-passover",
       "albumName": "Hobbit Passover",
-      "siteSec": 290,
-      "siteMMSS": "4:50",
-      "sunoId": "2a3d7eb0-cb25-4165-9660-70be8a4827f5",
-      "sunoSec": 290,
-      "sunoMMSS": "4:50",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 4:50 take (2a3d7eb0) replaces wrong 4:02 (3dd299bb); player 4:49 vs site ffprobe 289.68s, within ±2s",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "3dd299bb-22c6-4bca-860e-1c9c3ea45f72",
+      "sunoSec": 242,
+      "sunoMMSS": "4:02",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 77,
@@ -1212,15 +1072,13 @@
       "title": "Highlight Heaven",
       "album": "hobbit-passover",
       "albumName": "Hobbit Passover",
-      "siteSec": 269,
-      "siteMMSS": "4:29",
-      "sunoId": "fea9bc0d-27a1-4a67-b054-a42910fe832f",
-      "sunoSec": 269,
-      "sunoMMSS": "4:29",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 4:29 take (fea9bc0d) replaces near-miss 4:25 (f368b61b, Δ4.4s); player 4:29 vs site ffprobe 269.44s exact",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "f368b61b-5e00-4341-a189-cd3b95d80a74",
+      "sunoSec": 265,
+      "sunoMMSS": "4:25",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 78,
@@ -1228,15 +1086,13 @@
       "title": "Hobbit Passover",
       "album": "hobbit-passover",
       "albumName": "Hobbit Passover",
-      "siteSec": 371,
-      "siteMMSS": "6:11",
-      "sunoId": "46947ce7-97fc-4917-a603-313012e1bf82",
-      "sunoSec": 371,
-      "sunoMMSS": "6:11",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: site ffprobe 371.48s (6:11); correct 6:11 take (46947ce7) replaces wrong 5:50 (cbbf0679); player 6:11 exact",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "cbbf0679-b473-418f-9cd3-9de2b8713535",
+      "sunoSec": 350,
+      "sunoMMSS": "5:50",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 79,
@@ -1244,15 +1100,13 @@
       "title": "I Killed Your Dragon",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 255,
-      "siteMMSS": "4:15",
-      "sunoId": "b363631f-b64d-4971-a5c3-363838387a37",
-      "sunoSec": 255,
-      "sunoMMSS": "4:15",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 4:15 take (b363631f) replaces wrong 4:07 (9eb4d7d0); player 4:14 vs site ffprobe 254.60s, within ±2s",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "9eb4d7d0-f54a-44a5-99f4-a3eb08e0f665",
+      "sunoSec": 247,
+      "sunoMMSS": "4:07",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 80,
@@ -1260,15 +1114,13 @@
       "title": "Which Bank We Robbin'",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 297,
-      "siteMMSS": "4:57",
-      "sunoId": "fe352b1f-ba04-4fe1-8bc2-718fcae1378c",
-      "sunoSec": 297,
-      "sunoMMSS": "4:57",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 4:57 take (fe352b1f) replaces wrong 6:08 (411bb146); player 4:57 vs site ffprobe 297.16s exact",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "411bb146-2853-458f-901c-aed503cf39c5",
+      "sunoSec": 368,
+      "sunoMMSS": "6:08",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 81,
@@ -1276,15 +1128,13 @@
       "title": "Seven-Eleven Heaven",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 376,
-      "siteMMSS": "6:16",
-      "sunoId": "7fb5b6e0-8d3d-4827-8b07-be1d5566ae4e",
-      "sunoSec": 376,
-      "sunoMMSS": "6:16",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 6:16 take (7fb5b6e0) replaces wrong 7:01 (5073270d); player 6:15 vs site ffprobe 375.76s, within ±2s",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "5073270d-cfe6-4196-84b2-e594046eceec",
+      "sunoSec": 421,
+      "sunoMMSS": "7:01",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 82,
@@ -1292,15 +1142,13 @@
       "title": "Ocular Uplink",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 228,
-      "siteMMSS": "3:48",
-      "sunoId": "0dbe8328-ea8e-4606-8751-7ba4a1bf7e47",
-      "sunoSec": 228,
-      "sunoMMSS": "3:48",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:48 take (0dbe8328) replaces wrong 4:32 (c3e99620); player 3:47 vs site ffprobe 227.84s, within ±2s",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "c3e99620-d0b5-443d-81c6-00120a964f46",
+      "sunoSec": 272,
+      "sunoMMSS": "4:32",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 83,
@@ -1308,15 +1156,13 @@
       "title": "The Soul Key",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 188,
-      "siteMMSS": "3:08",
-      "sunoId": "ad46fc8a-5c92-427d-ad9b-e23492106ad3",
-      "sunoSec": 188,
-      "sunoMMSS": "3:08",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:08 take (ad46fc8a) replaces near-miss 3:06 (a752b95b, Δ2.1s); player 3:08 vs site ffprobe 188.08s exact",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "a752b95b-187a-484d-9094-31be2dc13d71",
+      "sunoSec": 186,
+      "sunoMMSS": "3:06",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 84,
@@ -1324,15 +1170,13 @@
       "title": "Banana Peel Philosophy",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 234,
-      "siteMMSS": "3:54",
-      "sunoId": "eb4f4fdf-97b2-4a3f-8958-1234d2fb31f4",
-      "sunoSec": 234,
-      "sunoMMSS": "3:54",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: correct 3:54 take (eb4f4fdf) replaces wrong 3:39 (7c825c87); player 3:53 vs site ffprobe 233.72s, within ±2s",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "7c825c87-4ebe-40f7-b850-378de1ef6061",
+      "sunoSec": 219,
+      "sunoMMSS": "3:39",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 85,
@@ -1340,15 +1184,13 @@
       "title": "Flawless Execution",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 208,
-      "siteMMSS": "3:28",
-      "sunoId": "7395e4ed-3a11-473f-9a4f-bcef23a64bda",
-      "sunoSec": 208,
-      "sunoMMSS": "3:28",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 2026-09-02: site ffprobe 208.12s (3:28); correct 3:28 take (7395e4ed) replaces wrong 2:46 (18a54671); player 3:28 exact",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "18a54671-0ea0-4270-80a9-423902a82c26",
+      "sunoSec": 166,
+      "sunoMMSS": "2:46",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 86,
@@ -1356,15 +1198,13 @@
       "title": "The Night Knew My Name",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 311,
-      "siteMMSS": "5:11",
-      "sunoId": "d186cbc3-b135-46e4-b183-46080f081aec",
-      "sunoSec": 311,
-      "sunoMMSS": "5:11",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 5:11 take (site 311.24s) — prior mapped 5:00/403e3940 was wrong-length take",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "403e3940-b1e1-4171-8e8d-5daed26705f1",
+      "sunoSec": 300,
+      "sunoMMSS": "5:00",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 87,
@@ -1372,15 +1212,13 @@
       "title": "Crown Without a Sound",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 336,
-      "siteMMSS": "5:36",
-      "sunoId": "b22f48e9-2ac6-4536-85b4-1349d8983790",
-      "sunoSec": 336,
-      "sunoMMSS": "5:36",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 5:36 take (site 335.72s, player 5:35) — prior mapped 5:07/c6f12141 was wrong-length take",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "c6f12141-3f56-4217-b0f9-0abfaa7c4f2f",
+      "sunoSec": 307,
+      "sunoMMSS": "5:07",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 88,
@@ -1388,15 +1226,13 @@
       "title": "Believe It When You See It",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 314,
-      "siteMMSS": "5:14",
-      "sunoId": "a03d6002-1932-4fff-83d4-57dd18b7a333",
-      "sunoSec": 314,
-      "sunoMMSS": "5:14",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 5:14 take (site 314.32s, player 5:14) — prior mapped 4:13/74f9accb was wrong-length take",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "74f9accb-6114-4b04-8fcb-c7c50bdc2d78",
+      "sunoSec": 253,
+      "sunoMMSS": "4:13",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 89,
@@ -1404,15 +1240,13 @@
       "title": "Creepy as Hell",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 321,
-      "siteMMSS": "5:21",
-      "sunoId": "a5668403-dc43-47d8-b37d-fa6216f963d5",
-      "sunoSec": 321,
-      "sunoMMSS": "5:21",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 5:21 take (site 321.20s, player 5:21) — prior mapped 4:16/394981be was wrong-length take",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "394981be-6ebc-45f6-9a44-89212199dfe5",
+      "sunoSec": 256,
+      "sunoMMSS": "4:16",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 90,
@@ -1420,15 +1254,13 @@
       "title": "Come Fix the World",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 351,
-      "siteMMSS": "5:51",
-      "sunoId": "648410fe-5884-433e-948a-462311e7fb7d",
-      "sunoSec": 351,
-      "sunoMMSS": "5:51",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 5:51 take (site 350.72s, player 5:50) — prior mapped 5:22/30c0bb0a was wrong-length take",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "30c0bb0a-d42c-4d6e-b441-c8e9ae82fb4d",
+      "sunoSec": 322,
+      "sunoMMSS": "5:22",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 91,
@@ -1436,15 +1268,13 @@
       "title": "Coincidence Overload",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 329,
-      "siteMMSS": "5:29",
-      "sunoId": "62e54746-8ee8-4477-a162-5527bcbc0918",
-      "sunoSec": 329,
-      "sunoMMSS": "5:29",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 5:29 take (site 328.64s, player 5:28) — prior mapped 4:34/03beba83 was wrong-length take",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "03beba83-3704-42d3-887b-60e655de7896",
+      "sunoSec": 274,
+      "sunoMMSS": "4:34",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 92,
@@ -1452,15 +1282,13 @@
       "title": "The Least Pay the Most",
       "album": "flawless-execution",
       "albumName": "Flawless Execution",
-      "siteSec": 327,
-      "siteMMSS": "5:27",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "1d706250-0e7f-409a-9ef5-20524143e9fa",
       "sunoSec": 327,
       "sunoMMSS": "5:27",
-      "durMatch": true,
-      "status": "done",
-      "note": "null-sitesec first-check: mapped sunoId already correct (site 327.20s ≈ 5:27) — no re-match needed",
-      "midi": true
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 93,
@@ -1468,15 +1296,13 @@
       "title": "The Odds Don't Know Me",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 283,
-      "siteMMSS": "4:43",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "f271bcba-98d8-4df0-9e33-80f7cfc1d6b1",
       "sunoSec": 283,
       "sunoMMSS": "4:43",
-      "durMatch": true,
-      "status": "done",
-      "note": "null-sitesec first-check: mapped sunoId already correct (site 283.04s ≈ 4:43) — no re-match needed",
-      "midi": true
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 94,
@@ -1484,15 +1310,13 @@
       "title": "Two Friends, Two Hunnies",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 265,
-      "siteMMSS": "4:25",
-      "sunoId": "09a6b305-06aa-4270-9889-de47ac566dc3",
-      "sunoSec": 265,
-      "sunoMMSS": "4:25",
-      "durMatch": true,
-      "status": "done",
-      "note": "re-matched 4:25 take (site 265.08s, player 4:25) — prior mapped 4:21/5841accd was wrong-length take",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "5841accd-ccfc-49c1-aef4-9e6def5195a6",
+      "sunoSec": 261,
+      "sunoMMSS": "4:21",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 95,
@@ -1500,15 +1324,13 @@
       "title": "Jehovian Wisdom",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 222,
-      "siteMMSS": "3:42",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "f537e881-4377-4f1d-a39d-4bd26df84920",
       "sunoSec": 222,
       "sunoMMSS": "3:42",
-      "durMatch": true,
-      "status": "done",
-      "note": "null-sitesec first-check: mapped sunoId already correct (site 222.12s ≈ 3:42) — no re-match needed",
-      "midi": true
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 96,
@@ -1516,14 +1338,13 @@
       "title": "The Halo and the Horror",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 267,
-      "siteMMSS": "4:27",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "fd58dbac-5906-4375-b116-a1d9112824a7",
       "sunoSec": 278,
       "sunoMMSS": "4:38",
       "durMatch": false,
-      "status": "unavailable",
-      "note": "RE-MATCH DEAD-END (2026-09-02): site is 4:27 (ffprobe 266.68s) but the Suno title \"The Halo and the Horror\" has 10+ regen takes clustered at 4:10-4:19 and 4:35-4:52 — NONE at 4:27 (hard gap 4:20-4:34). The exact 4:27 source take was superseded/deleted. Manual-Suno job."
+      "status": "done"
     },
     {
       "order": 97,
@@ -1531,15 +1352,13 @@
       "title": "You Almost Had Me",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 255,
-      "siteMMSS": "4:15",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "9d7215f8-4acd-4d18-ac4b-7bfd491b544f",
       "sunoSec": 255,
       "sunoMMSS": "4:15",
-      "durMatch": true,
-      "status": "done",
-      "note": "null-sitesec first-check: mapped sunoId already correct (site 254.68s ≈ 4:15) — no re-match needed",
-      "midi": true
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 98,
@@ -1547,15 +1366,13 @@
       "title": "Welcome to the Multiverse",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 275,
-      "siteMMSS": "4:35",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "4c4bab60-1713-4674-9ab4-4d0ac87ce163",
       "sunoSec": 275,
       "sunoMMSS": "4:35",
-      "durMatch": true,
-      "status": "done",
-      "note": "null-sitesec first-check: mapped sunoId already correct (site 274.60s ≈ 4:35) — no re-match needed",
-      "midi": true
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 99,
@@ -1563,14 +1380,13 @@
       "title": "The Last Soldier Refused",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 292,
-      "siteMMSS": "4:52",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "2b332809-ec57-441b-8774-beb0f945b9bf",
       "sunoSec": 212,
       "sunoMMSS": "3:32",
       "durMatch": false,
-      "status": "unavailable",
-      "note": "DEAD-END REFINEMENT (2026-09-02): site is 4:52 (ffprobe 292.20s) but the Suno title \"The Last Soldier Refused\" has 10+ regen takes ALL clustered 3:32-4:09 (max 4:09=249s) — site is 43s LONGER than every available take. The extended/composite source take was superseded/deleted. Manual-Suno job."
+      "status": "done"
     },
     {
       "order": 100,
@@ -1578,15 +1394,13 @@
       "title": "Myla, Shine On",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 232,
-      "siteMMSS": "3:52",
-      "sunoId": "aed56101-8b48-49cd-b8a3-7ba863cef28e",
-      "sunoSec": 232,
-      "sunoMMSS": "3:52",
-      "durMatch": true,
-      "status": "done",
-      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 4:08/248s (894527dc, 1 like). Correct take is the 3:52/12-likes version aed56101-8b48-49cd-b8a3-7ba863cef28e — player shows 3:51, site ffprobe 231.84s, Δ<1s.",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "894527dc-4385-43d5-a8af-c00c742bc335",
+      "sunoSec": 248,
+      "sunoMMSS": "4:08",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 101,
@@ -1594,15 +1408,13 @@
       "title": "If We Met Again",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 261,
-      "siteMMSS": "4:21",
-      "sunoId": "73e97973-03ad-440e-9f05-4634e0b80de2",
-      "sunoSec": 261,
-      "sunoMMSS": "4:21",
-      "durMatch": true,
-      "status": "done",
-      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 4:32/272s (2431cac5). Correct take = 73e97973-03ad-440e-9f05-4634e0b80de2 (thumbnail 4:21, 16 likes); player shows 4:20, site ffprobe 260.92s, Δ<1s. (The 4:23 take 035845c0 was 263s, Δ=2.1s — not it.)",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "2431cac5-963f-40dd-bdbb-07f0b706f228",
+      "sunoSec": 272,
+      "sunoMMSS": "4:32",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 102,
@@ -1610,15 +1422,13 @@
       "title": "Grace Under Pressure",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 282,
-      "siteMMSS": "4:42",
-      "sunoId": "e19068e3-3156-473e-bcde-76c82a5c3f8f",
-      "sunoSec": 283,
-      "sunoMMSS": "4:43",
-      "durMatch": true,
-      "status": "done",
-      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 4:53/293s (88eb9897). Correct take = e19068e3-3156-473e-bcde-76c82a5c3f8f (Atlanta trap/piano-soul/gospel style; thumbnail 4:44, player 4:43=283s, site ffprobe 282.44s, Δ=0.56s). Other style-B variant (conscious hip-hop) takes were 4:55/4:27 — not it.",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "88eb9897-385d-4605-9204-559d99e8af11",
+      "sunoSec": 293,
+      "sunoMMSS": "4:53",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 103,
@@ -1626,15 +1436,13 @@
       "title": "Hate Dies Here",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 305,
-      "siteMMSS": "5:05",
-      "sunoId": "01f63310-cc8d-4608-b981-8482e128ae0b",
-      "sunoSec": 305,
-      "sunoMMSS": "5:05",
-      "durMatch": true,
-      "status": "done",
-      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 5:01/301s (1696a558). Correct take = 01f63310-cc8d-4608-b981-8482e128ae0b (cinematic street-rap/trap/soul, 18 likes; thumbnail 5:05, player 5:04=304s, site ffprobe 304.60s, Δ=0.6s).",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "1696a558-c997-4744-9a48-7d2fd2d52edc",
+      "sunoSec": 301,
+      "sunoMMSS": "5:01",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 104,
@@ -1642,15 +1450,13 @@
       "title": "Become the Person You Needed",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 267,
-      "siteMMSS": "4:27",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "c01979ee-3b98-4128-b9b8-ee31c5c0750c",
       "sunoSec": 267,
       "sunoMMSS": "4:27",
-      "durMatch": true,
-      "status": "done",
-      "note": "null-sitesec first-check: mapped sunoId c01979ee already correct (site ffprobe 266.76s ≈ 4:27, mapped 267s, Δ0.2s) — stale blocked flag cleared, no re-match needed",
-      "midi": true
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 105,
@@ -1658,15 +1464,13 @@
       "title": "Victory With Nobody Dead",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 279,
-      "siteMMSS": "4:39",
-      "sunoId": "53f426e7-10a5-4b95-bc2b-13940108e53c",
-      "sunoSec": 279,
-      "sunoMMSS": "4:39",
-      "durMatch": true,
-      "status": "done",
-      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 4:37/277s (af6ee46a, Δ2.4s). Correct take = 53f426e7-10a5-4b95-bc2b-13940108e53c (melodic rap/trap/progressive-house, 20 likes; thumbnail+player both 4:39, site ffprobe 279.40s, Δ=0.40s).",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "af6ee46a-6560-4a16-90c4-4710e3f2e914",
+      "sunoSec": 277,
+      "sunoMMSS": "4:37",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 106,
@@ -1674,15 +1478,13 @@
       "title": "Rich Before the Money",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 287,
-      "siteMMSS": "4:47",
-      "sunoId": "93fb0500-2724-45da-b433-0e23c65046ef",
-      "sunoSec": 287,
-      "sunoMMSS": "4:47",
-      "durMatch": true,
-      "status": "done",
-      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 4:38/278s (f545121a, Δ9.2s). Correct take = 93fb0500-2724-45da-b433-0e23c65046ef (cinematic melodic trap/progressive house, 23 likes; thumbnail+player both 4:47, site ffprobe 287.16s, Δ=0.16s).",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "f545121a-c402-4519-9c88-ee3877546cf6",
+      "sunoSec": 278,
+      "sunoMMSS": "4:38",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 107,
@@ -1690,15 +1492,13 @@
       "title": "The Gates Were Never Locked",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 241,
-      "siteMMSS": "4:01",
+      "siteSec": null,
+      "siteMMSS": null,
       "sunoId": "3f2896b1-6123-4d3c-a2b1-5a59dbb23a29",
       "sunoSec": 241,
       "sunoMMSS": "4:01",
-      "durMatch": true,
-      "status": "done",
-      "note": "null-sitesec first-check: mapped sunoId 3f2896b1 already correct (site ffprobe 240.56s ≈ 4:01, mapped 241s, Δ0.4s) — stale blocked flag cleared, no re-match needed",
-      "midi": true
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 108,
@@ -1706,15 +1506,13 @@
       "title": "Future Me Came Back",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 379,
-      "siteMMSS": "6:19",
-      "sunoId": "ccb9bde3-649e-4e8d-9f87-9cd0d5fa3b1b",
-      "sunoSec": 379,
-      "sunoMMSS": "6:19",
-      "durMatch": true,
-      "status": "done",
-      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 5:45/345s (35b1fd7d, Δ34s). NOT a dead-end — a 6:19 take exists. Correct take = ccb9bde3-649e-4e8d-9f87-9cd0d5fa3b1b (melodic trap/alt-R&B/cinematic, 29 likes; thumbnail+player both 6:19, site ffprobe 379.16s, Δ=0.16s).",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "35b1fd7d-4482-4ff9-b9af-73eaa3d9fa89",
+      "sunoSec": 345,
+      "sunoMMSS": "5:45",
+      "durMatch": false,
+      "status": "done"
     },
     {
       "order": 109,
@@ -1722,15 +1520,293 @@
       "title": "The Inner Control Room",
       "album": "welcome-to-the-multiverse",
       "albumName": "Welcome to the Multiverse",
-      "siteSec": 465,
-      "siteMMSS": "7:45",
-      "sunoId": "be263fff-fa92-4efd-9f6a-e83b73a1c6d7",
-      "sunoSec": 465,
-      "sunoMMSS": "7:45",
-      "durMatch": true,
-      "status": "done",
-      "note": "RE-MATCHED (2026-09-02): wrong mapped take was 7:59/479s (93aff4e1, Δ14s). Correct take = be263fff-fa92-4efd-9f6a-e83b73a1c6d7 (cinematic/ambient/meditation, 6 likes; thumbnail+player both 7:45, site ffprobe 465.12s, Δ=0.12s). LAST blocked song.",
-      "midi": true
+      "siteSec": null,
+      "siteMMSS": null,
+      "sunoId": "93aff4e1-a920-4bde-9acb-d1bf84e43d0e",
+      "sunoSec": 479,
+      "sunoMMSS": "7:59",
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 110,
+      "trackId": "reckless-grace",
+      "title": "Reckless Grace",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 293,
+      "siteMMSS": "4:53",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 111,
+      "trackId": "count-what-i-got",
+      "title": "Count What I Got",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 327,
+      "siteMMSS": "5:27",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 112,
+      "trackId": "nobody-beneath-us",
+      "title": "Nobody Beneath Us",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 304,
+      "siteMMSS": "5:04",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 113,
+      "trackId": "luminous-love",
+      "title": "Luminous Love",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 270,
+      "siteMMSS": "4:30",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 114,
+      "trackId": "love-louder",
+      "title": "Love Louder",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 320,
+      "siteMMSS": "5:20",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 115,
+      "trackId": "bassline-benediction",
+      "title": "Bassline Benediction",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 248,
+      "siteMMSS": "4:08",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 116,
+      "trackId": "589-percent",
+      "title": "589%",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 294,
+      "siteMMSS": "4:54",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 117,
+      "trackId": "upgrade-the-game",
+      "title": "Upgrade the Game",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 203,
+      "siteMMSS": "3:23",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 118,
+      "trackId": "wise-mind-wins",
+      "title": "Wise Mind Wins",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 250,
+      "siteMMSS": "4:10",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 119,
+      "trackId": "no-chicharron",
+      "title": "No Chicharrón",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 210,
+      "siteMMSS": "3:30",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 120,
+      "trackId": "same-moon-different-city",
+      "title": "Same Moon, Different City",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 264,
+      "siteMMSS": "4:24",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 121,
+      "trackId": "let-the-spark-find-you",
+      "title": "Let the Spark Find You",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 288,
+      "siteMMSS": "4:48",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 122,
+      "trackId": "building-a-life-worth-staying",
+      "title": "Building a Life Worth Staying",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 267,
+      "siteMMSS": "4:27",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 123,
+      "trackId": "we-dont-need-another-martyr",
+      "title": "We Don’t Need Another Martyr",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 314,
+      "siteMMSS": "5:14",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 124,
+      "trackId": "power-wash-the-capitol",
+      "title": "Power Wash the Capitol",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 273,
+      "siteMMSS": "4:33",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 125,
+      "trackId": "peace-after-song",
+      "title": "Peace After Song",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 304,
+      "siteMMSS": "5:04",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 126,
+      "trackId": "wake-up-betelgeuse-mix",
+      "title": "Betelgeuse Mix",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 282,
+      "siteMMSS": "4:42",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 127,
+      "trackId": "wake-up-algenib-mix",
+      "title": "Algenib Mix",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 300,
+      "siteMMSS": "5:00",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 128,
+      "trackId": "wake-up-polaris-mix",
+      "title": "Polaris Mix",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 291,
+      "siteMMSS": "4:51",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
+    },
+    {
+      "order": 129,
+      "trackId": "wake-up-deneb-mix",
+      "title": "Deneb Mix",
+      "album": "reckless-grace",
+      "albumName": "Reckless Grace",
+      "siteSec": 301,
+      "siteMMSS": "5:01",
+      "sunoId": null,
+      "sunoSec": null,
+      "sunoMMSS": null,
+      "durMatch": false,
+      "status": "done"
     }
   ]
 }

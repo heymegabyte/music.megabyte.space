@@ -74,7 +74,27 @@ export const TRACK_DURATIONS: Record<string, number> = {
   'chris-kalwa': 187,
   'bermuda-prophecy': 315,
   'other-side-of-the-fall': 230,
-  'quarter-in-the-psychic-machine': 309
+  'quarter-in-the-psychic-machine': 309,
+  'reckless-grace': 293,
+  'count-what-i-got': 327,
+  'nobody-beneath-us': 304,
+  'luminous-love': 270,
+  'love-louder': 320,
+  'bassline-benediction': 248,
+  '589-percent': 294,
+  'upgrade-the-game': 203,
+  'wise-mind-wins': 250,
+  'no-chicharron': 210,
+  'same-moon-different-city': 264,
+  'let-the-spark-find-you': 288,
+  'building-a-life-worth-staying': 267,
+  'we-dont-need-another-martyr': 314,
+  'power-wash-the-capitol': 273,
+  'peace-after-song': 304,
+  'wake-up-betelgeuse-mix': 282,
+  'wake-up-algenib-mix': 300,
+  'wake-up-polaris-mix': 291,
+  'wake-up-deneb-mix': 301
 };
 
 export const TRACK_BYTES: Record<string, number> = {

@@ -45,9 +45,14 @@ All 20 tracks have **MP3 + WAV + MP4 + Stems** staged in `~/Downloads`, every tr
 2. ✓ **20/20 MP4 videos** — pulled via the playlist search box → row ⋯ → Download → modal (uncheck M4A `766,383`, check MP4 `766,507`, Download `766,611`). Each MP4 needs a ~90–150 s server-side render; wait then verify on disk. Durations match mp3/wav for all 20.
 3. ✓ **Wake Up ×4 collide-rename** — the 4 "Wake Up For You" takes download with identical names → renamed by duration to star mixes: 281.6→**Betelgeuse**, 290.8→**Polaris**, 299.6→**Algenib**, 301.2→**Deneb** (mp3/wav/mp4 all consistent per mix). Note: 5 "Wake Up For You Stems*.zip" but only 4 distinct takes (one stem zip is a dup of the base).
 
-## Remaining — PUBLISH + DEPLOY (next)
-- Place: mp3→`public/audio/<id>.mp3`, wav→`public/media/<id>.wav`, mp4→`public/media/<id>.mp4`, stems→`public/media/stems/<id>.zip`; ingest WAV+stems+mp4 to R2.
-- Add album `reckless-grace` + 20 track entries to `src/data.ts` (Wake Up star mixes LAST).
-- Cover art (NOT in ZIPs) — generate/assign.
-- Lyrics — via `npm run lyrics:rebuild` per track (or defer; karaoke off until done).
-- Build → `wrangler deploy` → purge zone → prod-verify.
+## PUBLISHED + DEPLOYED (2026-09-07) ✅ — live at https://music.megabyte.space/reckless-grace
+- **20 tracks + album** authored into `src/data.ts` (single-quoted TS — the regex-based `gen-og-cards`/album parsers require it; double-quoted JSON is silently skipped) + `src/durations.ts`. Wake mixes titled `Betelgeuse/Algenib/Polaris/Deneb Mix`, placed LAST.
+- **mp3** → `public/audio/<id>.mp3` (git-tracked, played by the site). **wav/mp4/stems** → `public/media/**` (gitignored) + **R2** `music-megabyte-space-media` via `aws s3` (wrangler r2 put failed auth; aws-S3 path with `R2_ACCESS_KEY_ID/SECRET` works).
+- **Lyrics**: OpenAI Whisper API (word timestamps) → `data/whisper-cache/<id>.json` (must include top-level `duration` or the aligner writes `duration:0` and validate fails) → `sync-lyrics:align` → `public/lyrics/<id>.json` → `clamp-lyric-spans`. `no-chicharron` re-transcribed with auto-detect (Spanish). 100% match.
+- **Cover**: `public/art/cover-reckless-grace.jpg` (OpenAI gpt-image-1, 1024², 148KB).
+- **`.assetsignore`**: added `media/` — the 30G local `public/media` must never upload as Worker assets (25MiB/file cap); served from R2.
+- **Deploy**: `wrangler deploy` (global-key auth: `CLOUDFLARE_API_KEY`+`EMAIL`, NOT the token — token 10000'd) → zone purge → prod-verified: album+track pages SSR per-route SEO+OG (200), mp3/lyrics/cover 200, R2 `/media/*` 206. Version `1835e0f9`.
+
+## Bonus — 3 previously-"unavailable" catalog slugs COMPLETED (files found in ~/Downloads, durations matched site)
+- `saint-johns-plate` (3:53), `the-halo-and-the-horror` (4:27), `the-last-soldier-refused` (4:52) → wav+mp4+stems(MIDI) ingested + R2. Queue 104→107→127/129 done.
+- `algenib-crown-of-the-sky` (site 5:46, DL wav 4:43) + `let-harmony-begin` (site 5:16 per Brian, DL wav 5:14 — quarantined earlier as 6:49 mismatch) → Brian getting the right-length versions himself. Left mp3-only, quarantined in `~/Downloads/_wrong-take/`.

@@ -22,3 +22,7 @@ og/*.png
 
 # Scratch logo experiments written by generate-logo-spray.mjs — never served.
 brand/logo-spray*.png
+
+# Media (wav/mp4/stems) is served from R2 via the MEDIA binding + /media/* worker route.
+# public/media is gitignored (CI deploys empty); locally it holds ~30G — never upload as assets.
+media/
