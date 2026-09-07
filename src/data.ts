@@ -10821,7 +10821,7 @@ export const TRACKS: Track[] = [
   },
   {
     id: 'wake-up-betelgeuse-mix',
-    title: 'Betelgeuse Mix',
+    title: 'Wake Up For You (Betelgeuse Mix)',
     artist: 'bZ',
     file: '/audio/wake-up-betelgeuse-mix.mp3',
     cover: '/art/cover-reckless-grace.jpg',
@@ -10921,7 +10921,7 @@ export const TRACKS: Track[] = [
   },
   {
     id: 'wake-up-algenib-mix',
-    title: 'Algenib Mix',
+    title: 'Wake Up For You (Algenib Mix)',
     artist: 'bZ',
     file: '/audio/wake-up-algenib-mix.mp3',
     cover: '/art/cover-reckless-grace.jpg',
@@ -11017,7 +11017,7 @@ export const TRACKS: Track[] = [
   },
   {
     id: 'wake-up-polaris-mix',
-    title: 'Polaris Mix',
+    title: 'Wake Up For You (Polaris Mix)',
     artist: 'bZ',
     file: '/audio/wake-up-polaris-mix.mp3',
     cover: '/art/cover-reckless-grace.jpg',
@@ -11104,7 +11104,7 @@ export const TRACKS: Track[] = [
   },
   {
     id: 'wake-up-deneb-mix',
-    title: 'Deneb Mix',
+    title: 'Wake Up For You (Deneb Mix)',
     artist: 'bZ',
     file: '/audio/wake-up-deneb-mix.mp3',
     cover: '/art/cover-reckless-grace.jpg',
