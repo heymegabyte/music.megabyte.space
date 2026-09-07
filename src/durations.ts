@@ -94,7 +94,9 @@ export const TRACK_DURATIONS: Record<string, number> = {
   'wake-up-betelgeuse-mix': 282,
   'wake-up-algenib-mix': 300,
   'wake-up-polaris-mix': 291,
-  'wake-up-deneb-mix': 301
+  'wake-up-deneb-mix': 301,
+  'algenib-crown-of-the-sky': 283,
+  'let-harmony-begin': 314
 };
 
 export const TRACK_BYTES: Record<string, number> = {
