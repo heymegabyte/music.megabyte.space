@@ -84,7 +84,6 @@ export const TRACK_DURATIONS: Record<string, number> = {
   '589-percent': 294,
   'upgrade-the-game': 203,
   'wise-mind-wins': 250,
-  'no-chicharron': 210,
   'same-moon-different-city': 264,
   'let-the-spark-find-you': 288,
   'building-a-life-worth-staying': 267,
