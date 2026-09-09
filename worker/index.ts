@@ -960,6 +960,77 @@ loadCover();
 // Polished, print-ready single page intended to be sent to ONE
 // journalist or curator. Bio + headshot + cover + streaming links +
 // lyric excerpt + sync availability + contact.
+// ── /watch/{trackId} — full-page cinematic video player ──────────────────
+// A direct, shareable permalink to a track's music video (Track.video). Renders
+// a branded full-bleed <video> with poster + native controls, plus OG/Twitter
+// player cards so the link unfurls as a playable video in social + messaging.
+function renderWatchPage(trackId: string, origin: string): string {
+  const track = TRACK_BY_ID.get(trackId);
+  const album = track ? ALBUM_BY_ID.get(track.album) : undefined;
+  const title = track?.title ?? titleFromSlug(trackId);
+  const videoUrl = `${origin}${track?.video ?? ''}`;
+  const coverUrl = `${origin}${album?.cover ?? '/art/cover-signals.jpg'}`;
+  const playerUrl = track ? `${origin}/${track.album}/${trackId}` : `${origin}/`;
+  const watchUrl = `${origin}/watch/${trackId}`;
+  const desc = `${title} by bZ — cinematic music video. Watch the film.`;
+  return `<!doctype html><html lang="en"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>${escapeHtmlAttr(title)} — the film · bZ</title>
+<meta name="description" content="${escapeHtmlAttr(desc)}" />
+<link rel="canonical" href="${escapeHtmlAttr(watchUrl)}" />
+<meta property="og:type" content="video.other" />
+<meta property="og:title" content="${escapeHtmlAttr(title)} — the film · bZ" />
+<meta property="og:description" content="${escapeHtmlAttr(desc)}" />
+<meta property="og:image" content="${escapeHtmlAttr(coverUrl)}" />
+<meta property="og:video" content="${escapeHtmlAttr(videoUrl)}" />
+<meta property="og:video:secure_url" content="${escapeHtmlAttr(videoUrl)}" />
+<meta property="og:video:type" content="video/mp4" />
+<meta property="og:video:width" content="1280" />
+<meta property="og:video:height" content="720" />
+<meta name="twitter:card" content="player" />
+<meta name="twitter:title" content="${escapeHtmlAttr(title)} — bZ" />
+<meta name="twitter:image" content="${escapeHtmlAttr(coverUrl)}" />
+<meta name="twitter:player" content="${escapeHtmlAttr(watchUrl)}" />
+<meta name="twitter:player:width" content="1280" />
+<meta name="twitter:player:height" content="720" />
+<meta name="twitter:player:stream" content="${escapeHtmlAttr(videoUrl)}" />
+<meta name="twitter:player:stream:content_type" content="video/mp4" />
+<meta name="theme-color" content="#060610" />
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#060610;color:#f4f4ff;font-family:'Sora',system-ui,-apple-system,sans-serif}
+  body{min-height:100dvh;display:flex;flex-direction:column}
+  .wnav{display:flex;align-items:center;gap:10px;padding:12px 18px;position:sticky;top:0;z-index:5;
+        background:linear-gradient(180deg,rgba(6,6,16,.96),rgba(6,6,16,.55));backdrop-filter:blur(14px) saturate(140%)}
+  .wnav a{color:#f4f4ff;text-decoration:none;font:600 .62rem/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;
+          padding:8px 14px;border:1px solid rgba(255,255,255,.14);border-radius:999px;transition:.16s}
+  .wnav a:hover{border-color:#00E5FF;color:#00E5FF}
+  .wnav .sp{flex:1}
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:clamp(14px,4vw,40px)}
+  video{width:min(96vw,1200px);max-height:78dvh;border-radius:14px;background:#000;outline:none;
+        box-shadow:0 0 0 1px rgba(0,229,255,.28),0 40px 120px -20px rgba(124,58,237,.5)}
+  h1{margin:0;font-size:clamp(1.1rem,3vw,1.7rem);text-align:center;font-weight:700}
+  .wisd{margin:0;color:#a0a0c0;font-size:.85rem;text-align:center;max-width:60ch;line-height:1.5}
+  .cta{color:#00E5FF;text-decoration:none;font:600 .68rem/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;
+       border:1px solid color-mix(in srgb,#00E5FF 45%,transparent);border-radius:999px;padding:11px 18px;transition:.16s}
+  .cta:hover{background:rgba(0,229,255,.1);transform:translateY(-1px)}
+</style>
+</head><body>
+  <nav class="wnav">
+    <a href="${origin}/">&larr; bZ</a>
+    <span class="sp"></span>
+    <a href="${escapeHtmlAttr(playerUrl)}">Open player</a>
+  </nav>
+  <main class="stage">
+    <video controls playsinline preload="auto" poster="${escapeHtmlAttr(coverUrl)}" src="${escapeHtmlAttr(videoUrl)}"></video>
+    <h1>${escapeXmlText(title)} &mdash; the film</h1>
+    ${track?.wisdom ? `<p class="wisd">${escapeXmlText(track.wisdom)}</p>` : ''}
+    <a class="cta" href="${escapeHtmlAttr(playerUrl)}">Listen in the full player &rarr;</a>
+  </main>
+</body></html>`;
+}
+
 function renderPressPage(trackId: string, origin: string): string {
   const title = titleFromSlug(trackId);
   // Canonical web-player URL is /<album>/<track>. A bare /<track> only works via
@@ -2606,6 +2677,17 @@ export default {
       if (!VALID_TRACK_ID.test(trackId) || !TRACK_BY_ID.has(trackId))
         return new Response('Not found', { status: 404 });
       return new Response(renderPressPage(trackId, url.origin), {
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=600' }
+      });
+    }
+
+    // ── Cinematic music-video watch page (outside /api guard) ────
+    if (url.pathname.startsWith('/watch/') && request.method === 'GET') {
+      const trackId = url.pathname.slice('/watch/'.length).replace(/\/$/, '');
+      const track = VALID_TRACK_ID.test(trackId) ? TRACK_BY_ID.get(trackId) : undefined;
+      // Only tracks that actually have a film get a watch page — everything else 404s.
+      if (!track || !track.video) return new Response('Not found', { status: 404 });
+      return new Response(renderWatchPage(trackId, url.origin), {
         headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=600' }
       });
     }
