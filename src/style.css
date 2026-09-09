@@ -2187,7 +2187,7 @@ html.is-playing .ai-playlist--rail {
 .ai-playlist--rail .ai-pick__score {
   font-size: 0.66rem;
 }
-.ai-playlist--rail .ai-pick:nth-child(n + 6) {
+.ai-playlist--rail:not(.is-expanded) .ai-pick:nth-child(n + 6) {
   display: none;
 }
 
@@ -5404,6 +5404,11 @@ html.is-appeal-open {
     border-radius: 12px;
   }
   .ai-pick:nth-child(n + 4) {
+    display: none;
+  }
+  /* Expander is a desktop/tablet affordance — phones keep the compact 3-pick
+     rail (the viz layer also overlaps the toggle here), so hide it. */
+  .ai-playlist__toggle {
     display: none;
   }
   .ai-pick__cover {

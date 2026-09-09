@@ -506,6 +506,10 @@ function refreshAiPlaylist() {
     .join('');
   host.innerHTML = html;
   wrap?.classList.add('is-ready');
+  // Reveal picks 6-10 only when expanded — the CSS caps the rail at 5 via
+  // :not(.is-expanded); without this class the extra picks render into the DOM
+  // but stay display:none, so "Show more" would change nothing on screen.
+  wrap?.classList.toggle('is-expanded', aiPlaylistExpanded);
   // Expander: reveal up to 10 Aeon picks (default 5). Hidden when there aren't
   // more than 5 to show.
   const toggle = document.getElementById('aiPlaylistToggle');

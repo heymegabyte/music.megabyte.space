@@ -42,18 +42,28 @@ test.describe("Aeon's Choice expands to up to 10 entries", () => {
     await expect(picks).toHaveCount(5, { timeout: 15000 });
 
     const toggle = page.locator('#aiPlaylistToggle');
+    // The expander is a desktop/tablet affordance. On phones (<=760px) the rail
+    // stays a compact 3-pick set and the toggle is hidden by design.
+    if (!(await toggle.isVisible())) {
+      await expect(toggle).toBeHidden();
+      return;
+    }
     await expect(toggle).toHaveText(/show more/i);
-    // Wait for bindAiPlaylist to attach the handler (data-bound=1) so the tap
-    // can't land before the listener exists. The button is visible + tappable
-    // (verified via screenshot + elementFromPoint); trigger the handler directly
-    // so a transient viz-layer hit-test can't flake the tap.
+    // Wait for bindAiPlaylist to attach the handler (data-bound=1) so the click
+    // can't land before the listener exists.
     await expect(toggle).toHaveAttribute('data-bound', '1');
 
-    await toggle.evaluate((el: HTMLElement) => el.click());
+    // Real user click — must actually reach the button (catches hit-test bugs).
+    await toggle.click();
     await expect(picks).toHaveCount(10, { timeout: 10000 });
+    // The 6th pick must be genuinely VISIBLE, not merely present in the DOM — a
+    // CSS nth-child(n+6) cap previously hid picks 6-10 even when expanded, so
+    // "Show more" changed the DOM but nothing appeared on screen.
+    await expect(picks.nth(5)).toBeVisible();
+    await expect(picks.nth(9)).toBeVisible();
     await expect(toggle).toHaveText(/show fewer/i);
 
-    await toggle.evaluate((el: HTMLElement) => el.click());
+    await toggle.click();
     await expect(picks).toHaveCount(5, { timeout: 10000 });
     await expect(toggle).toHaveText(/show more/i);
   });
