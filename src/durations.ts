@@ -80,7 +80,6 @@ export const TRACK_DURATIONS: Record<string, number> = {
   'nobody-beneath-us': 304,
   'luminous-love': 270,
   'love-louder': 320,
-  'bassline-benediction': 248,
   '589-percent': 294,
   'upgrade-the-game': 203,
   'wise-mind-wins': 250,
