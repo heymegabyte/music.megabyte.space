@@ -9,6 +9,8 @@ export interface Track {
   zone: { row: number; col: number };
   lyrics: string[];
   wisdom: string;
+  /** Optional cinematic music-video URL (served from R2 via /media/*). */
+  video?: string;
 }
 
 /**

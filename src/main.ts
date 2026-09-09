@@ -1749,6 +1749,15 @@ function setupShell(root: HTMLElement) {
           </button>
         </div>
 
+        <!-- Cinematic music video — shown only for tracks with a video field -->
+        <button class="np-panel__watch" id="npPanelWatch" type="button" hidden aria-haspopup="dialog">
+          <span class="np-panel__watch-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          </span>
+          <span class="np-panel__watch-label">Watch the film</span>
+          <span class="np-panel__watch-badge">4K-lite · AI</span>
+        </button>
+
         <!-- Playback rate slider — quick speed adjust without leaving the modal -->
         <div class="np-panel__rate">
           <label class="np-panel__rate-label" for="npRate">Speed <span class="np-panel__rate-val" id="npRateVal">1.00×</span></label>
@@ -1862,6 +1871,15 @@ function setupShell(root: HTMLElement) {
     </aside>
 
     <!-- Full-screen karaoke -->
+    <div class="video-cinema" id="videoCinema" role="dialog" aria-label="Music video" aria-modal="true" hidden>
+      <div class="video-cinema__backdrop" id="videoCinemaBackdrop"></div>
+      <div class="video-cinema__stage">
+        <button class="video-cinema__close" id="videoCinemaClose" type="button" aria-label="Close video">✕</button>
+        <video class="video-cinema__player" id="videoCinemaPlayer" playsinline controls preload="none" crossorigin="anonymous"></video>
+        <p class="video-cinema__caption" id="videoCinemaCaption"></p>
+      </div>
+    </div>
+
     <div class="lyrics-fs" id="lyricsFs" role="dialog" aria-label="Full-screen lyrics" aria-modal="true">
       <button class="lyrics-fs__close" id="lyricsFsClose" type="button" aria-label="Close">✕</button>
       <div class="lyrics-fs__head">
@@ -6661,6 +6679,21 @@ function bindUi() {
     });
   });
 
+  // Cinematic film — open the fullscreen music-video player synced to playback
+  $('#npPanelWatch')?.addEventListener('click', () => {
+    const t = currentTrackId ? TRACK_BY_ID.get(currentTrackId) : null;
+    if (t?.video) openVideoCinema(t);
+  });
+  $('#videoCinemaClose')?.addEventListener('click', () => closeVideoCinema());
+  $('#videoCinemaBackdrop')?.addEventListener('click', () => closeVideoCinema());
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && videoCinemaOpen) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeVideoCinema();
+    }
+  });
+
   document.addEventListener('keydown', e => {
     // Defensive: document-level keydown targets can be HTMLDocument or other
     // non-Element nodes (no .matches). Only run the form-field check on
@@ -8023,6 +8056,10 @@ function refreshNpPanel() {
   const dlEl = $('#npPanelDownloads') as HTMLElement | null;
   if (dlEl) dlEl.hidden = !activeLyrics || !activeLyrics.lines.length;
 
+  // Cinematic film button — only for tracks that carry a `video`
+  const watchBtn = $('#npPanelWatch') as HTMLButtonElement | null;
+  if (watchBtn) watchBtn.hidden = !track?.video;
+
   npRefreshProgress();
   npRefreshLyrics();
 }
@@ -8097,6 +8134,93 @@ function closeNpPanel() {
     cancelAnimationFrame(npPanelRaf);
     npPanelRaf = null;
   }
+}
+
+// ── Cinematic film player ────────────────────────────────────────────────
+// Fullscreen music-video overlay. The video carries the song as its own audio,
+// so the site engine pauses while it plays and playback position is handed back
+// and forth for a seamless in/out.
+let videoCinemaOpen = false;
+let videoCinemaResume = false;
+let videoCinemaReturnFocus: HTMLElement | null = null;
+
+function openVideoCinema(track: Track) {
+  if (!track.video) return;
+  const overlay = $('#videoCinema') as HTMLElement | null;
+  const player = $('#videoCinemaPlayer') as HTMLVideoElement | null;
+  const caption = $('#videoCinemaCaption');
+  if (!overlay || !player) return;
+
+  videoCinemaReturnFocus = (document.activeElement as HTMLElement | null) ?? null;
+  videoCinemaResume = !engine.audio.paused;
+  const startAt = Number.isFinite(engine.audio.currentTime) ? engine.audio.currentTime : 0;
+  try {
+    engine.audio.pause();
+  } catch {
+    /* ignore */
+  }
+
+  if (caption) caption.textContent = `${track.title} — ${track.wisdom ?? track.vibe ?? ''}`.trim();
+  player.src = track.video;
+  player.currentTime = 0;
+  player.addEventListener(
+    'loadedmetadata',
+    () => {
+      try {
+        if (startAt > 0 && startAt < (player.duration || Infinity)) player.currentTime = startAt;
+      } catch {
+        /* ignore */
+      }
+    },
+    { once: true }
+  );
+
+  overlay.hidden = false;
+  requestAnimationFrame(() => overlay.classList.add('is-open'));
+  document.documentElement.classList.add('cinema-open');
+  videoCinemaOpen = true;
+  void player.play().catch(() => {
+    /* autoplay may defer to the visible controls */
+  });
+  ($('#videoCinemaClose') as HTMLElement | null)?.focus();
+}
+
+function closeVideoCinema() {
+  if (!videoCinemaOpen) return;
+  const overlay = $('#videoCinema') as HTMLElement | null;
+  const player = $('#videoCinemaPlayer') as HTMLVideoElement | null;
+  const pos = player && Number.isFinite(player.currentTime) ? player.currentTime : 0;
+  if (player) {
+    try {
+      player.pause();
+    } catch {
+      /* ignore */
+    }
+    player.removeAttribute('src');
+    try {
+      player.load();
+    } catch {
+      /* ignore */
+    }
+  }
+  overlay?.classList.remove('is-open');
+  document.documentElement.classList.remove('cinema-open');
+  videoCinemaOpen = false;
+  // Hand the position back to the audio engine so the song continues seamlessly.
+  try {
+    if (pos > 0 && pos < (engine.audio.duration || Infinity)) engine.audio.currentTime = pos;
+    if (videoCinemaResume)
+      void engine.audio.play().catch(() => {
+        /* ignore */
+      });
+  } catch {
+    /* ignore */
+  }
+  window.setTimeout(() => {
+    if (overlay && !videoCinemaOpen) overlay.hidden = true;
+  }, 260);
+  videoCinemaReturnFocus?.focus?.();
+  videoCinemaReturnFocus = null;
 }
 
 function registerServiceWorker() {

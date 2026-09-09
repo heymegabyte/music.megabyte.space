@@ -4982,6 +4982,7 @@ export const TRACKS: Track[] = [
     title: 'Bermuda Prophecy',
     artist: 'bZ',
     file: '/audio/bermuda-prophecy.mp3',
+    video: '/media/bermuda-prophecy.mp4',
     cover: '/art/cover-signals.jpg',
     album: 'signals',
     vibe: 'Surreal gospel-trap, Bermuda Triangle bus trip',

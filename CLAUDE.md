@@ -28,6 +28,7 @@ The app is a single-page experience. The audio element is created once and persi
 | `/shortcommands` palette builder | `src/ai-shortcommands.ts` (see [`docs/ai-chat-commands.md`](./docs/ai-chat-commands.md)) |
 | Visualizer                       | `src/visualizer.ts`                                                                      |
 | Suno WAV/MIDI/VIDEO download      | `scripts/fetch-suno-media.mjs` (`npm run media:fetch` — needs fresh `SUNO_COOKIE`)       |
+| Cinematic music video + film player | `Track.video` in `src/data.ts` → `/media/<id>.mp4` (R2); `video-cinema` overlay + `openVideoCinema` in `src/main.ts`. Gen: `~/bermuda-video/{generate,stitch}.sh` |
 | Worker route or API              | `worker/index.ts`                                                                        |
 | Styles                           | `src/style.css` (one file, cascade-layered)                                              |
 
