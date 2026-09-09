@@ -76,7 +76,6 @@ export const TRACK_DURATIONS: Record<string, number> = {
   'other-side-of-the-fall': 230,
   'quarter-in-the-psychic-machine': 309,
   'reckless-grace': 293,
-  'count-what-i-got': 327,
   'nobody-beneath-us': 304,
   'luminous-love': 270,
   'love-louder': 320,
