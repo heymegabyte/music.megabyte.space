@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemap.org/schemas/sitemap/0.9">
   <url>
     <loc>https://music.megabyte.space/</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -739,12 +739,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://music.megabyte.space/reckless-grace/count-what-i-got</loc>
-    <lastmod>2026-09-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://music.megabyte.space/reckless-grace/nobody-beneath-us</loc>
     <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -758,12 +752,6 @@
   </url>
   <url>
     <loc>https://music.megabyte.space/reckless-grace/love-louder</loc>
-    <lastmod>2026-09-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://music.megabyte.space/reckless-grace/bassline-benediction</loc>
     <lastmod>2026-09-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -848,44 +836,50 @@
   </url>
   <url>
     <loc>https://music.megabyte.space/about</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://music.megabyte.space/credits</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://music.megabyte.space/press</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://music.megabyte.space/merch</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://music.megabyte.space/privacy</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://music.megabyte.space/terms</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://music.megabyte.space/ashton</loc>
-    <lastmod>2026-09-08</lastmod>
+    <lastmod>2026-09-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://music.megabyte.space/stats</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
   </url>
 </urlset>

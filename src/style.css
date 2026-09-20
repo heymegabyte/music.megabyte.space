@@ -3685,6 +3685,80 @@ html:not(.is-playing) .trackrow.is-current .trackrow__bars {
   transform: translateY(-50%);
 }
 
+/* Favorite heart — mirrors the share chip and sits just left of it. An empty
+   heart hover-reveals like share; a favorited heart fills warm-rose. Favorited
+   rows also carry a persistent left rail (via :has) so saved tracks read at a
+   glance, with the heart never overlapping the right-aligned play-count. */
+.fav-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  background: rgba(6, 6, 16, 0.55);
+  color: var(--ink);
+  border-radius: 999px;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    background 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.fav-chip svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.fav-chip.is-fav {
+  color: #ff5c8a;
+  border-color: color-mix(in srgb, #ff5c8a 55%, var(--line-strong));
+}
+.fav-chip.is-fav svg {
+  fill: #ff5c8a;
+  stroke: #ff5c8a;
+}
+.fav-chip--row {
+  position: absolute;
+  top: 50%;
+  margin-top: -15px;
+  right: 46px;
+  width: 30px;
+  height: 30px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.fav-chip--row svg {
+  width: 14px;
+  height: 14px;
+}
+.trackrow-wrap:hover .fav-chip--row,
+.trackrow-wrap:focus-within .fav-chip--row,
+.fav-chip--row:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.trackrow-wrap .fav-chip--row:hover,
+.trackrow-wrap .fav-chip--row:active,
+.trackrow-wrap .fav-chip--row:focus-visible {
+  transform: none;
+}
+.fav-chip--row:hover {
+  border-color: #ff5c8a;
+  color: #ff5c8a;
+}
+.trackrow-wrap:has(.fav-chip.is-fav) .trackrow {
+  box-shadow: inset 2px 0 0 0 #ff5c8a;
+}
+@media (hover: none) {
+  .fav-chip--row {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
 .album__head {
   grid-template-columns: 76px 1fr auto;
 }
@@ -5349,10 +5423,15 @@ html.is-appeal-open {
     font-size: 1.4rem;
   }
   .trackrow {
-    padding: 9px 50px 9px 16px;
+    padding: 9px 84px 9px 16px;
   }
   .share-chip--row {
     right: 8px;
+    width: 28px;
+    height: 28px;
+  }
+  .fav-chip--row {
+    right: 42px;
     width: 28px;
     height: 28px;
   }

@@ -11,6 +11,9 @@ oEmbed, and player polish. What remains needs a decision or an external unblock.
   + `files` + `hosts` all return success but don't clear it; `bzmusic.win` — same
   worker/assets, different zone — serves fresh, proving origin is fine). Worker now
   sends `no-store` on `/` but the stuck entry persists.
+  → **2026-09-20 recheck:** after `purge_everything`, `music.megabyte.space/` served
+  the FRESH bundle (`main-CcGkVluj.js`, new features live) — the stuck entry appears
+  resolved. Re-confirm on the next homepage `<head>`/SEO edit before closing.
   → **Action:** CF dashboard → `megabyte.space` → Caching → **Purge Everything**
   (dashboard purge sometimes works where the API is shadowed). If it persists,
   check Smart Tiered Cache topology / open a CF support ticket.
@@ -29,10 +32,24 @@ oEmbed, and player polish. What remains needs a decision or an external unblock.
   `includeSubDomains; preload` on the shared `megabyte.space` zone could force HTTPS
   on a sibling subdomain. → **Confirm** no HTTP-only siblings, then enable.
 
+## ✅ Shipped 2026-09-20
+
+- **"Listen Everywhere" smart-link row on EVERY album** — `albumSearchLinks`
+  normalization in `src/data.ts` generates per-platform search URLs
+  (Spotify/Apple/YouTube Music/Tidal/Amazon) for all 12 albums; `renderListenOn`
+  already existed. Verified live: 60 chips. Direct album URLs remain an optional
+  upgrade once each platform finishes ingesting the DistroKid release.
+- **Row favorites + shareable playlist** — extended the existing `npFavs` set with
+  a heart on every track row + a `?favs=id,id` link (import + export via np-panel
+  "My favs"). Verified live: 126 hearts toggle/persist, `?favs=` import + toast.
+- **Public `/stats` "by the numbers" page** — worker-rendered, crawlable, live KV
+  counts + MusicGroup JSON-LD, footer link + sitemap. Verified live (2,481 plays).
+
 ## 🟡 External blockers
 
-- **Smart-link deep-links** — the multi-platform tiles wait on DistroKid
-  distribution completing (Spotify/Apple/YouTube/Tidal URLs).
+- **Smart-link DIRECT deep-links** — the search-URL row ships now; swapping to
+  direct album URLs still waits on DistroKid distribution fully propagating
+  (Spotify/Apple/YouTube/Tidal per-album URLs).
 - **Suno song generation** — blocked on the `__client` auth cookie (anti-bot);
   pipeline + creative work are ready (`~/.agentskills/rules/suno-song-generation.md`).
 

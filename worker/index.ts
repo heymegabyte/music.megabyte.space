@@ -1,5 +1,5 @@
 import { SEO_INDEX, type RouteSeo } from '../src/track-meta';
-import { TRACK_BY_ID, ALBUM_BY_ID } from '../src/data';
+import { TRACK_BY_ID, ALBUM_BY_ID, ALBUMS } from '../src/data';
 import { buildRssFeed } from '../src/feed';
 import { buildLlmsTxt } from '../src/llms';
 import { sendPushBatch, type PushSubscriptionRecord } from './web-push';
@@ -1028,6 +1028,148 @@ function renderWatchPage(trackId: string, origin: string): string {
     ${track?.wisdom ? `<p class="wisd">${escapeXmlText(track.wisdom)}</p>` : ''}
     <a class="cta" href="${escapeHtmlAttr(playerUrl)}">Listen in the full player &rarr;</a>
   </main>
+</body></html>`;
+}
+
+/**
+ * Public "by the numbers" page — a crawlable, cinematic snapshot of the live
+ * KV play/share counters plus catalog totals. Served at /stats and cached 300s
+ * at the edge so the ~252 KV reads per render amortize to ~$0.
+ */
+async function renderStatsPage(env: Env, origin: string): Promise<string> {
+  const rows: Array<{
+    id: string;
+    title: string;
+    album: string;
+    albumId: string;
+    plays: number;
+    shares: number;
+  }> = [];
+  let totalPlays = 0;
+  let totalShares = 0;
+  for (const [id, track] of TRACK_BY_ID) {
+    const [p, s] = await Promise.all([
+      readCount(env.COUNTERS, `play:${id}`),
+      readCount(env.COUNTERS, `share:${id}`)
+    ]);
+    totalPlays += p;
+    totalShares += s;
+    if (p || s) {
+      const album = ALBUM_BY_ID.get(track.album);
+      rows.push({
+        id,
+        title: track.title,
+        album: album?.name ?? 'bZ',
+        albumId: track.album,
+        plays: p,
+        shares: s
+      });
+    }
+  }
+  const top = [...rows].sort((a, b) => b.plays - a.plays || b.shares - a.shares).slice(0, 10);
+  const fmt = (n: number) => n.toLocaleString('en-US');
+  const albumCount = ALBUMS.length;
+  const trackCount = TRACK_BY_ID.size;
+
+  const topRows = top.length
+    ? top
+        .map(
+          (r, i) => `
+      <tr>
+        <td class="rank">${i + 1}</td>
+        <td class="tk"><a href="${origin}/${escapeHtmlAttr(r.albumId)}/${escapeHtmlAttr(r.id)}">${escapeHtmlAttr(r.title)}</a><span class="al">${escapeHtmlAttr(r.album)}</span></td>
+        <td class="num">${fmt(r.plays)}</td>
+        <td class="num">${fmt(r.shares)}</td>
+      </tr>`
+        )
+        .join('')
+    : `<tr><td colspan="4" class="empty">Counters are warming up — press play on the <a href="${origin}/">player</a> and check back.</td></tr>`;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'bZ — by the numbers',
+    description: `Live listening stats for bZ: ${fmt(totalPlays)} plays and ${fmt(totalShares)} shares across ${trackCount} tracks on ${albumCount} albums.`,
+    url: `${origin}/stats`,
+    isPartOf: { '@type': 'WebSite', name: 'bZ', url: origin },
+    about: { '@type': 'MusicGroup', name: 'bZ', url: origin }
+  };
+
+  return `<!doctype html><html lang="en"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>bZ — by the numbers · live listening stats</title>
+<meta name="description" content="Live listening stats for bZ — ${fmt(totalPlays)} plays, ${fmt(totalShares)} shares across ${trackCount} tracks on ${albumCount} albums. Newark hustle-gospel, streamed worldwide." />
+<link rel="canonical" href="${origin}/stats" />
+<meta property="og:title" content="bZ — by the numbers" />
+<meta property="og:description" content="${fmt(totalPlays)} plays · ${fmt(totalShares)} shares · ${trackCount} tracks · ${albumCount} albums. Counted live at the edge." />
+<meta property="og:image" content="${origin}/og/album-desiiignare.jpg" />
+<meta property="og:url" content="${origin}/stats" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="theme-color" content="#060610" />
+<meta name="robots" content="index,follow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800;900&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
+<style>
+  :root { --bg:#060610; --accent:#00E5FF; --accent2:#7C3AED; --ink:#f4f4ff; --mute:#a0a0c0; --line:rgba(255,255,255,0.08); --line2:rgba(255,255,255,0.14); }
+  *,*::before,*::after { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--ink); font-family:'Sora',system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; }
+  .wrap { max-width:960px; margin:0 auto; padding:0 20px 80px; }
+  .top { position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:12px; padding:14px 20px; background:linear-gradient(180deg,rgba(6,6,16,.96),rgba(6,6,16,.7)); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-bottom:1px solid var(--line); }
+  .top a.home { display:inline-flex; align-items:center; gap:8px; text-decoration:none; font-weight:800; letter-spacing:.02em; }
+  .top .dot { width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 12px var(--accent); }
+  .top .spacer { flex:1; }
+  .top .cta { text-decoration:none; font-family:'JetBrains Mono',monospace; font-size:.72rem; text-transform:uppercase; letter-spacing:.18em; border:1px solid var(--line2); border-radius:999px; padding:8px 14px; color:var(--ink); }
+  .hero { padding:64px 0 24px; text-align:center; }
+  .hero .eyebrow { font-family:'JetBrains Mono',monospace; font-size:.72rem; letter-spacing:.32em; text-transform:uppercase; color:var(--accent); }
+  .hero h1 { font-size:clamp(2.2rem,7vw,3.6rem); line-height:1.02; margin:.35em 0 .2em; font-weight:900; letter-spacing:-.02em; text-wrap:balance; }
+  .hero p { color:var(--mute); max-width:52ch; margin:0 auto; line-height:1.55; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin:40px 0; }
+  .card { border:1px solid var(--line); border-radius:18px; padding:24px 18px; background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)); text-align:center; }
+  .card .n { font-size:clamp(1.9rem,5vw,2.6rem); font-weight:900; background:linear-gradient(120deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent; font-variant-numeric:tabular-nums; }
+  .card .l { font-family:'JetBrains Mono',monospace; font-size:.66rem; letter-spacing:.2em; text-transform:uppercase; color:var(--mute); margin-top:6px; }
+  h2 { font-size:1.05rem; text-transform:uppercase; letter-spacing:.16em; font-family:'JetBrains Mono',monospace; color:var(--mute); margin:48px 0 14px; }
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; padding:12px 10px; border-bottom:1px solid var(--line); }
+  th { font-family:'JetBrains Mono',monospace; font-size:.64rem; letter-spacing:.16em; text-transform:uppercase; color:var(--mute); }
+  th.num { text-align:right; }
+  td.rank { color:var(--accent); font-weight:800; width:36px; font-variant-numeric:tabular-nums; }
+  td.tk a { text-decoration:none; font-weight:700; }
+  td.tk a:hover { color:var(--accent); }
+  td.tk .al { display:block; color:var(--mute); font-size:.78rem; }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; font-family:'JetBrains Mono',monospace; }
+  td.empty { color:var(--mute); text-align:center; padding:32px; }
+  .foot { margin-top:56px; color:var(--mute); font-size:.82rem; text-align:center; }
+  .foot a { color:var(--accent); text-decoration:none; }
+</style>
+</head><body>
+  <div class="top">
+    <a class="home" href="${origin}/"><span class="dot"></span> bZ</a>
+    <span class="spacer"></span>
+    <a class="cta" href="${origin}/">&#9654; Player</a>
+  </div>
+  <div class="wrap">
+    <header class="hero">
+      <div class="eyebrow">By the numbers</div>
+      <h1>The catalog, live.</h1>
+      <p>Every play and share below is counted at the edge in real time. Newark hustle-gospel — written, produced, and engineered by bZ.</p>
+    </header>
+    <section class="grid" aria-label="Catalog totals">
+      <div class="card"><div class="n">${fmt(totalPlays)}</div><div class="l">Plays</div></div>
+      <div class="card"><div class="n">${fmt(totalShares)}</div><div class="l">Shares</div></div>
+      <div class="card"><div class="n">${fmt(trackCount)}</div><div class="l">Tracks</div></div>
+      <div class="card"><div class="n">${fmt(albumCount)}</div><div class="l">Albums</div></div>
+    </section>
+    <h2>Most played</h2>
+    <table>
+      <thead><tr><th>#</th><th>Track</th><th class="num">Plays</th><th class="num">Shares</th></tr></thead>
+      <tbody>${topRows}</tbody>
+    </table>
+    <p class="foot">Counts refresh every few minutes. <a href="${origin}/">Open the player &rarr;</a></p>
+  </div>
 </body></html>`;
 }
 
@@ -2656,6 +2798,23 @@ export default {
       }
 
       return jsonResponse({ error: 'not_found' }, 404);
+    }
+
+    // ── Public "by the numbers" stats page (crawlable, live KV counts) ──
+    if ((url.pathname === '/stats' || url.pathname === '/stats/') && request.method === 'GET') {
+      const edge = (caches as unknown as { default: Cache }).default;
+      const cacheKey = new Request(`${url.origin}/stats#v1`, { method: 'GET' });
+      const hit = await edge.match(cacheKey);
+      if (hit) return hit;
+      const html = await renderStatsPage(env, url.origin);
+      const resp = new Response(html, {
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'public, max-age=300, must-revalidate'
+        }
+      });
+      ctx.waitUntil(edge.put(cacheKey, resp.clone()));
+      return resp;
     }
 
     // ── TikTok-ready vertical clip page (outside /api guard) ─────

@@ -309,6 +309,27 @@ export const ALBUMS: Album[] = [
   }
 ];
 
+// ── "Listen Everywhere" links ──────────────────────────────────────────────
+// Every album surfaces a full streaming/store row (rendered by renderListenOn
+// in main.ts). Direct per-album URLs stay unstable until each platform finishes
+// ingesting the DistroKid release, so we generate per-platform SEARCH URLs keyed
+// to `bZ <album name>` — they reliably land on the now-live catalog and never
+// 404. Any explicit `links` set on an album (a direct URL once known) wins over
+// the generated default via the spread order below.
+function albumSearchLinks(name: string): NonNullable<Album['links']> {
+  const q = encodeURIComponent(`bZ ${name}`);
+  return {
+    spotify: `https://open.spotify.com/search/${q}`,
+    appleMusic: `https://music.apple.com/us/search?term=${q}`,
+    youtubeMusic: `https://music.youtube.com/search?q=${q}`,
+    amazonMusic: `https://music.amazon.com/search/${q}`,
+    tidal: `https://tidal.com/search?q=${q}`
+  };
+}
+for (const album of ALBUMS) {
+  album.links = { ...albumSearchLinks(album.name), ...album.links };
+}
+
 export const TRACKS: Track[] = [
   {
     id: 'chef-lu-stew',

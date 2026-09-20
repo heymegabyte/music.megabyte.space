@@ -29,6 +29,9 @@ The app is a single-page experience. The audio element is created once and persi
 | Visualizer                       | `src/visualizer.ts`                                                                      |
 | Suno WAV/MIDI/VIDEO download      | `scripts/fetch-suno-media.mjs` (`npm run media:fetch` — needs fresh `SUNO_COOKIE`)       |
 | Cinematic music video + film player | `Track.video` in `src/data.ts` → `/media/<id>.mp4` (R2); `video-cinema` overlay + `openVideoCinema` in `src/main.ts`. Gen: `~/bermuda-video/{generate,stitch}.sh` |
+| Favorites + shareable playlist   | `npFavs` in `src/main.ts` (`NP_FAV_KEY='bz:favorites'`); row hearts `data-fav-track`, `?favs=id,id` share link, np-panel "My favs". Extend this set — don't add a parallel one |
+| "Listen on" smart-link row       | `albumSearchLinks` normalization pass in `src/data.ts` (per-album search URLs, explicit `links` win) → `renderListenOn` in `src/main.ts` |
+| Public stats page `/stats`       | `renderStatsPage` in `worker/index.ts` (live KV counts + MusicGroup JSON-LD, 300s edge cache); footer link + `gen-sitemap.mjs` + `validate-links.ts` SPECIAL_ROUTES |
 | Worker route or API              | `worker/index.ts`                                                                        |
 | Styles                           | `src/style.css` (one file, cascade-layered)                                              |
 

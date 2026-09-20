@@ -23,7 +23,15 @@ const trackById = new Map(TRACKS.map(t => [t.id, t] as const));
 const contentSlugs = new Set(CONTENT_PAGES.map(p => p.slug));
 
 /** Extension-less routes the worker/vite serve outside the album/track/page model. */
-const SPECIAL_ROUTES = new Set(['/', '/ashton', '/cast-receiver', '/feed.xml', '/rss.xml', '/embed.html']);
+const SPECIAL_ROUTES = new Set([
+  '/',
+  '/ashton',
+  '/stats',
+  '/cast-receiver',
+  '/feed.xml',
+  '/rss.xml',
+  '/embed.html'
+]);
 
 /** A path with a file extension is treated as a static asset under public/. */
 const ASSET_EXT =

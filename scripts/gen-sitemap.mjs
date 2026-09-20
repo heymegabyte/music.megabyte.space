@@ -89,6 +89,7 @@ function main() {
 
   // Static one-off routes.
   lines.push(url(`${ORIGIN}/ashton`, today, 0.6));
+  lines.push(url(`${ORIGIN}/stats`, today, 0.5));
 
   lines.push(`</urlset>`);
   const out = lines.join('\n');

@@ -1315,6 +1315,7 @@ function setupShell(root: HTMLElement) {
             <a href="/press" data-content-page="press">Press</a>
             <a href="/merch" data-content-page="merch">Merch</a>
             <a href="/ashton/">Appeal</a>
+            <a href="/stats" title="Live listening stats — by the numbers">Stats</a>
             <a href="/privacy" data-content-page="privacy">Privacy</a>
             <a href="/terms" data-content-page="terms">Terms</a>
             <a href="/feed.xml" title="RSS feed — follow new drops" rel="alternate noopener" target="_blank">RSS</a>
@@ -1715,6 +1716,10 @@ function setupShell(root: HTMLElement) {
           <button class="np-panel__action" data-np-action="ai" type="button" title="Ask bZ about this track">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Ask</span>
+          </button>
+          <button class="np-panel__action" data-np-action="share-favs" data-fav-share type="button" title="Share my favorites playlist">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <span>My favs</span>
           </button>
         </div>
 
@@ -2318,6 +2323,9 @@ function renderAlbums(host: HTMLElement) {
                   </span>
                 </span>
               </a>
+              <button class="fav-chip fav-chip--row${npFavs.has(t.id) ? ' is-fav' : ''}" type="button" data-fav-track="${t.id}" aria-pressed="${npFavs.has(t.id)}" aria-label="${npFavs.has(t.id) ? 'Remove' : 'Save'} ${t.title} ${npFavs.has(t.id) ? 'from' : 'to'} favorites">
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </button>
               <button class="share-chip share-chip--row" type="button" data-share-track="${t.id}" aria-label="Share ${t.title}">
                 <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               </button>
@@ -5864,6 +5872,20 @@ function bindUi() {
     const me = e as MouseEvent;
     if (me.metaKey || me.ctrlKey || me.shiftKey) return;
     const target = e.target as HTMLElement;
+    const favBtn = target.closest('[data-fav-track]') as HTMLButtonElement | null;
+    if (favBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleFavorite(favBtn.dataset.favTrack!);
+      return;
+    }
+    const favShareBtn = target.closest('[data-fav-share]') as HTMLElement | null;
+    if (favShareBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      void shareFavorites();
+      return;
+    }
     const shareTrackBtn = target.closest('[data-share-track]') as HTMLButtonElement | null;
     if (shareTrackBtn) {
       e.preventDefault();
@@ -6608,10 +6630,9 @@ function bindUi() {
       if (!action) return;
       if (action === 'fav') {
         if (!currentTrackId) return;
-        if (npFavs.has(currentTrackId)) npFavs.delete(currentTrackId);
-        else npFavs.add(currentTrackId);
-        saveFavs(npFavs);
-        btn.setAttribute('aria-pressed', npFavs.has(currentTrackId) ? 'true' : 'false');
+        toggleFavorite(currentTrackId);
+      } else if (action === 'share-favs') {
+        void shareFavorites();
       } else if (action === 'share') {
         if (currentTrackId) openShare('track', currentTrackId);
       } else if (action === 'copy-link') {
@@ -7787,6 +7808,88 @@ function saveFavs(set: Set<string>) {
   }
 }
 let npFavs = loadFavs();
+
+// Merge an incoming shared playlist (?favs=id,id,id) into the local set on load,
+// so anyone can hand a friend their rotation via a link. Runs at module eval —
+// before the first renderAlbums() — so row hearts paint correctly on first paint.
+(function importSharedFavorites() {
+  try {
+    const shared = new URLSearchParams(location.search).get('favs');
+    if (!shared) return;
+    let added = 0;
+    for (const id of shared
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean)) {
+      if (TRACK_BY_ID.has(id) && !npFavs.has(id)) {
+        npFavs.add(id);
+        added++;
+      }
+    }
+    if (added) {
+      saveFavs(npFavs);
+      // Deferred so showToast + the DOM exist after boot.
+      window.setTimeout(
+        () => showToast(`Added ${added} track${added === 1 ? '' : 's'} to your favorites`),
+        1200
+      );
+    }
+  } catch {
+    /* malformed ?favs= payload — ignore the shared set */
+  }
+})();
+
+/** True when a track is in the visitor's local favorites. */
+function isFav(id: string): boolean {
+  return npFavs.has(id);
+}
+
+/** Toggle a track's favorite state from anywhere (row heart or np-panel). */
+function toggleFavorite(id: string): void {
+  if (!TRACK_BY_ID.has(id)) return;
+  const nowFav = !npFavs.has(id);
+  if (nowFav) npFavs.add(id);
+  else npFavs.delete(id);
+  saveFavs(npFavs);
+  syncFavoriteUI(id);
+  const t = TRACK_BY_ID.get(id);
+  showToast(
+    nowFav
+      ? `♥ Saved “${t?.title ?? 'track'}” to favorites`
+      : `Removed “${t?.title ?? 'track'}” from favorites`
+  );
+}
+
+/** Reflect favorite state on every rendered control for `id` (rows + np-panel). */
+function syncFavoriteUI(id?: string): void {
+  const sel = id ? `[data-fav-track="${id}"]` : '[data-fav-track]';
+  document.querySelectorAll<HTMLElement>(sel).forEach(btn => {
+    const fav = npFavs.has(btn.dataset.favTrack!);
+    btn.classList.toggle('is-fav', fav);
+    btn.setAttribute('aria-pressed', String(fav));
+  });
+  const npFav = document.querySelector('.np-panel__action[data-np-action="fav"]');
+  if (npFav && currentTrackId) npFav.setAttribute('aria-pressed', String(npFavs.has(currentTrackId)));
+}
+
+/** Copy/share a link that reproduces the visitor's favorites for a friend. */
+async function shareFavorites(): Promise<void> {
+  if (npFavs.size === 0) {
+    showToast('Heart a few tracks first, then share them');
+    return;
+  }
+  const url = `${SITE_ORIGIN}/?favs=${Array.from(npFavs).join(',')}`;
+  try {
+    if (nativeShareSupported()) {
+      await navigator.share({ title: 'My bZ favorites', text: 'My bZ rotation — press play', url });
+    } else {
+      await navigator.clipboard.writeText(url);
+      showToast(`Copied a link to your ${npFavs.size} favorite${npFavs.size === 1 ? '' : 's'}`);
+    }
+  } catch {
+    /* user cancelled the native share sheet — no-op */
+  }
+}
 
 let npPanelRaf: number | null = null;
 
