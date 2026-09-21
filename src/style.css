@@ -1669,9 +1669,9 @@ html.is-playing .brand__logo {
   max-width: 360px;
   width: 100%;
 }
-body[data-subscribed='1'] .album-list-end {
-  display: none;
-}
+/* The end-of-list signup stays visible for EVERYONE, including already-subscribed
+   visitors — it vanishing for subscribers (the owner included) read as a bug.
+   Re-subscribing is an idempotent no-op, so there's no harm keeping it present. */
 
 .trackrow {
   display: grid;
