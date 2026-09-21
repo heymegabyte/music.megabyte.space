@@ -71,3 +71,7 @@ public/media/*.mid
 
 # Suno media collection (large, hosted separately)
 public/media/stems/
+
+# ── Claude Code runtime lock (transient state, never source-controlled) ──
+.claude/scheduled_tasks.lock
+.prodverify.ts
