@@ -310,24 +310,50 @@ export const ALBUMS: Album[] = [
 ];
 
 // ── "Listen Everywhere" links ──────────────────────────────────────────────
-// Every album surfaces a full streaming/store row (rendered by renderListenOn
-// in main.ts). Direct per-album URLs stay unstable until each platform finishes
-// ingesting the DistroKid release, so we generate per-platform SEARCH URLs keyed
-// to `bZ <album name>` — they reliably land on the now-live catalog and never
-// 404. Any explicit `links` set on an album (a direct URL once known) wins over
-// the generated default via the spread order below.
-function albumSearchLinks(name: string): NonNullable<Album['links']> {
-  const q = encodeURIComponent(`bZ ${name}`);
-  return {
-    spotify: `https://open.spotify.com/search/${q}`,
-    appleMusic: `https://music.apple.com/us/search?term=${q}`,
-    youtubeMusic: `https://music.youtube.com/search?q=${q}`,
-    amazonMusic: `https://music.amazon.com/search/${q}`,
-    tidal: `https://tidal.com/search?q=${q}`
-  };
-}
+// Verified DIRECT album URLs, resolved from authoritative sources —
+// Spotify by the KNOWN bZ artist id (no namesake risk), Apple via iTunes with
+// artist+title verification. Regenerate with `scripts/resolve-album-links.ts`.
+// Albums absent here (not yet distributed under this exact name) render the
+// search chips only. `album.links` therefore holds ONLY verified direct URLs.
+const DIRECT_ALBUM_LINKS: Record<string, NonNullable<Album['links']>> = {
+  desiiignare: {
+    spotify: 'https://open.spotify.com/album/4wYL18L5Qj2kgYSDhL1HUB',
+    appleMusic: 'https://music.apple.com/us/album/panda-desiiignare-ep/6772751697'
+  },
+  wormhole: { spotify: 'https://open.spotify.com/album/3hkKXu83pVFw8dZ8rUtIef' },
+  canopy: {
+    spotify: 'https://open.spotify.com/album/3yx3w5ycuyHDKCYa4vOB7h',
+    appleMusic: 'https://music.apple.com/us/album/canopy-dispatch-ep/6772752068'
+  },
+  canon: {
+    spotify: 'https://open.spotify.com/album/6UAEr3kyPfh3e6gvU068Un',
+    appleMusic: 'https://music.apple.com/us/album/st-johns-canon/6770141963'
+  },
+  'betelgeuse-passover': {
+    spotify: 'https://open.spotify.com/album/59OlhgPmj0TQj9UOMaIXMg',
+    appleMusic: 'https://music.apple.com/us/album/betelgeuse-passover/6810527953'
+  },
+  signals: {
+    spotify: 'https://open.spotify.com/album/24LeHxE0uRpYyKyoegbdHg',
+    appleMusic: 'https://music.apple.com/us/album/signals-from-the-other-side/6810532138'
+  },
+  'hobbit-passover': {
+    spotify: 'https://open.spotify.com/album/598CuVCWzugE0DFfaVlVZA',
+    appleMusic: 'https://music.apple.com/us/album/hobbit-passover/6810506665'
+  },
+  'flawless-execution': {
+    spotify: 'https://open.spotify.com/album/7puAYgWSkEQ058ztZHqVBn',
+    appleMusic: 'https://music.apple.com/us/album/flawless-execution/6810550627'
+  },
+  'welcome-to-the-multiverse': {
+    spotify: 'https://open.spotify.com/album/6lhB4gMsjdfSBKx9tHarya',
+    appleMusic: 'https://music.apple.com/us/album/welcome-to-the-multiverse/6811532922'
+  },
+  'reckless-grace': { spotify: 'https://open.spotify.com/album/07zoz3TAN9zfewwDQBxTzS' }
+};
 for (const album of ALBUMS) {
-  album.links = { ...albumSearchLinks(album.name), ...album.links };
+  const direct = DIRECT_ALBUM_LINKS[album.id];
+  if (direct) album.links = { ...album.links, ...direct };
 }
 
 export const TRACKS: Track[] = [

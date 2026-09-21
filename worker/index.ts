@@ -2303,6 +2303,52 @@ export default {
         return jsonResponse(result);
       }
 
+      // ── AI "story behind the song" liner note (lazy, KV-cached) ─────────
+      // Cost: 1 Workers AI Llama call (free tier) per uncached track, then a
+      // 30-day KV cache → ~$0 amortized across the 126-track catalog.
+      if (url.pathname === '/api/liner' && request.method === 'GET') {
+        const trackId = (url.searchParams.get('track') || '').trim();
+        if (!VALID_TRACK_ID.test(trackId) || !TRACK_BY_ID.has(trackId))
+          return jsonResponse({ error: 'unknown_track' }, 404, {}, request);
+        const cacheK = `liner:${trackId}#v2`;
+        const cached = await env.COUNTERS.get(cacheK);
+        if (cached)
+          return jsonResponse(
+            { liner: cached, cached: true },
+            200,
+            { 'Cache-Control': 'public, max-age=86400' },
+            request
+          );
+        if (!env.AI) return jsonResponse({ liner: null }, 200, {}, request);
+        // Light per-IP guard on the uncached (generative) path only.
+        if (await rateLimitedCount(env.COUNTERS, ip, 'liner', 'minute', 12, 60))
+          return jsonResponse({ liner: null, throttled: true }, 200, {}, request);
+        const track = TRACK_BY_ID.get(trackId)!;
+        const album = ALBUM_BY_ID.get(track.album);
+        const lyricSnippet = (track.lyrics || []).filter(Boolean).slice(0, 8).join(' / ');
+        const system =
+          "Write a short 'story behind the song' liner note for bZ's track, GROUNDED ONLY in the provided title, album, vibe, wisdom line, and lyric excerpt — interpret the song's meaning and spirit. Voice: Newark hustle-gospel, Christian-gangster ethic — hard but holy, reverent. STRICT: 2-3 sentences, ~55 words max, zero drug references. NEVER invent people, names, places, dates, or biographical events — describe what the song is ABOUT, never a made-up backstory. No preamble, no quotation marks, no markdown. Output only the note.";
+        const user = `Track: "${track.title}" from the album "${album?.name ?? 'bZ'}".\nVibe: ${track.vibe}.\nWisdom line: ${track.wisdom}.\nLyric excerpt: ${lyricSnippet}`;
+        let liner = '';
+        try {
+          const out = (await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8', {
+            messages: [
+              { role: 'system', content: system },
+              { role: 'user', content: user }
+            ],
+            max_tokens: 180,
+            temperature: 0.7
+          })) as { response?: string };
+          liner = (out.response || '').trim().replace(/^["']+|["']+$/g, '');
+        } catch {
+          liner = '';
+        }
+        if (!liner || liner.length < 20) return jsonResponse({ liner: null }, 200, {}, request);
+        // 30-day cache — liner notes are stable per track.
+        ctx.waitUntil(env.COUNTERS.put(cacheK, liner, { expirationTtl: 2592000 }));
+        return jsonResponse({ liner }, 200, { 'Cache-Control': 'public, max-age=86400' }, request);
+      }
+
       if (url.pathname === '/api/ai/chat' && request.method === 'POST') {
         if (!env.AI) return jsonResponse({ error: 'ai_not_configured' }, 503);
         // Two-tier rate limit: 8/min burst + 60/hr sustained per IP.

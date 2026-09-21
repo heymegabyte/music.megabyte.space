@@ -391,37 +391,39 @@ interface AiPickScore {
 function aiPicks(limit = 5): AiPickScore[] {
   const maxGlobal = Math.max(1, ...Array.from(playCounts.values()));
   const maxShares = Math.max(1, ...Array.from(shareCounts.values()));
-  const maxLocal = Math.max(1, ...Array.from(listenStats.values()).map(s => s.starts + s.replays));
-  const now = Date.now();
-  const RECENCY_HALF_LIFE = 7 * 24 * 60 * 60 * 1000;
 
+  // GLOBAL-ONLY ranking so Aeon's Choice is IDENTICAL on every browser — no
+  // per-device personalization (completion/recency/local plays are gone). The
+  // weighting mirrors the worker's SSR order (plays 0.73 : shares 0.27) so the
+  // client converges to the exact same server-computed rank everywhere.
   const scored: AiPickScore[] = TRACKS.map(t => {
     const gp = playCounts.get(t.id) ?? 0;
     const sh = shareCounts.get(t.id) ?? 0;
-    const ls = listenStats.get(t.id);
-    const localPlays = ls ? ls.starts + ls.replays : 0;
-    const completion = ls && ls.starts > 0 ? ls.completes / ls.starts : 0;
-    const recencyMs = ls?.lastPlayAt ? now - ls.lastPlayAt : Number.POSITIVE_INFINITY;
-    const recency = Number.isFinite(recencyMs) ? Math.exp(-recencyMs / RECENCY_HALF_LIFE) : 0;
     const globalNorm = gp / maxGlobal;
     const sharesNorm = sh / maxShares;
-    const localNorm = localPlays / maxLocal;
-    const score = globalNorm * 0.4 + completion * 0.2 + localNorm * 0.15 + sharesNorm * 0.15 + recency * 0.1;
+    const score = globalNorm * 0.73 + sharesNorm * 0.27;
     return {
       trackId: t.id,
       score,
-      parts: { global: globalNorm, completion, local: localNorm, shares: sharesNorm, recency }
+      parts: { global: globalNorm, completion: 0, local: 0, shares: sharesNorm, recency: 0 }
     };
   });
 
+  // No global stats loaded yet → use the worker's SSR order (global, same for
+  // all visitors), else canonical catalog order. Never a per-device signal.
   if (scored.every(s => s.score === 0)) {
-    return TRACKS.slice(0, limit).map((t, i) => ({
-      trackId: t.id,
-      score: 1 - i * 0.05,
+    const ssr = (window as unknown as { __AEON_SSR?: unknown }).__AEON_SSR;
+    const ssrIds = Array.isArray(ssr) ? ssr.map(String).filter(id => TRACK_BY_ID.has(id)) : [];
+    const base = ssrIds.length ? ssrIds : TRACKS.map(t => t.id);
+    return base.slice(0, limit).map((id, i) => ({
+      trackId: id,
+      score: 1 - i * 0.001,
       parts: { global: 0, completion: 0, local: 0, shares: 0, recency: 0 }
     }));
   }
 
+  // Stable tie-break by catalog index so equal-score tracks order identically
+  // across browsers (V8 sort is stable; TRACKS is the same array everywhere).
   return scored.sort((a, b) => b.score - a.score).slice(0, limit);
 }
 
@@ -1717,14 +1719,16 @@ function setupShell(root: HTMLElement) {
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Ask</span>
           </button>
-          <button class="np-panel__action" data-np-action="share-favs" data-fav-share type="button" title="Share my favorites playlist">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            <span>My favs</span>
-          </button>
         </div>
 
         <!-- Wisdom: track tagline / artist note -->
         <blockquote class="np-panel__wisdom" id="npPanelWisdom">Play a track to see its wisdom.</blockquote>
+
+        <!-- AI "story behind the song" liner note — lazily fetched per track. -->
+        <div class="np-panel__liner" id="npPanelLiner" hidden>
+          <span class="np-panel__liner-eyebrow">Story behind the song <em>· AI</em></span>
+          <p class="np-panel__liner-body" id="npPanelLinerBody"></p>
+        </div>
 
         <!-- Live lyric preview: previous + active + next line. Mirrors the
              karaoke overlay's word-perfect sync via the same activeLyrics
@@ -2223,29 +2227,44 @@ function mandalaSVG(): string {
  * Renders nothing when no links are defined so existing albums stay clean.
  * External links open in a new tab with `noopener noreferrer` per always.md.
  */
+// Recognizable per-platform glyphs (monochrome, currentColor) so each "Listen
+// on" chip is icon-only — no text label. The platform name still rides on the
+// aria-label + title for screen readers and hover.
+const PLATFORM_ICONS: Record<string, string> = {
+  spotify:
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.586 14.424a.623.623 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 1 1-.277-1.215c3.809-.871 7.077-.496 9.713 1.115a.623.623 0 0 1 .206.857zm1.223-2.722a.78.78 0 0 1-1.072.257c-2.687-1.652-6.785-2.13-9.965-1.166a.779.779 0 1 1-.453-1.491c3.632-1.102 8.147-.568 11.234 1.328a.779.779 0 0 1 .257 1.072zm.105-2.835C14.692 8.95 9.375 8.775 6.32 9.703a.935.935 0 1 1-.542-1.79c3.508-1.064 9.38-.859 13.078 1.337a.935.935 0 1 1-.955 1.607z"/></svg>',
+  apple:
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.05 12.04c-.03-2.6 2.12-3.85 2.22-3.91-1.21-1.77-3.09-2.01-3.76-2.04-1.6-.16-3.12.94-3.93.94-.81 0-2.06-.92-3.39-.89-1.74.03-3.35 1.01-4.25 2.57-1.81 3.14-.46 7.79 1.3 10.34.86 1.24 1.89 2.64 3.23 2.59 1.3-.05 1.79-.84 3.36-.84 1.57 0 2.01.84 3.39.81 1.4-.03 2.28-1.27 3.14-2.52.99-1.44 1.4-2.83 1.42-2.9-.03-.01-2.73-1.05-2.76-4.15zM14.63 4.84c.72-.87 1.2-2.08 1.07-3.29-1.03.04-2.28.69-3.02 1.56-.66.77-1.24 2-1.09 3.18 1.15.09 2.32-.58 3.04-1.45z"/></svg>',
+  youtube:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 8.4v7.2L16 12z" fill="currentColor"/></svg>',
+  amazon:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 14.5c2.4 1.9 5.1 2.9 8 2.9s5.4-1 7.2-2.5"/><path d="M17.6 15.4l2.4.2-.6 2.3"/></svg>',
+  tidal:
+    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 6l3 3-3 3-3-3zM12 6l3 3-3 3-3-3zM18 6l3 3-3 3-3-3zM12 12l3 3-3 3-3-3z"/></svg>'
+};
 function renderListenOn(album: Album): string {
-  const l = album.links;
-  if (!l) return '';
-  const entries: Array<[string, string | undefined, string]> = [
-    ['Spotify', l.spotify, 'spotify'],
-    ['Apple Music', l.appleMusic, 'apple'],
-    ['YouTube Music', l.youtubeMusic, 'youtube'],
-    ['Tidal', l.tidal, 'tidal'],
-    ['Amazon Music', l.amazonMusic, 'amazon'],
-    ['Bandcamp', l.bandcamp, 'bandcamp'],
-    ['SoundCloud', l.soundcloud, 'soundcloud']
+  const direct = album.links ?? {};
+  const name = escapeHtml(album.name);
+  // Direct, verified album links only (Spotify + Apple where resolved). Each
+  // chip is an icon-only platform glyph; the name rides on aria-label + title.
+  const platforms: Array<{ label: string; key: string; url?: string }> = [
+    { label: 'Spotify', key: 'spotify', url: direct.spotify },
+    { label: 'Apple Music', key: 'apple', url: direct.appleMusic },
+    { label: 'YouTube Music', key: 'youtube', url: direct.youtubeMusic },
+    { label: 'Amazon Music', key: 'amazon', url: direct.amazonMusic },
+    { label: 'Tidal', key: 'tidal', url: direct.tidal }
   ];
-  const present = entries.filter((entry): entry is [string, string, string] => Boolean(entry[1]));
-  if (!present.length && !l.preSave) return '';
-  const preSaveChip = l.preSave
-    ? `<a class="album__platform album__platform--presave" href="${l.preSave}" target="_blank" rel="noopener noreferrer">★ Pre-save</a>`
-    : '';
-  const chips = present
+  const chips = platforms
+    .filter((p): p is { label: string; key: string; url: string } => Boolean(p.url))
     .map(
-      ([label, href, key]) =>
-        `<a class="album__platform album__platform--${key}" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="Listen on ${label}">${label}</a>`
+      p =>
+        `<a class="album__platform album__platform--${p.key} album__platform--direct" href="${p.url}" target="_blank" rel="noopener noreferrer" aria-label="Listen to ${name} on ${p.label}" title="${p.label}">${PLATFORM_ICONS[p.key] ?? ''}</a>`
     )
     .join('');
+  const preSaveChip = direct.preSave
+    ? `<a class="album__platform album__platform--presave" href="${direct.preSave}" target="_blank" rel="noopener noreferrer" aria-label="Pre-save ${name}" title="Pre-save">★</a>`
+    : '';
+  if (!chips && !preSaveChip) return '';
   return `<div class="album__platforms" role="group" aria-label="Listen on">${preSaveChip}${chips}</div>`;
 }
 
@@ -2323,9 +2342,6 @@ function renderAlbums(host: HTMLElement) {
                   </span>
                 </span>
               </a>
-              <button class="fav-chip fav-chip--row${npFavs.has(t.id) ? ' is-fav' : ''}" type="button" data-fav-track="${t.id}" aria-pressed="${npFavs.has(t.id)}" aria-label="${npFavs.has(t.id) ? 'Remove' : 'Save'} ${t.title} ${npFavs.has(t.id) ? 'from' : 'to'} favorites">
-                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              </button>
               <button class="share-chip share-chip--row" type="button" data-share-track="${t.id}" aria-label="Share ${t.title}">
                 <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
               </button>
@@ -5872,20 +5888,6 @@ function bindUi() {
     const me = e as MouseEvent;
     if (me.metaKey || me.ctrlKey || me.shiftKey) return;
     const target = e.target as HTMLElement;
-    const favBtn = target.closest('[data-fav-track]') as HTMLButtonElement | null;
-    if (favBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleFavorite(favBtn.dataset.favTrack!);
-      return;
-    }
-    const favShareBtn = target.closest('[data-fav-share]') as HTMLElement | null;
-    if (favShareBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      void shareFavorites();
-      return;
-    }
     const shareTrackBtn = target.closest('[data-share-track]') as HTMLButtonElement | null;
     if (shareTrackBtn) {
       e.preventDefault();
@@ -6628,12 +6630,7 @@ function bindUi() {
     btn.addEventListener('click', () => {
       const action = btn.dataset.npAction;
       if (!action) return;
-      if (action === 'fav') {
-        if (!currentTrackId) return;
-        toggleFavorite(currentTrackId);
-      } else if (action === 'share-favs') {
-        void shareFavorites();
-      } else if (action === 'share') {
+      if (action === 'share') {
         if (currentTrackId) openShare('track', currentTrackId);
       } else if (action === 'copy-link') {
         if (!currentTrackId) return;
@@ -7788,106 +7785,38 @@ function showWisdomToast(track: Track) {
   }, 4400);
 }
 
-// ─── NP Panel state ─────────────────────────────────────────────────────────
-// Local favorites persist in localStorage. Heart toggle reflects this set.
-const NP_FAV_KEY = 'bz:favorites';
-function loadFavs(): Set<string> {
-  try {
-    const raw = localStorage.getItem(NP_FAV_KEY);
-    if (!raw) return new Set();
-    return new Set(JSON.parse(raw) as string[]);
-  } catch {
-    return new Set();
-  }
-}
-function saveFavs(set: Set<string>) {
-  try {
-    localStorage.setItem(NP_FAV_KEY, JSON.stringify(Array.from(set)));
-  } catch {
-    /* noop */
-  }
-}
-let npFavs = loadFavs();
-
-// Merge an incoming shared playlist (?favs=id,id,id) into the local set on load,
-// so anyone can hand a friend their rotation via a link. Runs at module eval —
-// before the first renderAlbums() — so row hearts paint correctly on first paint.
-(function importSharedFavorites() {
-  try {
-    const shared = new URLSearchParams(location.search).get('favs');
-    if (!shared) return;
-    let added = 0;
-    for (const id of shared
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean)) {
-      if (TRACK_BY_ID.has(id) && !npFavs.has(id)) {
-        npFavs.add(id);
-        added++;
-      }
-    }
-    if (added) {
-      saveFavs(npFavs);
-      // Deferred so showToast + the DOM exist after boot.
-      window.setTimeout(
-        () => showToast(`Added ${added} track${added === 1 ? '' : 's'} to your favorites`),
-        1200
-      );
-    }
-  } catch {
-    /* malformed ?favs= payload — ignore the shared set */
-  }
-})();
-
-/** True when a track is in the visitor's local favorites. */
-function isFav(id: string): boolean {
-  return npFavs.has(id);
-}
-
-/** Toggle a track's favorite state from anywhere (row heart or np-panel). */
-function toggleFavorite(id: string): void {
-  if (!TRACK_BY_ID.has(id)) return;
-  const nowFav = !npFavs.has(id);
-  if (nowFav) npFavs.add(id);
-  else npFavs.delete(id);
-  saveFavs(npFavs);
-  syncFavoriteUI(id);
-  const t = TRACK_BY_ID.get(id);
-  showToast(
-    nowFav
-      ? `♥ Saved “${t?.title ?? 'track'}” to favorites`
-      : `Removed “${t?.title ?? 'track'}” from favorites`
-  );
-}
-
-/** Reflect favorite state on every rendered control for `id` (rows + np-panel). */
-function syncFavoriteUI(id?: string): void {
-  const sel = id ? `[data-fav-track="${id}"]` : '[data-fav-track]';
-  document.querySelectorAll<HTMLElement>(sel).forEach(btn => {
-    const fav = npFavs.has(btn.dataset.favTrack!);
-    btn.classList.toggle('is-fav', fav);
-    btn.setAttribute('aria-pressed', String(fav));
-  });
-  const npFav = document.querySelector('.np-panel__action[data-np-action="fav"]');
-  if (npFav && currentTrackId) npFav.setAttribute('aria-pressed', String(npFavs.has(currentTrackId)));
-}
-
-/** Copy/share a link that reproduces the visitor's favorites for a friend. */
-async function shareFavorites(): Promise<void> {
-  if (npFavs.size === 0) {
-    showToast('Heart a few tracks first, then share them');
+// ── AI "story behind the song" liner note ────────────────────────────────────
+// Lazily fetched per track from /api/liner (Workers AI, KV-cached server-side),
+// memoized client-side, and fail-soft — if generation errors the panel simply
+// shows no liner. Rendered below the wisdom line in the now-playing panel.
+const linerCache = new Map<string, string>();
+async function loadLinerNote(trackId: string | null): Promise<void> {
+  const wrap = $('#npPanelLiner') as HTMLElement | null;
+  const bodyEl = $('#npPanelLinerBody') as HTMLElement | null;
+  if (!wrap || !bodyEl) return;
+  if (!trackId) {
+    wrap.hidden = true;
     return;
   }
-  const url = `${SITE_ORIGIN}/?favs=${Array.from(npFavs).join(',')}`;
+  const memo = linerCache.get(trackId);
+  if (memo !== undefined) {
+    bodyEl.textContent = memo;
+    wrap.hidden = !memo;
+    return;
+  }
+  wrap.hidden = true; // hide until real text arrives (generation takes ~1-3s cold)
   try {
-    if (nativeShareSupported()) {
-      await navigator.share({ title: 'My bZ favorites', text: 'My bZ rotation — press play', url });
-    } else {
-      await navigator.clipboard.writeText(url);
-      showToast(`Copied a link to your ${npFavs.size} favorite${npFavs.size === 1 ? '' : 's'}`);
+    const r = await fetch(`/api/liner?track=${encodeURIComponent(trackId)}`);
+    const d = (await r.json()) as { liner?: string | null };
+    const liner = (d.liner || '').trim();
+    linerCache.set(trackId, liner);
+    // Only render if this track is still the one on screen.
+    if (currentTrackId === trackId && liner) {
+      bodyEl.textContent = liner;
+      wrap.hidden = false;
     }
   } catch {
-    /* user cancelled the native share sheet — no-op */
+    /* fail-soft — no liner shown */
   }
 }
 
@@ -8031,6 +7960,7 @@ function refreshNpPanel() {
   if (label) label.textContent = album?.name ?? 'bZ';
   if (title) title.textContent = track?.title ?? 'Press play';
   if (wisdom) wisdom.textContent = track?.wisdom ?? 'Play a track to see its wisdom.';
+  void loadLinerNote(track?.id ?? null);
 
   // Stat chips — BPM/KEY/PLAYS, hidden when data unavailable
   const bpmChip = $('#npPanelStatBpm') as HTMLElement | null;
@@ -8072,14 +8002,6 @@ function refreshNpPanel() {
     } else {
       tagsEl.innerHTML = '';
     }
-  }
-
-  // Favorite button reflects local fav state
-  const favBtn = document.querySelector(
-    '.np-panel__action[data-np-action="fav"]'
-  ) as HTMLButtonElement | null;
-  if (favBtn && track) {
-    favBtn.setAttribute('aria-pressed', npFavs.has(track.id) ? 'true' : 'false');
   }
 
   // Smart-link platforms — Spotify/Apple/YouTube/Suno when known

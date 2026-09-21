@@ -29,8 +29,9 @@ The app is a single-page experience. The audio element is created once and persi
 | Visualizer                       | `src/visualizer.ts`                                                                      |
 | Suno WAV/MIDI/VIDEO download      | `scripts/fetch-suno-media.mjs` (`npm run media:fetch` — needs fresh `SUNO_COOKIE`)       |
 | Cinematic music video + film player | `Track.video` in `src/data.ts` → `/media/<id>.mp4` (R2); `video-cinema` overlay + `openVideoCinema` in `src/main.ts`. Gen: `~/bermuda-video/{generate,stitch}.sh` |
-| Favorites + shareable playlist   | `npFavs` in `src/main.ts` (`NP_FAV_KEY='bz:favorites'`); row hearts `data-fav-track`, `?favs=id,id` share link, np-panel "My favs". Extend this set — don't add a parallel one |
-| "Listen on" smart-link row       | `albumSearchLinks` normalization pass in `src/data.ts` (per-album search URLs, explicit `links` win) → `renderListenOn` in `src/main.ts` |
+| "Listen on" row (DIRECT links)   | `DIRECT_ALBUM_LINKS` in `src/data.ts` (verified Spotify/Apple album URLs, resolved by `scripts/resolve-album-links.ts`) → `renderListenOn` in `src/main.ts` = icon-only platform chips. DIRECT links only (no search fallbacks). Favorites/hearts feature was REMOVED 2026-09-20 — don't re-add |
+| AI liner notes ("story behind")  | `/api/liner?track=<id>` in `worker/index.ts` (Workers AI Llama, KV-cached, GROUNDED — forbid invented people/facts) → np-panel `#npPanelLiner` in `src/main.ts` |
+| Play counts + Aeon's Choice      | GLOBAL only — `playCounts`/`shareCounts` from `/api/stats` (KV, 60s edge cache); `aiPicks` ranks by global `plays×0.73+shares×0.27`, NO per-device signals, so it's identical on every browser |
 | Public stats page `/stats`       | `renderStatsPage` in `worker/index.ts` (live KV counts + MusicGroup JSON-LD, 300s edge cache); footer link + `gen-sitemap.mjs` + `validate-links.ts` SPECIAL_ROUTES |
 | Worker route or API              | `worker/index.ts`                                                                        |
 | Styles                           | `src/style.css` (one file, cascade-layered)                                              |
@@ -58,7 +59,7 @@ After deploy: purge the CF zone (`/client/v4/zones/<zone>/purge_cache`) so the r
 
 Worker reads secrets from `wrangler secret put`:
 
-- `ANTHROPIC_API_KEY` — required for `/api/ai/chat`
+- `/api/ai/chat` + `/api/liner` (AI liner notes) run on the **`env.AI` Workers AI binding** (Llama 3.x FP8) — no Anthropic key needed
 - `LISTMONK_API_TOKEN` — required for `/api/subscribe`
 - `VAPID_*` + `PUSH_ADMIN_TOKEN` — required for `/api/push/*`
 - `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` — required for `/api/merch/*`

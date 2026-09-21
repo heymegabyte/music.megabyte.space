@@ -34,16 +34,20 @@ oEmbed, and player polish. What remains needs a decision or an external unblock.
 
 ## ✅ Shipped 2026-09-20
 
-- **"Listen Everywhere" smart-link row on EVERY album** — `albumSearchLinks`
-  normalization in `src/data.ts` generates per-platform search URLs
-  (Spotify/Apple/YouTube Music/Tidal/Amazon) for all 12 albums; `renderListenOn`
-  already existed. Verified live: 60 chips. Direct album URLs remain an optional
-  upgrade once each platform finishes ingesting the DistroKid release.
-- **Row favorites + shareable playlist** — extended the existing `npFavs` set with
-  a heart on every track row + a `?favs=id,id` link (import + export via np-panel
-  "My favs"). Verified live: 126 hearts toggle/persist, `?favs=` import + toast.
+- **"Listen on" row — VERIFIED DIRECT links, icon-only.** `DIRECT_ALBUM_LINKS` in
+  `src/data.ts` (real Spotify/Apple album URLs resolved by
+  `scripts/resolve-album-links.ts` — Spotify by known artist id, Apple via iTunes
+  with artist+title verification) → `renderListenOn` renders per-platform icon
+  chips. Direct links ONLY (search fallbacks removed per Brian). 18 chips live.
 - **Public `/stats` "by the numbers" page** — worker-rendered, crawlable, live KV
   counts + MusicGroup JSON-LD, footer link + sitemap. Verified live (2,481 plays).
+- **AI liner notes** — `/api/liner?track=<id>` (Workers AI, KV-cached, GROUNDED
+  in the song's own lyrics/wisdom — forbids invented people/facts) → np-panel.
+- **Play counts + Aeon's Choice unified GLOBAL** — `aiPicks` ranks by global
+  `plays×0.73+shares×0.27` only (removed the 45% per-device signals) so the list +
+  numbers are identical on every browser. Verified: rail order == global ranking.
+- **Removed:** the favorites/heart feature entirely (row hearts, `npFavs`,
+  `?favs=` playlist share, np-panel "My favs") per Brian.
 
 ## 🟡 External blockers
 
