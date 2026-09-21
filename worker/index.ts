@@ -1935,7 +1935,9 @@ export default {
           ]);
           if (p || s) out[id] = { plays: p, shares: s };
         }
-        const resp = jsonResponse({ tracks: out }, 200, { 'Cache-Control': 'public, max-age=60' }, request);
+        // 15s edge cache (was 60s) so every browser converges on the same global
+        // counts within seconds — still cheap (one warm snapshot shared per colo).
+        const resp = jsonResponse({ tracks: out }, 200, { 'Cache-Control': 'public, max-age=15' }, request);
         ctx.waitUntil(edge.put(cacheKey, resp.clone()));
         // SSR ranking: cache the global-popularity order (plays + 3×shares) to KV
         // so the homepage <head> can inject window.__AEON_SSR for a correct

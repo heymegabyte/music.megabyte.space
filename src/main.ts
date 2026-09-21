@@ -229,7 +229,7 @@ function recordPlayStart(trackId: string) {
   stat.lastPlayAt = Date.now();
   lastPlayedAt = { id: trackId, startedAt: Date.now(), lastTime: 0, counted: false };
   persistListenStats();
-  // Surface the PWA install banner the moment a 3rd distinct song is played.
+  // Surface the PWA install banner once a 10th distinct song is played.
   maybeShowInstallAfterListen();
   // Toast-style newsletter nudge removed. Subscribe UI now lives inline
   // at every album footer + in the more-menu via `.nl-inline` widgets,
@@ -258,34 +258,6 @@ function recordTrackEnded() {
   persistListenStats();
 }
 
-/** Synchronously seed playCounts/shareCounts from the last-known /api/stats
- *  snapshot in localStorage so Aeon's Choice paints the REAL ranking on the
- *  first frame instead of the catalog-order fallback (which then visibly
- *  reshuffled seconds later when the network fetch landed). Returns true if a
- *  usable snapshot was applied. */
-function seedStatsFromCache(): boolean {
-  try {
-    const raw = localStorage.getItem(LS_KEYS.statsCache);
-    if (!raw) return false;
-    const cached = JSON.parse(raw) as { tracks?: Record<string, { plays?: number; shares?: number }> };
-    if (!cached?.tracks) return false;
-    let any = false;
-    for (const [id, c] of Object.entries(cached.tracks)) {
-      if (typeof c.plays === 'number') {
-        playCounts.set(id, c.plays);
-        any = true;
-      }
-      if (typeof c.shares === 'number') {
-        shareCounts.set(id, c.shares);
-        any = true;
-      }
-    }
-    return any;
-  } catch {
-    return false;
-  }
-}
-
 async function loadGlobalStats() {
   try {
     const res = await fetch('/api/stats');
@@ -295,12 +267,6 @@ async function loadGlobalStats() {
       for (const [id, c] of Object.entries(data.tracks)) {
         if (typeof c.plays === 'number') playCounts.set(id, c.plays);
         if (typeof c.shares === 'number') shareCounts.set(id, c.shares);
-      }
-      // Persist the snapshot so the NEXT visit pre-saturates instantly.
-      try {
-        localStorage.setItem(LS_KEYS.statsCache, JSON.stringify(data));
-      } catch {
-        /* quota */
       }
     }
     statsLoaded = true;
@@ -2245,26 +2211,55 @@ const PLATFORM_ICONS: Record<string, string> = {
 function renderListenOn(album: Album): string {
   const direct = album.links ?? {};
   const name = escapeHtml(album.name);
-  // Direct, verified album links only (Spotify + Apple where resolved). Each
-  // chip is an icon-only platform glyph; the name rides on aria-label + title.
-  const platforms: Array<{ label: string; key: string; url?: string }> = [
-    { label: 'Spotify', key: 'spotify', url: direct.spotify },
-    { label: 'Apple Music', key: 'apple', url: direct.appleMusic },
-    { label: 'YouTube Music', key: 'youtube', url: direct.youtubeMusic },
-    { label: 'Amazon Music', key: 'amazon', url: direct.amazonMusic },
-    { label: 'Tidal', key: 'tidal', url: direct.tidal }
+  const q = encodeURIComponent(`bZ ${album.name}`);
+  // ONE icon per platform for EVERY album. Uses the VERIFIED direct album URL
+  // when resolved (Spotify/Apple → accent chip); otherwise the platform's search
+  // for this album so every service is represented. Icon-only; the name + intent
+  // ride on aria-label + title.
+  const platforms: Array<{ label: string; key: string; url: string; isDirect: boolean }> = [
+    {
+      label: 'Spotify',
+      key: 'spotify',
+      url: direct.spotify ?? `https://open.spotify.com/search/${q}`,
+      isDirect: !!direct.spotify
+    },
+    {
+      label: 'Apple Music',
+      key: 'apple',
+      url: direct.appleMusic ?? `https://music.apple.com/us/search?term=${q}`,
+      isDirect: !!direct.appleMusic
+    },
+    {
+      label: 'YouTube Music',
+      key: 'youtube',
+      url: direct.youtubeMusic ?? `https://music.youtube.com/search?q=${q}`,
+      isDirect: !!direct.youtubeMusic
+    },
+    {
+      label: 'Amazon Music',
+      key: 'amazon',
+      url: direct.amazonMusic ?? `https://music.amazon.com/search/${q}`,
+      isDirect: !!direct.amazonMusic
+    },
+    {
+      label: 'Tidal',
+      key: 'tidal',
+      url: direct.tidal ?? `https://tidal.com/search?q=${q}`,
+      isDirect: !!direct.tidal
+    }
   ];
   const chips = platforms
-    .filter((p): p is { label: string; key: string; url: string } => Boolean(p.url))
-    .map(
-      p =>
-        `<a class="album__platform album__platform--${p.key} album__platform--direct" href="${p.url}" target="_blank" rel="noopener noreferrer" aria-label="Listen to ${name} on ${p.label}" title="${p.label}">${PLATFORM_ICONS[p.key] ?? ''}</a>`
-    )
+    .map(p => {
+      const cls = p.isDirect
+        ? `album__platform--${p.key} album__platform--direct`
+        : `album__platform--${p.key}`;
+      const aria = p.isDirect ? `Listen to ${name} on ${p.label}` : `Find ${name} on ${p.label}`;
+      return `<a class="album__platform ${cls}" href="${p.url}" target="_blank" rel="noopener noreferrer" aria-label="${aria}" title="${p.label}">${PLATFORM_ICONS[p.key] ?? ''}</a>`;
+    })
     .join('');
   const preSaveChip = direct.preSave
     ? `<a class="album__platform album__platform--presave" href="${direct.preSave}" target="_blank" rel="noopener noreferrer" aria-label="Pre-save ${name}" title="Pre-save">★</a>`
     : '';
-  if (!chips && !preSaveChip) return '';
   return `<div class="album__platforms" role="group" aria-label="Listen on">${preSaveChip}${chips}</div>`;
 }
 
@@ -7459,7 +7454,7 @@ function songsListenedCount(): number {
   return n;
 }
 
-const INSTALL_MIN_SONGS = 3;
+const INSTALL_MIN_SONGS = 10;
 
 /**
  * Install banner is earned by LISTENING, not visiting: only surface it once the
@@ -8330,10 +8325,10 @@ function bootstrapInitialRoute() {
 window.addEventListener('DOMContentLoaded', () => {
   const root = document.getElementById('app')!;
   loadPersisted();
-  // Pre-saturate Aeon's Choice from the cached stats snapshot BEFORE any render
-  // so the first paint shows the real ranking — no multi-second catalog-order
-  // flash that reshuffles when /api/stats lands.
-  seedStatsFromCache();
+  // Aeon's Choice first-paints from the worker SSR ranking (window.__AEON_SSR,
+  // which is GLOBAL) — NOT a per-browser localStorage snapshot. This is why the
+  // ranking + play counts are now identical on every browser instead of each
+  // browser showing its own cached history. /api/stats then fills exact counts.
   setupShell(root);
   renderAlbums($('#albums')!);
   renderNowPlaying(null);
@@ -8592,6 +8587,9 @@ window.addEventListener('DOMContentLoaded', () => {
   else setTimeout(warm, 1500);
 
   loadGlobalStats().then(() => refreshAiPlaylist());
+  // Keep every open tab converged on the GLOBAL numbers — a light re-sync so two
+  // browsers show the same counts + Aeon order within ~30s, no reload needed.
+  setInterval(() => void loadGlobalStats().then(() => refreshAiPlaylist()), 30000);
   engine.audio.addEventListener('timeupdate', () => {
     if (!currentTrackId) return;
     if (engine.audio.currentTime >= 30) reportPlay(currentTrackId);
